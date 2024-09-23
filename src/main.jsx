@@ -15,6 +15,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/" element={<CustomerManagement />}></Route>
         <Route path="/" element={<AdminLayout />}>
           <Route path="/dashboard" element={<Dashboard />}></Route>
+          <Route path="/dashboard" element={<Dashboard />}></Route>
         </Route>
       </Routes>
     </BrowserRouter>
