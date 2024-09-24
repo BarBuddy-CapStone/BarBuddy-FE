@@ -8,9 +8,15 @@ module.exports = {
   ],
   theme: {
     extend: {
-      
+      fontFamily: {
+        aBeeZee: ['aBeeZee', 'sans-serif'], // Adding aBeeZee as a custom font
+        notoSansSC: ['Noto Sans SC', 'sans-serif'], // Adding Noto Sans SC
+      },
     },
   },
   darkMode: "class",
-  plugins: [nextui(), require('@tailwindcss/aspect-ratio')],
+  plugins: [
+    nextui(),
+    require('@tailwindcss/aspect-ratio')
+  ],
 };
