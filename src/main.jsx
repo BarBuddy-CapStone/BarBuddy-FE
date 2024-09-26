@@ -8,6 +8,12 @@ import Dashboard from "./pages/admin/dashboard/DashBoard";
 import Feedback from "./pages/admin/feedback/Feedback";
 import FeedbackDetail from "./pages/admin/feedback/FeedbackDetail";
 import EmotionalCategory from "./pages/admin/emotionalCategory/EmotionalCategory";
+import TableTypeManagement from "./pages/admin/table-type-management/TableTypeManagementAdmin";
+import PaymentHistoryAdmin from "./pages/admin/payment-history/PaymentHistoryAdmin";
+import PaymentHistoryStaff from "./pages/staff/payment-history/PaymentHistoryStaff";
+import TableManagement from "./pages/staff/table-management/TableTypeManagementStaff";
+import TableManagementDetail from "./pages/staff/table-management/TableManagement";
+
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -18,6 +24,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/feedback" element={<Feedback />}></Route>
           <Route path="/feedbackdetail" element={<FeedbackDetail />}></Route>
           <Route path="/emotional" element={<EmotionalCategory />}></Route>
+          <Route path="/admin/table-type-management" element={<TableTypeManagement />}></Route>
+          <Route path="/admin/payment-history" element={<PaymentHistoryAdmin />}></Route>
+          <Route path="/staff/table-management" element={<TableManagement />}></Route>
+          <Route path="/staff/table-management-detail" element={<TableManagementDetail />}></Route>
+          <Route path="/staff/payment-history" element={<PaymentHistoryStaff />}></Route>
         </Route>
       </Routes>
     </BrowserRouter>
