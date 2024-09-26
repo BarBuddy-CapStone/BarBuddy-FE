@@ -6,17 +6,53 @@ import Star from "@mui/icons-material/Star"; // Import filled star icon
 import StarOutline from "@mui/icons-material/StarOutline"; // Import empty star icon
 
 const tableData = [
-  { rating: 1, content: "Content", createdDate: { date: "Aug 18 2021", time: "15:20:56" }, editedDate: { date: "Aug 18 2021", time: "15:20:56" }, user: "User 1", branch: "Bar Buddy1", status: "Inactive", bgColor: "bg-white" },
-  { rating: 5, content: "Content", createdDate: { date: "Aug 18 2021", time: "15:20:56" }, editedDate: { date: "Aug 18 2021", time: "15:20:56" }, user: "User 2", branch: "Bar Buddy1", status: "Active", bgColor: "bg-stone-50" },
-  { rating: 4, content: "Content", createdDate: { date: "Aug 18 2021", time: "15:20:56" }, editedDate: { date: "Aug 18 2021", time: "15:20:56" }, user: "User 3", branch: "Bar Buddy1", status: "Active", bgColor: "bg-white" },
-  { rating: 1, content: "Content", createdDate: { date: "Aug 18 2021", time: "15:20:56" }, editedDate: { date: "Aug 18 2021", time: "15:20:56" }, user: "User 4", branch: "Bar Buddy1", status: "Inactive", bgColor: "bg-stone-50" }
+  {
+    rating: 1,
+    content: "Content",
+    createdDate: { date: "Aug 18 2021", time: "15:20:56" },
+    editedDate: { date: "Aug 18 2021", time: "15:20:56" },
+    user: "User 1",
+    branch: "Bar Buddy1",
+    status: "Inactive",
+    bgColor: "bg-white",
+  },
+  {
+    rating: 5,
+    content: "Content",
+    createdDate: { date: "Aug 18 2021", time: "15:20:56" },
+    editedDate: { date: "Aug 18 2021", time: "15:20:56" },
+    user: "User 2",
+    branch: "Bar Buddy1",
+    status: "Active",
+    bgColor: "bg-stone-50",
+  },
+  {
+    rating: 4,
+    content: "Content",
+    createdDate: { date: "Aug 18 2021", time: "15:20:56" },
+    editedDate: { date: "Aug 18 2021", time: "15:20:56" },
+    user: "User 3",
+    branch: "Bar Buddy1",
+    status: "Active",
+    bgColor: "bg-white",
+  },
+  {
+    rating: 1,
+    content: "Content",
+    createdDate: { date: "Aug 18 2021", time: "15:20:56" },
+    editedDate: { date: "Aug 18 2021", time: "15:20:56" },
+    user: "User 4",
+    branch: "Bar Buddy1",
+    status: "Inactive",
+    bgColor: "bg-stone-50",
+  },
 ];
 
 function Feedback() {
   const navigate = useNavigate();
 
   const handleAddNew = () => {
-    navigate('#'); // Navigate to the add new page
+    navigate("#"); // Navigate to the add new page
   };
 
   const handleChevronClick = (index) => {
@@ -52,9 +88,10 @@ function Feedback() {
           </select>
         </div>
         {/* Add New Button */}
-        <button 
-          onClick={handleAddNew} 
-          className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm transition-all duration-150 ease-in-out hover:bg-blue-600 active:bg-blue-700">
+        <button
+          onClick={handleAddNew}
+          className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm transition-all duration-150 ease-in-out hover:bg-blue-600 active:bg-blue-700"
+        >
           Add New
         </button>
       </div>
@@ -73,8 +110,8 @@ function Feedback() {
 
       {/* Table Data */}
       {tableData.map((row, index) => (
-        <div 
-          key={index} 
+        <div
+          key={index}
           className={`grid grid-cols-8 gap-3 py-3 px-10 items-center text-sm text-black ${row.bgColor}`}
         >
           <div className="flex items-center">
@@ -95,8 +132,8 @@ function Feedback() {
           <div>{row.branch}</div>
           <div>
             {/* Conditional styling for status */}
-            <span 
-              className={`px-2 py-1 rounded-full text-white text-xs font-semibold ${
+            <span
+              className={`flex justify-center items-center w-20 px-2 py-1 rounded-full text-white text-sm font-notoSansSC ${
                 row.status === "Active" ? "bg-green-500" : "bg-red-500"
               }`}
             >
@@ -104,7 +141,10 @@ function Feedback() {
             </span>
           </div>
           {/* ChevronRight Icon for navigating */}
-          <div className="justify-self-end cursor-pointer" onClick={() => handleChevronClick(index)}>
+          <div
+            className="justify-self-end cursor-pointer"
+            onClick={() => handleChevronClick(index)}
+          >
             <ChevronRight />
           </div>
         </div>
