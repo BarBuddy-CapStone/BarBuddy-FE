@@ -48,10 +48,10 @@ const sidebarItems = [
 ];
 
 function Sidebar() {
-  const [activeItem, setActiveItem] = useState("Customers");
+  const [activeItem, setActiveItem] = useState("Tables");
 
   return (
-    <nav className="flex flex-col w-[14%] max-md:ml-0 max-md:w-full h-full min-h-screen overflow-y-auto">
+    <nav className="flex flex-col w-[14%] max-md:ml-0 max-md:w-full h-full min-h-screen overflow-y-auto border-x-0">
       <div className="flex overflow-hidden flex-col mx-auto w-full bg-white h-full">
         <div className="flex overflow-hidden gap-3 justify-between items-start py-px pl-6 bg-white max-md:pl-3">
           <div className="flex flex-col mt-5">
