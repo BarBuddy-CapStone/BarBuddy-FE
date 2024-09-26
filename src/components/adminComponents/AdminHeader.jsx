@@ -1,9 +1,26 @@
-import React from "react";
+import React from 'react';
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+import { useLocation } from 'react-router-dom';
+import headerTitle from "../../lib/service/data/constants/headerConstants"
+const getTitlePath = (pathName) => {
+  switch(pathName) {
+    case "/dashboard":
+      return headerTitle.dasboard
+
+    case "/barmanager":
+      return headerTitle.managerBarBranch
+
+    default: 
+    return 'Admin'
+  }
+}
 const AdminHeader = ({ className }) => {
+  const location = useLocation();
+  const title = getTitlePath(location.pathname)
+
   return (
     <header className={`flex justify-between items-center p-4 ${className}`}>
-      <h1 className="text-2xl font-bold text-sky-900">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-sky-900">{title}</h1>
       <div className="flex items-center space-x-4">
         <button aria-label="Notifications" className="p-1">
           <NotificationsNoneIcon fontSize="large" />
