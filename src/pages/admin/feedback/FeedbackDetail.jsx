@@ -50,13 +50,13 @@ function FeedbackDetail() {
         <div className="cursor-pointer" onClick={handleBack}>
           <ChevronLeftIcon fontSize="large" />
         </div>
-        <h1 className="flex-grow text-center">Nội Dung Đánh Giá</h1>
+        <h1 className="flex-grow text-center font-notoSansSC">Nội Dung Đánh Giá</h1>
       </header>
 
       <form className="space-y-6 w-full max-w-lg" onSubmit={handleSave}>
         {inputFields.map((field, index) => (
           <div key={index} className="flex justify-between items-center">
-            <label className="w-1/3 text-base font-medium text-black">
+            <label className="w-1/3 text-base font-medium font-notoSansSC text-black">
               {field.label}
             </label>
             <input
@@ -72,7 +72,7 @@ function FeedbackDetail() {
 
         {/* Status section with color-changing text and switch */}
         <div className="flex justify-between items-center mt-5">
-          <label className="w-1/3 text-base font-medium">Trạng thái</label>
+          <label className="w-1/3 text-base font-medium font-notoSansSC">Trạng thái</label>
           <div className="flex items-center gap-4 w-2/3">
             <Switch
               checked={isActive}
@@ -89,7 +89,7 @@ function FeedbackDetail() {
         <div className="flex justify-end mt-8">
           <button
             type="submit"
-            className="px-8 py-2 bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition-all"
+            className="px-8 py-2 font-aBeeZee italic bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition-all"
           >
             Lưu
           </button>

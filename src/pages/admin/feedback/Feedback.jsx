@@ -51,9 +51,9 @@ const tableData = [
 function Feedback() {
   const navigate = useNavigate();
 
-  const handleAddNew = () => {
-    navigate("#"); // Navigate to the add new page
-  };
+  // const handleAddNew = () => {
+  //   navigate("#"); // Navigate to the add new page
+  // };
 
   const handleChevronClick = (index) => {
     navigate(`/feedbackdetail`); // Navigate to feedback detail page with row ID
@@ -87,13 +87,13 @@ function Feedback() {
             <option>Filter by Inactive</option>
           </select>
         </div>
-        {/* Add New Button */}
-        <button
+        {/* Add New Button đang comment lại việc cho tạo feedback */}
+        {/* <button
           onClick={handleAddNew}
           className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm transition-all duration-150 ease-in-out hover:bg-blue-600 active:bg-blue-700"
         >
           Add New
-        </button>
+        </button> */}
       </div>
 
       {/* Table Headers */}
