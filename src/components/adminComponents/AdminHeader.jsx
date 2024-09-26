@@ -1,32 +1,32 @@
 import React from "react";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import { useLocation } from "react-router-dom";
-import headerTitle from "src/lib";
+import { headerConstants } from "src/lib";
 const getTitlePath = (pathName) => {
   switch (pathName) {
     case "/dashboard":
-      return headerTitle.dasboard;
+      return headerConstants.dasboard;
 
     case "/barmanager":
-      return headerTitle.managerBarBranch;
+      return headerConstants.managerBarBranch;
 
     case "/admin/table-type-management":
-      return headerTitle.tableType;
+      return headerConstants.tableType;
 
     case "/customers":
-      return headerTitle.customer;
+      return headerConstants.customer;
 
     case "/staff":
-      return headerTitle.staff;
+      return headerConstants.staff;
 
     case "/emotional":
-      return headerTitle.emotional;
+      return headerConstants.emotional;
 
     case "/managerDrink":
-      return headerTitle.drink;
+      return headerConstants.drink;
 
     case "/feedback":
-      return headerTitle.feedback;
+      return headerConstants.feedback;
 
     default:
       return "Admin";

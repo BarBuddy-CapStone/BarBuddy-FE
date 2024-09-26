@@ -1,4 +1,4 @@
-const headerTitle = {
+const headerConstants = {
     dasboard: "DASHBOARD",
     managerBarBranch: "QUẢN LÍ CHI NHÁNH BAR",
     tableType: "QUÁN LÍ BÀN" ,
@@ -6,7 +6,7 @@ const headerTitle = {
     staff: "QUẢN LÍ TÀI KHOẢN STAFF",
     emotional: "QUẢN LÍ DANH MỤC CẢM XÚC",
     drink: "QUẢN LÍ THỨC UỐNG",
-    feedback: "",
+    feedback: "QUẢN LÍ FEEDBACK",
 }
 
-export default headerTitle
+export default headerConstants
