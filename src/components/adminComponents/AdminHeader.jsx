@@ -1,22 +1,40 @@
-import React from 'react';
+import React from "react";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import { useLocation } from 'react-router-dom';
-import headerTitle from "../../lib/service/data/constants/headerConstants"
+import { useLocation } from "react-router-dom";
+import headerTitle from "src/lib";
 const getTitlePath = (pathName) => {
-  switch(pathName) {
+  switch (pathName) {
     case "/dashboard":
-      return headerTitle.dasboard
+      return headerTitle.dasboard;
 
     case "/barmanager":
-      return headerTitle.managerBarBranch
+      return headerTitle.managerBarBranch;
 
-    default: 
-    return 'Admin'
+    case "/admin/table-type-management":
+      return headerTitle.tableType;
+
+    case "/customers":
+      return headerTitle.customer;
+
+    case "/staff":
+      return headerTitle.staff;
+
+    case "/emotional":
+      return headerTitle.emotional;
+
+    case "/managerDrink":
+      return headerTitle.drink;
+
+    case "/feedback":
+      return headerTitle.feedback;
+
+    default:
+      return "Admin";
   }
-}
+};
 const AdminHeader = ({ className }) => {
   const location = useLocation();
-  const title = getTitlePath(location.pathname)
+  const title = getTitlePath(location.pathname);
 
   return (
     <header className={`flex justify-between items-center p-4 ${className}`}>

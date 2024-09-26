@@ -25,6 +25,7 @@ import DrinkCategories from "./pages/admin/managerDrink/ManagerDrink";
 import ManagerDrink from "./pages/admin/ManagerDrinkBasedCate/ManagerDrink";
 import DrinkDetail from "./pages/admin/ManagerDrinkBasedCate/DrinkDetail";
 import ManagerDrinkBasedEmotional from "./pages/admin/ManagerDrinkBasedCate/ManagerDrinkBasedEmotion";
+import AdminLayout from "./components/adminComponents/AdminLayout";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
