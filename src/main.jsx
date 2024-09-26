@@ -13,12 +13,12 @@ import PaymentHistoryAdmin from "./pages/admin/payment-history/PaymentHistoryAdm
 import PaymentHistoryStaff from "./pages/staff/payment-history/PaymentHistoryStaff";
 import TableManagement from "./pages/staff/table-management/TableTypeManagementStaff";
 import TableManagementDetail from "./pages/staff/table-management/TableManagement";
-import StaffManagement from "./pages/admin/staffs/StaffManagement";
-import StaffCreation from "./pages/admin/staffs/StaffCreation";
-import StaffDetail from "./pages/admin/staffs/StaffDetail";
-import CustomerManagement from "./pages/admin/customers/CustomerManagement";
-import CustomerCreation from "./pages/admin/customers/CustomerCreation";
-import CustomerDetail from "./pages/admin/customers/CustomerDetail";
+import StaffManagement from "./pages/staff/StaffManagement/StaffManagement";
+import StaffCreation from "./pages/staff/staffCreation/StaffCreation";
+import StaffDetail from "./pages/staff/staffDetail/StaffDetail";
+import CustomerManagement from "./pages/admin/customer/CustomerManagement";
+import CustomerCreation from "./pages/admin/customer/CustomerCreation";
+import CustomerDetail from "./pages/admin/customer/CustomerDetail";
 import BookingList from "./pages/staff/TableRegistration/BookingList";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -37,9 +37,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/staff/table-management-detail" element={<TableManagementDetail />}></Route>
           <Route path="/staff/payment-history" element={<PaymentHistoryStaff />}></Route>
           {/* Trí Đức */}
-          <Route path="/staffs" element={<StaffManagement />}></Route>
-          <Route path="/staffs/staff-creation" element={<StaffCreation/>}></Route>
-          <Route path="/staffs/staff-detail" element={<StaffDetail/>}></Route>
+          <Route path="/staff" element={<StaffManagement />}></Route>
+          <Route path="/staff/staff-creation" element={<StaffCreation/>}></Route>
+          <Route path="/staff/staff-detail" element={<StaffDetail/>}></Route>
           <Route path="/customers" element={<CustomerManagement/>}></Route>
           <Route path="/customers/customer-creation" element={<CustomerCreation/>}></Route>
           <Route path="/customers/customer-detail" element={<CustomerDetail/>}></Route>
