@@ -102,7 +102,7 @@ const TableTypeCard = ({ title, price, capacity, description }) => {
   // Navigate to the table type detail page
   const handleCardClick = () => {
     // navigate(`/table-type-detail/${encodeURIComponent(title)}`);
-    navigate(`/staff/table-management/table-type-detail`);
+    navigate(`/staff/table-management/table-list`);
   };
 
   return (
