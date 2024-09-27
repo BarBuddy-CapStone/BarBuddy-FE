@@ -67,7 +67,7 @@ const DropzoneComponent = ({ onDrop }) => {
     );
 };
 
-function DrinkDetail() {
+function AddDrink() {
 
     const [drinkName, setDrinkName] = useState('')
     const [price, setPrice] = useState('')
@@ -117,13 +117,13 @@ function DrinkDetail() {
     }
 
     const handleAddConfirm = () => {
-        console.log("Đã chỉnh sửa thành công!");
+        console.log("Đã thêm thành công!");
         setIsPopupConfirm(false);
       }
     return (
         <main className="flex flex-col items-start p-8 bg-white">
             <header className="flex justify-between items-center w-full">
-                <h1 className="self-start text-xl font-bold leading-snug text-zinc-600">Thông tin đồ uống</h1>
+                <h1 className="self-start text-xl font-bold leading-snug text-zinc-600">Thêm đồ uống</h1>
                 <div className="flex items-center" >
                     <div className="items-center px-4 py-1 rounded-md border-2 border-solid border-neutral-200 relative">
                         <div className='w-[100%] inline-flex'>
@@ -241,7 +241,7 @@ function DrinkDetail() {
                 </div>
                 <ImageGallery images={uploadedImages} onDelete={handleDelete} />
                 <button onClick={PopupConfirmAdd} className="px-16 py-2.5 mt-5 text-base font-bold text-center text-white whitespace-nowrap bg-orange-600 rounded w-[105%]">
-                    Lưu
+                    Thêm
                 </button>
                 {isPopupConfirm &&
                     <Notification
@@ -252,4 +252,4 @@ function DrinkDetail() {
     );
 }
 
-export default DrinkDetail;
+export default AddDrink;
