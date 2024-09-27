@@ -16,7 +16,8 @@
 
 .search {
   border: solid 1px;
-  border-radius: 12px;
+  border-radius: 6px;
+  border-style: dashed;
 }
 
 .iconContainer {
@@ -58,7 +59,7 @@
   display: flex;
   overflow: hidden;
   flex-direction: column;
-  margin-top: 5rem;
+  margin-top: 3rem;
   width: 100%;
   font-size: 0.875rem;
   line-height: 1.25rem;

@@ -1,50 +1,100 @@
-import React from 'react';
+import React, { Fragment, useState } from 'react';
 import { getBarData } from '../../../lib/service/barManagerService';
 import styles from './BarManagement.module.css';
+import { ChevronRight } from '@mui/icons-material';
+import { Pagination } from '@nextui-org/react';
+import { useNavigate } from 'react-router-dom';
 
 function BarManagement() {
   const barData = getBarData();
+  const redirect = useNavigate();
+  const handleChevronClick = (index) => {
+    redirect("/barmanager/barProfile")
+  }
+
+  const [search, setSearch] = useState('');
+  const [listSearchBar, setListSearchBar] = useState(barData);
+
+
+  const SearchBarHandler = () => {
+    const result = barData?.filter((bar) =>
+      bar?.name?.toLowerCase().includes(search.toLowerCase())
+    );
+    setListSearchBar(result);
+  };
+
+  const AddBarHandle = () => {
+    redirect("/barmanager/addbar")
+  }
 
   return (
-    <div className={styles.container}>
+    <Fragment>
       <div className={styles.addBarContainer}>
+        <input
+          className={styles.search}
+          type="text"
+          placeholder='Search Bar Name'
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
         
-          <input className={styles.search}type="text" placeholder='Search Bar'/>
+        <button onClick={SearchBarHandler}>
           <img loading="lazy" src="https://img.icons8.com/?size=100&id=132&format=png&color=F49B33" alt="Add icon" className={styles.icon} />
-        <button className={styles.addButton}>
+        </button>
+
+        <button className={styles.addButton} onClick={AddBarHandle}>
           Thêm quán bar
         </button>
       </div>
+
+
       <div className={styles.table}>
-        <div className={styles.tableHeader}>
-          <div className={styles.headerContent}>
-            <div className={styles.headerItem}>Tên Quán</div>
-            <div className={styles.headerItem}>Địa chỉ</div>
-            <div className={styles.headerItem}>Email</div>
-            <div className={styles.headerItem}>Số điện thoại</div>
-            <div className={styles.headerItem}>Giờ mở cửa</div>
-            <div className={styles.headerItem}>Giờ đóng cửa</div>
-            <div className={styles.headerItem}>Status</div>
-          </div>
+        <div className="grid grid-cols-8 gap-3 items-center py-4 px-10 text-sm font-bold text-black bg-neutral-200">
+          <div>Tên Quán</div>
+          <div>Địa chỉ</div>
+          <div>Email</div>
+          <div>Số điện thoại</div>
+          <div>Giờ mở cửa</div>
+          <div>Giờ đóng cửa</div>
+          <div>Trạng thái</div>
+          <div></div>
         </div>
-        {barData.map((bar, index) => (
-          <div key={index} className={styles.tableRow}>
-            <div className={styles.rowContent}>
-              <div className={styles.name}>{bar.name}</div>
-              <div className={styles.address}>{bar.address}</div>
-              <div className={styles.email}>{bar.email}</div>
-              <div className={styles.phone}>{bar.phone}</div>
-              <div className={styles.openTime}>{bar.openTime}</div>
-              <div className={styles.closeTime}>{bar.closeTime}</div>
-              <div className={styles.status}>
-                <div className={styles.statusText}>{bar.status}</div>
-                <img loading="lazy" src="https://img.icons8.com/?size=100&id=rn7VIIt8G470&format=png&color=000000" alt="Status icon" className={styles.statusIcon} />
-              </div>
+        {listSearchBar.map((bar, index) => (
+          <div
+            key={index}
+            className={`grid grid-cols-8 gap-3 py-3 px-10 items-center text-sm text-black`}
+          >
+
+            <div>{bar.name}</div>
+            <div>
+              <span>{bar.address}</span>
+            </div>
+            <div>
+              <span>{bar.email}</span>
+            </div>
+            <div>{bar.phone}</div>
+            <div>{bar.openTime}</div>
+            <div>{bar.closeTime}</div>
+            <div>
+              {/* Conditional styling for status */}
+              <span
+                className={`flex justify-center items-center w-20 px-2 py-1 rounded-full text-white text-sm font-notoSansSC ${bar.status === "Active" ? "bg-green-500" : "bg-red-500"
+                  }`}
+              >
+                {bar.status}
+              </span>
+            </div>
+            {/* ChevronRight Icon for navigating */}
+            <div
+              className="justify-self-end cursor-pointer"
+              onClick={() => handleChevronClick(index)}
+            >
+              <ChevronRight />
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </Fragment>
   );
 }
 

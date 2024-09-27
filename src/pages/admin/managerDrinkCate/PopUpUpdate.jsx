@@ -32,7 +32,7 @@ const InputField = ({ label, placeholder, isTextarea = false, value, onChange })
 };
 
 const Button = ({ children, type, variant, onClick }) => {
-  const baseClasses = "gap-2.5 self-stretch min-h-[56px] w-[100px] rounded-[64px] text-white";
+  const baseClasses = "gap-2.5 self-stretch min-h-[45px] w-[100px] rounded-[64px] text-white";
   const variantClasses = {
     primary: "bg-blue-900",
     secondary: "bg-neutral-500"
@@ -49,7 +49,7 @@ const Button = ({ children, type, variant, onClick }) => {
   );
 };
 
-const UpdDrinkCategoryForm = ({ onClose }) => {
+const UpdDrinkCategoryForm = ({ onClose, confirmUpdate }) => {
   const [categoryName, setCategoryName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -61,9 +61,16 @@ const UpdDrinkCategoryForm = ({ onClose }) => {
     onClose();
   };
 
+  const ConfirmUpdate = () => {
+    if(confirmUpdate) {
+      console.log("Update thành công")
+      onClose();
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <form onSubmit={handleSubmit} className="flex flex-col items-start px-12 pt-10 pb-20 text-black bg-white rounded-xl max-w-[530px] max-md:px-5">
+      <form onSubmit={handleSubmit} className="flex flex-col items-start px-12 pt-6 pb-12 text-black bg-white rounded-xl max-w-[530px] max-md:px-5">
         <h1 className="text-2xl text-blue-900">Chỉnh sửa danh mục đồ uống</h1>
         <InputField
           label="Tên danh mục"
@@ -74,15 +81,14 @@ const UpdDrinkCategoryForm = ({ onClose }) => {
         <InputField
           label="Mô tả"
           placeholder="Trà ngọt thanh"
-          isTextarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
-        <div className="flex gap-5 justify-between mt-14 w-full text-xl leading-none whitespace-nowrap max-md:mt-10">
+        <div className="flex gap-5 justify-between mt-7 w-full text-lg leading-none whitespace-nowrap max-md:mt-10">
           <Button type="button" variant="secondary" onClick={handleCancel}>
             Hủy
           </Button>
-          <Button type="submit" variant="primary">
+          <Button onClick={ConfirmUpdate} type="submit" variant="primary">
             Lưu
           </Button>
         </div>

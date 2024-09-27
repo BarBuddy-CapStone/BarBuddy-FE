@@ -20,13 +20,15 @@ import CustomerCreation from "./pages/admin/customer/CustomerCreation";
 import CustomerDetail from "./pages/admin/customer/CustomerDetail";
 import BookingList from "./pages/staff/TableRegistration/BookingList";
 import BarManagement from "./pages/admin/barManager/BarManagement";
-import BarBuddyProfile from "./pages/admin/dashboard/BarProfile";
-import DrinkCategories from "./pages/admin/managerDrink/ManagerDrink";
+import BarBuddyProfile from "./pages/admin/barManager/BarProfile";
+import DrinkCategories from "./pages/admin/managerDrinkCate/ManagerDrink";
 import ManagerDrink from "./pages/admin/ManagerDrinkBasedCate/ManagerDrink";
 import DrinkDetail from "./pages/admin/ManagerDrinkBasedCate/DrinkDetail";
 import ManagerDrinkBasedEmotional from "./pages/admin/ManagerDrinkBasedCate/ManagerDrinkBasedEmotion";
 import AdminLayout from "./components/adminComponents/AdminLayout";
 import StaffLayout from "./components/staffComponents/StaffLayout";
+import AddBar from "./pages/admin/barManager/AddBar";
+import AddDrink from "./pages/admin/ManagerDrinkBasedCate/AddDrink";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -50,9 +52,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/barmanager" element={<BarManagement/>}></Route>
           <Route path="/barmanager/barProfile" element={<BarBuddyProfile/>}></Route>
           <Route path="/managerDrinkCategory" element={<DrinkCategories />}></Route>
-          <Route path="/managerDrink" element={<ManagerDrink />}></Route>
+          <Route path="/managerDrinkCategory/managerDrink" element={<ManagerDrink />}></Route>
           <Route path="/managerDrink/DrinkDetail" element={<DrinkDetail />}></Route>
-          <Route path="/managerDrink/emotional" element={<ManagerDrinkBasedEmotional />}></Route>
+          <Route path="/managerDrink/addDrink" element={<AddDrink />}></Route>
+          <Route path="/emotional/drinkBaseEmotional" element={<ManagerDrinkBasedEmotional />}></Route>
+          <Route path="/barmanager/addBar" element={<AddBar />}></Route>
         </Route>
 
         {/* Route Của Staff */}
