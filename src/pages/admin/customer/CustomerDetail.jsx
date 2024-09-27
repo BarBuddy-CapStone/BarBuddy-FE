@@ -62,7 +62,7 @@ export default function CustomerDetail() {
     const navigate = useNavigate();
 
     const handleBack = () => {
-        navigate("/customers");
+        navigate("/admin/customers");
     }
     return (
         <main className="flex flex-col px-4 md:px-8 lg:px-16 py-8 w-full max-w-7xl mx-auto">

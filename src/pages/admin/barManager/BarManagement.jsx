@@ -9,7 +9,7 @@ function BarManagement() {
   const barData = getBarData();
   const redirect = useNavigate();
   const handleChevronClick = (index) => {
-    redirect("/barmanager/barProfile")
+    redirect("/admin/barProfile")
   }
 
   const [search, setSearch] = useState('');
@@ -24,7 +24,7 @@ function BarManagement() {
   };
 
   const AddBarHandle = () => {
-    redirect("/barmanager/addbar")
+    redirect("/admin/addbar")
   }
 
   return (

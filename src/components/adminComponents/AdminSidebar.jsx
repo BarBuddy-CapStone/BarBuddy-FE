@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom"; // Import Link from react-router-dom
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom"; // Import Link và useLocation
 
 const sidebarItems = [
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/d447963c0e2878906a2d47debe0689375423a1e6aae06abe9c3bb9c0f7ef8125?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
     label: "Thống Kê",
-    path: "/dashboard",
+    path: "/admin/dashboard",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/33db59cd7508c1e0722b7aac5ca349c12026693c3ac33f10f3829b08ddf4f21b?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
     label: "Chi Nhánh Bar",
-    path: "/barmanager",
+    path: "/admin/barmanager",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/de548ed0752aac144960cdb1b1ffb03ad8c3499e1187d77a7fe1d9549bf32ce0?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
@@ -20,27 +20,27 @@ const sidebarItems = [
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/a2124de1f84debf18515d926b7f3783616150e0e217e5c335c88bc2e4c8a678b?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
     label: "Khách hàng",
-    path: "/customers",
+    path: "/admin/customers",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/440ee1a0e1ebdac55864998cfca81381313813be443ef5d583612ba25030d8dd?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
     label: "Nhân viên",
-    path: "/staff",
+    path: "/admin/staff",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/3c65972de928de441937c8a84d149de0421f25b446ce8619d40ebbb8ec92d536?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
     label: "Danh mục cảm xúc",
-    path: "/emotional",
+    path: "/admin/emotional",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/04c84a327e6b5f93017f85eaea888eacfcc50195393a5722b5df28954d37c034?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
     label: "Thức uống",
-    path: "/managerDrinkCategory",
+    path: "/admin/managerDrinkCategory",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/da0eaa428bea85955e87112199b227f3c69d12e8f2859d4d5d91d7ace3f2c300?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
     label: "Đánh giá",
-    path: "/feedback",
+    path: "/admin/feedback",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/e7eb2ad337036706b7532fd40364b21565d86709be13d4e19a66ba6c3e7636bf?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
@@ -50,7 +50,17 @@ const sidebarItems = [
 ];
 
 function AdminSidebar() {
-  const [activeItem, setActiveItem] = useState("Thống Kê");
+  const location = useLocation(); // Lấy vị trí hiện tại của đường dẫn
+  const [activeItem, setActiveItem] = useState("");
+
+  // Cập nhật activeItem dựa trên đường dẫn hiện tại khi component được mount
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const currentItem = sidebarItems.find((item) => item.path === currentPath);
+    if (currentItem) {
+      setActiveItem(currentItem.label);
+    }
+  }, [location]);
 
   return (
     <nav className="flex flex-col w-[15%] max-md:ml-0 max-md:w-full h-full min-h-screen overflow-y-auto">
@@ -74,11 +84,11 @@ function AdminSidebar() {
                     className={`flex overflow-hidden gap-3 items-center px-2 py-1 mt-3 whitespace-nowrap rounded-lg cursor-pointer w-full ${
                       activeItem === item.label ? "bg-blue-100" : ""
                     }`}
-                    onClick={() => setActiveItem(item.label)}
                   >
                     <Link
                       to={item.path}
                       className="flex items-center gap-2 w-full"
+                      onClick={() => setActiveItem(item.label)}
                     >
                       <img
                         loading="lazy"

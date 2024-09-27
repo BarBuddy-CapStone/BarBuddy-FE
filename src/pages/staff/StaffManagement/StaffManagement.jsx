@@ -40,7 +40,7 @@ function StaffTableRow({ name, bar, email, phone, birthDate, status }) {
             <td className="px-4 py-2 border">{birthDate}</td>
             <td className="px-4 py-2 border">{status}</td>
             <td className="px-4 py-2 border">
-                <button className="font-bold text-black" onClick={() => navigate('/staff/staff-detail')}>Xem chi tiết</button>
+                <button className="font-bold text-black" onClick={() => navigate('/admin/staff-detail')}>Xem chi tiết</button>
             </td>
         </tr>
     );
@@ -76,7 +76,7 @@ function AddStaffButton() {
     return (
         <button
             className="overflow-hidden gap-2 self-stretch pr-6 pl-6 w-auto italic bg-blue-600 max-h-[60px] rounded-[50px] whitespace-nowrap fixed-height"
-            onClick={() => navigate('/staff/staff-creation')}
+            onClick={() => navigate('/admin/staff-creation')}
         >
             Thêm staff
         </button>

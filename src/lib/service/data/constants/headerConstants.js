@@ -11,7 +11,9 @@ const headerConstants = {
 
   // Header của Staff
   headerStaff: {
-    table: "QUẢN LÍ BÀN STAFF",
+    table: "QUẢN LÍ BÀN",
+    table_list: "DANH SÁCH ĐẶT BÀN",
+    payment_history: "THANH TOÁN"
   },
 };
 

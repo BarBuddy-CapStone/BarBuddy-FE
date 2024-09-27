@@ -72,7 +72,7 @@ function CustomerTableRow({
       <td className="px-4 py-2 border">
         <button
           className="font-bold text-black"
-          onClick={() => navigate("/customers/customer-detail")}
+          onClick={() => navigate("/admin/customer-detail")}
         >
           Xem chi tiết
         </button>
@@ -102,7 +102,7 @@ function AddCustomerButton() {
   return (
     <button
       className="overflow-hidden gap-2 self-stretch pr-6 pl-6 w-auto italic bg-blue-600 max-h-[60px] rounded-[50px] whitespace-nowrap fixed-height"
-      onClick={() => navigate("/customers/customer-creation")}
+      onClick={() => navigate("/admin/customer-creation")}
     >
       Thêm customer
     </button>

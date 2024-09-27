@@ -1,21 +1,21 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom"; // Import Link from react-router-dom
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom"; // Import useLocation
 
 const sidebarItems = [
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/5b51421817b621e58b6a1673254f2d5fb679185ca7183802dac1a797802c3426?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
     label: "Bàn",
-    path: "#",
+    path: "/staff/table-management",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/77f49d6df90bd18cb31fd9971dc279e92d749b7bda76bdc20ccec31b24e26688?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
     label: "Danh Sách Đặt Bàn",
-    path: "#",
+    path: "/staff/table-registrations",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/ee61b0e1ffecfeffb4d5eb279f86f81d5f315a19b9ecb59ec68f0a87e5bb6490?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
-    label: "Danh Sách Thanh Toán",
-    path: "#",
+    label: "Thanh Toán",
+    path: "/staff/payment-history",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/e7eb2ad337036706b7532fd40364b21565d86709be13d4e19a66ba6c3e7636bf?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
@@ -25,7 +25,17 @@ const sidebarItems = [
 ];
 
 function StaffSidebar() {
-  const [activeItem, setActiveItem] = useState("Bàn");
+  const location = useLocation(); // Lấy vị trí hiện tại của đường dẫn
+  const [activeItem, setActiveItem] = useState("");
+
+  // Cập nhật activeItem dựa trên đường dẫn hiện tại khi component được mount
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const currentItem = sidebarItems.find((item) => item.path === currentPath);
+    if (currentItem) {
+      setActiveItem(currentItem.label);
+    }
+  }, [location]);
 
   return (
     <nav className="flex flex-col w-[15%] max-md:ml-0 max-md:w-full h-full min-h-screen overflow-y-auto">
@@ -49,11 +59,11 @@ function StaffSidebar() {
                     className={`flex overflow-hidden gap-3 items-center px-2 py-1 mt-3 whitespace-nowrap rounded-lg cursor-pointer w-full ${
                       activeItem === item.label ? "bg-blue-100" : ""
                     }`}
-                    onClick={() => setActiveItem(item.label)}
                   >
                     <Link
                       to={item.path}
                       className="flex items-center gap-2 w-full"
+                      onClick={() => setActiveItem(item.label)}
                     >
                       <img
                         loading="lazy"

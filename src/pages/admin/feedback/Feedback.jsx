@@ -56,7 +56,7 @@ function Feedback() {
   // };
 
   const handleChevronClick = (index) => {
-    navigate(`/feedbackdetail`); // Navigate to feedback detail page with row ID
+    navigate(`/admin/feedbackdetail`); // Navigate to feedback detail page with row ID
   };
 
   // Function to render star rating

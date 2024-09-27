@@ -4,20 +4,17 @@ import { useLocation } from "react-router-dom";
 import { headerConstants } from "src/lib";
 const getTitlePath = (pathName) => {
   switch (pathName) {
-    case "/dashboard":
-      return headerConstants.dasboard;
+    case "/staff/table-management":
+      return headerConstants.headerStaff.table;
 
-    case "/barmanager":
-      return headerConstants.managerBarBranch;
+    case "/staff/table-management/table-list":
+      return headerConstants.headerStaff.table;
 
-    case "/admin/table-type-management":
-      return headerConstants.tableType;
+    case "/staff/table-registrations":
+      return headerConstants.headerStaff.table_list;
 
-    case "/customers":
-      return headerConstants.customer;
-
-    case "/staff":
-      return headerConstants.staff;
+    case "/staff/payment-history":
+      return headerConstants.headerStaff.payment_history;
 
     default:
       return "Staff";

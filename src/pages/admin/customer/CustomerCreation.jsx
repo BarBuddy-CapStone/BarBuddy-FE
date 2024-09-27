@@ -64,7 +64,7 @@ export default function CustomerCreation() {
     const navigate = useNavigate();
 
     const handleBack = () => {
-        navigate("/customers");
+        navigate("/admin/customers");
     }
 
     return (
