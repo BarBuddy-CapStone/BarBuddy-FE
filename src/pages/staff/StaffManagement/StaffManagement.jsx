@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SearchIcon from '@mui/icons-material/Search';
 
 // Hàm giả lập gọi API
 const fetchStaffData = async () => {
@@ -39,7 +40,7 @@ function StaffTableRow({ name, bar, email, phone, birthDate, status }) {
             <td className="px-4 py-2 border">{birthDate}</td>
             <td className="px-4 py-2 border">{status}</td>
             <td className="px-4 py-2 border">
-                <button className="font-bold text-black" onClick={() => navigate('/staffs/staff-detail')}>Xem chi tiết</button>
+                <button className="font-bold text-black" onClick={() => navigate('/staff/staff-detail')}>Xem chi tiết</button>
             </td>
         </tr>
     );
@@ -56,14 +57,15 @@ function SearchStaffName({ onSearch }) {
         <div className="flex items-center gap-3 p-1 bg-white rounded-md border border-gray-300 w-full max-w-md fixed-height">
             <input
                 type="text"
-                className="flex-grow border-none text-black"
+                className="flex-grow border-none text-black font-notoSansSC text-lg"
                 placeholder="Search staff's name"
                 aria-label="Search staff's name"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button onClick={handleSearch}>
-                <img className="object-contain w-6 h-6" loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/cd489bc186c2efdaa389942d6051382a5f532b00e1ab0fffecfefe29650e31dc?placeholderIfAbsent=true&apiKey=2f0fb41b041549e2a3975f3618160d3b" alt="" />
+                {/* <img className="object-contain w-6 h-6" loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/cd489bc186c2efdaa389942d6051382a5f532b00e1ab0fffecfefe29650e31dc?placeholderIfAbsent=true&apiKey=2f0fb41b041549e2a3975f3618160d3b" alt="" /> */}
+                <SearchIcon className='object-contain w-6 h-6 text-blue-600' />
             </button>
         </div>
     );
@@ -74,7 +76,7 @@ function AddStaffButton() {
     return (
         <button
             className="overflow-hidden gap-2 self-stretch pr-6 pl-6 w-auto italic bg-blue-600 max-h-[60px] rounded-[50px] whitespace-nowrap fixed-height"
-            onClick={() => navigate('/staffs/staff-creation')}
+            onClick={() => navigate('/staff/staff-creation')}
         >
             Thêm staff
         </button>

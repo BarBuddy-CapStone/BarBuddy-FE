@@ -45,13 +45,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/staff/table-management-detail" element={<TableManagementDetail />}></Route>
           <Route path="/staff/payment-history" element={<PaymentHistoryStaff />}></Route>
           {/* Trí Đức */}
-          <Route path="/staff" element={<StaffManagement />}></Route>
-          <Route path="/staff/staff-creation" element={<StaffCreation/>}></Route>
-          <Route path="/staff/staff-detail" element={<StaffDetail/>}></Route>
-          <Route path="/customers" element={<CustomerManagement/>}></Route>
-          <Route path="/customers/customer-creation" element={<CustomerCreation/>}></Route>
-          <Route path="/customers/customer-detail" element={<CustomerDetail/>}></Route>
-          <Route path="/table-registrations" element={<BookingList/>}></Route>
+          
           {/* Tiến */}
           <Route path="/barmanager" element={<BarManagement/>}></Route>
           <Route path="/barmanager/barProfile" element={<BarBuddyProfile/>}></Route>
@@ -62,8 +56,14 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </Route>
 
         {/* Route Của Staff */}
-        <Route path="/staff" element={<StaffLayout />}>
-        
+        <Route path="/" element={<StaffLayout />}>
+        <Route path="/staff" element={<StaffManagement />}></Route>
+          <Route path="/staff/staff-creation" element={<StaffCreation/>}></Route>
+          <Route path="/staff/staff-detail" element={<StaffDetail/>}></Route>
+          <Route path="/customers" element={<CustomerManagement/>}></Route>
+          <Route path="/customers/customer-creation" element={<CustomerCreation/>}></Route>
+          <Route path="/customers/customer-detail" element={<CustomerDetail/>}></Route>
+          <Route path="/table-registrations" element={<BookingList/>}></Route>        
         </Route>
       </Routes> 
     </BrowserRouter>

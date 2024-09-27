@@ -90,7 +90,7 @@ export default function StaffCreation() {
     const navigate = useNavigate();
 
     const handleBack = () => {
-        navigate("/staffs");
+        navigate("/staff");
     }
 
     return (
