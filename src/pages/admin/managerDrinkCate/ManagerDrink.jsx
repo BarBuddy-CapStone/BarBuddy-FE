@@ -82,7 +82,7 @@ const DrinkCategories = () => {
             </header>
             <section className="mt-11 w-full max-md:mt-10 max-md:max-w-full">
                 <div className="flex gap-5 max-md:flex-col">
-                    {drinkCategories.slice(0, 4).map((category, index) => (
+                    {drinkCategories.slice(0, 3).map((category, index) => (
                         <CategoryCard
                             key={index}
                             type={category.type}
