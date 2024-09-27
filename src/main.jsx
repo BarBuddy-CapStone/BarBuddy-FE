@@ -26,11 +26,13 @@ import ManagerDrink from "./pages/admin/ManagerDrinkBasedCate/ManagerDrink";
 import DrinkDetail from "./pages/admin/ManagerDrinkBasedCate/DrinkDetail";
 import ManagerDrinkBasedEmotional from "./pages/admin/ManagerDrinkBasedCate/ManagerDrinkBasedEmotion";
 import AdminLayout from "./components/adminComponents/AdminLayout";
+import StaffLayout from "./components/staffComponents/StaffLayout";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
+        {/* Route Của Admin */}
         <Route path="/" element={<AdminLayout />}>
           <Route path="/dashboard" element={<Dashboard />}></Route>
           <Route path="/feedback" element={<Feedback />}></Route>
@@ -57,6 +59,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/managerDrink" element={<ManagerDrink />}></Route>
           <Route path="/managerDrink/DrinkDetail" element={<DrinkDetail />}></Route>
           <Route path="/managerDrink/emotional" element={<ManagerDrinkBasedEmotional />}></Route>
+        </Route>
+
+        {/* Route Của Staff */}
+        <Route path="/staff" element={<StaffLayout />}>
+        
         </Route>
       </Routes> 
     </BrowserRouter>

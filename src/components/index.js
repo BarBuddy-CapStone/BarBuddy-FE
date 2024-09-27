@@ -1,5 +1,7 @@
 import AdminHeader from "./adminComponents/AdminHeader";
-import Sidebar from "./adminComponents/Sidebar";
+import AdminSidebar from "./adminComponents/AdminSidebar";
+import StaffHeader from "./staffComponents/StaffHeader";
+import StaffSidebar from "./staffComponents/StaffSidebar";
 import Notification from "./commonComponents/Notification";
 
-export {AdminHeader, Sidebar, Notification };
+export { AdminHeader, StaffHeader, AdminSidebar ,StaffSidebar, Notification };
