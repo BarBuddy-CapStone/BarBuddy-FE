@@ -44,7 +44,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/admin/table-type-management" element={<TableTypeManagement />}></Route>
           <Route path="/admin/payment-history" element={<PaymentHistoryAdmin />}></Route>
           <Route path="/staff/table-management" element={<TableManagement />}></Route>
-          <Route path="/staff/table-management-detail" element={<TableManagementDetail />}></Route>
+          <Route path="/staff/table-management/table-list" element={<TableManagementDetail />}></Route>
           <Route path="/staff/payment-history" element={<PaymentHistoryStaff />}></Route>
           {/* Trí Đức */}
           
