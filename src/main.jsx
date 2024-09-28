@@ -12,13 +12,13 @@ import PaymentHistoryAdmin from "./pages/admin/payment-history/PaymentHistoryAdm
 import PaymentHistoryStaff from "./pages/staff/payment-history/PaymentHistoryStaff";
 import TableManagement from "./pages/staff/table-management/TableTypeManagementStaff";
 import TableManagementDetail from "./pages/staff/table-management/TableManagement";
-import StaffManagement from "./pages/staff/StaffManagement/StaffManagement";
-import StaffCreation from "./pages/staff/staffCreation/StaffCreation";
-import StaffDetail from "./pages/staff/staffDetail/StaffDetail";
-import CustomerManagement from "./pages/admin/customer/CustomerManagement";
-import CustomerCreation from "./pages/admin/customer/CustomerCreation";
-import CustomerDetail from "./pages/admin/customer/CustomerDetail";
-import BookingList from "./pages/staff/TableRegistration/BookingList";
+import StaffManagement from "./pages/admin/staffManager/StaffManagement";
+import StaffCreation from "./pages/admin/staffManager/StaffCreation";
+import StaffDetail from "./pages/admin/staffManager/StaffDetail";
+import CustomerManagement from "./pages/admin/customerManager/CustomerManagement";
+import CustomerCreation from "./pages/admin/customerManager/CustomerCreation";
+import CustomerDetail from "./pages/admin/customerManager/CustomerDetail";
+import BookingList from "./pages/staff/table-registration/BookingList";
 import BarManagement from "./pages/admin/barManager/BarManagement";
 import BarBuddyProfile from "./pages/admin/barManager/BarProfile";
 import DrinkCategories from "./pages/admin/managerDrinkCate/ManagerDrink";
@@ -29,6 +29,7 @@ import AdminLayout from "./components/adminComponents/AdminLayout";
 import StaffLayout from "./components/staffComponents/StaffLayout";
 import AddBar from "./pages/admin/barManager/AddBar";
 import AddDrink from "./pages/admin/ManagerDrinkBasedCate/AddDrink";
+import BookingDetail from "./pages/staff/table-registration/BookingDetail";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
