@@ -36,6 +36,10 @@ const getTitlePath = (pathName) => {
 
     case "/admin/managerDrinkCategory":
       return headerConstants.drink;
+    case "/admin/managerDrinkCategory/managerDrink":
+      return headerConstants.drink;
+    case "/admin/managerDrink/DrinkDetail":
+      return headerConstants.drink;
 
     case "/admin/feedback":
       return headerConstants.feedback;

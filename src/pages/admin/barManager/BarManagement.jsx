@@ -1,20 +1,19 @@
 import React, { Fragment, useState } from 'react';
 import { getBarData } from '../../../lib/service/barManagerService';
-import styles from './BarManagement.module.css';
-import { ChevronRight } from '@mui/icons-material';
-import { Pagination } from '@nextui-org/react';
+import { ChevronRight, Search } from '@mui/icons-material';
+import { TextField, Button, Box } from '@mui/material'; // Import MUI components
 import { useNavigate } from 'react-router-dom';
 
 function BarManagement() {
   const barData = getBarData();
   const redirect = useNavigate();
+
   const handleChevronClick = (index) => {
-    redirect("/admin/barProfile")
-  }
+    redirect("/admin/barProfile");
+  };
 
   const [search, setSearch] = useState('');
   const [listSearchBar, setListSearchBar] = useState(barData);
-
 
   const SearchBarHandler = () => {
     const result = barData?.filter((bar) =>
@@ -24,68 +23,70 @@ function BarManagement() {
   };
 
   const AddBarHandle = () => {
-    redirect("/admin/addbar")
-  }
+    redirect("/admin/addbar");
+  };
 
   return (
     <Fragment>
-      <div className={styles.addBarContainer}>
-        <input
-          
-          className={styles.search}
-          type="text"
-          placeholder='Search Bar Name'
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        
-        <button onClick={SearchBarHandler}>
-          <img loading="lazy" src="https://img.icons8.com/?size=100&id=132&format=png&color=F49B33" alt="Add icon" className={styles.icon} />
-        </button>
+      <Box className="w-full p-3 border-b border-gray-300 mb-4"> {/* Separator line above search */}
+        <div className="flex items-center gap-2 max-w-full my-4">
+          <TextField
+            variant="outlined"
+            label="Search Bar Name"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-64"
+          />
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={SearchBarHandler}
+            sx={{ 
+              borderRadius: 2, // Rounded square corners
+              padding: '10px 10px', // Adjust padding for square shape
+              minWidth: '48px', // Minimum width to ensure square look
+            }}
+          >
+            <Search className='border-rad' />
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            className="text-lg italic"
+            onClick={AddBarHandle}
+          >
+            THÊM QUÁN BAR
+          </Button>
+        </div>
+      </Box>
 
-        <button className={styles.addButton} onClick={AddBarHandle}>
-          Thêm quán bar
-        </button>
-      </div>
-
-
-      <div className={styles.table}>
-        <div className="grid grid-cols-8 gap-3 items-center py-4 px-5 text-sm font-bold text-black bg-neutral-200">
+      <div className="flex flex-col overflow-hidden mt-4 w-full text-small bg-white rounded-lg shadow-lg">
+        <div className="grid grid-cols-8 gap-3 items-center py-4 px-5 font-bold font-notoSansSC bg-gray-200">
           <div>Tên Quán</div>
-          <div>Địa chỉ</div>
-          <div>Email</div>
+          <div className="col-span-2">Địa chỉ</div>
           <div>Số điện thoại</div>
           <div>Giờ mở cửa</div>
           <div>Giờ đóng cửa</div>
           <div>Trạng thái</div>
-          <div></div>
+          <div></div> {/* Empty space for chevron icon */}
         </div>
         {listSearchBar.map((bar, index) => (
           <div
             key={index}
-            className={`grid grid-cols-8 gap-3 py-3 px-5 items-center text-sm text-black`}
+            className="grid grid-cols-8 gap-3 py-3 px-5 items-center text-sm font-aBeeZee"
           >
-
             <div>{bar.name}</div>
-            <div>
-              <span>{bar.address}</span>
-            </div>
-            <div>
-              <span>{bar.email}</span>
-            </div>
+            <div className="col-span-2">{bar.address}</div>
             <div>{bar.phone}</div>
             <div>{bar.openTime}</div>
             <div>{bar.closeTime}</div>
             <div>
-              {/* Conditional styling for status */}
               <span
-                className={`flex justify-center items-center w-20 px-2 py-1 rounded-full text-white text-sm font-notoSansSC ${bar.status === "Active" ? "bg-green-500" : "bg-red-500"
-                  }`}
+                className={`flex justify-center items-center w-20 px-2 py-1 rounded-full text-white ${bar.status === "Active" ? "bg-green-500" : "bg-red-500"}`}
               >
                 {bar.status}
               </span>
             </div>
-            {/* ChevronRight Icon for navigating */}
             <div
               className="justify-self-end cursor-pointer"
               onClick={() => handleChevronClick(index)}
