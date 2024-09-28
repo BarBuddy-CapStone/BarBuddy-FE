@@ -66,7 +66,7 @@ function WineItem({
 
     const redirect = useNavigate()
     const handleChevronClick = () => {
-        redirect(`/managerDrink/DrinkDetail`);
+        redirect(`/admin/managerDrink/DrinkDetail`);
     }
     return (
         <div

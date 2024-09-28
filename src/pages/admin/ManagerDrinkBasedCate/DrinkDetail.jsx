@@ -124,9 +124,9 @@ function DrinkDetail() {
         <main className="flex flex-col items-start p-8 bg-white">
             <header className="flex justify-between items-center w-full">
                 <h1 className="self-start text-xl font-bold leading-snug text-zinc-600">Thông tin đồ uống</h1>
-                <div className="flex items-center" >
+                <div className="flex items-center">
                     <div className="items-center px-4 py-1 rounded-md border-2 border-solid border-neutral-200 relative">
-                        <div className='w-[100%] inline-flex'>
+                        <div className="w-[100%] inline-flex">
                             <img
                                 loading="lazy"
                                 src={options.find(option => option.value === status).icon}
@@ -135,30 +135,36 @@ function DrinkDetail() {
                             />
                             <button
                                 onClick={() => setIsOpen(!isOpen)}
-                                className=" px-2 py-1 border border-none rounded-md outline-none bg-white flex items-center w-full"
+                                className="px-2 py-1 border border-none rounded-md outline-none bg-white flex items-center w-full"
                             >
                                 {options.find(option => option.value === status).label}
-                                <img className='w-[18px] h-[20px] ml-2 mt-[4px]'
-                                    src={isOpen ? 'https://img.icons8.com/?size=100&id=p4GKpK6kR11d&format=png&color=000000'
-                                        : 'https://img.icons8.com/?size=100&id=wWIe68VyU6Qt&format=png&color=000000'}
-                                    alt="" />
+                                <img
+                                    className='w-[18px] h-[20px] ml-2 mt-[4px]'
+                                    src={isOpen
+                                        ? 'https://img.icons8.com/?size=100&id=p4GKpK6kR11d&format=png&color=000000'
+                                        : 'https://img.icons8.com/?size=100&id=wWIe68VyU6Qt&format=png&color=000000'
+                                    }
+                                    alt=""
+                                />
                             </button>
                             {isOpen && (
                                 <div className="absolute left-0 mt-12 bg-white border border-gray-300 rounded-md shadow-lg z-10 w-full">
-                                    {options.map(option => (
-                                        <div
-                                            key={option.value}
-                                            onClick={() => handleStatusChange(option.value)}
-                                            className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                        >
-                                            <img
-                                                src={option.icon}
-                                                alt={option.label}
-                                                className="object-contain aspect-square w-[20px] mr-2"
-                                            />
-                                            <span>{option.label}</span>
-                                        </div>
-                                    ))}
+                                    {options
+                                        .filter(option => option.value !== status) // Only show the opposite status
+                                        .map(option => (
+                                            <div
+                                                key={option.value}
+                                                onClick={() => handleStatusChange(option.value)}
+                                                className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                            >
+                                                <img
+                                                    src={option.icon}
+                                                    alt={option.label}
+                                                    className="object-contain aspect-square w-[20px] mr-2"
+                                                />
+                                                <span>{option.label}</span>
+                                            </div>
+                                        ))}
                                 </div>
                             )}
                         </div>

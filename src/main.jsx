@@ -59,10 +59,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="admin/addBar" element={<AddBar />}></Route>
 
           <Route path="admin/managerDrinkCategory" element={<DrinkCategories />}></Route>
-          <Route path="managerDrinkCategory/managerDrink" element={<ManagerDrink />}></Route>
-          <Route path="managerDrink/DrinkDetail" element={<DrinkDetail />}></Route>
-          <Route path="managerDrink/addDrink" element={<AddDrink />}></Route>
-          <Route path="emotional/drinkBaseEmotional" element={<ManagerDrinkBasedEmotional />}></Route>
+          <Route path="admin/managerDrinkCategory/managerDrink" element={<ManagerDrink />}></Route>
+          <Route path="admin/managerDrink/DrinkDetail" element={<DrinkDetail />}></Route>
+          <Route path="admin/managerDrink/addDrink" element={<AddDrink />}></Route>
+          <Route path="admin/emotional/drinkBaseEmotional" element={<ManagerDrinkBasedEmotional />}></Route>
         </Route>
 
         {/* Route Của Staff */}
