@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const CategoryCard = ({ type, description }) => {
     const redirect = useNavigate();
     const listDrinkBasedCateHandle = () => {
-        redirect("/managerDrinkCategory/managerDrink")
+        redirect("/admin/managerDrinkCategory/managerDrink")
     }
     const [isPopupUpdate, setIsPopupUpdate] = useState(false)
     const [isPopupDelete, setIsPopupDelete] = useState(false)

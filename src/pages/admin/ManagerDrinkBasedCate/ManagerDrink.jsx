@@ -8,7 +8,7 @@ function Header() {
     const redirect = useNavigate();
 
     const backCateDrinkHandle = () => {
-        redirect("/managerDrinkCategory")
+        redirect("/admin/managerDrinkCategory")
     }
 
     const AddDrinkBtn = () => {
@@ -78,14 +78,14 @@ function WineItem({
 
     const redirect = useNavigate()
     const handleChevronClick = () => {
-        redirect(`/managerDrink/DrinkDetail`);
+        redirect(`/admin/managerDrink/DrinkDetail`);
     }
     return (
         <div
             className={`grid grid-cols-9 gap-3 py-3 px-10 items-center text-sm text-black ${bgColor}`}
         >
             <div className="flex items-center">
-                {name} {/* Render star rating */}
+                {name}
             </div>
             <div>{description}</div>
             <div>
@@ -98,7 +98,6 @@ function WineItem({
             <div>{updatedAt}</div>
             <div>{category}</div>
             <div>
-                {/* Conditional styling for status */}
                 <span
                     className={`flex justify-center items-center w-20 px-2 py-1 rounded-full text-white text-sm font-notoSansSC ${status === "Active" ? "bg-green-500" : "bg-red-500"
                         }`}
@@ -106,7 +105,6 @@ function WineItem({
                     {status}
                 </span>
             </div>
-            {/* ChevronRight Icon for navigating */}
             <div
                 className="justify-self-end cursor-pointer"
                 onClick={() => handleChevronClick()}

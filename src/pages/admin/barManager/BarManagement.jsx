@@ -31,6 +31,7 @@ function BarManagement() {
     <Fragment>
       <div className={styles.addBarContainer}>
         <input
+          
           className={styles.search}
           type="text"
           placeholder='Search Bar Name'
@@ -49,7 +50,7 @@ function BarManagement() {
 
 
       <div className={styles.table}>
-        <div className="grid grid-cols-8 gap-3 items-center py-4 px-10 text-sm font-bold text-black bg-neutral-200">
+        <div className="grid grid-cols-8 gap-3 items-center py-4 px-5 text-sm font-bold text-black bg-neutral-200">
           <div>Tên Quán</div>
           <div>Địa chỉ</div>
           <div>Email</div>
@@ -62,7 +63,7 @@ function BarManagement() {
         {listSearchBar.map((bar, index) => (
           <div
             key={index}
-            className={`grid grid-cols-8 gap-3 py-3 px-10 items-center text-sm text-black`}
+            className={`grid grid-cols-8 gap-3 py-3 px-5 items-center text-sm text-black`}
           >
 
             <div>{bar.name}</div>
