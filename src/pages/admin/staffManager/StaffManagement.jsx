@@ -10,8 +10,9 @@ const fetchStaffData = async () => [
     { name: "Staff 4", bar: "Bar Buddy3", email: "barbuddy4@gmail.com", phone: "0909090909", birthDate: "19/09/2000", status: "Active" }
 ];
 
+// Các components
 const StaffTable = ({ staffData }) => (
-    <table className="min-w-full text-lg table-auto border-collapse">
+    <table className="min-w-full text-sm table-auto border-collapse">
         <StaffTableHeader />
         <tbody>
             {staffData.map((staff, index) => (
@@ -34,33 +35,54 @@ const StaffTableHeader = () => (
 const StaffTableRow = ({ staff, index }) => {
     const navigate = useNavigate();
     const rowClass = index % 2 === 0 ? "white" : "orange-50";
-    const colorStatus = staff.status === "Active" ? "text-green-500" : "text-red-500";
-    const statusColor = staff.status === "Active" ? "bg-green-500" : "bg-red-500"; // Thêm dòng này
+    const statusClass = getStatusClass(staff.status);
+    const handleViewDetail = (id) => {
+        navigate(`/admin/staff-detail?id=${id}`)
+    };
+
 
     return (
-        <tr className={`hover:bg-gray-200 transition duration-200 bg-${rowClass} border-b-2`}>
-            {Object.values(staff).map((value, idx) => (
-                <td key={idx} className={`px-4 py-6 text-center ${idx === 5 ? colorStatus : ''}`}>
-                    {idx === 5 && ( // Thêm điều kiện để hiển thị hình tròn
-                        <span className={`inline-block w-3 h-3 rounded-full ${statusColor} mr-2`}></span>
-                    )}
-                    {value}
-                </td>
-            ))}
-            <td className="px-4 py-6 text-center">
-                <button className="font-bold text-blue-600 hover:underline" onClick={() => navigate('/admin/staff-detail')}>Xem chi tiết</button>
+        <tr className={`hover:bg-gray-200 bg-${rowClass} border-b-2`}>
+            <td className="px-4 py-6 text-center">{staff.name}</td>
+            <td className="px-4 py-6 text-center">{staff.bar}</td>
+            <td className="px-4 py-6 text-center">{staff.email}</td>
+            <td className="px-4 py-6 text-center">{staff.phone}</td>
+            <td className="px-4 py-6 text-center">{staff.birthDate}</td>
+            <td className="flex justify-center items-center px-4 py-6 align-middle">
+                <div className={`flex justify-center items-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
+                    {staff.status}
+                </div>
+            </td>
+            <td className="px-4 py-6 text-center align-middle">
+                <button
+                    className="px-2 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
+                    onClick={() => handleViewDetail(staff.id)}
+                >
+                    Xem chi tiết
+                </button>
             </td>
         </tr>
     );
 };
 
+function getStatusClass(status) {
+    switch (status) {
+        case "Active":
+            return "bg-green-500 text-white";
+        case "Inactive":
+            return "bg-red-500 text-white";
+        default:
+            return "bg-gray-500 text-white";
+    }
+}
+
 const SearchStaffName = ({ onSearch }) => {
     const [searchTerm, setSearchTerm] = useState('');
     return (
-        <div className="flex items-center gap-3 bg-white rounded-md border border-gray-300 w-full max-w-md fixed-height">
+        <div className="flex items-center gap-3 bg-white rounded-md border border-gray-300 max-w-md">
             <input
                 type="text"
-                className="flex-grow border-none text-black"
+                className="flex-grow border-none px-1 py-1 text-black"
                 placeholder="Search staff's name"
                 aria-label="Search staff's name"
                 value={searchTerm}
@@ -122,6 +144,7 @@ const FilterDropdown = ({ onFilter }) => {
     );
 };
 
+// Nhóm các hàm chính
 const StaffManagement = () => {
     const [staffData, setStaffData] = useState([]);
     const [filteredStaff, setFilteredStaff] = useState([]);
@@ -158,7 +181,7 @@ const StaffManagement = () => {
     return (
         <main className="flex-1 overflow-x-hidden overflow-y-auto mr-100 bg-gray-100">
             <div className="container mx-auto px-6 py-8">
-                <div className="flex gap-5 justify-between items-center max-w-full text-lg text-center text-white w-[800px] max-md:mt-10">
+                <div className="flex gap-5 max-w-full text-base text-center text-white w-[800px] max-md:mt-10 mx-4">
                     <SearchStaffName onSearch={handleSearch} />
                     <FilterDropdown onFilter={handleFilter} />
                     <AddStaffButton />

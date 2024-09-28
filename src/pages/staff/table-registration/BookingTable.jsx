@@ -70,9 +70,10 @@ const bookings = [
 
 function BookingTableRow({ booking, isEven, onViewDetails }) {
   const rowClass = isEven ? "bg-gray-50" : "bg-white shadow-sm hover:bg-gray-100 transition duration-150";
-  const statusColor = getStatusColor(booking.status);
+  const statusClass = getStatusClass(booking.status); // Lấy lớp trạng thái từ hàm getStatusClass
+  
   return (
-    <tr className={`${rowClass} hover:bg-gray-100 transition duration-150`}>
+    <tr className={`${rowClass} text-sm hover:bg-gray-100 transition duration-150`}>
       <td className="px-4 py-6 text-center align-middle">
         {booking.id}
       </td>
@@ -88,14 +89,15 @@ function BookingTableRow({ booking, isEven, onViewDetails }) {
       <td className="px-4 py-6 text-center align-middle">
         {booking.checkInTime}
       </td>
-      <td className={`px-4 py-6 text-center break-words w-[111px] min-h-[111px] text-${statusColor}-500`}>
-        <span className={`inline-block w-3 h-3 rounded-full bg-${statusColor}-500 mr-2`}></span>
-        {booking.status}
+      <td className="flex justify-center items-center px-4 py-6 align-middle">
+        <div className={`flex justify-center items-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
+          {booking.status}
+        </div>
       </td>
       <td className="px-4 py-6 text-center align-middle">
         <button
           className="px-2 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
-          onClick={() => onViewDetails(booking.id)} // Gọi hàm khi nhấn nút
+          onClick={() => onViewDetails(booking.id)}
         >
           Xem chi tiết
         </button>
@@ -103,6 +105,7 @@ function BookingTableRow({ booking, isEven, onViewDetails }) {
     </tr>
   );
 }
+
 
 // Hàm xử lý check-in
 function handleCheckIn(id) {
@@ -116,18 +119,19 @@ function handleCancel(id) {
   // Thực hiện logic hủy booking ở đây
 }
 
-function getStatusColor(status) {
+function getStatusClass(status) {
   switch (status) {
     case "Đã đặt":
-      return "yellow"; // Màu cho trạng thái "Đã đặt"
+      return "bg-yellow-500 text-white"; // Màu cho trạng thái "Đã đặt"
     case "Hoàn thành":
-      return "green"; // Màu cho trạng thái "Hoàn thành"
+      return "bg-green-500 text-white"; // Màu cho trạng thái "Hoàn thành"
     case "Đang phục vụ":
-      return "orange"; // Màu cho trạng thái "Đang phục vụ"
+      return "bg-green-500 text-white"; // Màu xanh lá cây cho trạng thái "Đang phục vụ"
     default:
-      return "gray"; // Màu mặc định
+      return "bg-gray-500 text-white"; // Màu mặc định
   }
 }
+
 
 function BookingTable({ filter }) {
   const filteredBookings = bookings.filter(booking => {
@@ -145,7 +149,7 @@ function BookingTable({ filter }) {
 
   return (
     <div className="overflow-hidden rounded-lg shadow-md mt-8 max-md:overflow-x-auto">
-      <table className="min-w-full text-lg table-auto border-collapse">
+      <table className="min-w-full text-base table-auto border-collapse">
         <thead className="bg-white">
           <tr>
             <th className="font-bold text-neutral-900 border-b-2">Booking ID</th>
