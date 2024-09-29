@@ -98,7 +98,7 @@ const TableTypeManagementAdmin = () => {
     event.preventDefault();
 
     try {
-      const response = await axios.put(`${Config.getBaseUrl()}/TableType/${selectedTableType.tableTypeId}`, tableTypeData);
+      const response = await axios.patch(`${Config.getBaseUrl()}/TableType/${selectedTableType.tableTypeId}`, tableTypeData);
       if (response.status === 200) {
         handleNotification('Đã cập nhật loại bàn thành công', 'success');
         await fetchTableTypes();
@@ -522,7 +522,7 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
     }
 
     try {
-      const response = await axios.put(`https://localhost:7069/api/TableType/${tableType.tableTypeId}`, {
+      const response = await axios.patch(`${Config.baseUrl}/TableType/${tableType.tableTypeId}`, {
         typeName,
         description,
         minimumGuest: minGuest,

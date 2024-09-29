@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Line } from 'react-chartjs-2';
+import { useNavigate } from 'react-router-dom';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,6 +25,7 @@ ChartJS.register(
 const Dashboard = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const navigate = useNavigate();
 
   const handleFilter = () => {
     // Filter logic here
@@ -63,6 +65,11 @@ const Dashboard = () => {
     },
   };
 
+  // Handle navigation
+  const handleNavigate = () => {
+    navigate('/admin/payment-history'); // Replace with your desired route
+  };
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -71,8 +78,16 @@ const Dashboard = () => {
           <p className="text-3xl font-bold text-blue-600">50</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-2 text-gray-600">Tổng doanh thu</h3>
-          <p className="text-3xl font-bold text-green-600">10,000,000đ</p>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-600">Tổng doanh thu</h3>
+            <button
+              onClick={handleNavigate}
+              className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            >
+              Lịch sử giao dịch
+            </button>
+          </div>
+          <p className="text-3xl font-bold text-green-600 mt-2">10,000,000đ</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold mb-2 text-gray-600">Tổng khách hàng</h3>
