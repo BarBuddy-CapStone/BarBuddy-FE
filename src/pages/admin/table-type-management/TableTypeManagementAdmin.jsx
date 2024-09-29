@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios'; // Import axios for API calls
+import Config from '../../../config';
 
 const TableTypeManagementAdmin = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -10,6 +11,7 @@ const TableTypeManagementAdmin = () => {
   const [tableTypes, setTableTypes] = useState([]);
   const [notification, setNotification] = useState({ message: '', type: '' });
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+  const [resetFormTrigger, setResetFormTrigger] = useState(false);
 
   // Fetch table types from the API when the component mounts
   useEffect(() => {
@@ -18,7 +20,7 @@ const TableTypeManagementAdmin = () => {
 
   const fetchTableTypes = async () => {
     try {
-      const response = await axios.get('https://localhost:7069/api/TableType');
+      const response = await axios.get(`${Config.getBaseUrl()}/TableType`);
       const tableTypesWithIcons = response.data.map((tableType) => ({
         ...tableType,
         editIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e',
@@ -61,7 +63,7 @@ const TableTypeManagementAdmin = () => {
     if (!selectedTableType) return;
   
     try {
-      const response = await axios.delete(`https://localhost:7069/api/TableType/${selectedTableType.tableTypeId}`);
+      const response = await axios.delete(`${Config.getBaseUrl()}/TableType/${selectedTableType.tableTypeId}`);
       if (response.status === 200) {
         handleNotification('Đã xóa loại bàn thành công', 'success');
         await fetchTableTypes();
@@ -80,10 +82,11 @@ const TableTypeManagementAdmin = () => {
     event.preventDefault();
 
     try {
-      const response = await axios.post('https://localhost:7069/api/TableType', tableTypeData);
+      const response = await axios.post(`${Config.getBaseUrl()}/TableType`, tableTypeData);
       if (response.status === 201 || response.status === 200) {
         handleNotification('Đã thêm loại bàn thành công', 'success');
         await fetchTableTypes();
+        setResetFormTrigger(true);
         handleClosePopup();
       }
     } catch (error) {
@@ -95,7 +98,7 @@ const TableTypeManagementAdmin = () => {
     event.preventDefault();
 
     try {
-      const response = await axios.put(`https://localhost:7069/api/TableType/${selectedTableType.tableTypeId}`, tableTypeData);
+      const response = await axios.put(`${Config.getBaseUrl()}/TableType/${selectedTableType.tableTypeId}`, tableTypeData);
       if (response.status === 200) {
         handleNotification('Đã cập nhật loại bàn thành công', 'success');
         await fetchTableTypes();
@@ -129,7 +132,14 @@ const TableTypeManagementAdmin = () => {
           </div>
         </div>
       </div>
-      <AddTableTypePopup isOpen={isPopupOpen} onClose={handleClosePopup} onTableTypeAdded={fetchTableTypes} handleAddTableType={handleAddTableType} />
+      <AddTableTypePopup
+        isOpen={isPopupOpen}
+        onClose={handleClosePopup}
+        onTableTypeAdded={fetchTableTypes}
+        handleAddTableType={handleAddTableType}
+        resetFormTrigger={resetFormTrigger} // Pass reset trigger as a prop
+        setResetFormTrigger={setResetFormTrigger} // Pass setter to allow resetting trigger
+      />
       <DeleteTableTypePopup isOpen={isDeletePopupOpen} onClose={handleCloseDeletePopup} onDelete={handleDelete} tableType={selectedTableType} />
 
       {/* Notification Popup */}
@@ -362,12 +372,24 @@ DeleteTableTypePopup.propTypes = {
 
 
 // AddTableTypePopup component  
-const AddTableTypePopup = ({ isOpen, onClose, onTableTypeAdded, handleAddTableType }) => {
+const AddTableTypePopup = ({ isOpen, onClose, onTableTypeAdded, handleAddTableType, resetFormTrigger, setResetFormTrigger }) => {
   const [typeName, setTypeName] = useState('');
   const [description, setDescription] = useState('');
   const [minimumGuest, setMinimumGuest] = useState('');
   const [maximumGuest, setMaximumGuest] = useState('');
   const [minimumPrice, setMinimumPrice] = useState('');
+
+  // Reset form fields when the popup opens or resetFormTrigger changes
+  useEffect(() => {
+    if (isOpen || resetFormTrigger) {
+      setTypeName('');
+      setDescription('');
+      setMinimumGuest('');
+      setMaximumGuest('');
+      setMinimumPrice('');
+      setResetFormTrigger(false); // Reset the trigger after clearing the fields
+    }
+  }, [isOpen, resetFormTrigger]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -460,6 +482,8 @@ AddTableTypePopup.propTypes = {
   onClose: PropTypes.func.isRequired,
   onTableTypeAdded: PropTypes.func.isRequired,
   handleAddTableType: PropTypes.func.isRequired,
+  resetFormTrigger: PropTypes.bool.isRequired,
+  setResetFormTrigger: PropTypes.func.isRequired,
 };
 
 // EditTableTypePopup component 
