@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
+import ClipLoader from "react-spinners/ClipLoader"; // Import the loader
 
 function AddEmotionCategory({ onClose, onAddSuccess }) {
   const [emotionType, setEmotionType] = useState("");
@@ -8,14 +9,13 @@ function AddEmotionCategory({ onClose, onAddSuccess }) {
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
-    // Trigger the fade-in effect
     setShowPopup(true);
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setErrorMessage(""); // Clear previous error message
+    setErrorMessage("");
 
     try {
       const response = await createEmotionCategory({ categoryName: emotionType });
@@ -29,7 +29,6 @@ function AddEmotionCategory({ onClose, onAddSuccess }) {
     } catch (error) {
       console.error("Error adding emotion category:", error);
 
-      // Check if the error is a validation error (status 400)
       if (error.response && error.response.status === 400) {
         setErrorMessage("Category name must be between 3 and 20 characters");
       } else {
@@ -41,17 +40,15 @@ function AddEmotionCategory({ onClose, onAddSuccess }) {
   };
 
   const handleCancel = () => {
-    setShowPopup(false); // Trigger fade-out effect
+    setShowPopup(false);
     setTimeout(() => {
-      onClose(); // Close the popup after the animation ends
-    }, 180); // Match the delay to the CSS transition duration
+      onClose();
+    }, 180);
   };
 
   return (
-    <main
-      className={`flex flex-col px-8 py-8 text-black bg-white rounded-xl max-w-[400px] max-md:px-5 
-      ${showPopup ? 'popup-enter-active' : 'popup-exit-active'} popup-enter`}
-    >
+    <main className={`flex flex-col px-8 py-8 text-black bg-white rounded-xl max-w-[400px] max-md:px-5 
+      ${showPopup ? 'popup-enter-active' : 'popup-exit-active'} popup-enter`}>
       <h1 className="self-start text-xl text-blue-900 mb-4">Thêm Danh Mục Cảm Xúc</h1>
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col">
@@ -83,10 +80,10 @@ function AddEmotionCategory({ onClose, onAddSuccess }) {
           </button>
           <button
             type="submit"
-            className="w-full py-2 text-white font-semibold rounded-full bg-blue-900 hover:bg-blue-800 transition-all focus:outline-none"
+            className="w-full py-2 text-white font-semibold rounded-full bg-blue-900 hover:bg-blue-800 transition-all focus:outline-none flex justify-center items-center"
             disabled={loading}
           >
-            {loading ? "Đang thêm..." : "Thêm"}
+            {loading ? <ClipLoader size={20} color="#ffffff" /> : "Thêm"}
           </button>
         </div>
       </form>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { deleteEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService"; // Import the delete API function
+import { deleteEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
 import { toast } from "react-toastify";
+import ClipLoader from "react-spinners/ClipLoader"; // Import the spinner
 
 const DeleteEmotionCategory = ({
   emotionId,
@@ -8,34 +9,36 @@ const DeleteEmotionCategory = ({
   onConfirm,
   onCancel,
 }) => {
+  const [loading, setLoading] = useState(false); // Add loading state
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
-    // Trigger the fade-in effect on component mount
     setShowPopup(true);
   }, []);
 
   const handleCancel = () => {
-    // Trigger the fade-out effect
     setShowPopup(false);
     setTimeout(() => {
-      onCancel(); // Close the popup after the animation ends
-    }, 180); // Match the delay to the CSS transition duration
+      onCancel();
+    }, 180);
   };
 
   const handleDelete = async () => {
+    setLoading(true); // Start loading
     try {
       const response = await deleteEmotionCategory(emotionId);
       if (response.data.statusCode === 200) {
         toast.success(response.data.message);
         setShowPopup(false);
         setTimeout(() => {
-          onConfirm(); // Trigger re-fetching categories
-          onCancel(); // Close the popup
+          onConfirm();
+          onCancel();
         }, 180);
       }
     } catch (error) {
       toast.error("Có lỗi xảy ra khi xóa danh mục.");
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -48,10 +51,7 @@ const DeleteEmotionCategory = ({
         Thông báo
       </h2>
       <div className="flex flex-col">
-        <label
-          htmlFor="emotionName"
-          className="self-start italic font-aBeeZee mb-2"
-        >
+        <label htmlFor="emotionName" className="self-start italic font-aBeeZee mb-2">
           Tên loại cảm xúc
         </label>
         <input
@@ -69,14 +69,16 @@ const DeleteEmotionCategory = ({
         <button
           onClick={handleCancel}
           className="w-full py-3 text-white font-aBeeZee rounded-full bg-gray-500 hover:bg-gray-600 transition-all focus:outline-none"
+          disabled={loading} // Disable button when loading
         >
           Hủy
         </button>
         <button
           onClick={handleDelete}
-          className="w-full py-3 text-white font-aBeeZee rounded-full bg-blue-900 hover:bg-blue-800 transition-all focus:outline-none"
+          className="w-full py-3 text-white font-aBeeZee rounded-full bg-blue-900 hover:bg-blue-800 transition-all focus:outline-none flex justify-center items-center"
+          disabled={loading} // Disable button when loading
         >
-          Xác nhận
+          {loading ? <ClipLoader size={20} color="#ffffff" /> : "Xác nhận"}
         </button>
       </div>
     </section>

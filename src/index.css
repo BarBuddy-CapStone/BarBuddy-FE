@@ -25,3 +25,15 @@
   transform: scale(0.95);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
+
+/* Custom spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  border-top-color: #ffffff; /* Adjust color as needed */
+}
+

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify'; // Import toast for success/error notifications
+import { toast } from 'react-toastify';
 import { updateEmotionCategory } from 'src/lib/service/EmotionDrinkCategoryService';
+import ClipLoader from "react-spinners/ClipLoader"; // Import the spinner
 
 function EditEmotionCategory({ emotionId, emotionName, onClose, onEditSuccess }) {
   const [emotion, setEmotion] = useState(emotionName);
+  const [loading, setLoading] = useState(false); // Add loading state
   const [errorMessage, setErrorMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
-    // Trigger the fade-in effect on component mount
     setShowPopup(true);
   }, []);
 
@@ -18,16 +19,17 @@ function EditEmotionCategory({ emotionId, emotionName, onClose, onEditSuccess })
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setErrorMessage(""); // Clear previous errors
+    setErrorMessage("");
+    setLoading(true); // Start loading
 
     try {
       const response = await updateEmotionCategory(emotionId, { categoryName: emotion });
       if (response.data.statusCode === 200) {
         toast.success(response.data.message);
-        setShowPopup(false); // Trigger fade-out effect
+        setShowPopup(false);
         setTimeout(() => {
-          onEditSuccess(); // Trigger re-fetching categories
-          onClose(); // Close the popup after the animation ends
+          onEditSuccess();
+          onClose();
         }, 180);
       }
     } catch (error) {
@@ -36,13 +38,15 @@ function EditEmotionCategory({ emotionId, emotionName, onClose, onEditSuccess })
       } else {
         toast.error("Có lỗi xảy ra khi chỉnh sửa danh mục.");
       }
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
   const handleCancel = () => {
     setShowPopup(false);
     setTimeout(() => {
-      onClose(); // Close the form after the fade-out animation
+      onClose();
     }, 300);
   };
 
@@ -78,14 +82,16 @@ function EditEmotionCategory({ emotionId, emotionName, onClose, onEditSuccess })
           type="button"
           onClick={handleCancel}
           className="w-full py-3 text-white font-aBeeZee rounded-full bg-gray-500 hover:bg-gray-600 transition-all focus:outline-none"
+          disabled={loading} // Disable button when loading
         >
           Hủy
         </button>
         <button
           type="submit"
-          className="w-full py-3 text-white font-aBeeZee rounded-full bg-blue-900 hover:bg-blue-800 transition-all focus:outline-none"
+          className="w-full py-3 text-white font-aBeeZee rounded-full bg-blue-900 hover:bg-blue-800 transition-all focus:outline-none flex justify-center items-center"
+          disabled={loading} // Disable button when loading
         >
-          Lưu
+          {loading ? <ClipLoader size={20} color="#ffffff" /> : "Lưu"}
         </button>
       </div>
     </form>
