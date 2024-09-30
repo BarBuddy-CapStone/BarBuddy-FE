@@ -9,6 +9,14 @@ class TableTypeService {
     }
   }
 
+  static async getAllTableTypesAdmin(params) {
+    try {
+      return await axios.get('/api/TableType/admin', { params }); // Include status in query params
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async deleteTableType(tableTypeId) {
     try {
       return await axios.delete(`/api/TableType/${tableTypeId}`);

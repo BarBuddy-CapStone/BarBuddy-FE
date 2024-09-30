@@ -29,7 +29,6 @@ function PaymentHistory() {
         };
         const response = await PaymentHistoryService.getAllPayments(params);
         const paymentData = response.data.response.map((payment) => ({
-          // Format the data as needed
           date: new Date(payment.paymentDate).toLocaleDateString(),
           name: payment.customerName,
           total: `${payment.totalPrice.toLocaleString()} VND`,
@@ -48,7 +47,7 @@ function PaymentHistory() {
 
   const handleSearch = (params) => {
     setSearchParams(params);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
   };
 
   // Fetch bar branches
@@ -88,7 +87,6 @@ function PaymentHistory() {
       <div className="flex gap-5 max-md:flex-col">
         <main className="flex flex-col w-full max-md:ml-0 max-md:w-full">
           <div className="flex overflow-hidden flex-col py-5 pr-2 pl-5 mx-auto w-full bg-white max-md:max-w-full">
-            {/* Arrow button and page title */}
             <div className="flex items-center mb-4">
               <img
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/8193c2c7a19b0a3b80ee04ee6c2fd4a3239559cb76a7c142500d11b564d9c3ba?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e"
@@ -101,7 +99,6 @@ function PaymentHistory() {
 
             <SearchForm barBranches={barBranches} onSearch={handleSearch} />
 
-            {/* Tab Buttons */}
             <div className="flex justify-start gap-10 mt-4 max-w-full text-xl font-bold w-full max-md:w-full">
               <button
                 className={`border-b-2 ${activeTab === 'Hoàn thành' ? 'text-blue-900 border-blue-900' : 'text-gray-500'}`}
@@ -117,14 +114,12 @@ function PaymentHistory() {
               </button>
             </div>
 
-            {/* Payment Table */}
             <PaymentTable
               payments={payments}
               tabStatus={activeTab === 'Hoàn thành' ? 'Thành công' : 'Thất bại'}
               onRowClick={handleRowClick}
             />
 
-            {/* Pagination */}
             <Stack spacing={2} direction="row" justifyContent="center" alignItems="center" sx={{ mt: 2 }}>
               <Pagination
                 count={totalPages}
@@ -134,7 +129,6 @@ function PaymentHistory() {
               />
             </Stack>
 
-            {/* Modal */}
             {isModalOpen && selectedPayment && (
               <TransactionModal
                 payment={selectedPayment}
@@ -156,14 +150,11 @@ function SearchForm({ barBranches, onSearch }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
 
-  // Check if any field has a value to control the "Xóa bộ lọc" button
   const isAnyFieldFilled = transactionDate || selectedBranch !== 'null' || customerName || phoneNumber || email;
 
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Prepare the search parameters
     const searchParams = {
       CustomerName: customerName || null,
       PhoneNumber: phoneNumber || null,
@@ -172,18 +163,16 @@ function SearchForm({ barBranches, onSearch }) {
       PaymentDate: transactionDate || null,
     };
 
-    // Call the onSearch function passed as a prop
     onSearch(searchParams);
   };
 
-  // Handle resetting the form and search parameters
   const handleReset = () => {
     setTransactionDate('');
     setSelectedBranch('null');
     setCustomerName('');
     setPhoneNumber('');
     setEmail('');
-    onSearch({}); // Call onSearch with an empty object to reset search parameters
+    onSearch({});
   };
 
   return (
@@ -195,7 +184,6 @@ function SearchForm({ barBranches, onSearch }) {
         * Bạn có thể tìm kiếm/xem (các) đặt chỗ bằng cách nhập một hoặc nhiều thông tin này
       </p>
 
-      {/* Flex container for inputs */}
       <div className="flex flex-wrap gap-4 justify-between w-full mt-3">
         {/* Full Name */}
         <div className="flex flex-1 flex-wrap items-center">
@@ -375,7 +363,7 @@ function PaymentTable({ payments, tabStatus, onRowClick }) {
               <span>Thanh toán {payment.status}</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-left">  {/* Added grid gap for better spacing */}
+          <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-left"> 
             <div>
               <p className="font-bold mb-2">Thời gian giao dịch</p>
               <p>{payment.time}</p>
@@ -415,8 +403,8 @@ function PaymentTable({ payments, tabStatus, onRowClick }) {
 
 // Modal
 TransactionModal.propTypes = {
-  payment: PropTypes.object.isRequired, // Xác thực payment là một object và là bắt buộc
-  onClose: PropTypes.func.isRequired, // Xác thực onClose là một function và là bắt buộc
+  payment: PropTypes.object.isRequired, 
+  onClose: PropTypes.func.isRequired,
 };
 
 export default PaymentHistory;

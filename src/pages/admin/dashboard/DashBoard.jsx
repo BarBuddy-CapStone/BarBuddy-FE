@@ -81,11 +81,12 @@ const Dashboard = () => {
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-gray-600">Tổng doanh thu</h3>
             <button
-              onClick={handleNavigate}
-              className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            onClick={handleNavigate}
+            className="flex items-center gap-2 px-4 py-2 text-base text-black bg-white rounded-md border border-blue-500 shadow hover:bg-gray-300 w-full md:w-auto"
             >
-              Lịch sử giao dịch
-            </button>
+            <span>Lịch sử giao dịch</span>
+          </button>
+
           </div>
           <p className="text-3xl font-bold text-green-600 mt-2">10,000,000đ</p>
         </div>

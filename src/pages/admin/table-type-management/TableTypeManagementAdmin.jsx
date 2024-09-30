@@ -11,13 +11,15 @@ const TableTypeManagementAdmin = () => {
   const [tableTypes, setTableTypes] = useState([]);
   const [resetFormTrigger, setResetFormTrigger] = useState(false);
 
+  const [status, setStatus] = useState(0);
+
   useEffect(() => {
     fetchTableTypes();
-  }, []);
+  }, [status]); 
 
   const fetchTableTypes = useCallback(async () => {
     try {
-      const response = await TableTypeService.getAllTableTypes();
+      const response = await TableTypeService.getAllTableTypesAdmin({ Status: status });
       setTableTypes(response.data.map((tableType) => ({
         ...tableType,
         editIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb',
@@ -26,7 +28,7 @@ const TableTypeManagementAdmin = () => {
     } catch {
       notify('Error fetching table types', 'error');
     }
-  }, []);
+  }, [status]);
 
   const notify = (message, type = 'success') => toast[type](message);
 
@@ -75,68 +77,86 @@ const TableTypeManagementAdmin = () => {
 
   const handleSearchChange = (event) => setSearchTerm(event.target.value);
 
+  const handleStatusChange = (event) => {
+    setStatus(parseInt(event.target.value, 10));
+  };
+
   const filteredTableTypes = tableTypes.filter((tableType) =>
     tableType.typeName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
-      <div className="flex flex-col gap-6 max-md:flex-col">
-        <BelowHeader onAddTableType={() => handlePopup(true)} searchTerm={searchTerm} onSearchChange={handleSearchChange} />
-        <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
-          <TableTypeList
-            tableTypes={filteredTableTypes}
-            onOpenDeletePopup={(tableType) => handleDeletePopup(true, tableType)}
-            onTableTypeUpdated={fetchTableTypes}
-            notify={notify}
-          />
-        </div>
-      </div>
-      <AddTableTypePopup
-        isOpen={isPopupOpen}
-        onClose={() => handlePopup(false)}
-        handleAddTableType={handleAddTableType}
-        resetFormTrigger={resetFormTrigger}
-        setResetFormTrigger={setResetFormTrigger}
+  <div className="flex flex-col gap-0 max-md:flex-col">
+    <BelowHeader 
+      onAddTableType={() => handlePopup(true)} 
+      searchTerm={searchTerm} 
+      onSearchChange={handleSearchChange}
+      status={status} 
+      onStatusChange={handleStatusChange} 
+    />
+    <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
+      <TableTypeList
+        tableTypes={filteredTableTypes}
+        onOpenDeletePopup={(tableType) => handleDeletePopup(true, tableType)}
+        onTableTypeUpdated={fetchTableTypes}
+        notify={notify}
       />
-      <DeleteTableTypePopup
-        isOpen={isDeletePopupOpen}
-        onClose={() => handleDeletePopup(false)}
-        onDelete={handleDelete}
-        tableType={selectedTableType}
-      />
-    </main>
+    </div>
+  </div>
+  <AddTableTypePopup
+    isOpen={isPopupOpen}
+    onClose={() => handlePopup(false)}
+    handleAddTableType={handleAddTableType}
+    resetFormTrigger={resetFormTrigger}
+    setResetFormTrigger={setResetFormTrigger}
+  />
+  <DeleteTableTypePopup
+    isOpen={isDeletePopupOpen}
+    onClose={() => handleDeletePopup(false)}
+    onDelete={handleDelete}
+    tableType={selectedTableType}
+  />
+</main>
+
   );
 };
 
-const BelowHeader = ({ onAddTableType, searchTerm, onSearchChange }) => (
-  <div className="flex items-center justify-between ml-4 mr-4 mt-6">
+const BelowHeader = ({ onAddTableType, searchTerm, onSearchChange, status, onStatusChange }) => (
+  <div className="flex flex-col md:flex-row items-center justify-between ml-4 mr-4 mt-6 gap-4">
     <input
       type="text"
       placeholder="Tìm kiếm loại bàn..."
       value={searchTerm}
       onChange={onSearchChange}
-      className="px-4 py-2 border rounded-full w-1/6"
+      className="px-4 py-2 border border-blue-500 rounded-full w-full md:w-1/3"
     />
-    <button
-      onClick={onAddTableType}
-      className="flex items-center gap-2 px-4 py-2 text-base text-black bg-white rounded-md border border-blue-500 shadow hover:bg-gray-300"
-    >
-      <img
-        src="https://cdn.builder.io/api/v1/image/assets/TEMP/05719b0bc8adf147a0e97f780bea0ba2d2f701cac417ada50303bc5f38458fc4"
-        alt="Add"
-        className="object-contain w-4 h-4 align-middle"
-      />
-      <span>Thêm loại bàn</span>
-    </button>
+
+    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-10 w-full md:w-auto">
+      <select
+        value={status}
+        onChange={onStatusChange}
+        className="px-4 py-2 border border-blue-500 rounded-full w-full md:w-auto pr-8"
+      >
+        <option value={0}>Tất cả</option>
+        <option value={1}>Loại bàn đang được sử dụng</option>
+        <option value={2}>Loại bàn không được sử dụng</option>
+      </select>
+
+      <button
+        onClick={onAddTableType}
+        className="flex items-center gap-2 px-4 py-2 text-base text-black bg-white rounded-md border border-blue-500 shadow hover:bg-gray-300 w-full md:w-auto" // Đặt rộng full khi ở màn hình nhỏ
+      >
+        <img
+          src="https://cdn.builder.io/api/v1/image/assets/TEMP/05719b0bc8adf147a0e97f780bea0ba2d2f701cac417ada50303bc5f38458fc4"
+          alt="Add"
+          className="object-contain w-4 h-4 align-middle"
+        />
+        <span>Thêm loại bàn</span>
+      </button>
+    </div>
   </div>
 );
-
-BelowHeader.propTypes = {
-  onAddTableType: PropTypes.func.isRequired,
-  searchTerm: PropTypes.string.isRequired,
-  onSearchChange: PropTypes.func.isRequired,
-};
 
 // TableTypeList component
 // const tableTypes = [
@@ -211,13 +231,6 @@ const TableTypeList = ({ tableTypes, onOpenDeletePopup, onTableTypeUpdated, noti
       )}
     </section>
   );
-};
-
-TableTypeList.propTypes = {
-  tableTypes: PropTypes.array.isRequired,
-  onOpenDeletePopup: PropTypes.func.isRequired,
-  onTableTypeUpdated: PropTypes.func.isRequired,
-  notify: PropTypes.func.isRequired,
 };
 
 TableTypeList.propTypes = {
@@ -601,7 +614,7 @@ EditTableTypePopup.propTypes = {
   onClose: PropTypes.func.isRequired,
   tableType: PropTypes.object.isRequired,
   onTableTypeUpdated: PropTypes.func.isRequired,
-  handleNotification: PropTypes.func.isRequired, // Thêm prop này để đảm bảo hàm handleNotification được truyền vào
+  handleNotification: PropTypes.func.isRequired,
 };
 
 export default TableTypeManagementAdmin;
