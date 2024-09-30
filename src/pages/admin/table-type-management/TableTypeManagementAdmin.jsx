@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import axios from 'axios'; // Import axios for API calls
-import Config from '../../../config';
+import TableTypeService from '../../../lib/service/tableTypeService';
+import { toast } from 'react-toastify';
 
 const TableTypeManagementAdmin = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -9,109 +9,71 @@ const TableTypeManagementAdmin = () => {
   const [selectedTableType, setSelectedTableType] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [tableTypes, setTableTypes] = useState([]);
-  const [notification, setNotification] = useState({ message: '', type: '' });
-  const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [resetFormTrigger, setResetFormTrigger] = useState(false);
 
-  // Fetch table types from the API when the component mounts
   useEffect(() => {
     fetchTableTypes();
   }, []);
 
-  const fetchTableTypes = async () => {
+  const fetchTableTypes = useCallback(async () => {
     try {
-      const response = await axios.get(`${Config.getBaseUrl()}/TableType`);
-      const tableTypesWithIcons = response.data.map((tableType) => ({
+      const response = await TableTypeService.getAllTableTypes();
+      setTableTypes(response.data.map((tableType) => ({
         ...tableType,
-        editIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e',
-        deleteIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e',
-      }));
-      setTableTypes(tableTypesWithIcons);
-    } catch (error) {
-      handleNotification('Error fetching table types', 'error');
+        editIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb',
+        deleteIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e',
+      })));
+    } catch {
+      notify('Error fetching table types', 'error');
     }
+  }, []);
+
+  const notify = (message, type = 'success') => toast[type](message);
+
+  const handlePopup = (isOpen, type = null) => {
+    setIsPopupOpen(isOpen);
+    if (type) setSelectedTableType(type);
   };
 
-  const handleNotification = (message, type) => {
-    setNotification({ message, type });
-    setIsNotificationVisible(true);
-
-    setTimeout(() => {
-      setIsNotificationVisible(false);
-    }, 5000);
-  };
-
-  const handleOpenPopup = () => {
-    setIsPopupOpen(true);
-  };
-
-  const handleClosePopup = () => {
-    setIsPopupOpen(false);
-  };
-
-  const handleOpenDeletePopup = (tableType) => {
-    setSelectedTableType(tableType);
-    setIsDeletePopupOpen(true);
-  };
-
-  const handleCloseDeletePopup = () => {
-    setIsDeletePopupOpen(false);
-    setSelectedTableType(null);
+  const handleDeletePopup = (isOpen, tableType = null) => {
+    setIsDeletePopupOpen(isOpen);
+    if (tableType) setSelectedTableType(tableType);
   };
 
   const handleDelete = async () => {
     if (!selectedTableType) return;
-  
+
     try {
-      const response = await axios.delete(`${Config.getBaseUrl()}/TableType/${selectedTableType.tableTypeId}`);
+      const response = await TableTypeService.deleteTableType(selectedTableType.tableTypeId);
       if (response.status === 200) {
-        handleNotification('Đã xóa loại bàn thành công', 'success');
-        await fetchTableTypes();
+        notify('Đã xóa loại bàn thành công');
+        fetchTableTypes();
       } else if (response.status === 202) {
-        handleNotification(response.data || 'Vẫn còn bàn đang hoạt động thuộc loại bàn này, vui lòng cập nhật lại tất cả bàn của các chi nhánh trước khi xóa loại bàn này', 'warning');
+        notify(response.data.message || 'Vẫn còn bàn đang hoạt động thuộc loại bàn này, vui lòng cập nhật lại trước khi xóa.', 'warning');
+      } else {
+        notify('Có lỗi xảy ra trong quá trình xóa loại bàn', 'error');
       }
     } catch (error) {
-      handleNotification(error.response?.data || 'Error deleting table type', 'error');
+      notify(error.response?.data || 'Error deleting table type', 'error');
     } finally {
-      setIsDeletePopupOpen(false);
-      setSelectedTableType(null);
+      handleDeletePopup(false);
     }
   };
 
   const handleAddTableType = async (event, tableTypeData) => {
     event.preventDefault();
-
     try {
-      const response = await axios.post(`${Config.getBaseUrl()}/TableType`, tableTypeData);
-      if (response.status === 201 || response.status === 200) {
-        handleNotification('Đã thêm loại bàn thành công', 'success');
-        await fetchTableTypes();
-        setResetFormTrigger(true);
-        handleClosePopup();
-      }
+      await TableTypeService.addTableType(tableTypeData);
+      notify('Đã thêm loại bàn thành công');
+      fetchTableTypes();
+      setResetFormTrigger(true);
+      handlePopup(false);
     } catch (error) {
-      handleNotification(error.response?.data || 'Error adding table type', 'error');
+      notify(error.response?.data || 'Error adding table type', 'error');
     }
   };
 
-  const handleEditTableType = async (event, tableTypeData) => {
-    event.preventDefault();
-
-    try {
-      const response = await axios.patch(`${Config.getBaseUrl()}/TableType/${selectedTableType.tableTypeId}`, tableTypeData);
-      if (response.status === 200) {
-        handleNotification('Đã cập nhật loại bàn thành công', 'success');
-        await fetchTableTypes();
-        handleClosePopup();
-      }
-    } catch (error) {
-      handleNotification(error.response?.data || 'Error updating table type', 'error');
-    }
-  };
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
+  const handleSearchChange = (event) => setSearchTerm(event.target.value);
 
   const filteredTableTypes = tableTypes.filter((tableType) =>
     tableType.typeName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -120,75 +82,55 @@ const TableTypeManagementAdmin = () => {
   return (
     <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
       <div className="flex flex-col gap-6 max-md:flex-col">
-        <div className="flex flex-col w-full max-md:ml-0 max-md:w-full">
-          <BelowHeader onAddTableType={handleOpenPopup} searchTerm={searchTerm} onSearchChange={handleSearchChange} />
-          <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
-            <TableTypeList 
-              tableTypes={filteredTableTypes} 
-              onOpenDeletePopup={handleOpenDeletePopup} 
-              onTableTypeUpdated={fetchTableTypes} 
-              handleNotification={handleNotification} // Thêm dòng này
-            />
-          </div>
+        <BelowHeader onAddTableType={() => handlePopup(true)} searchTerm={searchTerm} onSearchChange={handleSearchChange} />
+        <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
+          <TableTypeList
+            tableTypes={filteredTableTypes}
+            onOpenDeletePopup={(tableType) => handleDeletePopup(true, tableType)}
+            onTableTypeUpdated={fetchTableTypes}
+            notify={notify}
+          />
         </div>
       </div>
       <AddTableTypePopup
         isOpen={isPopupOpen}
-        onClose={handleClosePopup}
-        onTableTypeAdded={fetchTableTypes}
+        onClose={() => handlePopup(false)}
         handleAddTableType={handleAddTableType}
-        resetFormTrigger={resetFormTrigger} // Pass reset trigger as a prop
-        setResetFormTrigger={setResetFormTrigger} // Pass setter to allow resetting trigger
+        resetFormTrigger={resetFormTrigger}
+        setResetFormTrigger={setResetFormTrigger}
       />
-      <DeleteTableTypePopup isOpen={isDeletePopupOpen} onClose={handleCloseDeletePopup} onDelete={handleDelete} tableType={selectedTableType} />
-
-      {/* Notification Popup */}
-      {isNotificationVisible && (
-  <div
-    className={`fixed top-4 right-4 p-4 rounded shadow-md ${
-      notification.type === 'success' ? 'bg-green-500' : notification.type === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
-    } text-white flex items-center justify-between`}
-  >
-    <span>{notification.message}</span>
-    {/* Nút đóng */}
-    <button
-      className="ml-4 text-lg font-bold"
-      onClick={() => setIsNotificationVisible(false)}
-    >
-      &times;
-    </button>
-  </div>
-)}
-
+      <DeleteTableTypePopup
+        isOpen={isDeletePopupOpen}
+        onClose={() => handleDeletePopup(false)}
+        onDelete={handleDelete}
+        tableType={selectedTableType}
+      />
     </main>
   );
 };
 
-const BelowHeader = ({ onAddTableType, searchTerm, onSearchChange }) => {
-  return (
-    <div className="flex items-center justify-between ml-4 mr-4 mt-6">
-      <input
-        type="text"
-        placeholder="Tìm kiếm loại bàn..."
-        value={searchTerm}
-        onChange={onSearchChange}
-        className="px-4 py-2 border rounded-full w-1/6"
+const BelowHeader = ({ onAddTableType, searchTerm, onSearchChange }) => (
+  <div className="flex items-center justify-between ml-4 mr-4 mt-6">
+    <input
+      type="text"
+      placeholder="Tìm kiếm loại bàn..."
+      value={searchTerm}
+      onChange={onSearchChange}
+      className="px-4 py-2 border rounded-full w-1/6"
+    />
+    <button
+      onClick={onAddTableType}
+      className="flex items-center gap-2 px-4 py-2 text-base text-black bg-white rounded-md border border-blue-500 shadow hover:bg-gray-300"
+    >
+      <img
+        src="https://cdn.builder.io/api/v1/image/assets/TEMP/05719b0bc8adf147a0e97f780bea0ba2d2f701cac417ada50303bc5f38458fc4"
+        alt="Add"
+        className="object-contain w-4 h-4 align-middle"
       />
-      <button
-        onClick={onAddTableType}
-        className="flex items-center gap-2 px-4 py-2 text-base text-black bg-white rounded-md border border-blue-500 shadow hover:bg-gray-300"
-      >
-        <img
-          loading="lazy"
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/05719b0bc8adf147a0e97f780bea0ba2d2f701cac417ada50303bc5f38458fc4?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e"
-          alt=""
-          className="object-contain w-4 h-4 align-middle"
-        />
-        <span>Thêm loại bàn</span>
-      </button>
-    </div>
-  );
-};
+      <span>Thêm loại bàn</span>
+    </button>
+  </div>
+);
 
 BelowHeader.propTypes = {
   onAddTableType: PropTypes.func.isRequired,
@@ -232,7 +174,7 @@ BelowHeader.propTypes = {
 //   }
 // ];
 
-const TableTypeList = ({ tableTypes, onOpenDeletePopup, onTableTypeUpdated, handleNotification }) => {
+const TableTypeList = ({ tableTypes, onOpenDeletePopup, onTableTypeUpdated, notify }) => {
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [selectedTableType, setSelectedTableType] = useState(null);
 
@@ -252,13 +194,7 @@ const TableTypeList = ({ tableTypes, onOpenDeletePopup, onTableTypeUpdated, hand
         {tableTypes.map((tableType, index) => (
           <TableTypeCard
             key={index}
-            typeName={tableType.typeName}
-            minimumPrice={tableType.minimumPrice}
-            minimumGuest={tableType.minimumGuest}
-            maximumGuest={tableType.maximumGuest}
-            description={tableType.description}
-            editIcon={tableType.editIcon}
-            deleteIcon={tableType.deleteIcon}
+            {...tableType}
             onEdit={() => handleEdit(tableType)}
             onDelete={() => onOpenDeletePopup(tableType)}
           />
@@ -270,7 +206,7 @@ const TableTypeList = ({ tableTypes, onOpenDeletePopup, onTableTypeUpdated, hand
           onClose={handleCloseEditPopup}
           tableType={selectedTableType}
           onTableTypeUpdated={onTableTypeUpdated}
-          handleNotification={handleNotification} // Truyền hàm handleNotification xuống
+          handleNotification={notify}
         />
       )}
     </section>
@@ -281,16 +217,19 @@ TableTypeList.propTypes = {
   tableTypes: PropTypes.array.isRequired,
   onOpenDeletePopup: PropTypes.func.isRequired,
   onTableTypeUpdated: PropTypes.func.isRequired,
-  handleNotification: PropTypes.func.isRequired, // Thêm prop này
+  notify: PropTypes.func.isRequired,
 };
 
+TableTypeList.propTypes = {
+  tableTypes: PropTypes.array.isRequired,
+  onOpenDeletePopup: PropTypes.func.isRequired,
+  onTableTypeUpdated: PropTypes.func.isRequired,
+  notify: PropTypes.func.isRequired,
+};
 
 // TableTypeCard component
 const TableTypeCard = ({ typeName, minimumPrice, minimumGuest, maximumGuest, description, editIcon, deleteIcon, onEdit, onDelete }) => {
-  // Format minimumPrice using toLocaleString
-  const formattedPrice = minimumPrice.toLocaleString('vi-VN'); 
-
-  // Determine guest capacity display
+  const formattedPrice = minimumPrice.toLocaleString('vi-VN');
   const guestCapacity = minimumGuest === maximumGuest ? `${maximumGuest} khách hàng` : `${minimumGuest} - ${maximumGuest} khách hàng`;
 
   return (
@@ -302,18 +241,17 @@ const TableTypeCard = ({ typeName, minimumPrice, minimumGuest, maximumGuest, des
           <img loading="lazy" src={deleteIcon} alt="Delete" className="object-contain w-5 aspect-square cursor-pointer mt-1" onClick={onDelete} />
         </div>
       </div>
-
       <div className="flex flex-col gap-2 w-full">
         <div className="flex items-start gap-2">
-          <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/5377f3ad8c7e9f464a7b83d0badafbdc63b800e2c9912f7d739f82f486467dae?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e" alt="" className="w-5 aspect-square mt-1" />
+          <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/5377f3ad8c7e9f464a7b83d0badafbdc63b800e2c9912f7d739f82f486467dae" alt="" className="w-5 aspect-square mt-1" />
           <div className="flex-1">Từ {formattedPrice} VND</div>
         </div>
         <div className="flex items-start gap-2">
-          <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/265c27df449947fbe31739e1fcb54efde1a9cf4f8b29899836bcb18544aa791a?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e" alt="" className="w-5 aspect-square mt-1" />
+          <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/265c27df449947fbe31739e1fcb54efde1a9cf4f8b29899836bcb18544aa791a" alt="" className="w-5 aspect-square mt-1" />
           <div className="flex-1">Phù hợp cho {guestCapacity}</div>
         </div>
         <div className="flex items-start gap-2">
-          <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/18e31dd061c2c9a5014fa200f3d41a3af7c7be1a1c257c334215ffcda0d6a00c?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e" alt="" className="w-5 aspect-square mt-1" />
+          <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/18e31dd061c2c9a5014fa200f3d41a3af7c7be1a1c257c334215ffcda0d6a00c" alt="" className="w-5 aspect-square mt-1" />
           <div className="flex-1">{description}</div>
         </div>
       </div>
@@ -343,18 +281,10 @@ const DeleteTableTypePopup = ({ isOpen, onClose, onDelete, tableType }) => {
         <h2 className="text-2xl font-bold mb-4">Xác nhận xóa</h2>
         <p>Bạn có chắc chắn muốn xóa loại bàn: <strong>{tableType?.title}</strong>?</p>
         <div className="flex justify-between mt-6">
-          <button
-            type="button"
-            className="bg-gray-400 text-white py-3 w-48 rounded-full"
-            onClick={onClose}
-          >
+          <button type="button" className="bg-gray-400 text-white py-3 w-48 rounded-full" onClick={onClose}>
             Hủy bỏ
           </button>
-          <button
-            type="button"
-            className="bg-blue-600 text-white py-3 w-48 rounded-full"
-            onClick={onDelete}
-          >
+          <button type="button" className="bg-blue-600 text-white py-3 w-48 rounded-full" onClick={onDelete}>
             Xóa
           </button>
         </div>
@@ -370,16 +300,15 @@ DeleteTableTypePopup.propTypes = {
   tableType: PropTypes.object,
 };
 
-
 // AddTableTypePopup component  
-const AddTableTypePopup = ({ isOpen, onClose, onTableTypeAdded, handleAddTableType, resetFormTrigger, setResetFormTrigger }) => {
+const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigger, setResetFormTrigger }) => {
   const [typeName, setTypeName] = useState('');
   const [description, setDescription] = useState('');
   const [minimumGuest, setMinimumGuest] = useState('');
   const [maximumGuest, setMaximumGuest] = useState('');
   const [minimumPrice, setMinimumPrice] = useState('');
+  const [errors, setErrors] = useState({});
 
-  // Reset form fields when the popup opens or resetFormTrigger changes
   useEffect(() => {
     if (isOpen || resetFormTrigger) {
       setTypeName('');
@@ -387,12 +316,35 @@ const AddTableTypePopup = ({ isOpen, onClose, onTableTypeAdded, handleAddTableTy
       setMinimumGuest('');
       setMaximumGuest('');
       setMinimumPrice('');
-      setResetFormTrigger(false); // Reset the trigger after clearing the fields
+      setErrors({});
+      setResetFormTrigger(false);
     }
   }, [isOpen, resetFormTrigger]);
 
+  const validateForm = () => {
+    let formErrors = {};
+    if (!typeName || typeName.length < 1 || typeName.length > 99) {
+      formErrors.typeName = 'Tên loại bàn không được bỏ trống và phải trong khoảng 1-99 kí tự';
+    }
+    if (!description || description.length < 1 || description.length > 999) {
+      formErrors.description = 'Mô tả loại bàn không được bỏ trống và phải trong khoảng 1-999 kí tự';
+    }
+    const minGuest = parseInt(minimumGuest, 10);
+    const maxGuest = parseInt(maximumGuest, 10);
+    if (!minimumGuest || !maximumGuest || minGuest > maxGuest || minGuest < 1 || maxGuest > 99) {
+      formErrors.guests = 'Số lượng khách hàng tối thiểu phải nhỏ hơn hoặc bằng số lượng khách hàng tối đa và cả hai phải trong khoảng 1-99';
+    }
+    const minPrice = parseFloat(minimumPrice);
+    if (!minimumPrice || minPrice < 0 || minPrice > 100000000) {
+      formErrors.minimumPrice = 'Mức giá tối thiểu phải nằm trong khoảng 0-100.000.000';
+    }
+    setErrors(formErrors);
+    return Object.keys(formErrors).length === 0;
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (!validateForm()) return;
     const tableTypeData = {
       typeName,
       description,
@@ -414,18 +366,20 @@ const AddTableTypePopup = ({ isOpen, onClose, onTableTypeAdded, handleAddTableTy
               type="text"
               value={typeName}
               onChange={(e) => setTypeName(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
+              className={`w-full px-3 py-2 border rounded ${errors.typeName ? 'border-red-500' : ''}`}
               required
             />
+            {errors.typeName && <p className="text-red-500 text-xs mt-1">{errors.typeName}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Mô tả loại bàn</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
+              className={`w-full px-3 py-2 border rounded ${errors.description ? 'border-red-500' : ''}`}
               required
             ></textarea>
+            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Số lượng khách hàng tối thiểu</label>
@@ -433,8 +387,8 @@ const AddTableTypePopup = ({ isOpen, onClose, onTableTypeAdded, handleAddTableTy
               type="number"
               value={minimumGuest}
               onChange={(e) => setMinimumGuest(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              min="0"
+              className={`w-full px-3 py-2 border rounded ${errors.guests ? 'border-red-500' : ''}`}
+              min="1"
               max="99"
               required
             />
@@ -445,11 +399,12 @@ const AddTableTypePopup = ({ isOpen, onClose, onTableTypeAdded, handleAddTableTy
               type="number"
               value={maximumGuest}
               onChange={(e) => setMaximumGuest(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              min="0"
+              className={`w-full px-3 py-2 border rounded ${errors.guests ? 'border-red-500' : ''}`}
+              min="1"
               max="99"
               required
             />
+            {errors.guests && <p className="text-red-500 text-xs mt-1">{errors.guests}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Mức giá tối thiểu</label>
@@ -457,11 +412,12 @@ const AddTableTypePopup = ({ isOpen, onClose, onTableTypeAdded, handleAddTableTy
               type="number"
               value={minimumPrice}
               onChange={(e) => setMinimumPrice(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
+              className={`w-full px-3 py-2 border rounded ${errors.minimumPrice ? 'border-red-500' : ''}`}
               min="0"
               max="1000000000"
               required
             />
+            {errors.minimumPrice && <p className="text-red-500 text-xs mt-1">{errors.minimumPrice}</p>}
           </div>
           <div className="flex justify-between mt-6">
             <button type="button" className="bg-gray-400 text-white py-3 w-64 rounded-full" onClick={onClose}>
@@ -480,7 +436,6 @@ const AddTableTypePopup = ({ isOpen, onClose, onTableTypeAdded, handleAddTableTy
 AddTableTypePopup.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  onTableTypeAdded: PropTypes.func.isRequired,
   handleAddTableType: PropTypes.func.isRequired,
   resetFormTrigger: PropTypes.bool.isRequired,
   setResetFormTrigger: PropTypes.func.isRequired,
@@ -493,6 +448,7 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
   const [minimumGuest, setMinimumGuest] = useState('');
   const [maximumGuest, setMaximumGuest] = useState('');
   const [minimumPrice, setMinimumPrice] = useState('');
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (tableType) {
@@ -501,28 +457,41 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
       setMinimumGuest(tableType.minimumGuest);
       setMaximumGuest(tableType.maximumGuest);
       setMinimumPrice(tableType.minimumPrice);
+      setErrors({});
     }
   }, [tableType]);
 
+  const validateForm = () => {
+    let formErrors = {};
+    if (!typeName || typeName.length < 1 || typeName.length > 99) {
+      formErrors.typeName = 'Tên loại bàn không được bỏ trống và phải trong khoảng 1-99 kí tự';
+    }
+    if (!description || description.length < 1 || description.length > 999) {
+      formErrors.description = 'Mô tả loại bàn không được bỏ trống và phải trong khoảng 1-999 kí tự';
+    }
+    const minGuest = parseInt(minimumGuest, 10);
+    const maxGuest = parseInt(maximumGuest, 10);
+    if (!minimumGuest || !maximumGuest || minGuest > maxGuest || minGuest < 1 || maxGuest > 99) {
+      formErrors.guests = 'Số lượng khách hàng tối thiểu phải nhỏ hơn hoặc bằng số lượng khách hàng tối đa và cả hai phải trong khoảng 1-99';
+    }
+    const minPrice = parseFloat(minimumPrice);
+    if (!minimumPrice || minPrice < 0 || minPrice > 100000000) {
+      formErrors.minimumPrice = 'Mức giá tối thiểu phải nằm trong khoảng 0-100.000.000';
+    }
+    setErrors(formErrors);
+    return Object.keys(formErrors).length === 0;
+  };
+
   const handleEditTableType = async (event) => {
     event.preventDefault();
-
-    if (!typeName || !description || minimumGuest === '' || maximumGuest === '' || minimumPrice === '') {
-      handleNotification('All fields are required.', 'error');
-      return;
-    }
+    if (!validateForm()) return;
 
     const minGuest = parseInt(minimumGuest, 10);
     const maxGuest = parseInt(maximumGuest, 10);
     const minPrice = parseFloat(minimumPrice);
 
-    if (minGuest > maxGuest) {
-      handleNotification('Minimum guests must be less than or equal to maximum guests.', 'error');
-      return;
-    }
-
     try {
-      const response = await axios.patch(`${Config.baseUrl}/TableType/${tableType.tableTypeId}`, {
+      const response = await TableTypeService.updateTableType(tableType.tableTypeId, {
         typeName,
         description,
         minimumGuest: minGuest,
@@ -532,7 +501,7 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
 
       if (response.status === 200) {
         await onTableTypeUpdated();
-        handleNotification('Thông tin loại bàn đã được cập nhật thành công', 'success'); // Hiển thị thông báo thành công
+        handleNotification('Thông tin loại bàn đã được cập nhật thành công', 'success');
         onClose();
       } else {
         handleNotification('Failed to update table type.', 'error');
@@ -553,30 +522,29 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
               type="text"
               value={typeName}
               onChange={(e) => setTypeName(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
+              className={`w-full px-3 py-2 border rounded ${errors.typeName ? 'border-red-500' : ''}`}
               required
             />
+            {errors.typeName && <p className="text-red-500 text-xs mt-1">{errors.typeName}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Mô tả loại bàn</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
+              className={`w-full px-3 py-2 border rounded ${errors.description ? 'border-red-500' : ''}`}
               required
             ></textarea>
+            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Số lượng khách hàng tối thiểu</label>
             <input
               type="number"
               value={minimumGuest}
-              onChange={(e) => {
-                const value = Math.max(0, Math.min(99, e.target.value));
-                setMinimumGuest(value);
-              }}
-              className="w-full px-3 py-2 border rounded"
-              min="0"
+              onChange={(e) => setMinimumGuest(e.target.value)}
+              className={`w-full px-3 py-2 border rounded ${errors.guests ? 'border-red-500' : ''}`}
+              min="1"
               max="99"
               required
             />
@@ -586,30 +554,26 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
             <input
               type="number"
               value={maximumGuest}
-              onChange={(e) => {
-                const value = Math.max(0, Math.min(99, e.target.value));
-                setMaximumGuest(value);
-              }}
-              className="w-full px-3 py-2 border rounded"
-              min="0"
+              onChange={(e) => setMaximumGuest(e.target.value)}
+              className={`w-full px-3 py-2 border rounded ${errors.guests ? 'border-red-500' : ''}`}
+              min="1"
               max="99"
               required
             />
+            {errors.guests && <p className="text-red-500 text-xs mt-1">{errors.guests}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Mức giá tối thiểu</label>
             <input
               type="number"
               value={minimumPrice}
-              onChange={(e) => {
-                const value = Math.max(0, Math.min(1000000000, e.target.value));
-                setMinimumPrice(value);
-              }}
-              className="w-full px-3 py-2 border rounded"
+              onChange={(e) => setMinimumPrice(e.target.value)}
+              className={`w-full px-3 py-2 border rounded ${errors.minimumPrice ? 'border-red-500' : ''}`}
               min="0"
               max="1000000000"
               required
             />
+            {errors.minimumPrice && <p className="text-red-500 text-xs mt-1">{errors.minimumPrice}</p>}
           </div>
           <div className="flex justify-between mt-6">
             <button

@@ -3,8 +3,7 @@ import PropTypes from 'prop-types';
 import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import Config from '../../../config';
+import PaymentHistoryService from '../../../lib/service/paymentHistoryService';
 
 function PaymentHistory() {
   const [activeTab, setActiveTab] = useState('Hoàn thành');
@@ -18,38 +17,25 @@ function PaymentHistory() {
   const [searchParams, setSearchParams] = useState({});
   const navigate = useNavigate();
 
-  // Fetch payment history based on the active tab, current page, and search parameters
+  // Fetch payment history
   useEffect(() => {
     const fetchPayments = async () => {
       try {
         const params = {
-          Status: activeTab === 'Hoàn thành', 
+          Status: activeTab === 'Hoàn thành',
           PageIndex: currentPage,
           PageSize: paymentsPerPage,
-          ...searchParams, // Merge in search parameters
+          ...searchParams,
         };
-
-        // Remove empty/null parameters
-        Object.keys(params).forEach(key => {
-          if (params[key] === null || params[key] === '') {
-            delete params[key];
-          }
-        });
-
-        const response = await axios.get(`${Config.baseUrl}/PaymentHistory`, { params });
-
+        const response = await PaymentHistoryService.getAllPayments(params);
         const paymentData = response.data.response.map((payment) => ({
+          // Format the data as needed
           date: new Date(payment.paymentDate).toLocaleDateString(),
           name: payment.customerName,
-          phone: payment.phoneNumber,
           total: `${payment.totalPrice.toLocaleString()} VND`,
           status: payment.status ? 'Thành công' : 'Thất bại',
-          time: new Date(payment.paymentDate).toLocaleTimeString(),
           transactionId: payment.transactionCode,
-          branch: payment.barName,
-          content: payment.note,
         }));
-
         setPayments(paymentData);
         setTotalPages(response.data.totalPage);
       } catch (error) {
@@ -58,7 +44,7 @@ function PaymentHistory() {
     };
 
     fetchPayments();
-  }, [activeTab, currentPage, searchParams]);
+  }, [currentPage, searchParams, activeTab]);
 
   const handleSearch = (params) => {
     setSearchParams(params);
@@ -69,16 +55,13 @@ function PaymentHistory() {
   useEffect(() => {
     const fetchBarBranches = async () => {
       try {
-        const response = await axios.get(`${Config.baseUrl}/Bar/admin/barmanager`);
-        const bars = response.data.data.map(bar => ({
-          barId: bar.barId,
-          barName: bar.barName,
-        }));
-        setBarBranches(bars);
+        const response = await PaymentHistoryService.getBarBranches();
+        setBarBranches(response.data.data);
       } catch (error) {
         console.error('Error fetching bar branches:', error);
       }
     };
+
     fetchBarBranches();
   }, []);
 
@@ -165,7 +148,6 @@ function PaymentHistory() {
   );
 }
 
-// SearchForm Component
 // SearchForm Component
 function SearchForm({ barBranches, onSearch }) {
   const [transactionDate, setTransactionDate] = useState('');

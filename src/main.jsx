@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
 import "./index.css";
 import Dashboard from "./pages/admin/dashboard/DashBoard";
@@ -74,6 +75,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="staff/table-registrations" element={<BookingList/>}></Route>        
         </Route>
       </Routes> 
+      <ToastContainer />
     </BrowserRouter>
   </React.StrictMode>
 );
