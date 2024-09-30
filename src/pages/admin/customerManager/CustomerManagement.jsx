@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
+import { getCustomerAccounts } from 'src/lib/service/adminService';
 
 const customerData = [
     { id: 1, name: "Customer 1", birthDate: "19/09/2000", email: "barbuddy1@gmail.com", phone: "0909090909", registrationDate: "19/09/2024", status: "Active" },
@@ -52,16 +53,16 @@ const CustomerTableHeader = () => (
 );
 
 const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
-    const rowClass = isEven ? "bg-gray-50" : "bg-white shadow-sm hover:bg-gray-100 transition duration-150";
+    const rowClass = isEven ? "bg-white" : "bg-orange-50";
     const statusClass = getStatusClass(customer.status); // Lấy lớp trạng thái từ hàm getStatusClass
 
     return (
-        <tr className={`${rowClass} text-sm hover:bg-gray-100 transition duration-150`}>
+        <tr className={`${rowClass} text-sm hover:bg-gray-100 transition duration-150 border-b-2`}>
             <td className="px-4 py-6 text-center align-middle">
-                {customer.name}
+                {customer.fullname}
             </td>
             <td className="px-4 py-6 text-center align-middle">
-                {customer.birthDate}
+                {new Date(customer.dob).toLocaleDateString('vi-VN')}
             </td>
             <td className="px-4 py-6 text-center align-middle">
                 {customer.email}
@@ -70,17 +71,17 @@ const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
                 {customer.phone}
             </td>
             <td className="px-4 py-6 text-center align-middle">
-                {customer.registrationDate}
+                {new Date(customer.createdAt).toLocaleDateString('vi-VN')}
             </td>
             <td className="flex justify-center items-center px-4 py-6 align-middle">
                 <div className={`flex justify-center items-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
-                    {customer.status}
+                    {customer.status === 1 ? "Active" : "Deactive"}
                 </div>
             </td>
             <td className="px-4 py-6 text-center align-middle">
                 <button
                     className="px-2 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
-                    onClick={() => onViewDetails(customer.id)}
+                    onClick={() => onViewDetails(customer.accountId)} // Sử dụng accountId
                 >
                     Xem chi tiết
                 </button>
@@ -92,9 +93,9 @@ const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
 // Hàm để xác định class của status
 function getStatusClass(status) {
     switch (status) {
-        case "Active":
+        case 1:
             return "bg-green-500 text-white";
-        case "Inactive":
+        case 0:
             return "bg-red-500 text-white";
         default:
             return "bg-gray-500 text-white";
@@ -104,7 +105,7 @@ function getStatusClass(status) {
 const CustomerTable = ({ customerData }) => {
     const navigate = useNavigate();
     const handleViewDetail = (id) => {
-        navigate(`/admin/customer-detail?id=${id}`)
+        navigate(`/admin/customer-detail?accountId=${id}`)
     };
 
     return (
@@ -117,7 +118,7 @@ const CustomerTable = ({ customerData }) => {
                         customer={customer}
                         index={index}
                         isEven={index % 2 === 0}
-                        onViewDetails={handleViewDetail} // Điều hướng với tham số
+                        onViewDetails={() => handleViewDetail(customer.accountId)} // Điều hướng với tham số
                     />
                 ))}
             </tbody>
@@ -126,7 +127,21 @@ const CustomerTable = ({ customerData }) => {
 };
 
 const CustomerManagement = () => {
-    const [filteredCustomers, setFilteredCustomers] = useState(customerData); // Thêm state để lưu danh sách khách hàng đã lọc
+    const [filteredCustomers, setFilteredCustomers] = useState([]); // Thay đổi state để lưu danh sách khách hàng
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchCustomers = async () => {
+            try {
+                const data = await getCustomerAccounts(); // Gọi hàm từ adminService
+                setFilteredCustomers(data.items); // Cập nhật danh sách khách hàng đã lấy từ API
+            } catch (error) {
+                console.error("Error fetching customer accounts:", error);
+            }
+        };
+
+        fetchCustomers();
+    }, []);
 
     const handleSearch = (searchTerm) => {
         const filtered = customerData.filter(customer =>
@@ -139,11 +154,11 @@ const CustomerManagement = () => {
         <main className="flex-1 overflow-x-hidden overflow-y-auto mr-100 bg-gray-100">
             <div className="container mx-auto px-6 py-8">
                 <div className="flex gap-5 max-w-full text-base text-center text-white w-[800px] max-md:mt-10 mx-4">
-                    <SearchCustomerName onSearch={handleSearch} /> {/* Truyền hàm tìm kiếm vào component */}
+                    <SearchCustomerName onSearch={handleSearch} />
                     <AddCustomerButton />
                 </div>
-                <div className="flex flex-col mt-14 ml-16 max-w-full text-sm leading-5 bg-white rounded-xl shadow-[0px_45px_112px_rgba(0,0,0,0.06)] text-zinc-800 w-[1050px] max-md:mt-10">
-                    <CustomerTable customerData={filteredCustomers} /> {/* Sử dụng danh sách khách hàng đã lọc */}
+                <div className="flex overflow-hidden flex-col mt-14 max-w-full text-sm leading-5 table-container">
+                    <CustomerTable customerData={filteredCustomers} /> 
                 </div>
             </div>
         </main>

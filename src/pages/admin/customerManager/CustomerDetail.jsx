@@ -1,69 +1,125 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getCustomerDetail, updateCustomerDetail } from 'src/lib/service/adminService'; // Import hàm gọi API
+import { ToastContainer, toast } from 'react-toastify'; // Nhập ToastContainer và toast
+import 'react-toastify/dist/ReactToastify.css'; // Nhập CSS cho toast
+import useValidateAccountForm from 'src/lib/hooks/useValidateAccountForm'; // Nhập hook xác thực
 
-const userFields = [
-    { label: 'Họ và tên', value: 'Nguyen Van A' },
-    { label: 'Số điện thoại', value: '0906006699' },
-    { label: 'Email', value: 'anguyenvan@gmail.com' },
-    { label: 'Ngày sinh', value: '09/09/1999' },
-    { label: 'Ngày tạo', value: 'August 18 2021- 15:20:56' }
-];
+const ProfileField = ({ label, value, onChange }) => (
+    <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
+        <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full flex-shrink-0"> {/* Thêm flex-shrink-0 */}
+            {label}
+        </div>
+        <div className="w-[742px] max-w-full max-md:w-full flex-grow"> {/* Thêm flex-grow */}
+            <input
+                type="text"
+                className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
+                defaultValue={value}
+                onChange={onChange}
+            />
+        </div>
+    </div>
+);
 
-function ProfileField({ label, value }) {
-    return (
-        <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
-            <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full max-md:mb-2">
-                {label}
-            </div>
-            <div className="w-[742px] max-w-full max-md:w-full">
-                <div className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm">
-                    {value}
-                </div>
+const StatusToggle = ({ status, onToggle }) => (
+    <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
+        <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full">
+            Trạng thái
+        </div>
+        <div className="flex items-center">
+            <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" className="sr-only" checked={status === 1} onChange={onToggle} />
+                <div className={`w-12 h-6 rounded-full shadow-inner ${status === 1 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`absolute w-6 h-6 bg-white rounded-full shadow transform transition-transform duration-300 ${status === 1 ? 'translate-x-6' : 'translate-x-0'}`}></div>
+            </label>
+            <span className="ml-3">{status === 1 ? "Hoạt động" : "Không hoạt động"}</span>
+        </div>
+    </div>
+);
+
+const Popup = ({ message, onClose }) => (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white p-6 rounded shadow-lg">
+            <h2 className="font-bold text-lg">Xác nhận</h2> {/* Thay đổi tiêu đề */}
+            <p>{message}</p>
+            <div className="mt-4 flex justify-end">
+                <button onClick={onClose} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Đồng ý</button> {/* Thay đổi nút */}
+                <button onClick={onClose} className="ml-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Hủy</button> {/* Thêm nút hủy */}
             </div>
         </div>
-    );
-}
-
-function StatusIndicator() {
-    const [isActive, setIsActive] = useState(true);
-
-    const toggleStatus = () => {
-        setIsActive(!isActive);
-    };
-
-    return (
-        <main className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
-            <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full max-md:mb-2">
-                Trạng thái
-            </div>
-            <div className="flex items-center w-[742px] max-w-full max-md:w-full">
-                {/* Toggle Button */}
-                <button 
-                    onClick={toggleStatus} 
-                    className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                        isActive ? 'bg-green-500' : 'bg-gray-400'
-                    }`}
-                >
-                    <span 
-                        className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform duration-300 ${
-                            isActive ? 'translate-x-6' : 'translate-x-0'
-                        }`}
-                    />
-                </button>
-                <div className="ml-3">
-                    {isActive ? 'Hoạt động' : 'Không hoạt động'}
-                </div>
-            </div>
-        </main>
-    );
-}
+    </div>
+);
 
 export default function CustomerDetail() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const accountId = new URLSearchParams(location.search).get('accountId'); // Lấy accountId từ URL
+    const [customerData, setCustomerData] = useState(null);
+    const [showPopup, setShowPopup] = useState(false); // State để quản lý hiển thị popup
+    const [formData, setFormData] = useState({}); // State để quản lý dữ liệu form
+    const [popupMessage, setPopupMessage] = useState(null); // Thêm state cho message
+    const { validateForm } = useValidateAccountForm(); // Khởi tạo hook xác thực
+    const [errors, setErrors] = useState({}); // Thêm state để lưu trữ lỗi
+
+    useEffect(() => {
+        const fetchCustomerDetail = async () => {
+            try {
+                const data = await getCustomerDetail(accountId); // Gọi hàm lấy chi tiết khách hàng
+                setCustomerData(data); // Cập nhật dữ liệu khách hàng
+                setFormData({
+                    email: data.email,
+                    fullname: data.fullname,
+                    phone: data.phone,
+                    dob: new Date(data.dob).toISOString().split('T')[0], // Chuyển đổi định dạng ngày
+                    status: data.status
+                });
+            } catch (error) {
+                console.error("Error fetching customer detail:", error);
+            }
+        };
+
+        fetchCustomerDetail();
+    }, [accountId]);
 
     const handleBack = () => {
         navigate("/admin/customers");
-    }
+    };
+
+    const handleUpdate = async () => {
+        const validationErrors = validateForm(formData); // Xác thực dữ liệu
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors); // Cập nhật lỗi nếu có
+            return; // Dừng lại nếu có lỗi
+        }
+        try {
+            // Đảm bảo rằng dob được định dạng đúng
+            const updatedData = {
+                email: formData.email,
+                fullname: formData.fullname,
+                phone: formData.phone,
+                dob: formData.dob, // Đảm bảo định dạng YYYY-MM-DD
+                status: formData.status === 1 ? 1 : 0
+            };
+            await updateCustomerDetail(accountId, updatedData); // Gọi hàm cập nhật thông tin khách hàng
+            setPopupMessage("Bạn có chắc chắn muốn cập nhật thông tin?"); // Cập nhật nội dung popup
+            setShowPopup(true); // Hiển thị popup
+        } catch (error) {
+            console.error("Error updating customer detail:", error);
+            toast.error("Cập nhật thông tin thất bại!"); // Hiển thị thông báo lỗi
+        }
+    };
+
+    const handleClosePopup = () => {
+        setShowPopup(false); // Đóng popup
+        toast.success("Thông tin đã được cập nhật thành công!"); // Hiển thị thông báo thành công
+    };
+
+    const handleToggleStatus = () => {
+        setFormData({ ...formData, status: formData.status === 1 ? 0 : 1 }); // Chuyển đổi trạng thái
+    };
+
+    if (!customerData) return <div>Loading...</div>; // Hiển thị loading khi chưa có dữ liệu
+
     return (
         <main className="flex flex-col px-4 md:px-8 lg:px-16 py-8 w-full max-w-7xl mx-auto">
             <header className="flex items-center justify-between mb-8">
@@ -73,7 +129,7 @@ export default function CustomerDetail() {
                 >
                     &#8592;
                 </button>
-                <h1 className="text-3xl font-bold text-center flex-grow">THÔNG TIN TÀI KHOẢN CUSTOMER</h1>
+                <h1 className="font-bold text-center flex-grow">THÔNG TIN TÀI KHOẢN CUSTOMER</h1>
                 <div className="w-8"></div> {/* Để cân bằng layout */}
             </header>
             <div className="flex gap-5 max-md:flex-col">
@@ -86,20 +142,30 @@ export default function CustomerDetail() {
                     />
                 </aside>
                 <section className="flex flex-col ml-5 w-[82%] max-md:ml-0 max-md:w-full">
-                    <div className="flex flex-col w-full text-xl min-h-[454px] max-md:max-w-full">
-                        {userFields.map((field, index) => (
-                            <ProfileField key={index} label={field.label} value={field.value} />
-                        ))}
-                        <StatusIndicator />
+                    <div className="flex flex-col w-full text-sm min-h-[454px] max-md:max-w-full">
+                        {errors.fullname && <span className="text-center my-2 text-red-500">{errors.fullname}</span>} {/* Hiển thị lỗi */}
+                        <ProfileField label="Họ và tên" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
+                        
+                        {errors.phone && <span className="text-center my-2 text-red-500">{errors.phone}</span>} {/* Hiển thị lỗi */}
+                        <ProfileField label="Số điện thoại" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                        
+                        {errors.email && <span className="text-center my-2 text-red-500">{errors.email}</span>} {/* Hiển thị lỗi */}
+                        <ProfileField label="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                        
+                        {errors.dob && <span className="text-center my-2 text-red-500">{errors.dob}</span>} {/* Hiển thị lỗi */}
+                        <ProfileField label="Ngày sinh" value={formData.dob} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} />
+                        
+                        <StatusToggle status={formData.status} onToggle={handleToggleStatus} /> {/* Thêm nút trạng thái */}
                     </div>
                 </section>
             </div>
             <div className="mt-8 flex justify-end">
-                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
-                    Lưu
+                <button onClick={handleUpdate} className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
+                    Cập nhật
                 </button>
             </div>
+            {showPopup && <Popup message={popupMessage} onClose={handleClosePopup} />}
+            <ToastContainer /> {/* Thêm ToastContainer vào trong JSX */}
         </main>
     );
 }
-
