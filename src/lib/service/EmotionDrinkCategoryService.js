@@ -1,6 +1,6 @@
 import axios from "../axiosCustomize";
 const getAllEmotionCategory = async () => {
-  return await axios.get(`/api/emocategory/get`);
+  return await axios.get(`api/emocategory/get`);
 };
 
 const getAllEmotionCategoryByID = async (id) => {
@@ -9,7 +9,7 @@ const getAllEmotionCategoryByID = async (id) => {
     //     Authorization: `Bearer ${token}`,
     //   },
     // };
-    return await axios.get(`/api/emocategory/${id}`);
+    return await axios.get(`api/emocategory/${id}`);
   };
 
 const createEmotionCategory = async (data) => {
