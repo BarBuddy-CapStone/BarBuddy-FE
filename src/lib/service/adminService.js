@@ -1,61 +1,131 @@
-// import axios from "../axiosCustomize";
-// const getAllUser = async (index, size) => {
-//   return await axios.get(`ManageAccount/GetAllUsers?PageIndex=${index}&PageSize=${size}`);
-// };
+import axios from 'axios';
 
-// const getUserById = async (id) => {
-//   return await axios.get(`ManageAccount/GetUserById/${id}`);
-// };
+export const getCustomerAccounts = async () => {
+    try {
+        const response = await axios.get("https://localhost:7069/api/v1/customer-accounts"); // Gọi API bằng axios
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching customer accounts:", error);
+        throw error;
+    }
+};
 
-// const getAllTransaction = async (index, size) => {
-//   return await axios.get(
-//     `Transaction/GetAllTransactions?PageIndex=${index}&PageSize=${size}`
-//   );
-// };
+export const getCustomerDetail = async (accountId) => {
+    try {
+        const response = await axios.get(`https://localhost:7069/api/v1/customer-account/detail?accountId=${accountId}`); // Gọi API để lấy chi tiết khách hàng
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching customer detail:", error);
+        throw error;
+    }
+};
 
-// const getAllMentor = async (index, size) => {
-//   return await axios.get(`Mentor/GetAllMentor?PageIndex=${index}&PageSize=${size}`);
-// };
+export const updateCustomerDetail = async (accountId, customerData) => {
+    try {
+        const response = await axios.patch(`https://localhost:7069/api/v1/customer-account?accountId=${accountId}`, customerData, {
+            headers: {
+                'Content-Type': 'application/json',
+                'accept': '*/*'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating customer detail:", error);
+        throw error;
+    }
+};
 
-// const addUser = async (data) => {
-//   return await axios.post("ManageAccount/CreateUserForAdmin", data);
-// };
+export const updateStaffDetail = async (accountId, staffData) => {
+    try {
+        const response = await axios.patch(`https://localhost:7069/api/v1/staff-account?accountId=${accountId}`, staffData, {
+            headers: {
+                'Content-Type': 'application/json',
+                'accept': '*/*'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating customer detail:", error);
+        throw error;
+    }
+};
 
-// const updateUser = async (id, data) => {
-//   return await axios.put(`ManageAccount/UpdateUser/${id}`, data);
-// };
+export const getStaffAccounts = async () => {
+    try {
+        const response = await axios.get("https://localhost:7069/api/v1/staff-accounts", {
+            headers: {
+                'accept': '*/*'
+            }
+        });
+        return response.data.items.map(staff => ({
+            id: staff.accountId,
+            name: staff.fullname,
+            email: staff.email,
+            phone: staff.phone,
+            birthDate: new Date(staff.dob).toLocaleDateString(),
+            bar: staff.bar,
+            status: staff.status
+        }));
+    } catch (error) {
+        console.error("Error fetching staff accounts:", error);
+        throw error;
+    }
+};
 
-// const activateUser = async (id) => {
-//   return await axios.patch(`ManageAccount/ActivateUser/${id}`);
-// };
+export const getStaffDetail = async (accountId) => {
+    try {
+        const response = await axios.get(`https://localhost:7069/api/v1/staff-account/detail?accountId=${accountId}`, {
+            headers: {
+                'accept': '*/*'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching staff detail:", error);
+        throw error;
+    }
+};
 
-// const deactivateUser = async (id) => {
-//   // Ensure semicolon is present
-//   return await axios.patch(`ManageAccount/Deactivate/${id}`);
-// };
+export const getBars = async () => {
+    try {
+        const response = await axios.get("https://localhost:7069/api/Bar/admin/barmanager", {
+            headers: {
+                'accept': '*/*'
+            }
+        });
+        return response.data; // Trả về dữ liệu nhận được từ API
+    } catch (error) {
+        console.error("Error fetching bars:", error);
+        throw error;
+    }
+};
 
-// const verifyMentor = async (id) => {
-//   return await axios.patch(`Mentor/VerifyMentor/${id}`);
-// };
+export const createCustomer = async (customerData) => {
+    try {
+        const response = await axios.post("https://localhost:7069/api/v1/customer-account", customerData, {
+            headers: {
+                'Content-Type': 'application/json',
+                'accept': '*/*'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error creating customer:", error);
+        throw error;
+    }
+};
 
-// const getTotalMoney = async () => {
-//   return await axios.get("Transaction/GetTotalRevenueFromDeposit");
-// };
-
-// const getTotalUser = async () => {
-//   return await axios.get("ManageAccount/NumberOfUsers");
-// };
-
-// export {
-//   getAllUser,
-//   getUserById,
-//   addUser,
-//   getAllMentor,
-//   getAllTransaction,
-//   verifyMentor,
-//   updateUser,
-//   activateUser,
-//   deactivateUser,
-//   getTotalUser,
-//   getTotalMoney,
-// };
+export const createStaff = async (staffData) => {
+    try {
+        const response = await axios.post("https://localhost:7069/api/v1/staff-account", staffData, {
+            headers: {
+                'Content-Type': 'application/json',
+                'accept': '*/*'
+            }
+        });
+        return response.data; // Trả về dữ liệu nhận được từ API
+    } catch (error) {
+        console.error("Error creating staff:", error);
+        throw error;
+    }
+};

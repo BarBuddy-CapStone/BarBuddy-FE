@@ -1,23 +1,43 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'; // Thêm useEffect
 import { useNavigate } from 'react-router-dom';
+import { getBars, createStaff } from '../../../lib/service/adminService'; // Import hàm createStaff
+import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer và toast
+import 'react-toastify/dist/ReactToastify.css'; // Import CSS cho toast
+import useValidateAccountForm from '../../../lib/hooks/useValidateAccountForm'; // Import hook validate
 
 const formFields = [
-    { label: "Họ và tên", name: "name", type: "text" },
+    { label: "Họ và tên", name: "fullname", type: "text" },
     { label: "Số điện thoại", name: "phone", type: "tel" },
     { label: "Email", name: "email", type: "email" },
-    { label: "Ngày sinh", name: "birthDate", type: "date" },
+    { label: "Ngày sinh", name: "dob", type: "date" },
 ];
 
-const branchOptions = ["Bar Buddy1", "Bar Buddy2", "Bar Buddy3"];
+const Popup = ({ message, onClose, onConfirm }) => (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white p-6 rounded shadow-lg">
+            <h2 className="font-bold text-lg">Xác nhận</h2>
+            <p>{message}</p>
+            <div className="mt-4 flex justify-end">
+                <button onClick={onConfirm} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Đồng ý</button>
+                <button onClick={onClose} className="ml-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Hủy</button>
+            </div>
+        </div>
+    </div>
+);
 
 const AccountForm = () => {
+    const { validateForm } = useValidateAccountForm(); // Sử dụng hook validate
     const [formData, setFormData] = useState({
-        name: "",
+        fullname: "",
         phone: "",
         email: "",
-        birthDate: "",
-        branch: ""
+        dob: "",
+        barId: ""
     });
+    const [branchOptions, setBranchOptions] = useState([]);
+    const [showPopup, setShowPopup] = useState(false);
+    const [confirmMessage, setConfirmMessage] = useState("");
+    const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -26,30 +46,74 @@ const AccountForm = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log(JSON.stringify(formData));
+        const validationErrors = validateForm(formData);
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+        setConfirmMessage("Bạn có chắc chắn muốn tạo tài khoản này?");
+        setShowPopup(true);
     };
 
+    const handleConfirm = async () => {
+        setShowPopup(false);
+        try {
+            const response = await createStaff(formData);
+            console.log('Tạo tài khoản thành công:', response);
+            toast.success('Tạo tài khoản thành công!');
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi tạo tài khoản:', error);
+            toast.error('Có lỗi xảy ra khi tạo tài khoản!');
+        }
+    };
+
+    const handleClose = () => {
+        setShowPopup(false);
+    };
+
+    useEffect(() => {
+        const fetchBars = async () => {
+            try {
+                const response = await getBars();
+                setBranchOptions(response.data);
+            } catch (error) {
+                console.error('Có lỗi xảy ra khi gọi API:', error);
+            }
+        };
+
+        fetchBars();
+    }, []);
+
     return (
-        <form className="w-full max-w-2xl mx-auto" onSubmit={handleSubmit}>
-            <div className="space-y-6">
-                {formFields.map((field) => (
-                    <FormField key={field.name} {...field} value={formData[field.name]} onChange={handleChange} />
-                ))}
-                <FormField
-                    label="Chi nhánh"
-                    name="branch"
-                    type="select"
-                    options={branchOptions}
-                    value={formData.branch}
-                    onChange={handleChange}
-                />
-            </div>
-            <div className="mt-8 flex justify-end">
-                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
-                    Thêm
-                </button>
-            </div>
-        </form>
+        <>
+            <form className="w-full max-w-2xl mx-auto" onSubmit={handleSubmit}>
+                <div className="space-y-6">
+                    {formFields.map((field) => (
+                        <div key={field.name}>
+                            {errors[field.name] && <p className="text-red-500">{errors[field.name]}</p>} {/* Đặt thông báo lỗi ở đây */}
+                            <FormField {...field} value={formData[field.name]} onChange={handleChange} />
+                        </div>
+                    ))}
+                    <FormField
+                        label="Chi nhánh"
+                        name="barId"
+                        type="select"
+                        options={branchOptions.map(bar => ({ value: bar.barId, label: bar.barName }))}
+                        value={formData.barId}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div className="mt-8 flex justify-end">
+                    <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
+                        Thêm
+                    </button>
+                </div>
+            </form>
+            {showPopup && (
+                <Popup message={confirmMessage} onClose={handleClose} onConfirm={handleConfirm} />
+            )}
+            <ToastContainer />
+        </>
     );
 }
 
@@ -68,8 +132,8 @@ const FormField = ({ label, name, type, value, onChange, options }) => {
                     className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 >
                     <option value="">Chọn chi nhánh</option>
-                    {options.map((option) => (
-                        <option key={option} value={option}>{option}</option>
+                    {options.map((option) => ( // Sửa ở đây
+                        <option key={option.value} value={option.value}>{option.label}</option> // Sử dụng option.label để hiển thị
                     ))}
                 </select>
             ) : (

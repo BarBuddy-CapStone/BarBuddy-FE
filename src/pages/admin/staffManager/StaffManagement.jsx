@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
+import { getStaffAccounts } from '../../../lib/service/adminService'; // Import hàm mới
 
-// Hàm giả lập gọi API
-const fetchStaffData = async () => [
-    { name: "Staff 1", bar: "Bar Buddy1", email: "barbuddy1@gmail.com", phone: "0909090909", birthDate: "19/09/2000", status: "Active" },
-    { name: "Staff 2", bar: "Bar Buddy2", email: "barbuddy2@gmail.com", phone: "0909090909", birthDate: "19/09/2000", status: "Active" },
-    { name: "Staff 3", bar: "Bar Buddy1", email: "barbuddy3@gmail.com", phone: "0909090909", birthDate: "19/09/2000", status: "Active" },
-    { name: "Staff 4", bar: "Bar Buddy3", email: "barbuddy4@gmail.com", phone: "0909090909", birthDate: "19/09/2000", status: "Active" }
-];
+// Hàm gọi API
+const fetchStaffData = async () => {
+    return await getStaffAccounts(); // Sử dụng hàm từ adminService
+};
 
 // Các components
 const StaffTable = ({ staffData }) => (
@@ -25,7 +23,7 @@ const StaffTable = ({ staffData }) => (
 const StaffTableHeader = () => (
     <thead className="bg-white">
         <tr className="font-bold text-neutral-900 border-b-2">
-            {["Họ và tên", "Bar", "Email", "Phone", "Ngày sinh", "Status", ""].map((header, index) => (
+            {["Họ và tên", "Ngày sinh", "Email", "Số điện thoại", "Bar", "Status", ""].map((header, index) => (
                 <th key={index} className="px-4 py-6 text-center">{header}</th>
             ))}
         </tr>
@@ -34,23 +32,23 @@ const StaffTableHeader = () => (
 
 const StaffTableRow = ({ staff, index }) => {
     const navigate = useNavigate();
-    const rowClass = index % 2 === 0 ? "white" : "orange-50";
+    const rowClass = index % 2 === 0 ? "bg-white" : "bg-orange-50";
     const statusClass = getStatusClass(staff.status);
     const handleViewDetail = (id) => {
-        navigate(`/admin/staff-detail?id=${id}`)
+        // Chỉ chuyển hướng đến trang StaffDetail với accountId
+        navigate(`/admin/staff-detail?accountId=${id}`);
     };
 
-
     return (
-        <tr className={`hover:bg-gray-200 bg-${rowClass} border-b-2`}>
-            <td className="px-4 py-6 text-center">{staff.name}</td>
-            <td className="px-4 py-6 text-center">{staff.bar}</td>
-            <td className="px-4 py-6 text-center">{staff.email}</td>
-            <td className="px-4 py-6 text-center">{staff.phone}</td>
-            <td className="px-4 py-6 text-center">{staff.birthDate}</td>
+        <tr className={`text-sm hover:bg-gray-100 transition duration-150 border-b-2 ${rowClass}`}>
+            <td className="px-4 py-6 text-center align-middle">{staff.name}</td>
+            <td className="px-4 py-6 text-center align-middle">{staff.birthDate}</td>
+            <td className="px-4 py-6 text-center align-middle">{staff.email}</td>
+            <td className="px-4 py-6 text-center align-middle">{staff.phone}</td>
+            <td className="px-4 py-6 text-center align-middle">{staff.bar ? staff.bar.barName : 'N/A'}</td> {/* Cập nhật để hiển thị tên bar */}
             <td className="flex justify-center items-center px-4 py-6 align-middle">
                 <div className={`flex justify-center items-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
-                    {staff.status}
+                    {staff.status === 1 ? "Active" : "Deactive"}
                 </div>
             </td>
             <td className="px-4 py-6 text-center align-middle">
@@ -67,9 +65,9 @@ const StaffTableRow = ({ staff, index }) => {
 
 function getStatusClass(status) {
     switch (status) {
-        case "Active":
+        case 1:
             return "bg-green-500 text-white";
-        case "Inactive":
+        case 0:
             return "bg-red-500 text-white";
         default:
             return "bg-gray-500 text-white";
@@ -186,7 +184,7 @@ const StaffManagement = () => {
                     <FilterDropdown onFilter={handleFilter} />
                     <AddStaffButton />
                 </div>
-                <div className="flex overflow-hidden flex-col mt-14 ml-16 max-w-full text-sm leading-5 bg-white rounded-xl shadow-[0px_45px_112px_rgba(0,0,0,0.06)] text-zinc-800 w-[1050px] max-md:mt-10">
+                <div className="flex overflow-hidden flex-col mt-14 max-w-full text-sm leading-5 table-container">
                     <StaffTable staffData={filteredStaff} />
                 </div>
             </div>
