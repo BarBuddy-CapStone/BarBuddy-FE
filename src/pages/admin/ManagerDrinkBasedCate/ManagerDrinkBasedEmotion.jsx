@@ -1,5 +1,5 @@
 import React from "react";
-import { wineData } from "../../../lib/service/managerDrinksService";
+// import { wineData } from "../../../lib/service/managerDrinksService";
 import { ChevronRight } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Pagination } from "@mui/material";
@@ -113,13 +113,13 @@ function ManagerDrink() {
             <div className="pt-[40px]">
                 <table class="w-full text-xl text-black">
                     <TableHeader />
-                    {wineData.map((wine, index) => (
+                    {/* {wineData.map((wine, index) => (
                         <WineItem
                             key={index}
                             {...wine}
                             bgColor={index % 2 === 0 ? "bg-white" : "bg-stone-50"}
                         />
-                    ))}
+                    ))} */}
                 </table>
             </div>
             <div className="flex justify-end mt-6">

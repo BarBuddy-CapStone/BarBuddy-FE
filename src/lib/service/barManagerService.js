@@ -1,40 +1,38 @@
-export function getBarData() {
-    return [
-      {
-        name: "Bar Buddy1",
-        address: "87A Hàm Nghi, Phường Nguyễn Thái Bình, Quận 1",
-        email: "barbuddy1@gmail.com",
-        phone: "0909090909",
-        openTime: "10:00 PM",
-        closeTime: "02:00 AM",
-        status: "Active"
+import axios from "axios";
+
+const getAllBar = async () => {
+  return await axios.get(`api/v1/Bar/admin/barmanager`)
+}
+
+const getBarProfile = async (barId) => {
+  return await axios.get(`api/v1/Bar/admin/barProfile/${barId}`)
+}
+
+const addBar = async (data) => {
+  return await axios.post(`api/v1/Bar/admin/addBar`, data,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
       },
-      {
-        name: "Bar Buddy2",
-        address: "123 Lê Lợi, Phường Bến Nghé, Quận 1",
-        email: "barbuddy2@gmail.com",
-        phone: "0908080808",
-        openTime: "09:00 PM",
-        closeTime: "03:00 AM",
-        status: "Active"
+    }
+  )
+}
+
+const updateBar = async (barId, data) => {
+  return await axios.patch(
+    `api/v1/Bar/admin/updateBar/${barId}`,
+    data,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
       },
-      {
-        name: "Bar Buddy3",
-        address: "456 Nguyễn Huệ, Phường Bến Nghé, Quận 1",
-        email: "barbuddy3@gmail.com",
-        phone: "0907070707",
-        openTime: "08:00 PM",
-        closeTime: "01:00 AM",
-        status: "Active"
-      },
-      {
-        name: "Bar Buddy4",
-        address: "789 Đồng Khởi, Phường Bến Nghé, Quận 1",
-        email: "barbuddy4@gmail.com",
-        phone: "0906060606",
-        openTime: "11:00 PM",
-        closeTime: "04:00 AM",
-        status: "Active"
-      }
-    ];
-  }
+    }
+  );
+};
+
+export {
+  getAllBar,
+  getBarProfile,
+  addBar,
+  updateBar
+}
