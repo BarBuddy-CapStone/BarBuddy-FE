@@ -2,4 +2,9 @@ import EditEmotionCategory from "./admin/emotionalCategory/components/EditEmotio
 import AddEmotionCategory from "./admin/emotionalCategory/components/AddEmotionCategory"
 import DeleteEmotionCategory from "./admin/emotionalCategory/components/DeleteEmotionCategory";
 
-export { EditEmotionCategory, AddEmotionCategory, DeleteEmotionCategory };
+// BookingTable Components
+import BarInfo from "./customer/booking/bookingTable/components/BarInfo";
+import BookingInfo from "./customer/booking/bookingTable/components/BookingInfo";
+import CustomerForm from "./customer/booking/bookingTable/components/CustomerForm";
+
+export { EditEmotionCategory, AddEmotionCategory, DeleteEmotionCategory, BarInfo, BookingInfo, CustomerForm  };

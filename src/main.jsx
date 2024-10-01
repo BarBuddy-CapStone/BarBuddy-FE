@@ -30,6 +30,8 @@ import StaffLayout from "./components/staffComponents/StaffLayout";
 import AddBar from "./pages/admin/barManager/AddBar";
 import AddDrink from "./pages/admin/ManagerDrinkBasedCate/AddDrink";
 import BookingDetail from "./pages/staff/table-registration/BookingDetail";
+import CustomerLayout from "./components/customerComponents/CustomerLayout";
+import BookingTable from "./pages/customer/booking/bookingTable/BookingTable";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -72,6 +74,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="staff/table-management/table-list" element={<TableManagementDetail />}></Route>
           <Route path="staff/payment-history" element={<PaymentHistoryStaff />}></Route>
           <Route path="staff/table-registrations" element={<BookingList/>}></Route>        
+        </Route>
+
+        {/* Route Của Customer */}
+        <Route path="/" element={<CustomerLayout />}>
+         <Route path="customer" element={<BookingTable/>}></Route>
         </Route>
       </Routes> 
     </BrowserRouter>
