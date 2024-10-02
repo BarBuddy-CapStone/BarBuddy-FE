@@ -1,3 +1,39 @@
+/* index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom animation for fade-in and fade-out */
+.popup-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.popup-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.popup-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.popup-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Custom spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  border-top-color: #ffffff; /* Adjust color as needed */
+}
+

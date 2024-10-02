@@ -1,92 +1,37 @@
-export const wineData = [
-    {
-      name: "COCA",
-      description: "123123123",
-      price: "123123123",
-      image: "img.jpg",
-      createdAt: "Aug 18 2021 15:20:56",
-      updatedAt: "Aug 18 2021 15:20:56",
-      category: "Rượu vang",
-      status: "Active",
+import axios from "axios"
+
+const getDrinkBasedCate = async (cateId) => {
+  return await axios.get(`api/v1/Drink/getDrinkBaedCate/${cateId}`)
+}
+
+const getAllDrink = async () => {
+  return await axios.get(`api/v1/Drink`);
+}
+
+const getOneDrink = async (drinkId) => {
+  return await axios.get(`api/v1/Drink/${drinkId}`)
+}
+
+const addDrink = async (data) => {
+  return await axios.post(`addDrink`, data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
     },
-    {
-      name: "COCA",
-      description: "123123123",
-      price: "123123123",
-      image: "img.jpg",
-      createdAt: "Aug 1 2021 19:50:01",
-      updatedAt: "Aug 1 2021 19:50:01",
-      category: "Rượu vang",
-      status: "Inactive",
+  })
+}
+
+const updateDrink = async (drinkId, data) => {
+  return await axios.patch(`updateDrink/${drinkId}`, data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
     },
-    {
-      name: "COCA",
-      description: "123123123",
-      price: "123123123",
-      image: "img.jpg",
-      createdAt: "Aug 18 2021 15:20:56",
-      updatedAt: "Aug 18 2021 15:20:56",
-      category: "Rượu vang",
-      status: "Active",
-    },
-    {
-      name: "COCA",
-      description: "123123123",
-      price: "123123123",
-      image: "img.jpg",
-      createdAt: "Aug 18 2021 15:20:56",
-      updatedAt: "Aug 18 2021 15:20:56",
-      category: "Rượu vang",
-      status: "Active",
-    },
-    {
-      name: "COCA",
-      description: "123123123",
-      price: "123123123",
-      image: "img.jpg",
-      createdAt: "Aug 18 2021 15:20:56",
-      updatedAt: "Aug 18 2021 15:20:56",
-      category: "Rượu vang",
-      status: "Active",
-    },
-    {
-      name: "COCA",
-      description: "123123123",
-      price: "123123123",
-      image: "img.jpg",
-      createdAt: "Aug 18 2021 15:20:56",
-      updatedAt: "Aug 18 2021 15:20:56",
-      category: "Rượu vang",
-      status: "Active",
-    },
-    {
-      name: "COCA",
-      description: "123123123",
-      price: "123123123",
-      image: "img.jpg",
-      createdAt: "Aug 18 2021 15:20:56",
-      updatedAt: "Aug 18 2021 15:20:56",
-      category: "Rượu vang",
-      status: "Active",
-    },
-    {
-      name: "COCA",
-      description: "123123123",
-      price: "123123123",
-      image: "img.jpg",
-      createdAt: "Aug 18 2021 15:20:56",
-      updatedAt: "Aug 18 2021 15:20:56",
-      category: "Rượu vang",
-      status: "Active",
-    },
-    {
-      name: "COCA",
-      description: "123123123",
-      price: "123123123",
-      image: "img.jpg",
-      createdAt: "Aug 18 2021 15:20:56",
-      updatedAt: "Aug 18 2021 15:20:56",
-      category: "Rượu vang",
-      status: "Active",
-    },
-  ];
+  })
+}
+
+export {
+  getDrinkBasedCate,
+  getAllDrink,
+  getOneDrink,
+  addDrink,
+  updateDrink
+}
