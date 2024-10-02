@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import { getCustomerAccounts } from 'src/lib/service/adminService';
 import { ToastContainer, toast } from 'react-toastify'; // Nhập ToastContainer và toast

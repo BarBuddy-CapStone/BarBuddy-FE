@@ -30,7 +30,7 @@ const StaffTableHeader = () => (
 
 const StaffTableRow = ({ staff, index }) => {
     const navigate = useNavigate();
-    const rowClass = index % 2 === 0 ? "bg-bg-white" : "bg-bg-orange-50";
+    const rowClass = index % 2 === 0 ? "bg-white" : "bg-orange-50";
     const statusClass = getStatusClass(staff.status);
     const handleViewDetail = (id) => {
         navigate(`/admin/staff-detail?accountId=${id}`); // Chuyển hướng đến trang StaffDetail với accountId
