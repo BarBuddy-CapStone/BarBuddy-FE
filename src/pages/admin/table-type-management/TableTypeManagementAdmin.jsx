@@ -158,6 +158,15 @@ const BelowHeader = ({ onAddTableType, searchTerm, onSearchChange, status, onSta
   </div>
 );
 
+BelowHeader.propTypes = {
+  onAddTableType: PropTypes.func.isRequired, // Validates that onAddTableType is a required function
+  searchTerm: PropTypes.string.isRequired,   // Validates that searchTerm is a required string
+  onSearchChange: PropTypes.func.isRequired, // Validates that onSearchChange is a required function
+  status: PropTypes.number.isRequired,       // Validates that status is a required number
+  onStatusChange: PropTypes.func.isRequired, // Validates that onStatusChange is a required function
+};
+
+
 // TableTypeList component
 // const tableTypes = [
 //   {

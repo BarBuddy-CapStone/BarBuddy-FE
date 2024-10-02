@@ -29,12 +29,17 @@ function PaymentHistory() {
         };
         const response = await PaymentHistoryService.getAllPayments(params);
         const paymentData = response.data.response.map((payment) => ({
-          date: new Date(payment.paymentDate).toLocaleDateString(),
+          date: new Date(payment.paymentDate).toLocaleString(),  // Includes both date and time
           name: payment.customerName,
+          phone: payment.phoneNumber,  // Add phone number field
+          branch: payment.barName,     // Add branch (Chi nhánh)
           total: `${payment.totalPrice.toLocaleString()} VND`,
           status: payment.status ? 'Thành công' : 'Thất bại',
           transactionId: payment.transactionCode,
-        }));
+          content: payment.note,       // Add content (Nội dung)
+      }));
+      
+      
         setPayments(paymentData);
         setTotalPages(response.data.totalPage);
       } catch (error) {
@@ -284,6 +289,10 @@ function SearchForm({ barBranches, onSearch }) {
   );
 }
 
+SearchForm.propTypes = {
+  barBranches: PropTypes.array.isRequired,  // Already defined
+  onSearch: PropTypes.func.isRequired,      // Add validation for onSearch
+};
 
 SearchForm.propTypes = {
   barBranches: PropTypes.array.isRequired,
@@ -366,7 +375,7 @@ function PaymentTable({ payments, tabStatus, onRowClick }) {
           <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-left"> 
             <div>
               <p className="font-bold mb-2">Thời gian giao dịch</p>
-              <p>{payment.time}</p>
+              <p>{payment.date}</p> {/* Change from payment.time to payment.date */}
             </div>
             <div>
               <p className="font-bold mb-2">Mã giao dịch</p>
@@ -400,6 +409,7 @@ function PaymentTable({ payments, tabStatus, onRowClick }) {
       </div>
     );
   }
+  
 
 // Modal
 TransactionModal.propTypes = {
