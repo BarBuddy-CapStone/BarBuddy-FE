@@ -12,6 +12,7 @@ const formFields = [
 ];
 
 const AccountForm = () => {
+    const navigate = useNavigate(); // Khai báo useNavigate
     const { validateForm } = useValidateAccountForm(); // Sử dụng hook validate
     const [formData, setFormData] = useState({
         fullname: "",
@@ -39,20 +40,14 @@ const AccountForm = () => {
 
     const handleConfirm = async () => {
         const customerData = {
-            email: formData.email, // Đảm bảo rằng tên trường khớp với yêu cầu
+            email: formData.email,
             fullname: formData.fullname,
             phone: formData.phone,
             dob: formData.birthDate, // Đổi tên trường thành 'dob'
             status: 0 // Thêm trường status với giá trị mặc định
         };
-        try {
-            await createCustomer(customerData); // Gọi hàm createCustomer với customerData đã chỉnh sửa
-            toast.success("Tài khoản đã được thêm thành công")
-            setIsPopupOpen(false); // Đóng Popup sau khi thành công
-        } catch (error) {
-            toast.error("Đã xảy ra lỗi trong quá trình thực hiện")
-            console.error("Error creating customer:", error);
-        }
+        await createCustomer(customerData); // Gọi hàm createCustomer với customerData đã chỉnh sửa
+        navigate("/admin/customers", { state: { successMessage: "Tạo tài khoản thành công!" } }); // Điều hướng về trang CustomerManagement với state
     };
 
     const handleClosePopup = () => {
@@ -119,7 +114,7 @@ const Popup = ({ message, onClose, onConfirm }) => (
 );
 
 export default function CustomerCreation() {
-    const navigate = useNavigate();
+    const navigate = useNavigate(); // Khai báo useNavigate
 
     const handleBack = () => {
         navigate("/admin/customers");

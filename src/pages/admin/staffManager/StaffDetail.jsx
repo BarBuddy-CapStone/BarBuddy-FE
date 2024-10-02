@@ -25,9 +25,9 @@ const ProfileField = ({ label, value, onChange, isDropdown, options }) => (
                 </select>
             ) : (
                 <input
-                    type="text"
+                    type={label === "Ngày sinh" ? "date" : "text"} // Thay đổi type thành "date" nếu label là "Ngày sinh"
                     className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
-                    defaultValue={value}
+                    value={value} // Sử dụng value thay vì defaultValue
                     onChange={onChange}
                 />
             )}
@@ -51,14 +51,14 @@ const StatusToggle = ({ status, onToggle }) => (
     </div>
 );
 
-const Popup = ({ message, onClose }) => (
+const Popup = ({ message, onConfirm, onCancel }) => (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
         <div className="bg-white p-6 rounded shadow-lg">
             <h2 className="font-bold text-lg">Xác nhận</h2>
             <p>{message}</p>
             <div className="mt-4 flex justify-end">
-                <button onClick={onClose} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Đồng ý</button>
-                <button onClick={onClose} className="ml-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Hủy</button>
+                <button onClick={onConfirm} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Đồng ý</button>
+                <button onClick={onCancel} className="ml-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Hủy</button>
             </div>
         </div>
     </div>
@@ -70,25 +70,28 @@ export default function StaffDetail() {
     const accountId = new URLSearchParams(location.search).get('accountId');
     const [staffDetail, setStaffDetail] = useState(null);
     const [formData, setFormData] = useState({});
-    const [bars, setBars] = useState([]); 
+    const [bars, setBars] = useState([]);
     const [showPopup, setShowPopup] = useState(false);
-    const [popupMessage, setPopupMessage] = useState(null);
+    const [popupMessage, setPopupMessage] = useState("Bạn có chắc chắn muốn cập nhật thông tin?");
     const [errors, setErrors] = useState({}); // Thêm state để lưu trữ lỗi
     const { validateForm } = useValidateAccountForm(); // Khởi tạo hook xác thực
+    const [updateSuccess, setUpdateSuccess] = useState(false);
 
     useEffect(() => {
         const fetchStaffDetail = async () => {
             try {
-                const detail = await getStaffDetail(accountId);
-                setStaffDetail(detail);
-                setFormData({
-                    email: detail.email,
-                    fullname: detail.fullname,
-                    phone: detail.phone,
-                    dob: new Date(detail.dob).toISOString().split('T')[0],
-                    barId: detail.barId,
-                    status: detail.status,
-                });
+                const response = await getStaffDetail(accountId);
+                if (response.status === 200) {
+                    setStaffDetail(response.data);
+                    setFormData({
+                        email: response.data.email,
+                        fullname: response.data.fullname,
+                        phone: response.data.phone,
+                        dob: new Date(response.data.dob).toISOString().split('T')[0],
+                        barId: response.data.barId,
+                        status: response.data.status,
+                    });
+                }
             } catch (error) {
                 console.error("Failed to fetch staff detail:", error);
             }
@@ -96,9 +99,9 @@ export default function StaffDetail() {
 
         const fetchBars = async () => {
             try {
-                const response = await getBars(); // Gọi API để lấy danh sách quán bar
-                if (response.statusCode === 200) {
-                    setBars(response.data); // Lưu danh sách quán bar vào state
+                const response = await getBars(); // Gọi API lấy danh sách quán bar
+                if (response.status === 200) { // Cập nhật điều kiện kiểm tra
+                    setBars(response.data.data); // Cập nhật cách truy cập dữ liệu
                 }
             } catch (error) {
                 console.error("Failed to fetch bars:", error);
@@ -107,7 +110,7 @@ export default function StaffDetail() {
 
         if (accountId) {
             fetchStaffDetail();
-            fetchBars(); // Gọi hàm fetchBars
+            fetchBars();
         }
     }, [accountId]);
 
@@ -121,19 +124,23 @@ export default function StaffDetail() {
             setErrors(validationErrors); // Cập nhật state lỗi nếu có
             return; // Dừng lại nếu có lỗi
         }
-        
+        setShowPopup(true); // Hiện popup xác nhận
+    };
+
+    const handleConfirmUpdate = async () => {
         try {
-            const updatedData = { email: formData.email,
+            const updatedData = {
+                email: formData.email,
                 fullname: formData.fullname,
                 phone: formData.phone,
-                dob: formData.dob,
-                barId: formData.barId, 
-                status: formData.status === 1 ? 1 : 0 
+                dob: new Date(formData.dob).toISOString(), // Chuyển đổi ngày sinh sang định dạng ISO
+                barId: formData.barId,
+                status: formData.status === 1 ? 1 : 0
             };
-            console.log(updatedData);
-            await updateStaffDetail(accountId, updatedData);
-            setPopupMessage("Bạn có chắc chắn muốn cập nhật thông tin?");
-            setShowPopup(true);
+            const response = await updateStaffDetail(accountId, updatedData);
+            if (response.status === 200) {
+                navigate("/admin/staff", { state: { successMessage: "Thông tin đã được cập nhật thành công!" } }); // Chuyển hướng về trang StaffManagement
+            }
         } catch (error) {
             console.error("Failed to update staff detail:", error);
             toast.error("Cập nhật thông tin thất bại!");
@@ -141,8 +148,7 @@ export default function StaffDetail() {
     };
 
     const handleClosePopup = () => {
-        setShowPopup(false);
-        toast.success("Thông tin đã được cập nhật thành công!");
+        setShowPopup(false); // Đóng popup
     };
 
     const handleToggleStatus = () => {
@@ -154,7 +160,7 @@ export default function StaffDetail() {
     return (
         <main className="flex flex-col px-4 md:px-8 lg:px-16 py-8 w-full max-w-7xl mx-auto">
             <header className="flex items-center justify-between mb-8">
-                <button 
+                <button
                     onClick={handleBack}
                     className="text-3xl font-bold hover:text-gray-700 transition-colors"
                 >
@@ -175,23 +181,28 @@ export default function StaffDetail() {
                 <section className="flex flex-col ml-5 w-[82%] max-md:ml-0 max-md:w-full">
                     <div className="flex flex-col w-full text-sm min-h-[454px] max-md:max-w-full">
                         {errors.fullname && <span className="text-center my-2 text-red-500">{errors.fullname}</span>}
-                         
+
                         <ProfileField label="Họ và tên" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
-                        {errors.phone && <span className="text-center my-2 text-red-500">{errors.phone}</span>} 
-                        
+                        {errors.phone && <span className="text-center my-2 text-red-500">{errors.phone}</span>}
+
                         <ProfileField label="Số điện thoại" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-                        {errors.email && <span className="text-center my-2 text-red-500">{errors.email}</span>} 
-                        
+                        {errors.email && <span className="text-center my-2 text-red-500">{errors.email}</span>}
+
                         <ProfileField label="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-                        {errors.dob && <span className="text-center my-2 text-red-500">{errors.dob}</span>} 
-                        
-                        <ProfileField label="Ngày sinh" value={formData.dob} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} />
-                        <ProfileField 
-                            label="Chi nhánh" 
-                            value={formData.barId} 
-                            onChange={(e) => setFormData({ ...formData, barId: e.target.value })} 
-                            isDropdown={true} 
-                            options={bars} // Truyền danh sách quán bar vào
+                        {errors.dob && <span className="text-center my-2 text-red-500">{errors.dob}</span>}
+
+                        <ProfileField
+                            label="Ngày sinh"
+                            value={formData.dob}
+                            onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                            isDropdown={false} // Đặt isDropdown thành false để sử dụng input chọn ngày
+                        />
+                        <ProfileField
+                            label="Chi nhánh"
+                            value={formData.barId}
+                            onChange={(e) => setFormData({ ...formData, barId: e.target.value })}
+                            isDropdown={true}
+                            options={bars}
                         />
                         <StatusToggle status={formData.status} onToggle={handleToggleStatus} />
                     </div>
@@ -202,7 +213,7 @@ export default function StaffDetail() {
                     Cập nhật
                 </button>
             </div>
-            {showPopup && <Popup message={popupMessage} onClose={handleClosePopup} />}
+            {showPopup && <Popup message={popupMessage} onConfirm={handleConfirmUpdate} onCancel={handleClosePopup} />}
             <ToastContainer />
         </main>
     );

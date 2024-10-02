@@ -15,6 +15,9 @@ const headerConstants = {
     table_list: "DANH SÁCH ĐẶT BÀN",
     payment_history: "THANH TOÁN"
   },
+  headerCustomer: {
+    homepage: "HOME"
+  }
 };
 
 export default headerConstants;

@@ -26,6 +26,7 @@ const Popup = ({ message, onClose, onConfirm }) => (
 );
 
 const AccountForm = () => {
+    const navigate = useNavigate();
     const { validateForm } = useValidateAccountForm(); // Sử dụng hook validate
     const [formData, setFormData] = useState({
         fullname: "",
@@ -34,7 +35,7 @@ const AccountForm = () => {
         dob: "",
         barId: ""
     });
-    const [branchOptions, setBranchOptions] = useState([]);
+    const [branchOptions, setBranchOptions] = useState([]); // Trạng thái cho branchOptions
     const [showPopup, setShowPopup] = useState(false);
     const [confirmMessage, setConfirmMessage] = useState("");
     const [errors, setErrors] = useState({});
@@ -59,8 +60,11 @@ const AccountForm = () => {
         setShowPopup(false);
         try {
             const response = await createStaff(formData);
-            console.log('Tạo tài khoản thành công:', response);
-            toast.success('Tạo tài khoản thành công!');
+            if(response.status === 200) {
+                navigate("/admin/staff", { state: { successMessage: "Tài khoản đã được thêm thành công!" } });
+            } else {
+                navigate("/admin/staff", { state: { errorMessage: "Có lỗi xảy ra khi tạo tài khoản!" } });
+            }
         } catch (error) {
             console.error('Có lỗi xảy ra khi tạo tài khoản:', error);
             toast.error('Có lỗi xảy ra khi tạo tài khoản!');
@@ -75,14 +79,14 @@ const AccountForm = () => {
         const fetchBars = async () => {
             try {
                 const response = await getBars();
-                setBranchOptions(response.data);
+                setBranchOptions(response.data.data);
             } catch (error) {
                 console.error('Có lỗi xảy ra khi gọi API:', error);
             }
         };
 
-        fetchBars();
-    }, []);
+        fetchBars(); // Gọi hàm fetchBars khi component được mount
+    }, []); // Chỉ chạy một lần khi component được mount
 
     return (
         <>

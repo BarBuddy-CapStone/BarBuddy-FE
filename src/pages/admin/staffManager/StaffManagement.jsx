@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Thêm useLocation
 import SearchIcon from '@mui/icons-material/Search';
 import { getStaffAccounts } from '../../../lib/service/adminService'; // Import hàm mới
-
-// Hàm gọi API
-const fetchStaffData = async () => {
-    return await getStaffAccounts(); // Sử dụng hàm từ adminService
-};
+import { toast, ToastContainer } from 'react-toastify'; // Import toast
+import 'react-toastify/dist/ReactToastify.css';
+import Pagination from '@mui/material/Pagination'; // Import Pagination từ MUI
 
 // Các components
 const StaffTable = ({ staffData }) => (
@@ -35,14 +33,13 @@ const StaffTableRow = ({ staff, index }) => {
     const rowClass = index % 2 === 0 ? "bg-white" : "bg-orange-50";
     const statusClass = getStatusClass(staff.status);
     const handleViewDetail = (id) => {
-        // Chỉ chuyển hướng đến trang StaffDetail với accountId
-        navigate(`/admin/staff-detail?accountId=${id}`);
+        navigate(`/admin/staff-detail?accountId=${id}`); // Chuyển hướng đến trang StaffDetail với accountId
     };
 
     return (
         <tr className={`text-sm hover:bg-gray-100 transition duration-150 border-b-2 ${rowClass}`}>
-            <td className="px-4 py-6 text-center align-middle">{staff.name}</td>
-            <td className="px-4 py-6 text-center align-middle">{staff.birthDate}</td>
+            <td className="px-4 py-6 text-center align-middle">{staff.fullname}</td>
+            <td className="px-4 py-6 text-center align-middle">{new Date(staff.dob).toLocaleDateString('vi-VN')}</td>
             <td className="px-4 py-6 text-center align-middle">{staff.email}</td>
             <td className="px-4 py-6 text-center align-middle">{staff.phone}</td>
             <td className="px-4 py-6 text-center align-middle">{staff.bar ? staff.bar.barName : 'N/A'}</td> {/* Cập nhật để hiển thị tên bar */}
@@ -54,7 +51,7 @@ const StaffTableRow = ({ staff, index }) => {
             <td className="px-4 py-6 text-center align-middle">
                 <button
                     className="px-2 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
-                    onClick={() => handleViewDetail(staff.id)}
+                    onClick={() => handleViewDetail(staff.accountId)}
                 >
                     Xem chi tiết
                 </button>
@@ -146,24 +143,29 @@ const FilterDropdown = ({ onFilter }) => {
 const StaffManagement = () => {
     const [staffData, setStaffData] = useState([]);
     const [filteredStaff, setFilteredStaff] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
+    const [pageIndex, setPageIndex] = useState(1);
+    const [pageSize, setPageSize] = useState(6);
+    const [totalCustomers, setTotalCustomers] = useState(0);
 
     useEffect(() => {
         const loadData = async () => {
             try {
-                const data = await fetchStaffData();
+                const response = await getStaffAccounts(pageSize, pageIndex); // Gọi hàm với pageSize và pageIndex
+                const data = response.data.items;
+                setTotalCustomers(response.data.count); // Tính tổng số trang
+
                 setStaffData(data);
                 setFilteredStaff(data);
             } catch {
                 setError('Failed to fetch staff data');
-            } finally {
-                setLoading(false);
             }
         };
         loadData();
-    }, []);
+    }, [pageIndex]); // Thêm pageIndex vào dependency array
+
+    const handlePageChange = (event, value) => {
+        setPageIndex(value); // Cập nhật pageIndex khi người dùng chọn trang
+    };
 
     const handleSearch = (searchTerm) => {
         setFilteredStaff(staffData.filter(staff => staff.name.toLowerCase().includes(searchTerm.toLowerCase())));
@@ -172,9 +174,6 @@ const StaffManagement = () => {
     const handleFilter = (bar) => {
         setFilteredStaff(staffData.filter(staff => staff.bar === bar));
     };
-
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>{error}</div>;
 
     return (
         <main className="flex-1 overflow-x-hidden overflow-y-auto mr-100 bg-gray-100">
@@ -187,7 +186,14 @@ const StaffManagement = () => {
                 <div className="flex overflow-hidden flex-col mt-14 max-w-full text-sm leading-5 table-container">
                     <StaffTable staffData={filteredStaff} />
                 </div>
+                <Pagination
+                    count={Math.ceil(totalCustomers / pageSize)} // Số trang tổng cộng
+                    page={pageIndex} // Trang hiện tại
+                    onChange={handlePageChange} // Hàm xử lý khi trang thay đổi
+                    color="primary" // Màu sắc của Pagination
+                />
             </div>
+            <ToastContainer />
         </main>
     );
 };

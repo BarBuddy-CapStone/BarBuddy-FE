@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Thêm useLocation
 import SearchIcon from '@mui/icons-material/Search';
 import { getCustomerAccounts } from 'src/lib/service/adminService';
-
-const customerData = [
-    { id: 1, name: "Customer 1", birthDate: "19/09/2000", email: "barbuddy1@gmail.com", phone: "0909090909", registrationDate: "19/09/2024", status: "Active" },
-    { id: 2, name: "Customer 2", birthDate: "19/09/2001", email: "barbuddy1@gmail.com", phone: "0909090909", registrationDate: "19/09/2024", status: "Active" },
-    { id: 3, name: "Customer 3", birthDate: "19/09/2002", email: "barbuddy1@gmail.com", phone: "0909090909", registrationDate: "19/09/2024", status: "Active" },
-    { id: 4, name: "Customer 4", birthDate: "19/09/2003", email: "barbuddy1@gmail.com", phone: "0909090909", registrationDate: "19/09/2024", status: "Active" }
-];
+import { ToastContainer, toast } from 'react-toastify'; // Nhập ToastContainer và toast
+import 'react-toastify/dist/ReactToastify.css'; // Nhập CSS cho toast
+import Pagination from '@mui/material/Pagination'; // Nhập Pagination từ MUI
 
 const SearchCustomerName = ({ onSearch }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -105,7 +101,7 @@ function getStatusClass(status) {
 const CustomerTable = ({ customerData }) => {
     const navigate = useNavigate();
     const handleViewDetail = (id) => {
-        navigate(`/admin/customer-detail?accountId=${id}`)
+        navigate(`/admin/customer-detail?accountId=${id}`) // Điều hướng với tham số
     };
 
     return (
@@ -128,20 +124,21 @@ const CustomerTable = ({ customerData }) => {
 
 const CustomerManagement = () => {
     const [filteredCustomers, setFilteredCustomers] = useState([]); // Thay đổi state để lưu danh sách khách hàng
+    const [pageIndex, setPageIndex] = useState(1);
+    const [pageSize, setPageSize] = useState(6);
+    const [totalCustomers, setTotalCustomers] = useState(0); // Thêm state cho tổng số khách hàng
     const navigate = useNavigate();
+    const location = useLocation(); // Khai báo useLocation
 
     useEffect(() => {
         const fetchCustomers = async () => {
-            try {
-                const data = await getCustomerAccounts(); // Gọi hàm từ adminService
-                setFilteredCustomers(data.items); // Cập nhật danh sách khách hàng đã lấy từ API
-            } catch (error) {
-                console.error("Error fetching customer accounts:", error);
-            }
+            const response = await getCustomerAccounts(pageSize, pageIndex); // Gọi hàm với pageSize và pageIndex
+            setFilteredCustomers(response.data.items); // Cập nhật danh sách khách hàng đã lấy từ API
+            setTotalCustomers(response.data.count); // Lưu tổng số khách hàng từ phản hồi
         };
 
         fetchCustomers();
-    }, []);
+    }, [pageIndex, pageSize]); // Thêm pageIndex và pageSize vào dependency array
 
     const handleSearch = (searchTerm) => {
         const filtered = customerData.filter(customer =>
@@ -149,6 +146,13 @@ const CustomerManagement = () => {
         );
         setFilteredCustomers(filtered); // Cập nhật danh sách khách hàng đã lọc
     };
+
+    // Hiển thị thông báo nếu có
+    useEffect(() => {
+        if (location.state && location.state.successMessage) {
+            toast.success(location.state.successMessage);
+        }
+    }, [location.state]);
 
     return (
         <main className="flex-1 overflow-x-hidden overflow-y-auto mr-100 bg-gray-100">
@@ -160,7 +164,15 @@ const CustomerManagement = () => {
                 <div className="flex overflow-hidden flex-col mt-14 max-w-full text-sm leading-5 table-container">
                     <CustomerTable customerData={filteredCustomers} /> 
                 </div>
+                <Pagination
+                    count={Math.ceil(totalCustomers / pageSize)}
+                    page={pageIndex}
+                    onChange={(event, value) => setPageIndex(value)} // Cập nhật pageIndex khi thay đổi
+                    variant="outlined"
+                    shape="rounded"
+                />
             </div>
+            <ToastContainer /> {/* Thêm ToastContainer vào trong JSX */}
         </main>
     );
 }

@@ -1,131 +1,84 @@
-import axios from 'axios';
+import axios from "../axiosCustomize";
 
-export const getCustomerAccounts = async () => {
-    try {
-        const response = await axios.get("https://localhost:7069/api/v1/customer-accounts"); // Gọi API bằng axios
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching customer accounts:", error);
-        throw error;
-    }
+export const getCustomerAccounts = async (pageSize = 100, pageIndex = 1) => {
+    return await axios.get(`api/v1/customer-accounts?pageSize=${pageSize}&pageIndex=${pageIndex}`);
 };
 
 export const getCustomerDetail = async (accountId) => {
-    try {
-        const response = await axios.get(`https://localhost:7069/api/v1/customer-account/detail?accountId=${accountId}`); // Gọi API để lấy chi tiết khách hàng
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching customer detail:", error);
-        throw error;
-    }
+    return await axios.get(`api/v1/customer-account/detail?accountId=${accountId}`);
 };
 
 export const updateCustomerDetail = async (accountId, customerData) => {
-    try {
-        const response = await axios.patch(`https://localhost:7069/api/v1/customer-account?accountId=${accountId}`, customerData, {
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': '*/*'
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Error updating customer detail:", error);
-        throw error;
-    }
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+            // 'Authorization': `Bearer ${token}`
+        }
+    };
+    return await axios.patch(`api/v1/customer-account?accountId=${accountId}`, customerData, config);
 };
 
 export const updateStaffDetail = async (accountId, staffData) => {
-    try {
-        const response = await axios.patch(`https://localhost:7069/api/v1/staff-account?accountId=${accountId}`, staffData, {
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': '*/*'
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Error updating customer detail:", error);
-        throw error;
-    }
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+            // 'Authorization': `Bearer ${token}`
+        }
+    };
+    return await axios.patch(`api/v1/staff-account?accountId=${accountId}`, staffData, config);
 };
 
-export const getStaffAccounts = async () => {
-    try {
-        const response = await axios.get("https://localhost:7069/api/v1/staff-accounts", {
-            headers: {
-                'accept': '*/*'
-            }
-        });
-        return response.data.items.map(staff => ({
-            id: staff.accountId,
-            name: staff.fullname,
-            email: staff.email,
-            phone: staff.phone,
-            birthDate: new Date(staff.dob).toLocaleDateString(),
-            bar: staff.bar,
-            status: staff.status
-        }));
-    } catch (error) {
-        console.error("Error fetching staff accounts:", error);
-        throw error;
-    }
+export const getStaffAccounts = async (pageSize = 100, pageIndex = 1) => {
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+        }
+    };
+    return await axios.get(`api/v1/staff-accounts?pageSize=${pageSize}&pageIndex=${pageIndex}`, config);
 };
 
 export const getStaffDetail = async (accountId) => {
-    try {
-        const response = await axios.get(`https://localhost:7069/api/v1/staff-account/detail?accountId=${accountId}`, {
-            headers: {
-                'accept': '*/*'
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching staff detail:", error);
-        throw error;
-    }
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+            // 'Authorization': `Bearer ${token}`
+        }
+    };
+    return await axios.get(`api/v1/staff-account/detail?accountId=${accountId}`);
 };
 
 export const getBars = async () => {
-    try {
-        const response = await axios.get("https://localhost:7069/api/Bar/admin/barmanager", {
-            headers: {
-                'accept': '*/*'
-            }
-        });
-        return response.data; // Trả về dữ liệu nhận được từ API
-    } catch (error) {
-        console.error("Error fetching bars:", error);
-        throw error;
-    }
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+            // 'Authorization': `Bearer ${token}`
+        }
+    };
+    return await axios.get("api/Bar/admin/barmanager", config);
 };
 
 export const createCustomer = async (customerData) => {
-    try {
-        const response = await axios.post("https://localhost:7069/api/v1/customer-account", customerData, {
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': '*/*'
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Error creating customer:", error);
-        throw error;
-    }
+    const config = { // Thêm config vào đây
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+            // 'Authorization': `Bearer ${token}`
+        }
+    };
+    return await axios.post("api/v1/customer-account", customerData, config);
 };
 
 export const createStaff = async (staffData) => {
-    try {
-        const response = await axios.post("https://localhost:7069/api/v1/staff-account", staffData, {
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': '*/*'
-            }
-        });
-        return response.data; // Trả về dữ liệu nhận được từ API
-    } catch (error) {
-        console.error("Error creating staff:", error);
-        throw error;
-    }
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+        }
+    };
+    return await axios.post("api/v1/staff-account", staffData, config);
 };

@@ -5,16 +5,16 @@ import { ToastContainer, toast } from 'react-toastify'; // Nhập ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Nhập CSS cho toast
 import useValidateAccountForm from 'src/lib/hooks/useValidateAccountForm'; // Nhập hook xác thực
 
-const ProfileField = ({ label, value, onChange }) => (
+const ProfileField = ({ label, value, onChange, type = "text" }) => ( // Thêm type với giá trị mặc định là "text"
     <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
-        <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full flex-shrink-0"> {/* Thêm flex-shrink-0 */}
+        <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full flex-shrink-0">
             {label}
         </div>
-        <div className="w-[742px] max-w-full max-md:w-full flex-grow"> {/* Thêm flex-grow */}
+        <div className="w-[742px] max-w-full max-md:w-full flex-grow">
             <input
-                type="text"
+                type={type} // Sử dụng type từ props
                 className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
-                defaultValue={value}
+                value={value} // Sử dụng value thay vì defaultValue
                 onChange={onChange}
             />
         </div>
@@ -37,13 +37,13 @@ const StatusToggle = ({ status, onToggle }) => (
     </div>
 );
 
-const Popup = ({ message, onClose }) => (
+const Popup = ({ message, onClose, onConfirm }) => (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
         <div className="bg-white p-6 rounded shadow-lg">
             <h2 className="font-bold text-lg">Xác nhận</h2> {/* Thay đổi tiêu đề */}
             <p>{message}</p>
             <div className="mt-4 flex justify-end">
-                <button onClick={onClose} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Đồng ý</button> {/* Thay đổi nút */}
+                <button onClick={onConfirm} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Đồng ý</button> {/* Thay đổi nút */}
                 <button onClick={onClose} className="ml-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Hủy</button> {/* Thêm nút hủy */}
             </div>
         </div>
@@ -60,22 +60,19 @@ export default function CustomerDetail() {
     const [popupMessage, setPopupMessage] = useState(null); // Thêm state cho message
     const { validateForm } = useValidateAccountForm(); // Khởi tạo hook xác thực
     const [errors, setErrors] = useState({}); // Thêm state để lưu trữ lỗi
+    const [updateSuccess, setUpdateSuccess] = useState(false); // Thêm state để theo dõi việc cập nhật thành công
 
     useEffect(() => {
         const fetchCustomerDetail = async () => {
-            try {
-                const data = await getCustomerDetail(accountId); // Gọi hàm lấy chi tiết khách hàng
-                setCustomerData(data); // Cập nhật dữ liệu khách hàng
-                setFormData({
-                    email: data.email,
-                    fullname: data.fullname,
-                    phone: data.phone,
-                    dob: new Date(data.dob).toISOString().split('T')[0], // Chuyển đổi định dạng ngày
-                    status: data.status
-                });
-            } catch (error) {
-                console.error("Error fetching customer detail:", error);
-            }
+            const response = await getCustomerDetail(accountId); // Gọi hàm lấy chi tiết khách hàng
+            setCustomerData(response.data); // Cập nhật dữ liệu khách hàng
+            setFormData({
+                email: response.data.email,
+                fullname: response.data.fullname,
+                phone: response.data.phone,
+                dob: new Date(response.data.dob).toISOString().split('T')[0], // Chuyển đổi định dạng ngày
+                status: response.data.status
+            });
         };
 
         fetchCustomerDetail();
@@ -85,12 +82,25 @@ export default function CustomerDetail() {
         navigate("/admin/customers");
     };
 
-    const handleUpdate = async () => {
+    const handleUpdate = () => {
         const validationErrors = validateForm(formData); // Xác thực dữ liệu
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors); // Cập nhật lỗi nếu có
             return; // Dừng lại nếu có lỗi
         }
+        setPopupMessage("Bạn có chắc chắn muốn cập nhật thông tin?"); // Cập nhật nội dung popup
+        setShowPopup(true); // Hiển thị popup
+    };
+
+    const handleClosePopup = () => {
+        setShowPopup(false);
+    };
+
+    const handleToggleStatus = () => {
+        setFormData({ ...formData, status: formData.status === 1 ? 0 : 1 }); // Chuyển đổi trạng thái
+    };
+
+    const onConfirm = async () => { // Tạo hàm onConfirm
         try {
             // Đảm bảo rằng dob được định dạng đúng
             const updatedData = {
@@ -100,22 +110,16 @@ export default function CustomerDetail() {
                 dob: formData.dob, // Đảm bảo định dạng YYYY-MM-DD
                 status: formData.status === 1 ? 1 : 0
             };
-            await updateCustomerDetail(accountId, updatedData); // Gọi hàm cập nhật thông tin khách hàng
-            setPopupMessage("Bạn có chắc chắn muốn cập nhật thông tin?"); // Cập nhật nội dung popup
-            setShowPopup(true); // Hiển thị popup
+            const response = await updateCustomerDetail(accountId, updatedData); // Gọi hàm cập nhật thông tin khách hàng
+            if (response.status === 200) {
+                navigate("/admin/customers", { state: { successMessage: "Thông tin đã được cập nhật thành công!" } });
+            } else {
+                toast.error("Cập nhật thông tin thất bại!"); // Hiển thị thông báo lỗi
+            }
         } catch (error) {
             console.error("Error updating customer detail:", error);
             toast.error("Cập nhật thông tin thất bại!"); // Hiển thị thông báo lỗi
         }
-    };
-
-    const handleClosePopup = () => {
-        setShowPopup(false); // Đóng popup
-        toast.success("Thông tin đã được cập nhật thành công!"); // Hiển thị thông báo thành công
-    };
-
-    const handleToggleStatus = () => {
-        setFormData({ ...formData, status: formData.status === 1 ? 0 : 1 }); // Chuyển đổi trạng thái
     };
 
     if (!customerData) return <div>Loading...</div>; // Hiển thị loading khi chưa có dữ liệu
@@ -153,7 +157,7 @@ export default function CustomerDetail() {
                         <ProfileField label="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                         
                         {errors.dob && <span className="text-center my-2 text-red-500">{errors.dob}</span>} {/* Hiển thị lỗi */}
-                        <ProfileField label="Ngày sinh" value={formData.dob} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} />
+                        <ProfileField label="Ngày sinh" value={formData.dob} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} type="date" /> 
                         
                         <StatusToggle status={formData.status} onToggle={handleToggleStatus} /> {/* Thêm nút trạng thái */}
                     </div>
@@ -164,7 +168,7 @@ export default function CustomerDetail() {
                     Cập nhật
                 </button>
             </div>
-            {showPopup && <Popup message={popupMessage} onClose={handleClosePopup} />}
+            {showPopup && <Popup message={popupMessage} onClose={handleClosePopup} onConfirm={onConfirm} />}
             <ToastContainer /> {/* Thêm ToastContainer vào trong JSX */}
         </main>
     );
