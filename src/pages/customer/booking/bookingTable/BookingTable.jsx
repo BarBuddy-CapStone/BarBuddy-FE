@@ -1,5 +1,5 @@
 import React from "react";
-import { BookingInfo, CustomerForm, BarInfo } from "src/pages";
+import { BookingInfo, CustomerForm, BarInfo, TableSelection, TimeSelection } from "src/pages";
 
 const BookingTable = () => {
   return (
@@ -8,6 +8,8 @@ const BookingTable = () => {
         <div className="flex gap-2 max-md:flex-col">
           <div className="flex flex-col w-8/12 max-md:w-full">
             <BookingInfo />
+            <TableSelection />
+            <TimeSelection />
             <CustomerForm />
           </div>
           <BarInfo />

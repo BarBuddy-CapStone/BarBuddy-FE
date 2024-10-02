@@ -6,5 +6,7 @@ import DeleteEmotionCategory from "./admin/emotionalCategory/components/DeleteEm
 import BarInfo from "./customer/booking/bookingTable/components/BarInfo";
 import BookingInfo from "./customer/booking/bookingTable/components/BookingInfo";
 import CustomerForm from "./customer/booking/bookingTable/components/CustomerForm";
+import TableSelection from "./customer/booking/bookingTable/components/TableSelection";
+import TimeSelection from "./customer/booking/bookingTable/components/TimeSelection";
 
-export { EditEmotionCategory, AddEmotionCategory, DeleteEmotionCategory, BarInfo, BookingInfo, CustomerForm  };
+export { EditEmotionCategory, AddEmotionCategory, DeleteEmotionCategory, BarInfo, BookingInfo, CustomerForm, TableSelection, TimeSelection  };
