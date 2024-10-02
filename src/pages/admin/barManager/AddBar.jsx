@@ -305,6 +305,57 @@ const AddBar = () => {
         }
     };
 
+    const PopupConfirmAdd = () => {
+        setIsPopupConfirm(true);
+    };
+
+    const PopupConfirmCancel = () => {
+        setIsPopupConfirm(false);
+    };
+
+    const handleAddConfirm = async (event) => {
+        event.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsLoading(true);
+        setIsPopupConfirm(false);
+
+        const formDatas = new FormData();
+        formDatas.append('barName', formData.barName);
+        formDatas.append('email', formData.email);
+        formDatas.append('address', formData.address);
+        formDatas.append('phoneNumber', formData.phoneNumber);
+        formDatas.append('description', formData.description);
+        formDatas.append('startTime', formData.startTime);
+        formDatas.append('endTime', formData.endTime);
+        formDatas.append('discount', formData.discount);
+        formDatas.append('status', formData.status);
+
+        if (uploadedImages.length > 0) {
+            uploadedImages.forEach(image => {
+                formDatas.append('images', image.file);
+            });
+        }
+
+        try {
+            var response = await addBar(formDatas);
+            if (response.data.status === 200) {
+                setIsLoading(false);
+                toast.success("Cập nhật thành công!");
+                redirect('/admin/barmanager')
+            } else {
+                toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+            }
+        } catch (error) {
+            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+            console.error('Error adding bar:', error);
+            setIsLoading(false);
+        }
+    };
+
     const options = [
         {
             value: true,
