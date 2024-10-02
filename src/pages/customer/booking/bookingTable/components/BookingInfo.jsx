@@ -13,7 +13,6 @@ import { styled } from '@mui/material/styles';
 const CustomTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: '5px',
-    backgroundColor: '#1F2937',
     '& fieldset': {
       borderColor: 'white',
     },

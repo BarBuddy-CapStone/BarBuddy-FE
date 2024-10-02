@@ -50,7 +50,7 @@ const CustomerForm = () => {
       <hr className="shrink-0 mt-6 w-full h-px border border-amber-400 border-solid" />
       <div className="flex gap-3 justify-between mt-4 text-black">
         <button className="py-2 px-3 bg-amber-400 rounded-md">
-          Đặt trước thức uống
+          Đặt trước thức uống với chiết khấu 10%
         </button>
         <div className="my-auto text-gray-400">Hoặc</div>
         <button className="py-2 px-4 bg-amber-400 rounded-md">Đặt bàn ngay</button>

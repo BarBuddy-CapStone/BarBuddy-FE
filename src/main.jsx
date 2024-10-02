@@ -39,7 +39,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Routes>
         {/* Route Của Admin */}
         <Route path="/" element={<AdminLayout />}>
-          <Route path="admin/dashboard" element={<Dashboard />}></Route>
+          <Route index element={<Dashboard />} /> {/* Set Dashboard as the default page */}
+          <Route path="admin/dashboard" element={<Dashboard />} />
 
           <Route path="admin/feedback" element={<Feedback />}></Route>
           <Route path="admin/feedbackdetail" element={<FeedbackDetail />}></Route>

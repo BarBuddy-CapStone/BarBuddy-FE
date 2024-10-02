@@ -4,7 +4,7 @@ const BarInfo = () => {
   return (
     <div className="flex flex-col ml-5 w-3/12 max-md:ml-0 max-md:w-full">
       <div className="flex flex-col max-md:mt-10">
-        <div className="flex flex-col items-start px-7 py-8 w-full text-base text-gray-200 bg-neutral-800 min-h-[630px] max-md:px-5">
+        <div className="flex flex-col items-center px-7 py-8 w-full text-base text-gray-200 bg-neutral-800 min-h-[630px] max-md:px-5"> {/* Changed items-start to items-center */}
           <div className="text-2xl text-center text-amber-400">BarBuddy 1</div>
           <div className="flex flex-col self-stretch mt-6 w-full text-xs leading-5 max-w-[295px] text-stone-300">
             <div className="flex gap-2 items-center w-full">
@@ -32,7 +32,7 @@ const BarInfo = () => {
               className="object-contain shrink-0 self-start w-5 aspect-square"
               alt="Location icon"
             />
-            <div>87A Hàm Nghi, Phường Nguyễn Thái Bình, Quận 1</div>
+            <div className="font-aBeeZee text-sm">87A Hàm Nghi, Phường Nguyễn Thái Bình, Quận 1</div>
           </div>
           <div className="flex gap-4 py-px mt-6 max-w-full w-[230px]">
             <img
@@ -42,7 +42,7 @@ const BarInfo = () => {
               alt="Clock icon"
             />
             <div>
-              <span className="italic text-gray-200">
+              <span className="italic text-gray-200 font-aBeeZee">
                 Mở cửa - đóng cửa: 10:30{" "}
               </span>
               PM - <span className="italic text-gray-200">02:00 </span>AM
@@ -55,7 +55,7 @@ const BarInfo = () => {
               className="object-contain shrink-0 self-start w-5 aspect-square"
               alt="Info icon"
             />
-            <div className="grow shrink w-[242px]">
+            <div className="grow shrink w-[242px] font-aBeeZee text-base">
               Bar Buddy được thiết kế với lối kiến trúc cổ điển, lấy cảm hứng từ
               phong cách Tây Ban Nha với vẻ đẹp hoài cổ, độc đáo. Quán được xây
               dựng với những bức tường gạch thô gai góc, dùng ánh sáng màu đỏ và
