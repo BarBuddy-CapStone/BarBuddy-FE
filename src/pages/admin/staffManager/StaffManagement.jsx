@@ -30,7 +30,7 @@ const StaffTableHeader = () => (
 
 const StaffTableRow = ({ staff, index }) => {
     const navigate = useNavigate();
-    const rowClass = index % 2 === 0 ? "bg-white" : "bg-orange-50";
+    const rowClass = index % 2 === 0 ? "bg-bg-white" : "bg-bg-orange-50";
     const statusClass = getStatusClass(staff.status);
     const handleViewDetail = (id) => {
         navigate(`/admin/staff-detail?accountId=${id}`); // Chuyển hướng đến trang StaffDetail với accountId
@@ -45,7 +45,7 @@ const StaffTableRow = ({ staff, index }) => {
             <td className="px-4 py-6 text-center align-middle">{staff.bar ? staff.bar.barName : 'N/A'}</td> {/* Cập nhật để hiển thị tên bar */}
             <td className="flex justify-center items-center px-4 py-6 align-middle">
                 <div className={`flex justify-center items-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
-                    {staff.status === 1 ? "Active" : "Deactive"}
+                    {staff.status === 1 ? "Active" : "Deactive" === 1 ? "Active" : "Deactive"}
                 </div>
             </td>
             <td className="px-4 py-6 text-center align-middle">
