@@ -1,4 +1,4 @@
-import axios from '../axiosCustomize'; // Import your customized axios instance
+import axios from '../axiosCustomize';
 
 class PaymentHistoryService {
   static async getAllPayments(params) {
