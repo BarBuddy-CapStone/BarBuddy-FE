@@ -10,8 +10,13 @@ class BookingService {
   }
 
   static async cancelBooking(bookingId) {
-    return await axios.delete(`api/Booking/${bookingId}`);
+    return await axios.patch(`api/Booking/cancel/${bookingId}`);
   }
+
+  static async getRecentBookings(accountId, numOfBookings) {
+    const response = await axios.get(`api/Booking/top-booking?CustomerId=${accountId}&NumOfBookings=${numOfBookings}`);
+    return response.data;
+}
 }
 
 export default BookingService;
