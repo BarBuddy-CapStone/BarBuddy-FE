@@ -74,8 +74,7 @@ export default function StaffDetail() {
     const [showPopup, setShowPopup] = useState(false);
     const [popupMessage, setPopupMessage] = useState("Bạn có chắc chắn muốn cập nhật thông tin?");
     const [errors, setErrors] = useState({}); // Thêm state để lưu trữ lỗi
-    const { validateForm } = useValidateAccountForm(); // Khởi tạo hook xác thực
-    const [updateSuccess, setUpdateSuccess] = useState(false);
+    const { validateForm } = useValidateAccountForm();
 
     useEffect(() => {
         const fetchStaffDetail = async () => {

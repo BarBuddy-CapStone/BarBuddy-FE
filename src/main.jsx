@@ -81,16 +81,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </Route>
 
         {/* Route Của Customer */}
-        <Route path="homepage" element={<HomePage />}></Route>
-        <Route path="bar-detail" element={<BarDetail />}></Route>
-      </Routes>
-
-        {/* Route Của Customer */}
         <Route path="/" element={<CustomerLayout />}>
-         <Route path="customer" element={<BookingTable/>}></Route>
+          <Route path="customer" element={<BookingTable />}></Route>
+
+          <Route path="homepage" element={<HomePage />}></Route>
+          <Route path="bar-detail" element={<BarDetail />}></Route>
         </Route>
-      </Routes> 
-      <ToastContainer />
+      </Routes>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode >
 );
