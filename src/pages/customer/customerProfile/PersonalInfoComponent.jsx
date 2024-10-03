@@ -123,7 +123,7 @@ function PersonalInfo({ accountId }) {
     }
 
     return (
-        <section className="flex flex-col px-8 py-8 mx-auto w-full rounded-md bg-neutral-800 shadow-md max-md:px-5 max-md:mt-10 max-md:max-w-full">
+        <section className="flex flex-col px-8 py-8 mx-auto w-full rounded-md bg-neutral-800 shadow-md max-md:px-5 max-md:mt-10 max-md:max-w-full mr-6">
             <div className="flex gap-2.5 self-start ml-3 text-xl leading-snug text-amber-400 max-md:ml-2.5">
                 <h2 className="basis-auto">Thông tin cá nhân</h2>
             </div>

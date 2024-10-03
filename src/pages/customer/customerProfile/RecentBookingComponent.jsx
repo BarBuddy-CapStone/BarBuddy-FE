@@ -73,7 +73,7 @@ function BookingHistory({ accountId }) {
     }
 
     return (
-        <section className="flex flex-col px-8 py-8 mx-auto w-full rounded-md bg-neutral-800 shadow-md max-md:px-5 max-md:mt-10 max-md:max-w-full min-h-[500px]">
+        <section className="flex flex-col px-8 py-8 mx-auto w-full rounded-md bg-neutral-800 shadow-md max-md:px-5 ml-6 max-md:mt-10 max-md:max-w-full min-h-[500px]">
             <div className="flex flex-wrap justify-between items-center mb-8">
                 <h2 className="text-xl text-amber-400">Lịch sử đặt bàn gần đây</h2>
                 <a href={`/booking-history/${accountId}`} className="text-base text-amber-400">Xem tất cả</a>
@@ -151,6 +151,19 @@ function BookingHistory({ accountId }) {
             </div>
 
             <div className="border-t border-amber-500 mb-6" />
+
+            <div className="flex flex-wrap justify-between gap-4 mt-2">
+                <div className="flex-1 flex justify-center">
+                    <button className="px-6 py-2 bg-amber-400 text-black rounded-full hover:bg-amber-500">
+                        Lịch sử giao dịch
+                    </button>
+                </div>
+                <div className="flex-1 flex justify-center">
+                    <button className="px-6 py-2 bg-amber-400 text-black rounded-full hover:bg-amber-500">
+                        Lịch sử đánh giá
+                    </button>
+                </div>
+            </div>
 
             {showConfirm && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">

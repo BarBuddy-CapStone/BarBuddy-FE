@@ -6,7 +6,7 @@ function ProfilePage() {
     const { accountId } = useParams(); // Extract accountId from URL
   
     return (
-        <div className="flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-16 px-8">
+        <div className="flex flex-col lg:flex-row space-y-6 lg:space-y-0 px-8">
             <PersonalInfo accountId={accountId} />
             <BookingHistory accountId={accountId} />
             <ToastContainer theme="dark" />
