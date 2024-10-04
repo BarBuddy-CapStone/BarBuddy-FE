@@ -1,7 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getOneDrink } from "src/lib/service/managerDrinksService";
-import Swiper from "swiper";
 
 const InfoItem = ({ data, emotion }) => {
     return (

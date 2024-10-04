@@ -1,5 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import { CustomerHeader, CustomerFooter, ScrollToTopButton } from "src/components";
 
 const CustomerLayout = () => {
@@ -11,6 +12,7 @@ const CustomerLayout = () => {
         <ScrollToTopButton />
       </main>
       <CustomerFooter />
+      <ToastContainer />
     </div>
   );
 };
