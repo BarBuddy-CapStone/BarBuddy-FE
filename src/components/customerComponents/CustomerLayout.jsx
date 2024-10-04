@@ -7,7 +7,7 @@ const CustomerLayout = () => {
   return (
     <div className="flex flex-col min-h-screen bg-zinc-900">
       <CustomerHeader />
-      <main className="flex-grow py-6 px-3">
+      <main className="flex-grow py-3 px-3">
         <Outlet />
         <ScrollToTopButton />
       </main>

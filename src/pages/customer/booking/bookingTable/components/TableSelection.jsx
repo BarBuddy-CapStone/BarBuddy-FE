@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 
-const TableSelection = () => {
-  const [selectedTables, setSelectedTables] = useState([]);
+const TableSelection = ({ selectedTables, setSelectedTables }) => {
   const tables = [
     'TC A01', 'TC A02', 'TC A03', 'TC A04', 'TC A05', 'TC A06', 'TC A07', 'TC A08',
     'TC A09', 'TC A10', 'TC A11', 'TC A12', 'TC A13', 'TC A14', 'TC A15', 'TC A16'
@@ -20,8 +19,7 @@ const TableSelection = () => {
     });
   };
 
-  // Custom styled MUI Button
-  const CustomButton = styled(Button)(({ theme, status }) => ({
+  const CustomButton = styled(Button)(({ status }) => ({
     backgroundColor: status === 'selected' ? '#757575' : status === 'disabled' ? '#9e9e9e' : '#FFA500',
     color: status === 'selected' || status === 'disabled' ? '#fff' : '#000',
     '&:hover': {
@@ -48,14 +46,13 @@ const TableSelection = () => {
               onClick={() => handleTableSelect(table)}
               status={status}
               disabled={status === 'disabled'}
-              disableRipple={status === 'disabled'}
             >
               {table}
             </CustomButton>
           );
         })}
       </div>
-      {/* Align to the right */}
+      {/* Legend for table selection */}
       <div className="flex gap-6 justify-end items-center mt-8 max-w-full text-sm text-center text-zinc-100">
         <div className="flex gap-2 items-center self-stretch my-auto">
           <div className="flex shrink-0 self-stretch my-auto w-6 h-6 rounded bg-neutral-500" aria-hidden="true" />

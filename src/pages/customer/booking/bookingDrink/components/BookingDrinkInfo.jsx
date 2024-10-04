@@ -1,16 +1,20 @@
 import React from "react";
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const BookingDrinkInfo = () => {
+  const navigate = useNavigate(); // Initialize the navigate function
+
+  // Function to handle navigation to BookingTable
+  const handleBackClick = () => {
+    navigate('/bookingtable'); // Navigate to the BookingTable page
+  };
+
   return (
     <section className="flex flex-col px-4 py-4 mt-4 lg:mt-8 w-full text-lg bg-neutral-800 rounded-lg">
-      <div className="flex gap-1.5 self-start ml-2 leading-snug text-gray-200">
-        <img
-          loading="lazy"
-          src="http://b.io/ext_33-"
-          alt=""
-          className="object-contain shrink-0 my-auto w-4 aspect-square"
-        />
-        <div>Quay lại</div>
+      <div className="flex items-center gap-1.5 self-start ml-0 pl-2 cursor-pointer" onClick={handleBackClick}>
+        <ChevronLeftIcon className="object-contain w-6 h-6 text-gray-200" />
+        <div className="text-gray-200">Quay lại</div>
       </div>
       <div className="shrink-0 mt-4 h-px border border-amber-400 border-solid" />
       <h2 className="self-start mt-4 text-xl text-amber-400">
