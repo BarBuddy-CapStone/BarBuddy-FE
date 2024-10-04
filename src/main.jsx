@@ -31,6 +31,8 @@ import StaffLayout from "./components/staffComponents/StaffLayout";
 import AddBar from "./pages/admin/barManager/AddBar";
 import AddDrink from "./pages/admin/ManagerDrinkBasedCate/AddDrink";
 import BookingDetail from "./pages/staff/table-registration/BookingDetail";
+import BarDetail from "./pages/customer/barDetail/BarDetail";
+import HomePage from "./pages/customer/homePage/HomePage";
 import CustomerLayout from "./components/customerComponents/CustomerLayout";
 import BookingTable from "./pages/customer/booking/bookingTable/BookingTable";
 import BookingDrink from "./pages/customer/booking/bookingDrink/BookingDrink";
@@ -48,20 +50,20 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="admin/feedbackdetail" element={<FeedbackDetail />}></Route>
 
           <Route path="admin/emotional" element={<EmotionalCategory />}></Route>
-          
+
           <Route path="admin/table-type-management" element={<TableTypeManagement />}></Route>
           <Route path="admin/payment-history" element={<PaymentHistoryAdmin />}></Route>
 
-          <Route path="admin/customers" element={<CustomerManagement/>}></Route>
-          <Route path="admin/customer-creation" element={<CustomerCreation/>}></Route>
-          <Route path="admin/customer-detail" element={<CustomerDetail/>}></Route>
+          <Route path="admin/customers" element={<CustomerManagement />}></Route>
+          <Route path="admin/customer-creation" element={<CustomerCreation />}></Route>
+          <Route path="admin/customer-detail" element={<CustomerDetail />}></Route>
 
           <Route path="admin/staff" element={<StaffManagement />}></Route>
-          <Route path="admin/staff-creation" element={<StaffCreation/>}></Route>
-          <Route path="admin/staff-detail" element={<StaffDetail/>}></Route>
-          
-          <Route path="admin/barmanager" element={<BarManagement/>}></Route>
-          <Route path="admin/barProfile" element={<BarBuddyProfile/>}></Route>
+          <Route path="admin/staff-creation" element={<StaffCreation />}></Route>
+          <Route path="admin/staff-detail" element={<StaffDetail />}></Route>
+
+          <Route path="admin/barmanager" element={<BarManagement />}></Route>
+          <Route path="admin/barProfile" element={<BarBuddyProfile />}></Route>
           <Route path="admin/addBar" element={<AddBar />}></Route>
 
           <Route path="admin/managerDrinkCategory" element={<DrinkCategories />}></Route>
@@ -76,16 +78,17 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="staff/table-management" element={<TableManagement />}></Route>
           <Route path="staff/table-management/table-list" element={<TableManagementDetail />}></Route>
           <Route path="staff/payment-history" element={<PaymentHistoryStaff />}></Route>
-          <Route path="staff/table-registrations" element={<BookingList/>}></Route>        
+          <Route path="staff/table-registrations" element={<BookingList />}></Route>
         </Route>
 
         {/* Route Của Customer */}
         <Route path="/" element={<CustomerLayout />}>
-         <Route path="customer" element={<BookingTable/>}></Route>
-         <Route path="drink" element={<BookingDrink/>}></Route>
+          <Route path="bookingtable" element={<BookingTable/>}></Route>
+          <Route path="bookingdrink" element={<BookingDrink/>}></Route>
+          <Route path="homepage" element={<HomePage />}></Route>
+          <Route path="bar-detail" element={<BarDetail />}></Route>
         </Route>
-      </Routes> 
-      <ToastContainer />
+      </Routes>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode >
 );

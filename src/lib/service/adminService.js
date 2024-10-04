@@ -1,61 +1,84 @@
-// import axios from "../axiosCustomize";
-// const getAllUser = async (index, size) => {
-//   return await axios.get(`ManageAccount/GetAllUsers?PageIndex=${index}&PageSize=${size}`);
-// };
+import axios from "../axiosCustomize";
 
-// const getUserById = async (id) => {
-//   return await axios.get(`ManageAccount/GetUserById/${id}`);
-// };
+export const getCustomerAccounts = async (pageSize = 100, pageIndex = 1) => {
+    return await axios.get(`api/v1/customer-accounts?pageSize=${pageSize}&pageIndex=${pageIndex}`);
+};
 
-// const getAllTransaction = async (index, size) => {
-//   return await axios.get(
-//     `Transaction/GetAllTransactions?PageIndex=${index}&PageSize=${size}`
-//   );
-// };
+export const getCustomerDetail = async (accountId) => {
+    return await axios.get(`api/v1/customer-account/detail?accountId=${accountId}`);
+};
 
-// const getAllMentor = async (index, size) => {
-//   return await axios.get(`Mentor/GetAllMentor?PageIndex=${index}&PageSize=${size}`);
-// };
+export const updateCustomerDetail = async (accountId, customerData) => {
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+            // 'Authorization': `Bearer ${token}`
+        }
+    };
+    return await axios.patch(`api/v1/customer-account?accountId=${accountId}`, customerData, config);
+};
 
-// const addUser = async (data) => {
-//   return await axios.post("ManageAccount/CreateUserForAdmin", data);
-// };
+export const updateStaffDetail = async (accountId, staffData) => {
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+            // 'Authorization': `Bearer ${token}`
+        }
+    };
+    return await axios.patch(`api/v1/staff-account?accountId=${accountId}`, staffData, config);
+};
 
-// const updateUser = async (id, data) => {
-//   return await axios.put(`ManageAccount/UpdateUser/${id}`, data);
-// };
+export const getStaffAccounts = async (pageSize = 100, pageIndex = 1) => {
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+        }
+    };
+    return await axios.get(`api/v1/staff-accounts?pageSize=${pageSize}&pageIndex=${pageIndex}`, config);
+};
 
-// const activateUser = async (id) => {
-//   return await axios.patch(`ManageAccount/ActivateUser/${id}`);
-// };
+export const getStaffDetail = async (accountId) => {
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+            // 'Authorization': `Bearer ${token}`
+        }
+    };
+    return await axios.get(`api/v1/staff-account/detail?accountId=${accountId}`);
+};
 
-// const deactivateUser = async (id) => {
-//   // Ensure semicolon is present
-//   return await axios.patch(`ManageAccount/Deactivate/${id}`);
-// };
+export const getBars = async () => {
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+            // 'Authorization': `Bearer ${token}`
+        }
+    };
+    return await axios.get("api/Bar/admin/barmanager", config);
+};
 
-// const verifyMentor = async (id) => {
-//   return await axios.patch(`Mentor/VerifyMentor/${id}`);
-// };
+export const createCustomer = async (customerData) => {
+    const config = { // Thêm config vào đây
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+            // 'Authorization': `Bearer ${token}`
+        }
+    };
+    return await axios.post("api/v1/customer-account", customerData, config);
+};
 
-// const getTotalMoney = async () => {
-//   return await axios.get("Transaction/GetTotalRevenueFromDeposit");
-// };
-
-// const getTotalUser = async () => {
-//   return await axios.get("ManageAccount/NumberOfUsers");
-// };
-
-// export {
-//   getAllUser,
-//   getUserById,
-//   addUser,
-//   getAllMentor,
-//   getAllTransaction,
-//   verifyMentor,
-//   updateUser,
-//   activateUser,
-//   deactivateUser,
-//   getTotalUser,
-//   getTotalMoney,
-// };
+export const createStaff = async (staffData) => {
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+        }
+    };
+    return await axios.post("api/v1/staff-account", staffData, config);
+};
