@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AppBar, Toolbar, IconButton, Typography, Box, Menu, MenuItem } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -15,6 +15,20 @@ const CustomerHeader = () => {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+
+  // useEffect(() => {
+  //   const script = document.createElement('script');
+  //   script.type = 'text/javascript';
+  //   script.id = 'hs-script-loader';
+  //   script.async = true;
+  //   script.defer = true;
+  //   script.src = '//js-na1.hs-scripts.com/46686268.js';
+  //   document.head.appendChild(script);
+
+  //   return () => {
+  //     document.head.removeChild(script);
+  //   };
+  // }, []);
 
   return (
     <AppBar position="sticky" sx={{ backgroundColor: "#333", padding: { xs: 1, sm: 2 } }}>
