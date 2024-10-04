@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { Notification } from "src/components";
 import { getAllBar } from "src/lib/service/barManagerService";
 import { getAllDrinkCate } from "src/lib/service/drinkCateService";
-import { getAllEmoCate } from "src/lib/service/drinkDetail";
+import { getAllEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
 import { addDrink } from "src/lib/service/managerDrinksService";
 
 const InputField = ({ label, value, onChange, name, type, errorMessage }) => (
@@ -237,8 +237,8 @@ function AddDrink() {
         const fetchData = async () => {
             const dataBar = await getAllBar();
             const dataDrinkCate = await getAllDrinkCate();
-            const dataEmoCate = await getAllEmoCate();
-            const dataEmosCate = await getAllEmoCate();
+            const dataEmoCate = await getAllEmotionCategory();
+            const dataEmosCate = await getAllEmotionCategory();
 
             setDataEmoCate(dataEmosCate.data.data)
             setDataBar(dataBar.data.data);

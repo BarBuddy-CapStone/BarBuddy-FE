@@ -28,10 +28,15 @@ const updateDrink = async (drinkId, data) => {
   })
 }
 
+const getAllDrinkByBarId = async (barId) => {
+  return await axios.get(`getDrink/${barId}`)
+}
+
 export {
   getDrinkBasedCate,
   getAllDrink,
   getOneDrink,
   addDrink,
-  updateDrink
+  updateDrink,
+  getAllDrinkByBarId
 }

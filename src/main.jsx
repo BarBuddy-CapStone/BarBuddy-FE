@@ -39,6 +39,8 @@ import ProfilePage from "./pages/customer/customerProfile/CustomerProfile";
 import BookingHistory from "./pages/customer/bookingHistory/CustomerBookingHistory";
 import BookingDetailPage from "./pages/customer/bookingDetail/BookingDetail"; 
 import CustomerPaymentHistory from "./pages/customer/customerPaymentHistory/CustomerPaymentHistory";
+import DrinkList from "./pages/customer/drink/DrinkList";
+import DrinkDetailCustomer from "./pages/customer/drink/DrinkDetail.jsx"
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -95,6 +97,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="booking-history/:accountId" element={<BookingHistory />} />
           <Route path="booking-detail/:bookingId" element={<BookingDetailPage />} />
           <Route path="payment-history/:accountId" element={<CustomerPaymentHistory />} />
+          <Route path="drinkList" element={<DrinkList />}></Route>
+          <Route path="drinkDetail" element={<DrinkDetailCustomer />}></Route>
         </Route>
       </Routes>
     </BrowserRouter>
