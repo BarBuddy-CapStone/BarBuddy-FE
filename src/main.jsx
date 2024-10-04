@@ -33,6 +33,7 @@ import AddDrink from "./pages/admin/ManagerDrinkBasedCate/AddDrink";
 import BookingDetail from "./pages/staff/table-registration/BookingDetail";
 import CustomerLayout from "./components/customerComponents/CustomerLayout";
 import BookingTable from "./pages/customer/booking/bookingTable/BookingTable";
+import BookingDrink from "./pages/customer/booking/bookingDrink/BookingDrink";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -81,6 +82,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         {/* Route Của Customer */}
         <Route path="/" element={<CustomerLayout />}>
          <Route path="customer" element={<BookingTable/>}></Route>
+         <Route path="drink" element={<BookingDrink/>}></Route>
         </Route>
       </Routes> 
       <ToastContainer />
