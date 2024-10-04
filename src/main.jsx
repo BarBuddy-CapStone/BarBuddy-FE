@@ -47,9 +47,15 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
+        {/* Trang default */}
+         <Route path="/" element={<CustomerLayout />}>
+             <Route index element={<HomePage />} /> 
+             <Route path="home" element={<HomePage />}></Route>
+         </Route>
+         
         {/* Route Của Admin */}
         <Route path="/" element={<AdminLayout />}>
-          <Route index element={<Dashboard />} /> {/* Set Dashboard as the default page */}
+          
           <Route path="admin/dashboard" element={<Dashboard />} />
 
           <Route path="admin/feedback" element={<Feedback />}></Route>
@@ -91,7 +97,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/" element={<CustomerLayout />}>
           <Route path="bookingtable" element={<BookingTable/>}></Route>
           <Route path="bookingdrink" element={<BookingDrink/>}></Route>
-          <Route path="home" element={<HomePage />}></Route>
           <Route path="bar-detail" element={<BarDetail />}></Route>
           <Route path="profile/:accountId" element={<ProfilePage />} />
           <Route path="booking-history/:accountId" element={<BookingHistory />} />
