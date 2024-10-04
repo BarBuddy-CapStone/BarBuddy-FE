@@ -8,6 +8,11 @@ class PaymentHistoryService {
   static async getBarBranches() {
     return await axios.get('api/v1/Bar/admin/barmanager');
   }
+
+  static async getAllPaymentsByCustomerId(accountId, status, pageIndex, pageSize) {
+    const params = { Status: status, PageIndex: pageIndex, PageSize: pageSize };
+    return await axios.get(`/api/PaymentHistory/${accountId}`, { params });
+  }
 }
 
 export default PaymentHistoryService;
