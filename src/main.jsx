@@ -7,6 +7,7 @@ import CustomerLayout from "./components/customerComponents/CustomerLayout";
 import ProfilePage from "./pages/customer/customerProfile/CustomerProfile";
 import BookingHistory from "./pages/customer/bookingHistory/CustomerBookingHistory";
 import BookingDetailPage from "./pages/customer/bookingDetail/BookingDetail"; 
+import CustomerPaymentHistory from "./pages/customer/customerPaymentHistory/CustomerPaymentHistory";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -18,6 +19,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/profile/:accountId" element={<ProfilePage />} />
           <Route path="/booking-history/:accountId" element={<BookingHistory />} />
           <Route path="/booking-detail/:bookingId" element={<BookingDetailPage />} />
+          <Route path="/payment-history/:accountId" element={<CustomerPaymentHistory />} />
         </Route>
       </Routes>
     </BrowserRouter>
