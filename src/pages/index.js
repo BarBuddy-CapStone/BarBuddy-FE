@@ -16,6 +16,10 @@ import Filter from "./customer/booking/bookingDrink/components/Filter";
 import DrinkSidebar from "./customer/booking/bookingDrink/components/DrinkSidebar";
 import SelectedItems from "./customer/booking/bookingDrink/components/SelectedItems";
 
+// Staff Table-registration 
+import FilterSection from "./staff/table-registration/FilterSection";
+import BookingTable from "./staff/table-registration/BookingTable";
+
 export {
   EditEmotionCategory,
   AddEmotionCategory,
@@ -29,5 +33,7 @@ export {
   DrinkSelection,
   Filter,
   DrinkSidebar,
-  SelectedItems
+  SelectedItems,
+  FilterSection,
+  BookingTable
 };

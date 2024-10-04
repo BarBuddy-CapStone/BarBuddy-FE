@@ -14,7 +14,7 @@ import TableBarIcon from "@mui/icons-material/TableBar";
 import LiquorIcon from "@mui/icons-material/Liquor";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import BookingService from "../../../lib/service/bookingService";
+import { BookingService } from "src/lib";
 
 // Function to format date and time
 const formatDateTime = (bookingDate, bookingTime) => {

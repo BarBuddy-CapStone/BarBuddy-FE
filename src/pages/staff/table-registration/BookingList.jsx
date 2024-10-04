@@ -1,9 +1,13 @@
 import React, { useState } from "react";
-import FilterSection from "./FilterSection";
-import BookingTable from "./BookingTable";
+import { FilterSection, BookingTable } from "src/pages";
 
 function BookingList() {
-  const [filter, setFilter] = useState({ name: "", phone: "", email: "", status: "Đang phục vụ" });
+  const [filter, setFilter] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    status: "Đang phục vụ",
+  });
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);

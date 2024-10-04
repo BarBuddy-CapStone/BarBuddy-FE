@@ -91,10 +91,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="bookingdrink" element={<BookingDrink/>}></Route>
           <Route path="home" element={<HomePage />}></Route>
           <Route path="bar-detail" element={<BarDetail />}></Route>
-          <Route path="/profile/:accountId" element={<ProfilePage />} />
-          <Route path="/booking-history/:accountId" element={<BookingHistory />} />
-          <Route path="/booking-detail/:bookingId" element={<BookingDetailPage />} />
-          <Route path="/payment-history/:accountId" element={<CustomerPaymentHistory />} />
+          <Route path="profile/:accountId" element={<ProfilePage />} />
+          <Route path="booking-history/:accountId" element={<BookingHistory />} />
+          <Route path="booking-detail/:bookingId" element={<BookingDetailPage />} />
+          <Route path="payment-history/:accountId" element={<CustomerPaymentHistory />} />
         </Route>
       </Routes>
     </BrowserRouter>

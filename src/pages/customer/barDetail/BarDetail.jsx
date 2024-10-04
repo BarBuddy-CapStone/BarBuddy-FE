@@ -13,7 +13,7 @@ const BarDetail = () => {
     const navigate = useNavigate();
 
     const handleBack = () => {
-        navigate("/homepage");
+        navigate("/home");
     }
 
     return (
