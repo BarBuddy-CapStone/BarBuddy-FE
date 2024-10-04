@@ -57,7 +57,6 @@ const DrinkDetail = () => {
     const redirect = useNavigate();
     const searchParams = new URLSearchParams(location.search);
     const drinkId = searchParams.get('drinkId');
-    const barId = searchParams.get('barId');
     const [dataDrink, setDataDrink] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -94,7 +93,7 @@ const DrinkDetail = () => {
     }, [imageUrls]);
 
     const backToBarHandle = () => {
-        redirect(`/drinkList?barId=${barId}`)
+        redirect(`/drinkList`)
     }
     return (
         <main className="mt-8 flex flex-col items-start w-[65%] ml-[16%] px-10 py-5 bg-neutral-800 max-md:px-3 rounded">

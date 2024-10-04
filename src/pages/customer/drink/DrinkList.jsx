@@ -222,11 +222,11 @@ const Modal = ({ title, children, onClose, onConfirm }) => {
     );
 };
 
-const DrinkCard = ({ images, drinkName, price, withDivider, drinkId, barId }) => {
+const DrinkCard = ({ images, drinkName, price, withDivider, drinkId}) => {
 
     const redirect = useNavigate();
     const drinkDetailHandle = () => {
-        redirect(`/drinkDetail?barId=${barId}&drinkId=${drinkId}`)
+        redirect(`/drinkDetail?drinkId=${drinkId}`)
     }
     return (
         <div className="flex flex-col w-full">
@@ -278,14 +278,14 @@ const PriceFilter = ({ dataDrinkPrice, onPriceChange }) => {
                     <input
                         type="text"
                         readOnly
-                        className="w-28 text-center text-sm font-semibold border border-gray-400 rounded p-2 bg-neutral-800 text-gray-200"
+                        className="w-20 text-center text-[11px] font-semibold border border-gray-400 rounded p-2 bg-neutral-800 text-gray-200"
                         value={values[0].toLocaleString()}
                     />
                     <span className="mx-2 text-lg font-semibold text-gray-300">—</span>
                     <input
                         type="text"
                         readOnly
-                        className="w-28 text-center text-sm font-semibold border border-gray-400 rounded p-2 bg-neutral-800 text-gray-200"
+                        className="w-20 text-center text-[11px] font-semibold border border-gray-400 rounded p-2 bg-neutral-800 text-gray-200"
                         value={values[1].toLocaleString()}
                     />
                 </div>
@@ -295,7 +295,7 @@ const PriceFilter = ({ dataDrinkPrice, onPriceChange }) => {
                     step={STEP}
                     min={MIN}
                     max={MAX}
-                    onChange={handleRangeChange}  // Call this when the range changes
+                    onChange={handleRangeChange}
                     renderTrack={({ props, children }) => (
                         <div
                             {...props}
@@ -391,9 +391,9 @@ const DrinkList = () => {
 
     const applyFilters = () => {
         let filtered = dataDrinksOfBar;
-
+        console.log("dasd",filtered)
         if (selectedDrink) {
-            filtered = filtered.filter(drink => drink.drinksCategoryName === selectedDrink);
+            filtered = filtered.filter(drink => drink?.drinkCategoryResponse?.drinksCategoryName === selectedDrink);
         }
 
         if (selectedEmotions.length > 0) {

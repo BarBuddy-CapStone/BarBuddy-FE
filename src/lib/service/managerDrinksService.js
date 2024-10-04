@@ -8,6 +8,10 @@ const getAllDrink = async () => {
   return await axios.get(`api/v1/Drink`);
 }
 
+const getAllDrinkCustomer = async () => {
+  return await axios.get(`api/v1/Drink/customer`);
+}
+
 const getOneDrink = async (drinkId) => {
   return await axios.get(`api/v1/Drink/${drinkId}`)
 }
@@ -38,5 +42,6 @@ export {
   getOneDrink,
   addDrink,
   updateDrink,
-  getAllDrinkByBarId
+  getAllDrinkByBarId,
+  getAllDrinkCustomer
 }
