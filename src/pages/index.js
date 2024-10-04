@@ -19,8 +19,8 @@ import SelectedItems from "./customer/booking/bookingDrink/components/SelectedIt
 import BarDetail from "./customer/booking/bookingTable/components/BarDetails";
 
 // Staff Table-registration 
-import FilterSection from "./staff/table-registration/FilterSection";
-import BookingTable from "./staff/table-registration/BookingTable";
+import FilterSection from "./staff/table-registration/components/FilterSection";
+import BookingTable from "./staff/table-registration/components/BookingTable";
 
 export {
   EditEmotionCategory,

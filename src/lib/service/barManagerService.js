@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../axiosCustomize";
 
 const getAllBar = async () => {
   return await axios.get(`api/v1/Bar/admin/barmanager`)
