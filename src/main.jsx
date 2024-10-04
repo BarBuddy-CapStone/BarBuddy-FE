@@ -42,6 +42,8 @@ import CustomerPaymentHistory from "./pages/customer/customerPaymentHistory/Cust
 import DrinkList from "./pages/customer/drink/DrinkList";
 import DrinkDetailCustomer from "./pages/customer/drink/DrinkDetail.jsx"
 
+import PaymentPage from "./pages/customer/paymentPage/PaymentPage";
+import PaymentDetail from "./pages/customer/paymentDetail/PaymentDetail";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -85,6 +87,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="staff/table-management/table-list" element={<TableManagementDetail />}></Route>
           <Route path="staff/payment-history" element={<PaymentHistoryStaff />}></Route>
           <Route path="staff/table-registrations" element={<BookingList />}></Route>
+          <Route path="staff/table-registration-detail" element={<BookingDetail />}></Route>
         </Route>
 
         {/* Route Của Customer */}
@@ -99,6 +102,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="payment-history/:accountId" element={<CustomerPaymentHistory />} />
           <Route path="drinkList" element={<DrinkList />}></Route>
           <Route path="drinkDetail" element={<DrinkDetailCustomer />}></Route>
+          <Route path="customer" element={<BookingTable />}></Route>
+          <Route path="payment" element={<PaymentPage />}></Route>
+          <Route path="payment-detail" element={<PaymentDetail />}></Route>
+
         </Route>
       </Routes>
     </BrowserRouter>

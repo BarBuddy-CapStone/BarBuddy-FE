@@ -1,3 +1,5 @@
+import axios from "../axiosCustomize";
+
 export const getBranchesData = () => {
     return [
         {
@@ -55,6 +57,14 @@ export const getBranchesData = () => {
             openingHours: "10:30 PM - 02:00 AM"
         }
     ];
+}
+
+export const getAllBar = async () => {
+    return await axios.get(`api/v1/bars`);
+}
+
+export const getBarById = async (id) => {
+    return await axios.get(`api/v1/bar-detail?barId=${id}`);
 }
 
 export const getBranchById = (id) => {
