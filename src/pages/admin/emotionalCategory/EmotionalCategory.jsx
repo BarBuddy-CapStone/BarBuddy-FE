@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import { AddEmotionCategory, EditEmotionCategory, DeleteEmotionCategory } from "src/pages"; 
+import { AddEmotionCategory, EditEmotionCategory, DeleteEmotionCategory } from "src/pages";
 import { getAllEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
-function EmotionCategoryButton({ category, onEdit, onDelete }) {
+function EmotionCategoryButton({ category, onEdit, onDelete, onView }) {
   return (
     <div className="flex items-center justify-between px-4 py-3 text-lg font-aBeeZee text-black bg-white rounded-md border border-black shadow-md hover:shadow-lg transition-shadow max-md:px-5">
-      <span className="flex-grow">{category.categoryName}</span>
+      <button onClick={() => onView(category.emotionalDrinksCategoryId)}>
+        <span className="flex-grow">{category.categoryName}</span>
+      </button>
       <div className="flex items-center gap-2">
         <button className="p-1 hover:bg-gray-200 rounded" onClick={() => onEdit(category)}>
           <EditIcon className="w-5 h-5" />
@@ -23,17 +26,18 @@ function EmotionCategoryButton({ category, onEdit, onDelete }) {
 }
 
 function EmotionalCategory() {
-  const [emotionCategories, setEmotionCategories] = useState([]); 
+  const [emotionCategories, setEmotionCategories] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentEditCategory, setCurrentEditCategory] = useState({ id: '', name: '' });
   const [currentDeleteCategory, setCurrentDeleteCategory] = useState({ id: '', name: '' });
 
+  const redirect = useNavigate();
   const fetchEmotionCategories = useCallback(async () => {
     try {
-      const response = await getAllEmotionCategory(); 
-      const categories = response.data?.data?.result || []; 
+      const response = await getAllEmotionCategory();
+      const categories = response.data?.data?.result || [];
       setEmotionCategories(categories);
     } catch (error) {
       console.error("Error fetching emotion categories:", error);
@@ -59,6 +63,10 @@ function EmotionalCategory() {
     setCurrentEditCategory({ id: category.emotionalDrinksCategoryId, name: category.categoryName });
     setIsEditing(true);
   };
+
+  const handleView = (emoId) => {
+    redirect(`/admin/emotional/drinkBaseEmo?emoId=${emoId}`)
+  }
 
   const handleEditSuccess = () => {
     setIsEditing(false);
@@ -96,6 +104,7 @@ function EmotionalCategory() {
               category={category}
               onEdit={handleEdit}
               onDelete={handleDelete} // Pass handleDelete to the button
+              onView={handleView}
             />
           ))}
         </div>

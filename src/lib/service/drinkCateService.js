@@ -18,12 +18,17 @@ const updDrinkCate = async (drinkCateId, data) => {
 
 const delDrinkCate = async (drinkCateId) => {
     return await axios.patch(`deleteCateDrink/${drinkCateId}`)
-} 
+}
+
+const getAllDrinkEmo = async (emoId) => {
+    return await axios.get(`api/v1/Drink/getDrinkBaedEmo/${emoId}`)
+}
 
 export {
     getAllDrinkCate,
     getOneDrinkCate,
     addDrinkCate,
     updDrinkCate,
-    delDrinkCate
+    delDrinkCate,
+    getAllDrinkEmo
 }

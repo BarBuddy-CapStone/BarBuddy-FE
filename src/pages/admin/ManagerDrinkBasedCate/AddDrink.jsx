@@ -98,7 +98,6 @@ function AddDrink() {
     const [formData, setFormData] = useState({
         drinkName: '',
         drinkCategoryId: '',
-        barId: '',
         description: '',
         price: '',
         status: true,
@@ -152,7 +151,7 @@ function AddDrink() {
                 checked: initialCheckedEmotions.some(e => e.emotionalDrinksCategoryId === emotion.emotionalDrinksCategoryId),
             }));
         });
-    
+
         const handleCheckboxChange = (index) => {
             setEmotions((prevEmotions) =>
                 prevEmotions.map((emotion, i) => {
@@ -163,7 +162,7 @@ function AddDrink() {
                 })
             );
         };
-    
+
         const handleSave = () => {
             const checkedEmotions = emotions
                 .filter((emotion) => emotion.checked)
@@ -171,11 +170,11 @@ function AddDrink() {
                     categoryName: emotion.categoryName,
                     emotionalDrinksCategoryId: emotion.emotionalDrinksCategoryId,
                 }));
-    
+
             onSave(checkedEmotions); // Truyền danh sách đã chọn ra ngoài
             onClose(); // Đóng popup
         };
-    
+
         return (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
                 <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
@@ -246,10 +245,9 @@ function AddDrink() {
             setDataEmoCate(dataEmoCate.data.data)
         };
         fetchData();
-        if (dataBars.length > 0 && dataDrinkCate.length > 0) {
+        if (dataDrinkCate?.length > 0) {
             setFormData((prevData) => ({
                 ...prevData,
-                barId: dataBars[0].barId,
                 drinkCategoryId: dataDrinkCate[0].drinksCategoryId
             }));
         }
@@ -295,7 +293,6 @@ function AddDrink() {
         setIsPopupConfirm(false);
 
         const formDatas = new FormData();
-        formDatas.append('barId', formData.barId);
         formDatas.append('drinkCategoryId', formData.drinkCategoryId);
         formDatas.append('drinkName', formData.drinkName);
         formDatas.append('description', formData.description);
@@ -310,7 +307,7 @@ function AddDrink() {
         emotionChecked.forEach(emotion => {
             formDatas.append('drinkBaseEmo', emotion.emotionalDrinksCategoryId)
         })
-        
+
         try {
             var response = await addDrink(formDatas);
             if (response.status === 200) {
@@ -399,11 +396,11 @@ function AddDrink() {
                                 name="drinkCategoryId"
                                 value={formData.drinkCategoryId}
                                 onChange={handleInputChange}
-                                className="flex-grow border-none outline-none h-5 px-2"
+                                className="flex-grow border-none outline-none h-5 px-2 w-full"  // Adjust width with w-full
                             >
                                 {Array.isArray(dataDrinkCate) && dataDrinkCate.length > 0 ? (
                                     dataDrinkCate.map((option, index) => (
-                                        <option key={index} value={option.drinksCategoryId}>
+                                        <option key={index} value={option.drinksCategoryId} className="whitespace-nowrap">
                                             {option.description}
                                         </option>
                                     ))
@@ -415,45 +412,37 @@ function AddDrink() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-base font-bold mb-2">Chi nhánh</label>
-                        <div className="flex justify-between items-center px-3 py-3.5 text-sm rounded border border-solid border-stone-300">
-                            <select
-                                name="barId"
-                                value={formData.barId}
-                                onChange={handleInputChange}
-                                className="flex-grow border-none outline-none h-5 px-2"
-                            >
-                                {Array.isArray(dataBars) && dataBars.length > 0 ? (
-                                    dataBars.map((option, index) => (
-                                        <option key={index} value={option.barId}>
-                                            {option.barName}
-                                        </option>
-                                    ))
-                                ) : (
-                                    <option>No bar available</option>
-                                )}
-                            </select>
-                        </div>
+                        <label className="text-base font-bold ">Mô tả</label>
+                        {/* <div className="flex justify-between items-center px-3 py-3.5 text-sm rounded border border-solid border-stone-300"> */}
+                        <InputField
+                            errorMessage={errors.description}
+                            name="description"
+                            id="description"
+                            value={formData.description}
+                            onChange={handleInputChange}
+                            className="p-2 text-sm rounded border border-solid border-stone-300 h-40 overflow-y-auto w-[85%]"
+                        />
+                        {/* </div> */}
                     </div>
                 </div>
 
-                <div className="mt-8 w-[85%]">
+                {/* <div className="mt-8 w-[85%]">
                     <label htmlFor="description" className="block text-base font-bold mb-2">
                         Mô tả
                     </label>
                     <div className="w-[82%]">
-                        <div className="w-[97%]">
-                            <InputField
+                        <div className="w-[97%]"> */}
+                {/* <InputField
                                 errorMessage={errors.description}
                                 name="description"
                                 id="description"
                                 value={formData.description}
                                 onChange={handleInputChange}
                                 className="p-4 text-sm rounded border border-solid border-stone-300 h-40 overflow-y-auto w-[85%]"
-                            />
-                        </div>
+                            /> */}
+                {/* </div>
                     </div>
-                </div>
+                </div> */}
 
                 <div className="mt-8">
                     <label htmlFor="description" className="block text-base font-bold mb-2">
@@ -465,9 +454,9 @@ function AddDrink() {
                                 <div className="flex gap-2 items-center">
                                     {emotionChecked.map((emotion, index) => (
                                         <button
-                                        onClick={handleTestClick}
-                                        className={`px-4 py-2.5 text-sm font-bold whitespace-nowrap rounded-md border-2 border-solid border-neutral-200`}
-                                    >
+                                            onClick={handleTestClick}
+                                            className={`px-4 py-2.5 text-sm font-bold whitespace-nowrap rounded-md border-2 border-solid border-neutral-200`}
+                                        >
                                             {emotion.categoryName}{index < emotionChecked.length - 1}
                                         </button>
                                     ))}

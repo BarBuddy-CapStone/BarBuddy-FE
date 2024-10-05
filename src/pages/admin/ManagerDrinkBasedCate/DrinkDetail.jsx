@@ -343,7 +343,7 @@ function DrinkDetail() {
             emotionChecked.forEach(emotion => {
                 formDatas.append("drinkBaseEmo", emotion.emotionalDrinksCategoryId)
             })
-        }else {
+        } else {
             setIsLoading(false)
             toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
         }
@@ -441,13 +441,13 @@ function DrinkDetail() {
                     <InputField errorMessage={errors.price} name="price" label="Giá tiền" type="number" value={formData.price} onChange={handleInputChange} />
 
                     <div className="flex flex-col">
-                        <label className="text-base font-bold mb-2">Loại đồ uống</label>
+                        <label className="text-base font-bold mb-2 ">Loại đồ uống</label>
                         <div className="flex justify-between items-center px-3 py-3.5 text-sm rounded border border-solid border-stone-300">
                             <select
                                 name="drinkCategoryId"
                                 value={formData.drinkCategoryId}
                                 onChange={handleInputChange}
-                                className="flex-grow border-none outline-none h-5 px-2"
+                                className="flex-grow border-none outline-none h-5 px-2 w-[50%]"
                             >
                                 {Array.isArray(dataDrinkCate) && dataDrinkCate.length > 0 ? (
                                     dataDrinkCate.map((option, index) => (
@@ -463,43 +463,15 @@ function DrinkDetail() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-base font-bold mb-2">Chi nhánh</label>
-                        <div className="flex justify-between items-center px-3 py-3.5 text-sm rounded border border-solid border-stone-300">
-                            <select
-                                name="barId"
-                                value={formData.barId}
-                                onChange={handleInputChange}
-                                className="flex-grow border-none outline-none h-5 px-2"
-                            >
-                                {Array.isArray(dataBars) && dataBars.length > 0 ? (
-                                    dataBars.map((option, index) => (
-                                        <option key={index} value={option.barId}>
-                                            {option.barName}
-                                        </option>
-                                    ))
-                                ) : (
-                                    <option>No bar available</option>
-                                )}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mt-8 w-[85%]">
-                    <label htmlFor="description" className="block text-base font-bold mb-2">
-                        Mô tả
-                    </label>
-                    <div className="w-[82%]">
-                        <div className="w-[97%]">
-                            <InputField
-                                errorMessage={errors.description}
-                                name="description"
-                                id="description"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                className="p-4 text-sm rounded border border-solid border-stone-300 h-40 overflow-y-auto w-[85%]"
-                            />
-                        </div>
+                        <label className="text-base font-bold">Mô tả</label>
+                        <InputField
+                            errorMessage={errors.description}
+                            name="description"
+                            id="description"
+                            value={formData.description}
+                            onChange={handleInputChange}
+                            className="p-4 text-sm rounded border border-solid border-stone-300 h-40 overflow-y-auto w-[85%]"
+                        />
                     </div>
                 </div>
 

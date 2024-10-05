@@ -57,15 +57,15 @@ const TableHeader = () => {
             <div>Thời gian cập nhật</div>
             <div>Danh mục</div>
             <div>Trạng thái</div>
-            <div></div> {/* Placeholder for ChevronRight Icon */}
+            <div></div>
         </div>
     );
 }
 const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0'); // Get day and pad with 0 if needed
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based, so we add 1
-    const year = date.getFullYear(); // Get full year
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
     return `${day}-${month}-${year}`;
 };
 const Item = ({
@@ -128,17 +128,16 @@ const ManagerDrink = () => {
         const fetchApiDrink = async () => {
             try {
                 const response = await getDrinkBasedCate(cateId);
-                setDataDrink(response.data.data);
+                setDataDrink(response?.data?.data);
             } catch (error) {
                 console.error("Error fetching drinks:", error);
             }
         };
 
         fetchApiDrink();
-    }, [location.search]); // Add location.search as a dependency
+    }, [location?.search]);
 
-    // Conditional rendering to prevent undefined access
-    const headerTitle = dataDrink.length > 0 ? dataDrink[0].drinksCategoryName : "Loading...";
+    const headerTitle = dataDrink?.length > 0 ? dataDrink[0]?.drinksCategoryName : "Loading...";
 
     return (
         <main className="flex overflow-hidden flex-col">
@@ -146,11 +145,12 @@ const ManagerDrink = () => {
             <div className="pt-[40px]">
                 <table className="w-full text-xl text-black">
                     <TableHeader />
-                    {Array.isArray(dataDrink) && dataDrink.length > 0 ? (
+                    {Array.isArray(dataDrink) && dataDrink?.length > 0 ? (
                         dataDrink.map((data, index) => (
                             <Item
                                 key={index}
                                 {...data}
+                                drinksCategoryName={data?.drinkCategoryResponse?.drinksCategoryName}
                                 bgColor={index % 2 === 0 ? "bg-white" : "bg-stone-50"}
                             />
                         ))

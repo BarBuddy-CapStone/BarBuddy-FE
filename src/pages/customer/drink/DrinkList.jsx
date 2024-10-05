@@ -2,7 +2,7 @@ import React, { Fragment, useCallback, useEffect, useState } from 'react';
 
 import { Range, getTrackBackground } from 'react-range';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getAllDrinkByBarId } from 'src/lib/service/managerDrinksService';
+import { getAllDrink } from 'src/lib/service/managerDrinksService';
 
 const FilterSection = ({
     dataDrinkCate,
@@ -143,9 +143,9 @@ const FilterSection = ({
                         Xem tất cả
                     </button>
                     {selectedEmotions.length > 0 &&
-                    <button onClick={() => setSelectedEmotions([])} className="mt-2 text-red-400 text-sm hover:text-red-500">
-                        Xóa chọn
-                    </button>
+                        <button onClick={() => setSelectedEmotions([])} className="mt-2 text-red-400 text-sm hover:text-red-500">
+                            Xóa chọn
+                        </button>
                     }
                 </div>
                 <PriceFilter dataDrinkPrice={dataDrinkPrice} onPriceChange={setPriceRange} />
@@ -157,19 +157,18 @@ const FilterSection = ({
                 </div>
             </div>
 
-            {/* Drink Modal */}
             {isDrinksModalOpen && (
                 <Modal title="Danh mục thức uống" onClose={() => setDrinksModalOpen(false)} onConfirm={handleConfirmDrinks}>
-                    {dataDrinkCate.map((drink) => (
-                        <label key={drink} className="flex items-center gap-2 mt-2 text-sm">
+                    {dataDrinkCate?.map((drink) => (
+                        <label key={drink?.drinksCategoryId} className="flex items-center gap-2 mt-2 text-sm">
                             <input
                                 type="radio"
                                 name="drink-category"
                                 className="form-radio h-5 w-5"
-                                checked={tempSelectedDrink === drink} // Bind to modal temp state
-                                onChange={() => handleDrinkChange(drink)} // Update modal temp state
+                                checked={tempSelectedDrink === drink?.drinksCategoryName} // Compare the name
+                                onChange={() => handleDrinkChange(drink?.drinksCategoryName)} // Set the drink name
                             />
-                            <span>{drink}</span>
+                            <span>{drink?.drinksCategoryName}</span>
                         </label>
                     ))}
                 </Modal>
@@ -222,7 +221,7 @@ const Modal = ({ title, children, onClose, onConfirm }) => {
     );
 };
 
-const DrinkCard = ({ images, drinkName, price, withDivider, drinkId}) => {
+const DrinkCard = ({ images, drinkName, price, withDivider, drinkId }) => {
 
     const redirect = useNavigate();
     const drinkDetailHandle = () => {
@@ -252,22 +251,23 @@ const DrinkCard = ({ images, drinkName, price, withDivider, drinkId}) => {
 }
 const PriceFilter = ({ dataDrinkPrice, onPriceChange }) => {
     const STEP = 1;
-    const MIN = dataDrinkPrice.length > 0 ? Math.min(...dataDrinkPrice) : 0;
+    const MIN = 0;
     const MAX = dataDrinkPrice.length > 0 ? Math.max(...dataDrinkPrice) : 100000000;
+    console.log("min price", MIN)
+    console.log("Max price", MAX)
     const [values, setValues] = useState([MIN, MAX]);
 
     useEffect(() => {
         if (dataDrinkPrice.length > 0) {
-            const newMin = Math.min(...dataDrinkPrice);
+            const newMin = MIN;
             const newMax = Math.max(...dataDrinkPrice);
             setValues([newMin, newMax]);
         }
     }, [dataDrinkPrice]);
 
-    // Update the parent with the new price range
     const handleRangeChange = (newValues) => {
         setValues(newValues);
-        onPriceChange(newValues); // Pass the new range back to the parent
+        onPriceChange(newValues);
     };
 
     return (
@@ -319,19 +319,19 @@ const PriceFilter = ({ dataDrinkPrice, onPriceChange }) => {
                         />
                     )}
                 />
-                <h4 className="mt-2 text-amber-400 text-sm text-center">Đơn vị tính theo VND</h4>
+                <h4 className="mt-2 text-amber-400 text-xs text-center">Đơn vị tính theo VND</h4>
             </div>
         </Fragment>
     );
 };
 
-const backToBarInfo = (barId) => {
+const backToBarInfo = () => {
     const redirect = useNavigate();
-    redirect(`/barInfo?barId=${barId}`);
+    redirect(`/drinkList}`);
 }
 
-const BackButton = ({ barId }) => (
-    <button onClick={() => backToBarInfo(barId)} className="flex gap-2.5 self-start mt-2.5 text-xl text-gray-200 flex text-center centers-text">
+const BackButton = () => (
+    <button onClick={() => backToBarInfo()} className="flex gap-2.5 self-start mt-2.5 text-xl text-gray-200 flex text-center centers-text">
         <img
             loading="lazy"
             src="https://img.icons8.com/?size=100&id=40217&format=png&color=FFFFFF"
@@ -346,7 +346,6 @@ const BackButton = ({ barId }) => (
 const DrinkList = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
-    //const barId = searchParams.get('barId');
 
     const [dataDrinksOfBar, setDataDrinkOfBar] = useState([]);
     const [dataDrinkCate, setDataDrinkCate] = useState([]);
@@ -358,14 +357,12 @@ const DrinkList = () => {
     const [selectedEmotions, setSelectedEmotions] = useState([]);
     const [priceRange, setPriceRange] = useState([0, 100000000]);
 
-    const barId = 'd44b3052-e903-4eab-bfa6-62662381dbc2';
-
     useEffect(() => {
         const fetchDataDrinkOfBar = async () => {
             try {
-                const response = await getAllDrinkByBarId(barId);
+                const response = await getAllDrink();
                 const dataDrinksOfBar = response.data.data;
-
+                console.log("data", dataDrinksOfBar)
                 const allEmotionDrink = dataDrinksOfBar.flatMap(drink => drink.emotionsDrink);
                 const uniqueEmo = Array.from(new Set(allEmotionDrink.map(emotion => emotion.emotionalDrinksCategoryId)))
                     .map(id => allEmotionDrink.find(emotion => emotion.emotionalDrinksCategoryId === id));
@@ -387,11 +384,11 @@ const DrinkList = () => {
             }
         };
         fetchDataDrinkOfBar();
-    }, [barId]);
+    }, []);
 
     const applyFilters = () => {
         let filtered = dataDrinksOfBar;
-        console.log("dasd",filtered)
+        console.log("dasd", filtered)
         if (selectedDrink) {
             filtered = filtered.filter(drink => drink?.drinkCategoryResponse?.drinksCategoryName === selectedDrink);
         }
@@ -432,15 +429,15 @@ const DrinkList = () => {
                         <section className="flex flex-col px-6 pt-4 mx-auto w-full bg-neutral-800 max-md:px-4 max-md:mt-8 max-md:max-w-full rounded-md">
 
                             <div className="flex flex-wrap gap-4 justify-between max-w-full leading-snug w-[646px] text-center items-center">
-                                <BackButton barId={barId} />
-                                <h2 className="text-xl text-center ceter-text text-amber-400 font-bold">Danh sách đồ uống</h2>
+                                <BackButton />
+                                <h2 className="text-xl text-center ceter-text text-amber-400 font-bold mr-[20%]">Danh sách đồ uống</h2>
                             </div>
                             <div className="shrink-0 mt-3 h-px border border-amber-400 border-solid max-md:max-w-full" />
                             <div className="mt-5 max-md:max-w-full">
                                 <div className="grid grid-cols-4 gap-4 mb-6 max-md:grid-cols-2">
                                     {filteredDrinks.length > 0 ? (
                                         filteredDrinks.map((drink, index) => (
-                                            <DrinkCard key={index} {...drink} barId={barId} />
+                                            <DrinkCard key={index} {...drink} />
                                         ))
                                     ) : (
                                         <div>
