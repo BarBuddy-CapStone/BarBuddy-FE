@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react"; // Thêm useEffect
 import { FilterSection, BookingTable } from "src/pages";
 
 function BookingList() {
@@ -6,12 +6,17 @@ function BookingList() {
     name: "",
     phone: "",
     email: "",
-    status: "Đang phục vụ",
+    status: "All", // Đảm bảo trạng thái mặc định là "All"
   });
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
   };
+
+  // Gọi hàm để hiển thị tất cả dữ liệu khi component được render
+  useEffect(() => {
+    handleFilterChange(filter); // Cập nhật bộ lọc
+  }, []); // Chạy một lần khi component được mount
 
   return (
     <main className="flex overflow-hidden flex-col grow px-7 pt-7 pb-32 w-full bg-white max-md:px-5 max-md:pb-24 max-md:max-w-full">

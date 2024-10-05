@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import { getCustomerAccounts } from 'src/lib/service/adminService';
-import { ToastContainer, toast } from 'react-toastify'; // Nhập ToastContainer và toast
-import 'react-toastify/dist/ReactToastify.css'; // Nhập CSS cho toast
-import Pagination from '@mui/material/Pagination'; // Nhập Pagination từ MUI
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Pagination from '@mui/material/Pagination';
 
 const SearchCustomerName = ({ onSearch }) => {
     const [searchTerm, setSearchTerm] = useState('');

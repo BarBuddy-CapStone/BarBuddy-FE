@@ -146,6 +146,7 @@ const StaffManagement = () => {
     const [pageIndex, setPageIndex] = useState(1);
     const [pageSize, setPageSize] = useState(6);
     const [totalCustomers, setTotalCustomers] = useState(0);
+    const location = useLocation();
 
     useEffect(() => {
         const loadData = async () => {
@@ -163,6 +164,12 @@ const StaffManagement = () => {
         loadData();
     }, [pageIndex]); // Thêm pageIndex vào dependency array
 
+    useEffect(() => {
+        if (location.state && location.state.successMessage) {
+            toast.success(location.state.successMessage);
+        }
+    }, [location.state]);
+    
     const handlePageChange = (event, value) => {
         setPageIndex(value); // Cập nhật pageIndex khi người dùng chọn trang
     };
