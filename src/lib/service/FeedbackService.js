@@ -12,6 +12,10 @@ const getAllFeedbackByID = async (id) => {
   return await axios.get(`api/feedback/${id}`);
 };
 
+const getAllFeedbackByBookingID = async (bookingId) => {
+  return await axios.get(`api/feedback/booking/${bookingId}`);
+};
+
 const createFeedBack = async (data) => {
   //   const config = {
   //     headers: {
@@ -42,6 +46,7 @@ const DeleteUpdateFeedBack = async (id) => {
 export {
   getAllFeedback,
   getAllFeedbackByID,
+  getAllFeedbackByBookingID,
   createFeedBack,
   UpdateFeedBack,
   DeleteUpdateFeedBack,

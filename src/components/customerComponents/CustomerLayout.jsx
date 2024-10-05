@@ -12,7 +12,7 @@ const CustomerLayout = () => {
         <ScrollToTopButton />
       </main>
       <CustomerFooter />
-      <ToastContainer />
+      <ToastContainer theme="dark" />
     </div>
   );
 };
