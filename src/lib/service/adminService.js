@@ -59,7 +59,7 @@ export const getBars = async () => {
             // 'Authorization': `Bearer ${token}`
         }
     };
-    return await axios.get("api/Bar/admin/barmanager", config);
+    return await axios.get("api/v1/Bar/admin/barmanager", config);
 };
 
 export const createCustomer = async (customerData) => {

@@ -88,6 +88,7 @@ function StatusFilter({ label, selectedStatus, onChange }) {
           value={selectedStatus}
           onChange={(e) => onChange(e.target.value)}
         >
+          <option value="All">Tất cả</option> // Thêm tùy chọn "All"
           <option value="Đang phục vụ">Đang phục vụ</option>
           <option value="Đã đặt">Đã đặt</option>
           <option value="Đã hủy">Đã hủy</option>
@@ -102,7 +103,7 @@ function FilterSection({ onFilterChange }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("Đang phục vụ");
+  const [selectedStatus, setSelectedStatus] = useState("All"); // Thay đổi từ "Đang phục vụ" thành "All"
 
   const handleFilterChange = () => {
     onFilterChange({ name, phone, email, status: selectedStatus });

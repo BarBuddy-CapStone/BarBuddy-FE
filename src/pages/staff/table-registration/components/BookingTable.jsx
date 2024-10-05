@@ -139,7 +139,7 @@ function BookingTable({ filter }) {
       (filter.name ? booking.name.includes(filter.name) : true) &&
       (filter.phone ? booking.phone.includes(filter.phone) : true) &&
       (filter.email ? booking.email.includes(filter.email) : true) &&
-      (filter.status ? booking.status === filter.status : true)
+      (filter.status === "All" || (filter.status ? booking.status === filter.status : true)) // Không cần thay đổi ở đây
     );
   });
   const navigate = useNavigate();

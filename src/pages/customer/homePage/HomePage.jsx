@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllBar, getBranchesData, getDrinkData } from 'src/lib/service/customerService';
+import { getAllBar, getDrinkData } from 'src/lib/service/customerService';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 // Tách BranchCard thành component riêng biệt
