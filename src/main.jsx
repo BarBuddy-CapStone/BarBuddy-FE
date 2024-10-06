@@ -84,7 +84,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="admin/managerDrinkCategory/managerDrink" element={<ManagerDrink />}></Route>
           <Route path="admin/managerDrink/DrinkDetail" element={<DrinkDetail />}></Route>
           <Route path="admin/managerDrink/addDrink" element={<AddDrink />}></Route>
-          <Route path="admin/emotional/drinkBaseEmotional" element={<ManagerDrinkBasedEmotional />}></Route>
+          <Route path="admin/emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}></Route>
         </Route>
 
         {/* Route Của Staff */}
