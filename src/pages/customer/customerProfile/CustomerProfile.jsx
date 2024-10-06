@@ -9,7 +9,6 @@ function ProfilePage() {
     <div className="flex flex-col lg:flex-row space-y-6 lg:space-y-0 px-8">
       <PersonalInfo accountId={accountId} />
       <BookingHistory accountId={accountId} />
-      <ToastContainer theme="dark" />
     </div>
   );
 }
