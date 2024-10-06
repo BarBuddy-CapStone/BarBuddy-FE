@@ -1,16 +1,22 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getAllBar, getBranchesData, getDrinkData } from 'src/lib/service/customerService';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { getAllBar } from "src/lib/service/customerService";
 import { ArrowForward, ArrowBack } from "@mui/icons-material";
-import { getAllDrinkCustomer } from 'src/lib/service/managerDrinksService';
-
+import { getAllDrinkCustomer } from "src/lib/service/managerDrinksService";
 
 const BranchCard = React.memo(({ branch, onClick }) => {
-  const rating = useMemo(() => (
-    branch.feedBacks.length > 0
-      ? (branch.feedBacks.reduce((acc, feedback) => acc + feedback.rating, 0) / branch.feedBacks.length).toFixed(1)
-      : 0
-  ), [branch.feedBacks]);
+  const rating = useMemo(
+    () =>
+      branch.feedBacks.length > 0
+        ? (
+            branch.feedBacks.reduce(
+              (acc, feedback) => acc + feedback.rating,
+              0
+            ) / branch.feedBacks.length
+          ).toFixed(1)
+        : 0,
+    [branch.feedBacks]
+  );
 
   const reviews = branch.feedBacks.length;
 
@@ -21,15 +27,30 @@ const BranchCard = React.memo(({ branch, onClick }) => {
       onClick={() => navigate(`/bar-detail?barId=${branch.barId}`)}
       className="bg-neutral-700 text-white rounded-lg shadow-md overflow-hidden max-w-[300px] transition-transform transform hover:scale-105 cursor-pointer"
     >
-      <img src={branch.images === 'default' ? "https://giayphepkinhdoanh.vn/wp-content/uploads/2023/10/mo-quan-bar-pub-can-xin-nhung-loai-giay-phep-nao.jpg" : branch.images} alt={branch.barName} className="w-full h-48 object-cover" />
+      <img
+        src={
+          branch.images === "default"
+            ? "https://giayphepkinhdoanh.vn/wp-content/uploads/2023/10/mo-quan-bar-pub-can-xin-nhung-loai-giay-phep-nao.jpg"
+            : branch.images
+        }
+        alt={branch.barName}
+        className="w-full h-48 object-cover"
+      />
       <div className="p-4">
-        <h3 className="text-lg text-yellow-500 font-bold mb-2">{branch.barName}</h3>
+        <h3 className="text-lg text-yellow-500 font-bold mb-2">
+          {branch.barName}
+        </h3>
         <div className="text-orange-400 mb-2">
           <span className="text-sm">Đánh giá: {rating}</span>
           <span className="ml-2 text-gray-400">({reviews} reviews)</span>
         </div>
-        <p className="text-sm mb-2 inline-block h-[45px]"><span className='text-orange-400'>Địa chỉ:</span> {branch.address}</p>
-        <p className="text-sm break-words inline-block h-[45px]"><span className='text-orange-400'>Thời gian mở cửa - đóng cửa:</span> {branch.startTime.slice(0, 5)} - {branch.endTime.slice(0, 5)}</p>
+        <p className="text-sm mb-2 inline-block h-[45px]">
+          <span className="text-orange-400">Địa chỉ:</span> {branch.address}
+        </p>
+        <p className="text-sm break-words inline-block h-[45px]">
+          <span className="text-orange-400">Thời gian mở cửa - đóng cửa:</span>{" "}
+          {branch.startTime.slice(0, 5)} - {branch.endTime.slice(0, 5)}
+        </p>
       </div>
     </div>
   );
@@ -44,7 +65,9 @@ const LocationsList = React.memo(({ locations }) => (
       {locations.map((location, index) => (
         <li key={index} className="flex items-center">
           <span className="mr-2 text-sm">📍</span>
-          <span className='break-words text-sm'>{location.barName}, {location.address}</span>
+          <span className="break-words text-sm">
+            {location.barName}, {location.address}
+          </span>
         </li>
       ))}
     </ul>
@@ -54,8 +77,8 @@ const LocationsList = React.memo(({ locations }) => (
 const DrinkCard = React.memo(({ images, drinkName, price, drinkId }) => {
   const redirect = useNavigate();
   const drinkDetailHandle = () => {
-    redirect(`/drinkDetail?drinkId=${drinkId}`)
-  }
+    redirect(`/drinkDetail?drinkId=${drinkId}`);
+  };
 
   return (
     <div className="flex flex-col px-2.5 py-3 w-1/6 flex-shrink-0 max-md:w-full transition-transform transform hover:scale-105">
@@ -67,12 +90,14 @@ const DrinkCard = React.memo(({ images, drinkName, price, drinkId }) => {
           className="object-contain self-stretch max-h-45 rounded-md aspect-[0.84]"
         />
         <button onClick={drinkDetailHandle}>
-          <h3 className="mt-1.5 text-base leading-7 text-zinc-100">{drinkName}</h3>
+          <h3 className="mt-1.5 text-base leading-7 text-zinc-100">
+            {drinkName}
+          </h3>
         </button>
         <p className="mt-1 text-sm leading-snug text-amber-400">{price}</p>
       </div>
     </div>
-  )
+  );
 });
 
 const BarBuddyDrinks = React.memo(() => {
@@ -81,19 +106,23 @@ const BarBuddyDrinks = React.memo(() => {
   useEffect(() => {
     const dataFetchDrink = async () => {
       const response = await getAllDrinkCustomer();
-      const dataFetch = response?.data?.data;
+      const dataFetch = response?.data?.data || [];
       setDrinkData(dataFetch);
     };
     dataFetchDrink();
   }, []);
+
+  useEffect(() => {
+    console.log(drinkData);
+  }, [drinkData]); 
 
   const infiniteData = useMemo(() => {
     return [...drinkData, ...drinkData, ...drinkData];
   }, [drinkData]);
 
   const viewDrinkHandle = () => {
-      redirect(`/drinkList`)
-  } 
+    redirect(`/drinkList`);
+  };
 
   return (
     <section className="w-full rounded-lg flex flex-col bg-neutral-800 ml-10 mb-20 px-10 py-5">
@@ -143,11 +172,17 @@ const BarBuddyBranches = ({ onBranchesLoaded }) => {
 
   return (
     <section className="w-full rounded-lg flex flex-col bg-neutral-800 ml-10 mb-20 mt-10 px-10 py-8">
-      <h2 className="text-2xl text-start mb-8 text-yellow-400">Chi nhánh Bar Buddy</h2>
+      <h2 className="text-2xl text-start mb-8 text-yellow-400">
+        Chi nhánh Bar Buddy
+      </h2>
       <div className="shrink-0 mb-4 h-px border border-amber-400 border-solid" />
       <div className="grid mt-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {branches.map((branch, index) => (
-          <BranchCard key={index} branch={branch} onClick={() => handleCardClick(branch.barId)} />
+          <BranchCard
+            key={index}
+            branch={branch}
+            onClick={() => handleCardClick(branch.barId)}
+          />
         ))}
       </div>
     </section>
