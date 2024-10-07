@@ -24,6 +24,9 @@ const BarDetail = ({ barInfo }) => {
           </span>
         </div>
       </div>
+      <div className="mt-4 text-sm text-gray-300">
+        <p>{barInfo.description}</p>
+      </div>
     </div>
   );
 };

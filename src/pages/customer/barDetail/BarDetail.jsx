@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { getBarById } from '../../../lib/service/customerService';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getBarById } from '../../../lib/service/customerService'; // Removed getBarTableById
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import StarIcon from '@mui/icons-material/Star';
@@ -27,9 +27,7 @@ const FeedbackList = React.memo(({ feedbacks }) => (
 ));
 
 const BarDetail = () => {
-    const location = useLocation();
-    const queryParams = new URLSearchParams(location.search);
-    const barId = queryParams.get('barId');
+    const { barId } = useParams();
     const [barDetails, setBarDetails] = useState(null);
     const [averageRating, setAverageRating] = useState(0);
     const [totalReviews, setTotalReviews] = useState(0);
@@ -40,22 +38,33 @@ const BarDetail = () => {
         navigate("/home");
     }, [navigate]);
 
+    const handleBooking = () => {
+        // Navigate to the booking table page and pass the barId
+        navigate('/bookingtable', { state: { barId } });
+    };
+
     useEffect(() => {
         const fetchBarDetails = async () => {
-            const barData = await getBarById(barId);
-            if (barData.status === 200) {
-                const barInfo = barData.data.data;
-                setBarDetails(barInfo);
-                const rating = barInfo.feedBacks.length > 0
-                    ? (barInfo.feedBacks.reduce((acc, feedback) => acc + feedback.rating, 0) / barInfo.feedBacks.length).toFixed(1)
-                    : 0;
-                setAverageRating(rating);
-                setTotalReviews(barInfo.feedBacks.length);
-            } else {
-                console.error("Failed to fetch bar details");
+            try {
+                const barData = await getBarById(barId);
+                if (barData.status === 200) {
+                    const barInfo = barData.data.data;
+                    setBarDetails(barInfo);
+                    const rating = barInfo.feedBacks.length > 0
+                        ? (barInfo.feedBacks.reduce((acc, feedback) => acc + feedback.rating, 0) / barInfo.feedBacks.length).toFixed(1)
+                        : 0;
+                    setAverageRating(rating);
+                    setTotalReviews(barInfo.feedBacks.length);
+                } else {
+                    console.error("Failed to fetch bar details");
+                }
+            } catch (error) {
+                console.error("Error fetching bar details:", error);
             }
         };
-        fetchBarDetails();
+        if (barId) {
+            fetchBarDetails();
+        }
     }, [barId]);
 
     if (!barDetails) return <div>Loading...</div>;
@@ -84,7 +93,7 @@ const BarDetail = () => {
                 </div>
                 <hr className="border-yellow-500 mb-4" />
                 <p className="mb-4">{barDetails.description}</p>
-                <button className="bg-yellow-500 text-gray-800 px-4 py-2 rounded-lg">Đặt bàn</button>
+                <button className="bg-yellow-500 text-gray-800 px-4 py-2 rounded-lg" onClick={handleBooking}>Đặt bàn</button>
             </div>
             <div className="bg-neutral-800 text-white p-4 rounded-lg shadow-lg mt-4 w-full max-w-4xl">
                 <h2 className="text-2xl text-yellow-500 font-bold mb-4">Đánh giá</h2>

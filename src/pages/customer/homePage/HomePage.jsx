@@ -20,11 +20,9 @@ const BranchCard = React.memo(({ branch, onClick }) => {
 
   const reviews = branch.feedBacks.length;
 
-  const navigate = useNavigate();
-
   return (
     <div
-      onClick={() => navigate(`/bar-detail?barId=${branch.barId}`)}
+      onClick={onClick} // Use the onClick prop
       className="bg-neutral-700 text-white rounded-lg shadow-md overflow-hidden max-w-[300px] transition-transform transform hover:scale-105 cursor-pointer"
     >
       <img
@@ -114,7 +112,7 @@ const BarBuddyDrinks = React.memo(() => {
 
   useEffect(() => {
     console.log(drinkData);
-  }, [drinkData]); 
+  }, [drinkData]);
 
   const infiniteData = useMemo(() => {
     return [...drinkData, ...drinkData, ...drinkData];
@@ -151,6 +149,7 @@ const BarBuddyDrinks = React.memo(() => {
 const BarBuddyBranches = ({ onBranchesLoaded }) => {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBranches = async () => {
@@ -165,8 +164,8 @@ const BarBuddyBranches = ({ onBranchesLoaded }) => {
   }, [onBranchesLoaded]);
 
   const handleCardClick = useCallback((barId) => {
-    navigate(`/bar-detail?barId=${barId}`);
-  }, []);
+    navigate(`/bar-detail/${barId}`); // Navigate to the bar detail page with the barId
+  }, [navigate]);
 
   if (loading) return <div>Loading...</div>;
 
@@ -181,13 +180,14 @@ const BarBuddyBranches = ({ onBranchesLoaded }) => {
           <BranchCard
             key={index}
             branch={branch}
-            onClick={() => handleCardClick(branch.barId)}
+            onClick={() => handleCardClick(branch.barId)} // Pass the onClick handler
           />
         ))}
       </div>
     </section>
   );
 };
+
 
 function HomePage() {
   const [branches, setBranches] = useState([]);

@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from 'react-router-dom';
+import { getBarTableById } from "src/lib/service/customerService";
+
 import {
   BookingTableInfo,
   CustomerForm,
@@ -8,12 +11,38 @@ import {
 } from "src/pages";
 
 const BookingTable = () => {
+  const { state } = useLocation();
+  const { barId } = state || {};
+
+  const [tables, setTables] = useState([]);
+  const [barInfo, setBarInfo] = useState({});
   const [selectedTables, setSelectedTables] = useState([]);
-  const barInfo = {
-    name: "BarBuddy 1",
-    location: "87A Hàm Nghi, Phường Nguyễn Thái Bình, Quận 1",
-    openingHours: "10:30 PM - 02:00 AM",
-  };
+
+  useEffect(() => {
+    const fetchTableData = async () => {
+      try {
+        const response = await getBarTableById(barId);
+        if (response.status === 200) {
+          setTables(response.data.data.tables); // Set the tables data
+          setBarInfo({
+            name: response.data.data.barName,
+            location: response.data.data.address,
+            openingHours: `${response.data.data.startTime.slice(0, 5)} - ${response.data.data.endTime.slice(0, 5)}`,
+            description: response.data.data.description,
+            // Add any other fields you need to pass to the components
+          });
+        } else {
+          console.error('Failed to fetch table data');
+        }
+      } catch (error) {
+        console.error('Error fetching table data:', error);
+      }
+    };
+
+    if (barId) {
+      fetchTableData();
+    }
+  }, [barId]);
 
   const handleRemoveTable = (table) => {
     setSelectedTables((prev) => prev.filter((t) => t !== table));
@@ -25,13 +54,13 @@ const BookingTable = () => {
         <div className="flex gap-2 max-md:flex-col">
           {/* Left Content: 3/4 Width */}
           <div className="flex flex-col w-3/4 max-md:w-full">
-            <BookingTableInfo />
+            <BookingTableInfo barInfo={barInfo} />
             <TableSelection
               selectedTables={selectedTables}
               setSelectedTables={setSelectedTables}
+              tables={tables} // Pass the tables data to the component
             />
             <TimeSelection />
-            {/* Truyền selectedTables vào CustomerForm */}
             <CustomerForm selectedTables={selectedTables} />
           </div>
 

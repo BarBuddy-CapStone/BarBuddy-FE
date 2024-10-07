@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import TableBarIcon from "@mui/icons-material/TableBar";
 import { TextField, InputAdornment, MenuItem, Button } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import viLocale from "date-fns/locale/vi"; // Import Vietnamese locale
 import { styled } from "@mui/material/styles";
+import TableTypeService from "src/lib/service/tableTypeService"; // Import the TableTypeService class
+import { DatePicker } from "@mui/x-date-pickers";
 
 // Custom TextField component
 const CustomTextField = styled(TextField)(({ theme }) => ({
@@ -65,7 +66,32 @@ const CustomDatePicker = styled(DatePicker)(({ theme }) => ({
 
 const BookingInfo = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTableType, setSelectedTableType] = useState("Tiêu chuẩn");
+  const [selectedTableType, setSelectedTableType] = useState(""); // Use string for display
+  const [tableTypes, setTableTypes] = useState([]); // State to store table types
+
+  // Fetch table types on component mount
+  useEffect(() => {
+    const fetchTableTypes = async () => {
+      try {
+        const response = await TableTypeService.getAllTableTypes(); // Use the static method from TableTypeService
+        if (response.status === 200) {
+          const types = response.data.data;
+          setTableTypes(types);
+          
+          // Set the default value to the first item in the list
+          if (types.length > 0) {
+            setSelectedTableType(types[0].typeName);
+          }
+        } else {
+          console.error("Failed to fetch table types");
+        }
+      } catch (error) {
+        console.error("Error fetching table types:", error);
+      }
+    };
+
+    fetchTableTypes();
+  }, []);
 
   const handleDateChange = (newDate) => {
     setSelectedDate(newDate);
@@ -97,11 +123,13 @@ const BookingInfo = () => {
               className="object-contain shrink-0 self-start w-5 aspect-square mt-1"
               alt="Info icon"
             />
-            <div className="flex-auto max-md:max-w-full">
-              Bàn SVIP: 1-20 khách. Mức giá tối thiểu 9.300.000 VND <br />
-              Bàn VIP: 1-14 khách. Mức giá tối thiểu 4.650.000 VND <br />
-              Bàn tiêu chuẩn: 1-10 khách. Mức giá tối thiểu 3.500.000 VND <br />
-              Bàn quầy bar: 1 khách. Mức giá tối thiểu 500.000 VND
+            <div className="flex-auto max-md:max-w-full ">
+              {tableTypes.map((tableType) => (
+                <div className="font-notoSansSC text-base" key={tableType.tableTypeId}>
+                  {tableType.typeName}: {tableType.minimumGuest}-{tableType.maximumGuest} khách. Mức giá tối thiểu {tableType.minimumPrice.toLocaleString()} VND
+                  <br />
+                </div>
+              ))}
             </div>
           </div>
           <hr className="shrink-0 mt-4 w-full h-0.5 border border-amber-400 border-solid" />
@@ -141,20 +169,22 @@ const BookingInfo = () => {
                   ),
                 }}
               >
-                <MenuItem value="Tiêu chuẩn">Tiêu chuẩn</MenuItem>
-                <MenuItem value="VIP">VIP</MenuItem>
-                <MenuItem value="SVIP">SVIP</MenuItem>
+                {tableTypes.map((tableType) => (
+                  <MenuItem key={tableType.tableTypeId} value={tableType.typeName}>
+                    {tableType.typeName}
+                  </MenuItem>
+                ))}
               </CustomTextField>
             </div>
             <Button
               variant="contained"
               sx={{
-                backgroundColor: "#FFA500", // Set the background color to orange
-                height: "56px", // Match the height of the input fields
-                color: "white", // Set the text color to white
+                backgroundColor: "#FFA500",
+                height: "56px",
+                color: "white",
                 "&:hover": {
-                  backgroundColor: "#FF8C00", // Slightly darker orange on hover
-                  opacity: 0.8, // Add a subtle fade effect
+                  backgroundColor: "#FF8C00",
+                  opacity: 0.8,
                 },
               }}
             >
