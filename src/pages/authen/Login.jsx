@@ -1,6 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react'; // Thêm useState
+import { login } from '../../lib/service/authenService'; // Nhập hàm login
+import { useNavigate } from 'react-router-dom';
 
 function LoginForm({ onClose, onSwitchToRegister }) {
+  const [email, setEmail] = useState(''); // Trạng thái cho email
+  const [password, setPassword] = useState(''); // Trạng thái cho mật khẩu
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    try {
+      const response = await login({ email, password });
+      if (response.data.statusCode == 200) {
+        sessionStorage.setItem('userData', JSON.stringify(response.data.data));
+        navigate('/home');
+      }
+    } catch (error) {
+      console.error('Đăng nhập thất bại:', error); // Xử lý lỗi
+    }
+  };
+
   return (
     <div className="relative flex flex-col px-7 py-11 w-full max-w-md rounded-xl bg-zinc-900">
       {/* Nút đóng Popup */}
@@ -27,6 +45,8 @@ function LoginForm({ onClose, onSwitchToRegister }) {
           type="email"
           className="px-5 py-3 mt-2 rounded border border-gray-200 text-gray-200 bg-zinc-900 w-full"
           placeholder="nguyenvana@gmail.com"
+          value={email} // Gán giá trị email
+          onChange={(e) => setEmail(e.target.value)} // Cập nhật trạng thái email
         />
       </div>
       <div className="col-span-2 md:col-span-1 mt-5">
@@ -35,6 +55,8 @@ function LoginForm({ onClose, onSwitchToRegister }) {
           type="password"
           className="px-5 py-3 mt-2 rounded border border-gray-200 text-gray-200 bg-zinc-900 w-full"
           placeholder="••••••••"
+          value={password} // Gán giá trị mật khẩu
+          onChange={(e) => setPassword(e.target.value)} // Cập nhật trạng thái mật khẩu
         />
       </div>
 
@@ -49,7 +71,7 @@ function LoginForm({ onClose, onSwitchToRegister }) {
       </div>
       <div className='flex'>
         <div className="flex flex-col items-center self-center mt-5 w-full max-w-[398px] text-zinc-100">
-          <button className="gap-2.5 self-stretch w-full text-xl leading-none text-black bg-orange-400 min-h-[56px] rounded-[64px]">
+          <button className="gap-2.5 self-stretch w-full text-xl leading-none text-black bg-orange-400 py-3 rounded-[64px]" onClick={handleLogin}>
             Đăng nhập
           </button>
         </div>
