@@ -41,6 +41,8 @@ import BookingDetailPage from "./pages/customer/bookingDetail/BookingDetail";
 import CustomerPaymentHistory from "./pages/customer/customerPaymentHistory/CustomerPaymentHistory";
 import DrinkList from "./pages/customer/drink/DrinkList";
 import DrinkDetailCustomer from "./pages/customer/drink/DrinkDetail.jsx"
+import LoginPopup from "./pages/authen/Login";
+import Registration from "./pages/authen/Registration";
 
 import PaymentPage from "./pages/customer/paymentPage/PaymentPage";
 import PaymentDetail from "./pages/customer/paymentDetail/PaymentDetail";
@@ -110,7 +112,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="customer" element={<BookingTable />}></Route>
           <Route path="payment" element={<PaymentPage />}></Route>
           <Route path="payment-detail" element={<PaymentDetail />}></Route>
-
+          <Route path="login" element={<LoginPopup />}></Route>
+          <Route path="register" element={<Registration />}></Route>
         </Route>
       </Routes>
     </BrowserRouter>
