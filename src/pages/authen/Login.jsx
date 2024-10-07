@@ -1,17 +1,19 @@
 import React, { useState } from 'react'; // Thêm useState
 import { login } from '../../lib/service/authenService'; // Nhập hàm login
 import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../../lib/hooks/useUserStore'; // Nhập useAuthStore
 
 function LoginForm({ onClose, onSwitchToRegister }) {
   const [email, setEmail] = useState(''); // Trạng thái cho email
   const [password, setPassword] = useState(''); // Trạng thái cho mật khẩu
   const navigate = useNavigate();
+  const loginStore = useAuthStore(); // Khởi tạo useAuthStore
 
   const handleLogin = async () => {
     try {
       const response = await login({ email, password });
       if (response.data.statusCode == 200) {
-        sessionStorage.setItem('userData', JSON.stringify(response.data.data));
+        loginStore.login(response.data.data.accessToken, response.data.data); // Lưu thông tin người dùng vào store
         navigate('/home');
       }
     } catch (error) {
