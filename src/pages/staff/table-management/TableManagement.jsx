@@ -242,7 +242,7 @@ function TableManagement() {
                     >
                       <option value={0}>Còn trống</option>
                       <option value={1}>Đang phục vụ</option>
-                      <option value={2}>Không hoạt động</option>
+                      <option value={2}>Đã đặt trước</option>
                     </select>
                   </div>
                   <div className="flex justify-end gap-4">
@@ -367,7 +367,7 @@ function TableRow({
     : "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-white border-b border-orange-200 text-sm min-h-[60px] break-words items-center"; // Thêm items-center
 
   // Chuyển đổi giá trị status thành chuỗi tương ứng
-  const statusText = status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : "Không hoạt động";
+  const statusText = status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : "Đã đặt trước";
   const statusClass = status === 0 ? "bg-green-500" : status === 1 ? "bg-yellow-500" : "bg-red-500";
 
   return (

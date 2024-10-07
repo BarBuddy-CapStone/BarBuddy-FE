@@ -93,7 +93,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="table-management/table/:tableTypeId" element={<TableManagementDetail />}></Route>
           <Route path="payment-history" element={<PaymentHistoryStaff />}></Route>
           <Route path="table-registrations" element={<BookingList />}></Route>
-          <Route path="table-registration-detail" element={<BookingDetail />}></Route>
+          <Route path="table-registration-detail/:bookingId" element={<BookingDetail />}></Route>
         </Route>
 
         {/* Route Của Customer */}
