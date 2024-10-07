@@ -1,102 +1,53 @@
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-
-const initialTableData = [
-  {
-    id: 1,
-    name: "TCA01",
-    type: "Bàn Tiêu chuẩn 1",
-    price: "600.000 VND",
-    minGuests: 2,
-    maxGuests: 4,
-    status: "Còn trống",
-  },
-  {
-    id: 2,
-    name: "TCA02",
-    type: "Bàn Tiêu chuẩn 1",
-    price: "600.000 VND",
-    minGuests: 2,
-    maxGuests: 4,
-    status: "Đang phục vụ",
-  },
-  {
-    id: 3,
-    name: "TCA03",
-    type: "Bàn Tiêu chuẩn 1",
-    price: "600.000 VND",
-    minGuests: 2,
-    maxGuests: 4,
-    status: "Còn trống",
-  },
-  {
-    id: 4,
-    name: "TCA04",
-    type: "Bàn Tiêu chuẩn 1",
-    price: "600.000 VND",
-    minGuests: 2,
-    maxGuests: 4,
-    status: "Còn trống",
-  },
-  {
-    id: 5,
-    name: "TCA05",
-    type: "Bàn Tiêu chuẩn 1",
-    price: "600.000 VND",
-    minGuests: 2,
-    maxGuests: 4,
-    status: "Đang phục vụ",
-  },
-  {
-    id: 6,
-    name: "TCA06",
-    type: "Bàn Tiêu chuẩn 1",
-    price: "600.000 VND",
-    minGuests: 2,
-    maxGuests: 4,
-    status: "Còn trống",
-  },
-  {
-    id: 7,
-    name: "TCA07",
-    type: "Bàn Tiêu chuẩn 1",
-    price: "600.000 VND",
-    minGuests: 2,
-    maxGuests: 4,
-    status: "Còn trống",
-  },
-  {
-    id: 8,
-    name: "TCA08",
-    type: "Bàn Tiêu chuẩn 1",
-    price: "600.000 VND",
-    minGuests: 2,
-    maxGuests: 4,
-    status: "Còn trống",
-  },
-];
+import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import TableService from "../../../lib/service/tableService";
+import Pagination from '@mui/material/Pagination';
+import Stack from '@mui/material/Stack';
+import { toast } from 'react-toastify';
 
 function TableManagement() {
-  const [tableData, setTableData] = useState(initialTableData);
+  const { tableTypeId } = useParams();
+
+  const [tableData, setTableData] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [pageIndex, setPageIndex] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(""); // New state for search term
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentTable, setCurrentTable] = useState({
-    id: null,
-    name: "",
-    type: "Bàn Tiêu chuẩn 1",
-    price: "",
-    minGuests: 1,
-    maxGuests: 1,
+    tableId: null,
+    tableName: "",
+    tableTypeName: "",
+    minimumPrice: "",
+    minimumGuest: 1,
+    maximumGuest: 1,
     status: "Còn trống",
   });
   const [tableToDelete, setTableToDelete] = useState(null);
+  const [tableTypeName, setTableTypeName] = useState(""); // Thêm state cho tableTypeName
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Filter table data based on search term
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await TableService.getTables("550e8400-e29b-41d4-a716-446655440000", tableTypeId, null, pageIndex, pageSize);
+      setTableData(response.response);
+      setTotalPages(response.totalPage);
+      setTableTypeName(response.tableTypeName); // Lưu tableTypeName từ phản hồi
+    };
+    fetchData();
+  }, [pageIndex, tableTypeId]); // Chạy lại khi pageIndex hoặc tableTypeId thay đổi
+
+  const handlePageChange = (event, value) => {
+    setPageIndex(value); // Cập nhật pageIndex
+    setCurrentPage(value); // Cập nhật currentPage nếu cần
+  };
+
   const filteredTableData = tableData.filter((table) =>
-    table.name.toLowerCase().includes(searchTerm.toLowerCase())
+    table.tableName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSearchChange = (event) => {
@@ -105,13 +56,13 @@ function TableManagement() {
 
   const openModal = () => {
     setCurrentTable({
-      id: null,
-      name: "",
-      type: "Bàn Tiêu chuẩn 1",
-      price: "",
-      minGuests: 1,
-      maxGuests: 1,
-      status: "Còn trống",
+      tableId: null,
+      tableName: "",
+      tableTypeName: tableTypeName,
+      minimumPrice: "",
+      minimumGuest: 1,
+      maximumGuest: 1,
+      status: 0,
     });
     setIsModalOpen(true);
     setIsEditing(false);
@@ -136,108 +87,178 @@ function TableManagement() {
     setCurrentTable({ ...currentTable, [name]: value });
   };
 
-  const handleSaveTable = () => {
-    if (isEditing) {
-      setTableData((prevData) =>
-        prevData.map((table) =>
-          table.id === currentTable.id ? { ...currentTable } : table
-        )
-      );
-    } else {
-      setTableData((prevData) => [
-        ...prevData,
-        { ...currentTable, id: prevData.length + 1 },
-      ]);
+  const handleSaveTable = async () => {
+    if (!currentTable.tableName.trim()) {
+      toast.error("Vui lòng nhập tên bàn");
+      return;
     }
-    closeModal();
+
+    setIsLoading(true);
+    try {
+      const tableData = {
+        barId: "550e8400-e29b-41d4-a716-446655440000", // Sử dụng barId cố định hoặc lấy từ state nếu có
+        tableTypeId: tableTypeId,
+        tableName: currentTable.tableName.trim(),
+        status: parseInt(currentTable.status)
+      };
+
+      let response;
+      if (isEditing) {
+        response = await TableService.updateTable(currentTable.tableId, tableData);
+      } else {
+        response = await TableService.addTable(tableData);
+      }
+      
+      if (response.status === 200) {
+        toast.success(isEditing ? "Cập nhật bàn thành công!" : "Thêm bàn mới thành công!");
+        // Cập nhật lại danh sách bàn
+        const updatedTables = await TableService.getTables("550e8400-e29b-41d4-a716-446655440000", tableTypeId, null, pageIndex, pageSize);
+        setTableData(updatedTables.response);
+        setTotalPages(updatedTables.totalPage);
+        closeModal();
+      } else {
+        toast.error(isEditing ? "Có lỗi xảy ra khi cập nhật bàn" : "Có lỗi xảy ra khi thêm bàn mới");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xử lý bàn:", error);
+      toast.error("Có lỗi xảy ra khi xử lý bàn");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleConfirmDelete = () => {
-    setTableData((prevData) =>
-      prevData.filter((table) => table.id !== tableToDelete.id)
-    );
-    setTableToDelete(null);
-    closeDeletePopup();
+  const handleConfirmDelete = async () => {
+    try {
+      const response = await TableService.deleteTable(tableToDelete.tableId);
+      
+      if (response.status === 200) {
+        // Xóa thành công
+        setTableData((prevData) =>
+          prevData.filter((table) => table.tableId !== tableToDelete.tableId)
+        );
+        toast.success("Xóa bàn thành công!"); // Hiển thị thông báo thành công
+      } else if (response.status === 202) {
+        // Không thể xóa do ràng buộc
+        const message = response.data || "Không thể xóa bàn do có ràng buộc!"; // Lấy thông điệp từ phản hồi
+        toast.warn(message); // Hiển thị thông báo cảnh báo
+      }
+      
+      // Đặt lại bàn để xóa và đóng popup
+      setTableToDelete(null);
+      closeDeletePopup();
+    } catch (error) {
+      console.error("Error deleting table:", error);
+      toast.error("Đã xảy ra lỗi hệ thống!"); // Hiển thị thông báo lỗi
+    }
   };
 
   return (
     <div className="overflow-hidden bg-white">
       <div className="flex gap-5 max-md:flex-col">
         <main className="flex flex-col w-full max-md:ml-0 max-md:w-full">
-          <div className="flex overflow-hidden px-8 flex-col pb-72 w-full bg-white max-md:px-5 max-md:pb-24">
+          <div className="flex overflow-hidden px-8 flex-col pb-10 w-full bg-white max-md:px-5">
             <TableHeader
               openModal={openModal}
               searchTerm={searchTerm}
               onSearchChange={handleSearchChange}
+              tableTypeName={tableTypeName}
             />
+
             <section className="w-full mt-10">
-              <div className="grid grid-cols-8 gap-4 px-5 w-full font-semibold bg-white text-sm min-h-[40px] text-neutral-900 max-md:text-xs">
-                <div className="text-center break-words">ID Bàn</div>
+              <div className="grid grid-cols-8 gap-4 px-5 w-full font-semibold bg-white text-sm min-h-[40px] text-neutral-900 max-md:text-xs py-1">
+                <div className="text-center break-words">STT</div>
                 <div className="text-center break-words">Tên Bàn</div>
                 <div className="text-center break-words">Loại bàn</div>
                 <div className="text-center break-words">Mức giá tối thiểu</div>
-                <div className="text-center break-words">
-                  Lượng khách tối thiểu
-                </div>
-                <div className="text-center break-words">
-                  Lượng khách tối đa
-                </div>
+                <div className="text-center break-words">Lượng khách tối thiểu</div>
+                <div className="text-center break-words">Lượng khách tối đa</div>
                 <div className="text-center break-words">Trạng thái</div>
                 <div className="text-center break-words">Hành động</div>
               </div>
-              {filteredTableData.map((table, index) => (
-                <TableRow
-                  key={table.id}
-                  {...table}
-                  isEven={index % 2 === 0}
-                  openEditModal={openEditModal}
-                  openDeletePopup={openDeletePopup}
-                />
-              ))}
+
+              {filteredTableData.length === 0 ? (
+                <div className="text-red-500 text-center mt-4">
+                  Không có bàn
+                </div>
+              ) : (
+                filteredTableData.map((table, index) => (
+                  <TableRow
+                    key={table.tableId}
+                    {...table}
+                    isEven={index % 2 === 0}
+                    openEditModal={openEditModal}
+                    openDeletePopup={openDeletePopup}
+                    index={index}
+                  />
+                ))
+              )}
             </section>
+
+            <Stack spacing={2} direction="row" justifyContent="center" alignItems="center" sx={{ mt: 2 }}>
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+              />
+            </Stack>
 
             {/* Modal thêm/chỉnh sửa bàn */}
             {isModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                 <div className="bg-white rounded-lg p-8 w-[500px]">
                   <h2 className="text-2xl font-semibold mb-6">
-                    {isEditing ? "Chỉnh sửa bàn" : "Thêm bàn mới"}
+                    {isEditing ? "Cập nhật bàn" : "Thêm bàn mới"}
                   </h2>
-
                   <div className="mb-4">
-                    <label className="block mb-2">Tên bàn</label>
+                    <label className="block text-sm font-medium text-gray-700">Tên loại bàn</label>
                     <input
                       type="text"
-                      name="name"
-                      value={currentTable.name}
-                      onChange={handleInputChange}
-                      className="block w-full p-2 border"
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block mb-2">Loại bàn</label>
-                    <input
-                      type="text"
-                      name="type"
-                      value={currentTable.type}
+                      value={currentTable.tableTypeName}
                       readOnly
-                      className="block w-full p-2 border bg-gray-100"
+                      className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     />
                   </div>
-
-                  <div className="flex justify-between mt-10">
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Tên bàn <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="tableName"
+                      value={currentTable.tableName}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">Trạng thái</label>
+                    <select
+                      name="status"
+                      value={currentTable.status}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value={0}>Còn trống</option>
+                      <option value={1}>Đang phục vụ</option>
+                      <option value={2}>Không hoạt động</option>
+                    </select>
+                  </div>
+                  <div className="flex justify-end gap-4">
                     <button
-                      className="bg-gray-400 text-white py-3 w-48 rounded-full"
+                      className="px-4 py-2 bg-gray-200 text-gray-800 rounded-full"
                       onClick={closeModal}
+                      disabled={isLoading}
                     >
                       Hủy
                     </button>
                     <button
-                      className="bg-blue-600 text-white py-3 w-48 rounded-full"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-full"
                       onClick={handleSaveTable}
+                      disabled={isLoading}
                     >
-                      {isEditing ? "Lưu" : "Thêm"}
+                      {isLoading ? "Đang xử lý..." : (isEditing ? "Cập nhật" : "Lưu")}
                     </button>
                   </div>
                 </div>
@@ -251,7 +272,7 @@ function TableManagement() {
                   <h2 className="text-2xl font-bold mb-4">Xác nhận xóa</h2>
                   <p>
                     Bạn có chắc chắn muốn xóa bàn:{" "}
-                    <strong>{tableToDelete?.name}</strong>?
+                    <strong>{tableToDelete?.tableName}</strong>?
                   </p>
                   <div className="flex justify-between mt-6">
                     <button
@@ -277,7 +298,7 @@ function TableManagement() {
   );
 }
 
-function TableHeader({ openModal, searchTerm, onSearchChange }) {
+function TableHeader({ openModal, searchTerm, onSearchChange, tableTypeName }) {
   const navigate = useNavigate();
 
   return (
@@ -291,7 +312,7 @@ function TableHeader({ openModal, searchTerm, onSearchChange }) {
           alt="icon"
           onClick={() => navigate("/staff/table-management")}
         />
-        <h3 className="basis-auto">Bàn Tiêu chuẩn 1</h3>
+        <h3 className="basis-auto">{tableTypeName}</h3> {/* Hiển thị tableTypeName từ phản hồi */}
       </div>
 
       {/* Center section: Search bar */}
@@ -329,37 +350,39 @@ TableHeader.propTypes = {
 };
 
 function TableRow({
-  id,
-  name,
-  type,
-  price,
-  minGuests,
-  maxGuests,
+  tableId,
+  tableName,
+  tableTypeName,
+  minimumPrice,
+  minimumGuest,
+  maximumGuest,
   status,
   isEven,
   openEditModal,
   openDeletePopup,
+  index // Thêm index để sử dụng cho ID bàn
 }) {
   const rowClass = isEven
-    ? "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-orange-50 border-b border-gray-200 text-sm min-h-[60px] break-words"
-    : "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-white border-b border-orange-200 text-sm min-h-[60px] break-words";
+    ? "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-orange-50 border-b border-gray-200 text-sm min-h-[60px] break-words items-center" // Thêm items-center
+    : "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-white border-b border-orange-200 text-sm min-h-[60px] break-words items-center"; // Thêm items-center
 
-  // Set status class with background color based on the status
-  const statusClass = status === "Còn trống" ? "bg-green-500" : "bg-yellow-500";
+  // Chuyển đổi giá trị status thành chuỗi tương ứng
+  const statusText = status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : "Không hoạt động";
+  const statusClass = status === 0 ? "bg-green-500" : status === 1 ? "bg-yellow-500" : "bg-red-500";
 
   return (
     <div className={rowClass}>
-      <div className="text-center font-normal">{id}</div>
-      <div className="text-center font-normal">{name}</div>
-      <div className="text-center font-normal">{type}</div>
-      <div className="text-center font-normal">{price}</div>
-      <div className="text-center font-normal">{minGuests}</div>
-      <div className="text-center font-normal">{maxGuests}</div>
+      <div className="text-center font-normal">{index + 1}</div> {/* Hiển thị bộ đếm thứ tự */}
+      <div className="text-center font-normal">{tableName}</div>
+      <div className="text-center font-normal">{tableTypeName}</div>
+      <div className="text-center font-normal">{minimumPrice}</div>
+      <div className="text-center font-normal">{minimumGuest}</div>
+      <div className="text-center font-normal">{maximumGuest}</div>
       <div className="text-center">
         <span
           className={`inline-block px-4 py-1 rounded-full text-white ${statusClass} font-semibold`}
         >
-          {status}
+          {statusText} {/* Hiển thị trạng thái */}
         </span>
       </div>
       <div className="flex justify-center gap-5">
@@ -369,12 +392,12 @@ function TableRow({
           className="cursor-pointer w-5 h-5"
           onClick={() =>
             openEditModal({
-              id,
-              name,
-              type,
-              price,
-              minGuests,
-              maxGuests,
+              tableId,
+              tableName,
+              tableTypeName,
+              minimumPrice,
+              minimumGuest,
+              maximumGuest,
               status,
             })
           }
@@ -383,24 +406,11 @@ function TableRow({
           src="https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e"
           alt="Delete"
           className="cursor-pointer w-5 h-5"
-          onClick={() => openDeletePopup({ id, name })}
+          onClick={() => openDeletePopup({ tableId, tableName })} // Đảm bảo tableId được truyền đúng
         />
       </div>
     </div>
   );
 }
-
-TableRow.propTypes = {
-  id: PropTypes.number.isRequired,
-  name: PropTypes.string.isRequired,
-  type: PropTypes.string.isRequired,
-  price: PropTypes.string.isRequired,
-  minGuests: PropTypes.number.isRequired,
-  maxGuests: PropTypes.number.isRequired,
-  status: PropTypes.string.isRequired,
-  isEven: PropTypes.bool.isRequired,
-  openEditModal: PropTypes.func.isRequired,
-  openDeletePopup: PropTypes.func.isRequired,
-};
 
 export default TableManagement;

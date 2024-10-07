@@ -22,7 +22,7 @@ function PaymentHistory() {
     const fetchPayments = async () => {
       try {
         const params = {
-          Status: activeTab === 'Hoàn thành',
+          Status: activeTab === 'Hoàn thành' ? 1 : activeTab === 'Đang chờ' ? 0 : 2,
           PageIndex: currentPage,
           PageSize: paymentsPerPage,
           ...searchParams,
@@ -34,7 +34,7 @@ function PaymentHistory() {
           phone: payment.phoneNumber,  // Add phone number field
           branch: payment.barName,     // Add branch (Chi nhánh)
           total: `${payment.totalPrice.toLocaleString()} VND`,
-          status: payment.status ? 'Thành công' : 'Thất bại',
+          status: payment.status, // Đảm bảo rằng status được lấy đúng từ API
           transactionId: payment.transactionCode,
           content: payment.note,       // Add content (Nội dung)
       }));
@@ -112,6 +112,12 @@ function PaymentHistory() {
                 Hoàn thành
               </button>
               <button
+                className={`border-b-2 ${activeTab === 'Đang chờ' ? 'text-blue-900 border-blue-900' : 'text-gray-500'}`}
+                onClick={() => handleTabChange('Đang chờ')}
+              >
+                Đang chờ
+              </button>
+              <button
                 className={`border-b-2 ${activeTab === 'Thất bại' ? 'text-blue-900 border-blue-900' : 'text-gray-500'}`}
                 onClick={() => handleTabChange('Thất bại')}
               >
@@ -121,7 +127,7 @@ function PaymentHistory() {
 
             <PaymentTable
               payments={payments}
-              tabStatus={activeTab === 'Hoàn thành' ? 'Thành công' : 'Thất bại'}
+              tabStatus={activeTab === 'Hoàn thành' ? 'Thành công' : activeTab === 'Đang chờ' ? 'Đang chờ' : 'Thất bại'}
               onRowClick={handleRowClick}
             />
 
@@ -339,10 +345,10 @@ function PaymentTable({ payments, tabStatus, onRowClick }) {
             <div className="flex items-center justify-center text-center py-3 w-1/5">{payment.total}</div>
             <div
               className={`flex items-center justify-center text-center py-3 w-1/5 font-bold ${
-                tabStatus === 'Thành công' ? 'text-green-600' : 'text-red-600'
+                payment.status === 1 ? 'text-green-600' : payment.status === 2 ? 'text-red-600' : 'text-orange-600'
               }`}
             >
-              {payment.status}
+              {payment.status === 1 ? 'Hoàn thành' : payment.status === 2 ? 'Thất bại' : 'Đang chờ'} {/* Cập nhật trạng thái */}
             </div>
             <div className="flex items-center justify-center text-center py-3 w-16">
               <img
@@ -361,7 +367,7 @@ function PaymentTable({ payments, tabStatus, onRowClick }) {
 
   // Modal component to show transaction details
   function TransactionModal({ payment, onClose }) {
-    const statusColor = payment.status === 'Thất bại' ? 'bg-red-500' : 'bg-green-500';
+    const statusColor = payment.status === 2 ? 'bg-red-500' : payment.status === 1 ? 'bg-green-500' : 'bg-orange-500'; // Cập nhật màu sắc
   
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -369,7 +375,9 @@ function PaymentTable({ payments, tabStatus, onRowClick }) {
           <div className="text-xl font-bold mb-4 text-center">Chi tiết thanh toán</div>
           <div className="text-center mb-6">
             <div className={`inline-flex items-center justify-center px-4 py-2 text-white rounded-full ${statusColor}`}>
-              <span>Thanh toán {payment.status}</span>
+              <span>
+                {payment.status === 1 ? 'Thanh toán thành công' : payment.status === 2 ? 'Thanh toán thất bại' : 'Đang chờ xử lý'}
+              </span> {/* Cập nhật trạng thái */}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-left"> 

@@ -56,44 +56,44 @@ ReactDOM.createRoot(document.getElementById("root")).render(
          </Route>
          
         {/* Route Của Admin */}
-        <Route path="/" element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminLayout />}>
           
-          <Route path="admin/dashboard" element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
 
-          <Route path="admin/feedback" element={<Feedback />}></Route>
-          <Route path="admin/feedbackdetail" element={<FeedbackDetail />}></Route>
+          <Route path="feedback" element={<Feedback />}></Route>
+          <Route path="feedbackdetail" element={<FeedbackDetail />}></Route>
 
-          <Route path="admin/emotional" element={<EmotionalCategory />}></Route>
+          <Route path="emotional" element={<EmotionalCategory />}></Route>
 
-          <Route path="admin/table-type-management" element={<TableTypeManagement />}></Route>
-          <Route path="admin/payment-history" element={<PaymentHistoryAdmin />}></Route>
+          <Route path="table-type-management" element={<TableTypeManagement />}></Route>
+          <Route path="payment-history" element={<PaymentHistoryAdmin />}></Route>
 
-          <Route path="admin/customers" element={<CustomerManagement />}></Route>
-          <Route path="admin/customer-creation" element={<CustomerCreation />}></Route>
-          <Route path="admin/customer-detail" element={<CustomerDetail />}></Route>
+          <Route path="customers" element={<CustomerManagement />}></Route>
+          <Route path="customer-creation" element={<CustomerCreation />}></Route>
+          <Route path="customer-detail" element={<CustomerDetail />}></Route>
 
-          <Route path="admin/staff" element={<StaffManagement />}></Route>
-          <Route path="admin/staff-creation" element={<StaffCreation />}></Route>
-          <Route path="admin/staff-detail" element={<StaffDetail />}></Route>
+          <Route path="staff" element={<StaffManagement />}></Route>
+          <Route path="staff-creation" element={<StaffCreation />}></Route>
+          <Route path="staff-detail" element={<StaffDetail />}></Route>
 
-          <Route path="admin/barmanager" element={<BarManagement />}></Route>
-          <Route path="admin/barProfile" element={<BarBuddyProfile />}></Route>
-          <Route path="admin/addBar" element={<AddBar />}></Route>
+          <Route path="barmanager" element={<BarManagement />}></Route>
+          <Route path="barProfile" element={<BarBuddyProfile />}></Route>
+          <Route path="addBar" element={<AddBar />}></Route>
 
-          <Route path="admin/managerDrinkCategory" element={<DrinkCategories />}></Route>
-          <Route path="admin/managerDrinkCategory/managerDrink" element={<ManagerDrink />}></Route>
-          <Route path="admin/managerDrink/DrinkDetail" element={<DrinkDetail />}></Route>
-          <Route path="admin/managerDrink/addDrink" element={<AddDrink />}></Route>
-          <Route path="admin/emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}></Route>
+          <Route path="managerDrinkCategory" element={<DrinkCategories />}></Route>
+          <Route path="managerDrinkCategory/managerDrink" element={<ManagerDrink />}></Route>
+          <Route path="managerDrink/DrinkDetail" element={<DrinkDetail />}></Route>
+          <Route path="managerDrink/addDrink" element={<AddDrink />}></Route>
+          <Route path="emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}></Route>
         </Route>
 
         {/* Route Của Staff */}
-        <Route path="/" element={<StaffLayout />}>
-          <Route path="staff/table-management" element={<TableManagement />}></Route>
-          <Route path="staff/table-management/table-list" element={<TableManagementDetail />}></Route>
-          <Route path="staff/payment-history" element={<PaymentHistoryStaff />}></Route>
-          <Route path="staff/table-registrations" element={<BookingList />}></Route>
-          <Route path="staff/table-registration-detail" element={<BookingDetail />}></Route>
+        <Route path="/staff" element={<StaffLayout />}>
+          <Route path="table-management" element={<TableManagement />}></Route>
+          <Route path="table-management/table/:tableTypeId" element={<TableManagementDetail />}></Route>
+          <Route path="payment-history" element={<PaymentHistoryStaff />}></Route>
+          <Route path="table-registrations" element={<BookingList />}></Route>
+          <Route path="table-registration-detail" element={<BookingDetail />}></Route>
         </Route>
 
         {/* Route Của Customer */}
