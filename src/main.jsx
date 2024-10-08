@@ -41,12 +41,11 @@ import BookingDetailPage from "./pages/customer/bookingDetail/BookingDetail";
 import CustomerPaymentHistory from "./pages/customer/customerPaymentHistory/CustomerPaymentHistory";
 import DrinkList from "./pages/customer/drink/DrinkList";
 import DrinkDetailCustomer from "./pages/customer/drink/DrinkDetail.jsx"
-import LoginPopup from "./pages/authen/Login";
-import Registration from "./pages/authen/Registration";
-
 import PaymentPage from "./pages/customer/paymentPage/PaymentPage";
 import PaymentDetail from "./pages/customer/paymentDetail/PaymentDetail";
+import Registration from "./pages/(auth)/registration/Registration";
 import Page404 from "./pages/(auth)/error/Page404";
+import Login from "./pages/(auth)/login/Login";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -113,13 +112,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="customer" element={<BookingTable />}/> 
           <Route path="payment" element={<PaymentPage />}/> 
           <Route path="payment-detail" element={<PaymentDetail />}/> 
-          <Route path="login" element={<LoginPopup />}/>
-          <Route path="register" element={<Registration />}/>
-
         </Route>
 
-        {/* Route Trang Lỗi */}
+      {/* Route Trang Hệ thống và lỗi */}
         <Route path="*" element={<Page404/>} />
+        <Route path="login" element={<Login />}/>
+        <Route path="register" element={<Registration />}/>
+        
       </Routes>
     </BrowserRouter>
   </React.StrictMode >

@@ -2,25 +2,20 @@ import React from 'react';
 
 const Registration = ({ onClose, onSwitchToLogin }) => {
   return (
-    <div className="flex flex-col px-7 py-11 w-full max-w-xl rounded-xl bg-zinc-900">
+    <div className="relative flex flex-col px-7 py-11 w-full max-w-xl rounded-xl bg-zinc-900" style={{ borderRadius: '16px' }}> {/* Add `relative` class here */}
       {/* Tiêu đề */}
-      <div className='flex'>
+      <div className='relative w-full'>
         <div className="flex gap-0.5 self-start text-2xl text-orange-400">
-          <img
-            loading="lazy"
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/d2b7ddc5f38be20013ab7eda058d48550f8d13d1428456892050189fe4a2df68?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f"
-            className="object-contain shrink-0 my-auto w-5 aspect-square"
-            alt="Registration icon"
-          />
-          <div>Đăng ký</div>
+          <div className='font-notoSansSC text-2xl'>Đăng ký</div>
         </div>
         <button
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-200"
+          className="absolute top-2 right-2 text-gray-400 hover:text-gray-200 z-10"  /* Set button inside relative container */
           onClick={onClose}
         >
           X
         </button>
       </div>
+
       {/* Form chia 2 cột */}
       <div className="grid grid-cols-2 gap-6 mt-7">
         <div className="col-span-2 md:col-span-1">

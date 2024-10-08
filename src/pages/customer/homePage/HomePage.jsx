@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllBar } from "src/lib/service/customerService";
-import { ArrowForward, ArrowBack } from "@mui/icons-material";
+import { ArrowForward } from "@mui/icons-material";
 import { getAllDrinkCustomer } from "src/lib/service/managerDrinksService";
 
 const BranchCard = React.memo(({ branch, onClick }) => {
@@ -22,8 +22,8 @@ const BranchCard = React.memo(({ branch, onClick }) => {
 
   return (
     <div
-      onClick={onClick} // Use the onClick prop
-      className="bg-neutral-700 text-white rounded-lg shadow-md overflow-hidden max-w-[300px] transition-transform transform hover:scale-105 cursor-pointer"
+      onClick={onClick}
+      className="bg-neutral-700 text-white rounded-lg shadow-md overflow-hidden w-full max-w-[300px] transition-transform transform hover:scale-105 cursor-pointer"
     >
       <img
         src={
@@ -55,13 +55,13 @@ const BranchCard = React.memo(({ branch, onClick }) => {
 });
 
 const LocationsList = React.memo(({ locations }) => (
-  <div className="rounded-md bg-neutral-700 shadow-[0px_0px_16px_rgba(0,0,0,0.1)] text-white p-6 rounded-lg w-[65%] mx-auto">
-    <h2 className="text-center text-xl font-semibold mb-4 border-b border-yellow-500 pb-2">
+  <div className="bg-neutral-700 shadow-lg text-white p-4 rounded-lg w-full max-w-[300px] mx-auto"> {/* Limit width */}
+    <h2 className="text-center text-lg font-semibold mb-4 border-b border-yellow-500 pb-2">
       All Locations
     </h2>
-    <ul className="space-y-4">
+    <ul className="space-y-2">
       {locations.map((location, index) => (
-        <li key={index} className="flex items-center">
+        <li key={index} className="flex items-start">
           <span className="mr-2 text-sm">📍</span>
           <span className="break-words text-sm">
             {location.barName}, {location.address}
@@ -71,6 +71,7 @@ const LocationsList = React.memo(({ locations }) => (
     </ul>
   </div>
 ));
+
 
 const DrinkCard = React.memo(({ images, drinkName, price, drinkId }) => {
   const redirect = useNavigate();
@@ -109,10 +110,6 @@ const BarBuddyDrinks = React.memo(() => {
     };
     dataFetchDrink();
   }, []);
-
-  useEffect(() => {
-    console.log(drinkData);
-  }, [drinkData]);
 
   const infiniteData = useMemo(() => {
     return [...drinkData, ...drinkData, ...drinkData];
@@ -164,7 +161,7 @@ const BarBuddyBranches = ({ onBranchesLoaded }) => {
   }, [onBranchesLoaded]);
 
   const handleCardClick = useCallback((barId) => {
-    navigate(`/bar-detail/${barId}`); // Navigate to the bar detail page with the barId
+    navigate(`/bar-detail/${barId}`);
   }, [navigate]);
 
   if (loading) return <div>Loading...</div>;
@@ -180,7 +177,7 @@ const BarBuddyBranches = ({ onBranchesLoaded }) => {
           <BranchCard
             key={index}
             branch={branch}
-            onClick={() => handleCardClick(branch.barId)} // Pass the onClick handler
+            onClick={() => handleCardClick(branch.barId)}
           />
         ))}
       </div>
@@ -188,18 +185,20 @@ const BarBuddyBranches = ({ onBranchesLoaded }) => {
   );
 };
 
-
 function HomePage() {
   const [branches, setBranches] = useState([]);
 
   return (
-    <main className="self-center bg-inherit w-full mx-auto">
-      <div className="grid grid-cols-10 items-start grow">
+    <main className="self-center bg-inherit w-full mx-auto overflow-x-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-10 items-start gap-x-10 gap-y-6"> {/* Adjust gap between columns */}
+        {/* Left Content: Branches and Drinks */}
         <div className="col-span-7 w-full">
           <BarBuddyBranches onBranchesLoaded={setBranches} />
           <BarBuddyDrinks />
         </div>
-        <aside className="col-span-3 w-full ml-4 mt-10">
+
+        {/* Sidebar: Locations List */}
+        <aside className="col-span-3 w-full lg:ml-8 mt-10">
           <LocationsList locations={branches} />
         </aside>
       </div>
