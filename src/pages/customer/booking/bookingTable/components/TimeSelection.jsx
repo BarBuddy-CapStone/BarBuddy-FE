@@ -1,89 +1,91 @@
-import React, { useState } from 'react';
-import { TextField, MenuItem, InputAdornment } from '@mui/material';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { styled } from '@mui/material/styles';
+import React, { useState, useEffect } from "react";
+import { TextField, MenuItem, InputAdornment } from "@mui/material";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { styled } from "@mui/material/styles";
+import dayjs from "dayjs"; // Import dayjs for date manipulation
 
 const CustomTextField = styled(TextField)(({ theme }) => ({
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '5px',
-    '& fieldset': {
-      borderColor: 'white',
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "5px",
+    "& fieldset": {
+      borderColor: "white",
     },
-    '&:hover fieldset': {
-      borderColor: '#FFA500',
+    "&:hover fieldset": {
+      borderColor: "#FFA500",
     },
-    '&.Mui-focused fieldset': {
-      borderColor: '#FFA500',
+    "&.Mui-focused fieldset": {
+      borderColor: "#FFA500",
     },
   },
-  '& .MuiInputBase-input': {
-    color: 'white',
-    paddingLeft: '0',
+  "& .MuiInputBase-input": {
+    color: "white",
+    paddingLeft: "0",
   },
-  '& .MuiSvgIcon-root': {
-    color: '#FFA500',
+  "& .MuiSvgIcon-root": {
+    color: "#FFA500",
   },
-  '& .MuiInputAdornment-root': {
-    marginRight: '8px',
-  },
-  '& .MuiInputLabel-root': {
-    color: 'white',
-  },
-  '& .Mui-focused .MuiInputLabel-root': {
-    color: 'white',
+  "& .MuiInputAdornment-root": {
+    marginRight: "8px",
   },
 }));
 
 // Custom styles for Menu and MenuItems
 const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
-  color: '#FFA500',
-  '&.Mui-selected': {
-    backgroundColor: '#333333', // Set background to black when selected
-    color: '#FFA500',
+  color: "#FFA500",
+  "&.Mui-selected": {
+    backgroundColor: "#333333",
+    color: "#FFA500",
   },
-  '&.Mui-selected:hover': {
-    backgroundColor: '#555555', // Slightly lighter black when hovering over selected item
+  "&.Mui-selected:hover": {
+    backgroundColor: "#555555",
   },
 }));
 
-const CustomTimeSelectionWrapper = styled('div')({
-  '& .MuiPaper-root': {
-    maxHeight: '200px', // Limit the dropdown menu height to show 5-6 items
-    overflowY: 'auto',
-    backgroundColor: '#000', // Change the background color of the dropdown to black
-    scrollbarWidth: 'thin', // For Firefox
-    scrollbarColor: '#FFA500 transparent', // Scrollbar color for Firefox
-  },
-  '& .MuiPaper-root::-webkit-scrollbar': {
-    width: '8px', // Scrollbar width for Chrome, Safari, and Edge
-  },
-  '& .MuiPaper-root::-webkit-scrollbar-thumb': {
-    backgroundColor: '#FFA500', // Scrollbar color
-    borderRadius: '4px',
-  },
-});
+const TimeSelection = ({ startTime, endTime, onTimeChange }) => {
+  const [selectedTime, setSelectedTime] = useState("");
+  const [timeOptions, setTimeOptions] = useState([]);
 
-const TimeSelection = () => {
-  const [selectedTime, setSelectedTime] = useState('23:30');
+  // Generate time options between startTime and endTime with 1-hour interval
+  const generateTimeOptions = (start, end) => {
+    const options = [];
+    let currentTime = dayjs(`2000-01-01 ${start}`);
+    let endTimeObj = dayjs(`2000-01-01 ${end}`);
 
-  // Create predefined time intervals every 30 minutes
-  const timeOptions = [
-    '00:00', '00:30', '01:00', '01:30', '02:00', '02:30',
-    '03:00', '03:30', '04:00', '04:30', '05:00', '05:30',
-    '06:00', '06:30', '07:00', '07:30', '08:00', '08:30',
-    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
-    '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
-    '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
-    '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'
-  ];
+    // If endTime is earlier than startTime, assume endTime is the next day
+    if (endTimeObj.isBefore(currentTime)) {
+      endTimeObj = endTimeObj.add(1, "day");
+    }
+
+    // Generate time options every 1 hour
+    while (currentTime.isBefore(endTimeObj) || currentTime.isSame(endTimeObj)) {
+      options.push(currentTime.format("HH:mm"));
+      currentTime = currentTime.add(1, "hour"); // Add 1-hour intervals
+    }
+
+    return options;
+  };
+
+  // Update time options whenever startTime or endTime changes
+  useEffect(() => {
+    if (startTime && endTime) {
+      const newTimeOptions = generateTimeOptions(startTime, endTime);
+      setTimeOptions(newTimeOptions);
+
+      if (newTimeOptions.length > 0) {
+        setSelectedTime(newTimeOptions[0]); // Set default selected time to the first option
+        onTimeChange(newTimeOptions[0]); // Pass default selected time to parent
+      }
+    }
+  }, [startTime, endTime]);
 
   const handleTimeChange = (event) => {
-    setSelectedTime(event.target.value);
+    const newTime = event.target.value;
+    setSelectedTime(newTime);
+    onTimeChange(newTime); // Pass selected time to parent
   };
 
   return (
-    <CustomTimeSelectionWrapper className="mt-4">
+    <div className="mt-4">
       <h3 className="text-lg leading-none mb-4 text-amber-400">Chọn thời gian</h3>
       <CustomTextField
         select
@@ -96,7 +98,7 @@ const TimeSelection = () => {
             </InputAdornment>
           ),
         }}
-        sx={{ width: '200px' }} // Set a fixed width to match other input fields
+        sx={{ width: "200px" }}
       >
         {timeOptions.map((time) => (
           <CustomMenuItem key={time} value={time}>
@@ -104,7 +106,7 @@ const TimeSelection = () => {
           </CustomMenuItem>
         ))}
       </CustomTextField>
-    </CustomTimeSelectionWrapper>
+    </div>
   );
 };
 

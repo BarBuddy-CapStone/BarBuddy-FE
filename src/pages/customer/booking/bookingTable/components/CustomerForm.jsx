@@ -1,69 +1,143 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify'; // Import toast
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // Import toast
+import { useAuthStore } from "src/lib"; // Import the Auth Store
+import { TextField, Button } from "@mui/material"; // Import MUI TextField and Button
 
-const CustomerForm = ({ selectedTables }) => { // Nhận selectedTables từ props
-  const [name, setName] = useState('Bob Smith');
-  const [email, setEmail] = useState('BobSmith22@gmail.com');
-  const [phone, setPhone] = useState('1234567890');
-  const [note, setNote] = useState('Tôi muốn bàn view sài gòn');
+const CustomerForm = ({ selectedTables }) => {
+  const { userInfo } = useAuthStore(); // Fetch userInfo from Auth Store
+
+  // Initialize state with user information from Auth Store
+  const [name, setName] = useState(userInfo.fullname || "");
+  const [email, setEmail] = useState(userInfo.email || "");
+  const [phone, setPhone] = useState(userInfo.phone || ""); // Adjust the field name if needed
+  const [note, setNote] = useState("Tôi muốn bàn view sài gòn");
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // If userInfo updates in the Auth Store, update form fields
+    setName(userInfo.fullname || "");
+    setEmail(userInfo.email || "");
+    setPhone(userInfo.phone || ""); // Adjust the field name if needed
+  }, [userInfo]);
+
+  // Function to disable copy, cut, and paste
+  const disableCopyPaste = (event) => {
+    event.preventDefault();
+  };
+
   const handleBookingDrinkClick = () => {
     if (selectedTables.length === 0) {
-      toast.error('Vui lòng chọn ít nhất một bàn trước khi đặt trước thức uống!');
+      toast.error(
+        "Vui lòng chọn ít nhất một bàn trước khi đặt trước thức uống!"
+      );
       return;
     }
-    navigate('/bookingdrink'); // Chuyển hướng nếu có bàn được chọn
+    navigate("/bookingdrink"); // Chuyển hướng nếu có bàn được chọn
   };
 
   return (
     <section className="flex flex-col px-4 mt-6 w-full max-md:px-3 max-md:mt-4 max-md:max-w-full">
-      <h2 className="self-start text-lg text-amber-400 max-md:ml-1">Thông tin khách hàng</h2>
+      <h2 className="self-start text-lg text-amber-400 max-md:ml-1">
+        Thông tin khách hàng
+      </h2>
       <hr className="shrink-0 mt-3 w-full h-px border border-amber-400 border-solid" />
-      
-      <div className="mt-3 text-amber-400">Họ và tên</div>
-      <input
-        type="text"
+
+      {/* Name Field */}
+      <TextField
+        label="Họ và tên"
         value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="px-4 py-2 mt-2 text-gray-400 rounded border border-gray-400 border-solid"
+        variant="outlined"
+        fullWidth
+        InputProps={{
+          readOnly: true,
+          style: { color: "white" }, // Ensure text is white
+          onCopy: disableCopyPaste, // Disable copy
+          onCut: disableCopyPaste, // Disable cut
+          onPaste: disableCopyPaste, // Disable paste
+        }}
+        InputLabelProps={{
+          style: { color: "white" }, // Ensure label is white
+        }}
+        sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
       />
-      
-      <div className="mt-3 text-amber-400">Địa chỉ Email</div>
-      <input
-        type="email"
+
+      {/* Email Field */}
+      <TextField
+        label="Địa chỉ Email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="px-4 py-2 mt-2 text-gray-400 rounded border border-gray-400 border-solid"
+        variant="outlined"
+        fullWidth
+        InputProps={{
+          readOnly: true,
+          style: { color: "white" }, // Ensure text is white
+          onCopy: disableCopyPaste, // Disable copy
+          onCut: disableCopyPaste, // Disable cut
+          onPaste: disableCopyPaste, // Disable paste
+        }}
+        InputLabelProps={{
+          style: { color: "white" }, // Ensure label is white
+        }}
+        sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
       />
-      
-      <div className="mt-3 text-amber-400">Số điện thoại</div>
-      <input
-        type="tel"
+
+      {/* Phone Field */}
+      <TextField
+        label="Số điện thoại"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        className="px-4 py-2 mt-2 text-gray-400 rounded border border-gray-400 border-solid"
+        variant="outlined"
+        fullWidth
+        InputProps={{
+          readOnly: true,
+          style: { color: "white" }, // Ensure text is white
+          onCopy: disableCopyPaste, // Disable copy
+          onCut: disableCopyPaste, // Disable cut
+          onPaste: disableCopyPaste, // Disable paste
+        }}
+        InputLabelProps={{
+          style: { color: "white" }, // Ensure label is white
+        }}
+        sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
       />
-      
-      <div className="mt-3 text-amber-400">Ghi chú</div>
-      <textarea
+
+      {/* Note Field */}
+      <TextField
+        label="Ghi chú"
         value={note}
         onChange={(e) => setNote(e.target.value)}
-        className="px-4 py-2 mt-2 text-gray-400 rounded border border-gray-400 border-solid"
+        variant="outlined"
+        fullWidth
+        multiline
+        rows={4}
+        placeholder="Tôi muốn bàn view sài gòn" // Thêm placeholder
+        InputProps={{
+          style: { color: "white" }, // Đảm bảo chữ nhập vào có màu trắng
+        }}
+        InputLabelProps={{
+          style: { color: "white" }, // Đảm bảo label có màu trắng
+        }}
+        sx={{ backgroundColor: "#333333", mt: 2 }} // Thiết lập background phù hợp với giao diện tối
       />
-      
+
       <hr className="shrink-0 mt-6 w-full h-px border border-amber-400 border-solid" />
       <div className="flex gap-3 justify-between mt-4 text-black">
-        <button
-          className="py-2 px-3 bg-amber-400 rounded-md"
+        <Button
+          variant="contained"
+          color="warning"
+          sx={{ backgroundColor: "#FFA500" }} // Make button stand out
           onClick={handleBookingDrinkClick} // Thêm onClick handler
         >
           Đặt trước thức uống với chiết khấu 10%
-        </button>
+        </Button>
         <div className="my-auto text-gray-400">Hoặc</div>
-        <button className="py-2 px-4 bg-amber-400 rounded-md">Đặt bàn ngay</button>
+        <Button
+          variant="contained"
+          color="warning"
+          sx={{ backgroundColor: "#FFA500" }} // Make button stand out
+        >
+          Đặt bàn ngay
+        </Button>
       </div>
     </section>
   );
