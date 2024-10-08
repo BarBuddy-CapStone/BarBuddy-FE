@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { AppBar, Toolbar, IconButton, Typography, Box, Menu, MenuItem } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import { Link } from "react-router-dom";
+import LoginForm from "src/pages/authen/Login";
 
-const CustomerHeader = () => {
+const CustomerHeader = ({onLoginClick }) => {
   const [anchorEl, setAnchorEl] = useState(null);
-
+  const [isPopupLogin, setPopupLogin] = useState(false)
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -31,7 +32,8 @@ const CustomerHeader = () => {
   // }, []);
 
   return (
-    <AppBar position="sticky" sx={{ backgroundColor: "#333", padding: { xs: 1, sm: 2 } }}>
+    <Fragment>
+      <AppBar position="sticky" sx={{ backgroundColor: "#333", padding: { xs: 1, sm: 2 } ,zIndex: 49}}>
       <Toolbar>
         <Typography variant="h6" sx={{ flexGrow: 1, color: "#FFA500" }}>
           <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
@@ -49,26 +51,19 @@ const CustomerHeader = () => {
         <IconButton color="inherit" sx={{ ml: 2 }}>
           <NotificationsIcon />
         </IconButton>
-        <IconButton color="inherit" onClick={handleMenuOpen} sx={{ ml: 2 }}>
+        <IconButton color="inherit" sx={{ ml: 2 }}>
           <AccountCircle />
         </IconButton>
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          sx={{ mt: 2, ml: -3 }} // Adjust this to control the spacing and position of the dropdown
-        >
-          <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-          <MenuItem onClick={handleMenuClose}>Payment</MenuItem>
-          <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
-        </Menu>
+        
+        {/* Nút đăng nhập mở Popup */}
+        <MenuItem onClick={onLoginClick}>Đăng nhập</MenuItem>
+        
         <IconButton edge="start" color="inherit" aria-label="menu" sx={{ display: { md: "none" } }}>
           <MenuIcon />
         </IconButton>
       </Toolbar>
     </AppBar>
+    </Fragment>
   );
 };
 
