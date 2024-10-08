@@ -11,7 +11,7 @@ const CustomerForm = ({ selectedTables }) => {
   const [name, setName] = useState(userInfo.fullname || "");
   const [email, setEmail] = useState(userInfo.email || "");
   const [phone, setPhone] = useState(userInfo.phone || ""); // Adjust the field name if needed
-  const [note, setNote] = useState("Tôi muốn bàn view sài gòn");
+  const [note, setNote] = useState(""); // Initially empty for user to type
 
   const navigate = useNavigate();
 
@@ -34,7 +34,7 @@ const CustomerForm = ({ selectedTables }) => {
       );
       return;
     }
-    navigate("/bookingdrink"); // Chuyển hướng nếu có bàn được chọn
+    navigate("/bookingdrink"); // Redirect if tables are selected
   };
 
   return (
@@ -105,19 +105,19 @@ const CustomerForm = ({ selectedTables }) => {
       <TextField
         label="Ghi chú"
         value={note}
-        onChange={(e) => setNote(e.target.value)}
+        onChange={(e) => setNote(e.target.value)} // Update note as user types
         variant="outlined"
         fullWidth
         multiline
         rows={4}
-        placeholder="Tôi muốn bàn view sài gòn" // Thêm placeholder
+        placeholder="Tôi muốn bàn view sài gòn" // Placeholder text
         InputProps={{
-          style: { color: "white" }, // Đảm bảo chữ nhập vào có màu trắng
+          style: { color: note ? "white" : "#888" }, // Show white text if user types, else placeholder color
         }}
         InputLabelProps={{
-          style: { color: "white" }, // Đảm bảo label có màu trắng
+          style: { color: "white" }, // Ensure label is white
         }}
-        sx={{ backgroundColor: "#333333", mt: 2 }} // Thiết lập background phù hợp với giao diện tối
+        sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
       />
 
       <hr className="shrink-0 mt-6 w-full h-px border border-amber-400 border-solid" />
@@ -126,7 +126,7 @@ const CustomerForm = ({ selectedTables }) => {
           variant="contained"
           color="warning"
           sx={{ backgroundColor: "#FFA500" }} // Make button stand out
-          onClick={handleBookingDrinkClick} // Thêm onClick handler
+          onClick={handleBookingDrinkClick} // Add onClick handler
         >
           Đặt trước thức uống với chiết khấu 10%
         </Button>

@@ -80,7 +80,7 @@ const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
   },
 }));
 
-const BookingTableInfo = ({ barId, setTables }) => {
+const BookingTableInfo = ({ barId, setTables, selectedTime }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTableType, setSelectedTableType] = useState("");
   const [selectedTableTypeId, setSelectedTableTypeId] = useState(""); // Add state for tableTypeId
@@ -121,7 +121,7 @@ const BookingTableInfo = ({ barId, setTables }) => {
         barId,
         tableTypeId: selectedTableTypeId, // Send the correct tableTypeId to the backend
         date: dayjs(selectedDate).format("YYYY/MM/DD"),
-        time: "00:00", // Send the selected time
+        time: selectedTime, // Use the selected time from TimeSelection
       });
 
       if (response.status === 200) {

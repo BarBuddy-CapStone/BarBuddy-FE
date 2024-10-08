@@ -68,14 +68,22 @@ const BookingTable = () => {
         <div className="flex gap-2 max-md:flex-col">
           {/* Left Content: 3/4 Width */}
           <div className="flex flex-col w-3/4 max-md:w-full">
-            <BookingTableInfo barId={barId} setTables={setTables} selectedTime={selectedTime} />
+            <BookingTableInfo 
+              barId={barId} 
+              setTables={setTables} 
+              selectedTime={selectedTime} // Pass selected time
+            />
             <TableSelection
               selectedTables={selectedTables}
               setSelectedTables={setSelectedTables}
               tables={tables} // Pass the tables data to the component
             />
             {/* Pass startTime, endTime, and handleTimeChange to TimeSelection */}
-            <TimeSelection startTime={startTime} endTime={endTime} onTimeChange={handleTimeChange} />
+            <TimeSelection 
+              startTime={startTime} 
+              endTime={endTime} 
+              onTimeChange={handleTimeChange} // Handle time changes
+            />
             <CustomerForm selectedTables={selectedTables} />
           </div>
 
