@@ -8,6 +8,10 @@ const getBarProfile = async (barId) => {
   return await axios.get(`api/v1/Bar/admin/barProfile/${barId}`)
 }
 
+const getBarDetail = async (barId) => {
+  return await axios.get(`api/v1/bar-detail/${barId}`);
+}
+
 const addBar = async (data) => {
   return await axios.post(`api/v1/Bar/admin/addBar`, data,
     {
@@ -34,5 +38,6 @@ export {
   getAllBar,
   getBarProfile,
   addBar,
-  updateBar
+  updateBar,
+  getBarDetail
 }

@@ -1,84 +1,21 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // Thêm import useHistory
-
-const bookings = [
-  {
-    id: 1,
-    name: "Bob Smith",
-    email: "smith@gmail.com",
-    phone: "0909090909",
-    checkInTime: "11:00 PM",
-    status: "Đã đặt"
-  },
-  {
-    id: 2,
-    name: "Amanda Smoff",
-    email: "smoff@gmail.com",
-    phone: "0909090909",
-    checkInTime: "11:00 PM",
-    status: "Hoàn thành"
-  },
-  {
-    id: 3,
-    name: "Bob Smith",
-    email: "smith@gmail.com",
-    phone: "0909090909",
-    checkInTime: "11:00 PM",
-    status: "Đã đặt"
-  },
-  {
-    id: 4,
-    name: "Amanda Smoff",
-    email: "smoff@gmail.com",
-    phone: "0909090909",
-    checkInTime: "11:00 PM",
-    status: "Hoàn thành"
-  },
-  {
-    id: 5,
-    name: "Bob Smith",
-    email: "smith@gmail.com",
-    phone: "0909090909",
-    checkInTime: "11:00 PM",
-    status: "Đã đặt"
-  },
-  {
-    id: 6,
-    name: "Amanda Smoff",
-    email: "smoff@gmail.com",
-    phone: "0909090909",
-    checkInTime: "11:00 PM",
-    status: "Hoàn thành"
-  },
-  {
-    id: 7,
-    name: "Bob Smith",
-    email: "smith@gmail.com",
-    phone: "0909090909",
-    checkInTime: "11:00 PM",
-    status: "Đã đặt"
-  },
-  {
-    id: 8,
-    name: "Amanda Smoff",
-    email: "smoff@gmail.com",
-    phone: "0909090909",
-    checkInTime: "11:00 PM",
-    status: "Đang phục vụ"
-  },
-];
+import { useNavigate } from "react-router-dom"; // Thêm import useNavigate
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'; // Nhập biểu tượng
 
 function BookingTableRow({ booking, isEven, onViewDetails }) {
-  const rowClass = isEven ? "bg-gray-50" : "bg-white shadow-sm hover:bg-gray-100 transition duration-150";
+  const rowClass = isEven ? "bg-orange-50" : "bg-white shadow-sm hover:bg-gray-100 transition duration-150";
   const statusClass = getStatusClass(booking.status); // Lấy lớp trạng thái từ hàm getStatusClass
   
+  // Định dạng thời gian check-in
+  const formattedCheckInTime = `${booking.bookingTime.slice(0, 5)} ${new Date(booking.bookingDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/')}`; // Định dạng HHmm dd:MM:yyyy
+
   return (
-    <tr className={`${rowClass} text-sm hover:bg-gray-100 transition duration-150`}>
+    <tr className={`${rowClass} text-sm hover:bg-gray-100 transition duration-150`} onClick={() => onViewDetails(booking.bookingId)}> {/* Sử dụng bookingId */}
       <td className="px-4 py-6 text-center align-middle">
-        {booking.id}
+        {booking.bookingCode} {/* Hiển thị bookingCode thay vì bookingId */}
       </td>
       <td className="px-4 py-6 text-center align-middle">
-        {booking.name}
+        {booking.customerName}
       </td>
       <td className="px-4 py-6 text-center align-middle">
         {booking.email}
@@ -87,19 +24,22 @@ function BookingTableRow({ booking, isEven, onViewDetails }) {
         {booking.phone}
       </td>
       <td className="px-4 py-6 text-center align-middle">
-        {booking.checkInTime}
+        {formattedCheckInTime} {/* Hiển thị thời gian check-in đã định dạng */}
       </td>
       <td className="flex justify-center items-center px-4 py-6 align-middle">
         <div className={`flex justify-center items-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
-          {booking.status}
+          {booking.status === 0 && "Đang chờ"}
+          {booking.status === 1 && "Đã hủy"}
+          {booking.status === 2 && "Đang phục vụ"}
+          {booking.status === 3 && "Đã hoàn thành"}
         </div>
       </td>
       <td className="px-4 py-6 text-center align-middle">
         <button
-          className="px-2 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
-          onClick={() => onViewDetails(booking.id)}
+          className="flex items-center justify-center p-0 hover:bg-gray-200 rounded-lg" // Đặt p-0 để không có padding
+          onClick={(e) => { e.stopPropagation(); onViewDetails(booking.bookingId); }} // Ngăn chặn sự kiện click từ hàng
         >
-          Xem chi tiết
+          <ArrowForwardIosIcon /> {/* Thay thế nút bằng biểu tượng */}
         </button>
       </td>
     </tr>
@@ -121,53 +61,57 @@ function handleCancel(id) {
 
 function getStatusClass(status) {
   switch (status) {
-    case "Đã đặt":
-      return "bg-yellow-500 text-white"; // Màu cho trạng thái "Đã đặt"
-    case "Hoàn thành":
-      return "bg-green-500 text-white"; // Màu cho trạng thái "Hoàn thành"
-    case "Đang phục vụ":
-      return "bg-green-500 text-white"; // Màu xanh lá cây cho trạng thái "Đang phục vụ"
+    case 0:
+      return "bg-gray-500 text-white"; // Màu cho trạng thái "Đang chờ"
+    case 1:
+      return "bg-red-500 text-white"; // Màu cho trạng thái "Đã hủy"
+    case 2:
+      return "bg-orange-500 text-white"; // Màu cho trạng thái "Đang phục vụ"
+    case 3:
+      return "bg-green-500 text-white"; // Màu cho trạng thái "Đã hoàn thành"
     default:
       return "bg-gray-500 text-white"; // Màu mặc định
   }
 }
 
 
-function BookingTable({ filter }) {
+function BookingTable({ filter, bookings }) {
+  const navigate = useNavigate(); // Khai báo useNavigate
+
+  const handleViewDetails = (bookingId) => {
+    navigate(`/staff/table-registration-detail/${bookingId}`); // Chuyển hướng đến trang chi tiết
+  };
+
   const filteredBookings = bookings.filter(booking => {
     return (
-      (filter.name ? booking.name.includes(filter.name) : true) &&
+      (filter.name ? booking.customerName.includes(filter.name) : true) &&
       (filter.phone ? booking.phone.includes(filter.phone) : true) &&
       (filter.email ? booking.email.includes(filter.email) : true) &&
-      (filter.status === "All" || (filter.status ? booking.status === filter.status : true)) // Không cần thay đổi ở đây
+      (filter.status === "All" || (filter.status ? booking.status === filter.status : true))
     );
   });
-  const navigate = useNavigate();
-  const handleViewDetails = (bookingId) => {
-    navigate(`/staff/table-registration-detail?id=${bookingId}`)
-  }
 
   return (
     <div className="overflow-hidden rounded-lg shadow-md mt-8 max-md:overflow-x-auto">
       <table className="min-w-full text-base table-auto border-collapse">
         <thead className="bg-white">
           <tr>
-            <th className="font-bold text-neutral-900 border-b-2">Booking ID</th>
-            <th className="font-bold text-neutral-900 border-b-2">Tên khách hàng</th>
-            <th className="font-bold text-neutral-900 border-b-2">Email</th>
-            <th className="font-bold text-neutral-900 border-b-2">Phone</th>
-            <th className="font-bold text-neutral-900 border-b-2">Thời gian check-in</th>
-            <th className="font-bold text-neutral-900 border-b-2">Status</th>
-            <th className="font-bold text-neutral-900 border-b-2"></th>
+            <th className="font-bold text-neutral-900 border-b-2 py-2">Mã đặt chỗ</th>
+            <th className="font-bold text-neutral-900 border-b-2 py-2">Tên khách hàng</th>
+            <th className="font-bold text-neutral-900 border-b-2 py-2">Email</th>
+            <th className="font-bold text-neutral-900 border-b-2 py-2">Số điện thoại</th>
+            <th className="font-bold text-neutral-900 border-b-2 py-2">Thời gian check-in</th>
+            <th className="font-bold text-neutral-900 border-b-2 py-2">Trạng thái</th>
+            <th className="font-bold text-neutral-900 border-b-2 py-2"></th>
           </tr>
         </thead>
         <tbody>
           {filteredBookings.map((booking, index) => (
             <BookingTableRow
-              key={booking.id}
+              key={booking.bookingId} // Sử dụng bookingId làm key duy nhất
               booking={booking}
               isEven={index % 2 === 0}
-              onViewDetails={handleViewDetails}
+              onViewDetails={handleViewDetails} // Truyền hàm handleViewDetails
             />
           ))}
         </tbody>

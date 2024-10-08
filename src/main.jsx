@@ -58,9 +58,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
          </Route>
          
         {/* Route Của Admin */}
-        <Route path="/" element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminLayout />}>
           
-          <Route path="admin/dashboard" element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
 
           <Route path="admin/feedback" element={<Feedback />}/> 
           <Route path="admin/feedbackdetail" element={<FeedbackDetail />}/> 
