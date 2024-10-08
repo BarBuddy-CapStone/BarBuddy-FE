@@ -27,21 +27,23 @@ function BookingList() {
   };
 
   const fetchBookings = async (currentFilter) => {
-    const barId = "550e8400-e29b-41d4-a716-446655440000"; // Đặt barId cứng
+    const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); // Lấy userInfo từ session storage
+    const barId = userInfo ? userInfo.identityId : null; // Trích xuất identityId
+
     try {
       const response = await BookingService.getAllBookingsByStaff(
-        barId,
+        barId, // Sử dụng identityId thay vì giá trị cứng
         currentFilter.name || null,
         currentFilter.email || null,
         currentFilter.phone || null,
-        currentFilter.bookingDate || null, // Nếu bookingDate là null, API sẽ lấy tất cả các ngày
-        currentFilter.checkInTime === "Cả ngày" ? null : currentFilter.checkInTime, // Chỉ truyền checkInTime nếu không phải "Cả ngày"
-        currentFilter.status === "All" ? undefined : parseInt(currentFilter.status), // Chỉ truyền status nếu không phải "All"
-        currentPage // Thêm currentPage vào API call
+        currentFilter.bookingDate || null,
+        currentFilter.checkInTime === "Cả ngày" ? null : currentFilter.checkInTime,
+        currentFilter.status === "All" ? undefined : parseInt(currentFilter.status),
+        currentPage
       );
-      setBookings(response.data.response); // Cập nhật state bookings với dữ liệu từ API
-      setTotalPages(response.data.totalPage); // Cập nhật tổng số trang
-      setTimeRange({ startTime: response.data.startTime, endTime: response.data.endTime }); // Lưu trữ startTime và endTime
+      setBookings(response.data.response);
+      setTotalPages(response.data.totalPage);
+      setTimeRange({ startTime: response.data.startTime, endTime: response.data.endTime });
     } catch (error) {
       console.error("Lỗi khi lấy danh sách đặt chỗ:", error);
     }

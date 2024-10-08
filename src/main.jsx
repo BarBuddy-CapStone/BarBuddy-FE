@@ -58,9 +58,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
          </Route>
          
         {/* Route Của Admin */}
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route path="/" element={<AdminLayout />}>
           
-          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="admin/dashboard" element={<Dashboard />} />
 
           <Route path="admin/feedback" element={<Feedback />}/> 
           <Route path="admin/feedbackdetail" element={<FeedbackDetail />}/> 
@@ -90,12 +90,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </Route>
 
         {/* Route Của Staff */}
-        <Route path="/" element={<StaffLayout />}>
-          <Route path="staff/table-management" element={<TableManagement />}/> 
-          <Route path="staff/table-management/table-list" element={<TableManagementDetail />}/> 
-          <Route path="staff/payment-history" element={<PaymentHistoryStaff />}/> 
-          <Route path="staff/table-registrations" element={<BookingList />}/> 
-          <Route path="staff/table-registration-detail" element={<BookingDetail />}/> 
+        <Route path="/staff" element={<StaffLayout />}>
+          <Route path="table-management" element={<TableManagement />}/> 
+          <Route path="table-management/table/:tableTypeId" element={<TableManagementDetail />}/> 
+          <Route path="payment-history" element={<PaymentHistoryStaff />}/> 
+          <Route path="table-registrations" element={<BookingList />}/> 
+          <Route path="table-registration-detail/:bookingId" element={<BookingDetail />}/> 
         </Route>
 
         {/* Route Của Customer */}

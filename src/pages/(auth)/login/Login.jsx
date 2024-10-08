@@ -5,6 +5,7 @@ import { useAuthStore } from "src/lib"; // Nhập useAuthStore
 import { Button, CircularProgress, Alert } from "@mui/material"; // Import MUI Button, CircularProgress, and Alert
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
+import {jwtDecode} from 'jwt-decode'; // Import jwt-decode
 
 function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const [email, setEmail] = useState(""); // Trạng thái cho email
@@ -24,6 +25,10 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
         const userData = response.data.data;
         loginStore.login(userData.accessToken, userData); // Lưu thông tin người dùng vào store
 
+        // Giải mã JWT token
+        const decodedToken = jwtDecode(userData.accessToken);
+        const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
         // Hiển thị toast thành công
         toast.success("Đăng nhập thành công!");
 
@@ -31,8 +36,19 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
         onLoginSuccess(userData);
         onClose(); // Đóng popup đăng nhập
 
-        // Điều hướng về trang chủ
-        navigate("/home");
+        // Chuyển hướng dựa trên vai trò
+        switch (userRole) {
+          case "ADMIN":
+            navigate("/admin/dashboard");
+            break;
+          case "STAFF":
+            navigate("/staff");
+            break;
+          case "CUSTOMER":
+          default:
+            navigate("/home");
+            break;
+        }
       }
     } catch (error) {
       if (error.response) {

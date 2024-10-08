@@ -33,7 +33,10 @@ function TableManagement() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await TableService.getTables("550e8400-e29b-41d4-a716-446655440000", tableTypeId, null, pageIndex, pageSize);
+      const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); // Lấy userInfo từ session storage
+      const barId = userInfo ? userInfo.identityId : null; // Trích xuất identityId
+
+      const response = await TableService.getTables(barId, tableTypeId, null, pageIndex, pageSize);
       setTableData(response.response);
       setTotalPages(response.totalPage);
       setTableTypeName(response.tableTypeName); // Lưu tableTypeName từ phản hồi
@@ -95,8 +98,11 @@ function TableManagement() {
 
     setIsLoading(true);
     try {
+      const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); // Lấy userInfo từ session storage
+      const barId = userInfo ? userInfo.identityId : null; // Trích xuất identityId
+
       const tableData = {
-        barId: "550e8400-e29b-41d4-a716-446655440000", // Sử dụng barId cố định hoặc lấy từ state nếu có
+        barId: barId, // Sử dụng barId từ session storage
         tableTypeId: tableTypeId,
         tableName: currentTable.tableName.trim(),
         status: parseInt(currentTable.status)
@@ -112,7 +118,7 @@ function TableManagement() {
       if (response.status === 200) {
         toast.success(isEditing ? "Cập nhật bàn thành công!" : "Thêm bàn mới thành công!");
         // Cập nhật lại danh sách bàn
-        const updatedTables = await TableService.getTables("550e8400-e29b-41d4-a716-446655440000", tableTypeId, null, pageIndex, pageSize);
+        const updatedTables = await TableService.getTables(barId, tableTypeId, null, pageIndex, pageSize);
         setTableData(updatedTables.response);
         setTotalPages(updatedTables.totalPage);
         closeModal();

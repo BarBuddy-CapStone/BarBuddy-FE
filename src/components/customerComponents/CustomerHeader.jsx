@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, Fragment, useEffect } from "react"; // Thêm useEffect
 import {
   AppBar,
   Toolbar,
@@ -25,6 +25,18 @@ const CustomerHeader = () => {
   const { isLoggedIn, userInfo, logout } = useAuthStore(); // Access logout from the store
   const navigate = useNavigate();
 
+  // Thêm biến để lưu accountId
+  const [accountId, setAccountId] = useState(null);
+
+  // Lấy userInfo từ sessionStorage khi component được mount
+  useEffect(() => {
+    const storedUserInfo = sessionStorage.getItem('userInfo');
+    if (storedUserInfo) {
+      const userInfoParsed = JSON.parse(storedUserInfo);
+      setAccountId(userInfoParsed.accountId); // Lưu accountId từ userInfo
+    }
+  }, []);
+
   // Handle opening/closing the dropdown menu when clicking on the profile icon or name
   const handleMenuClick = (event) => {
     if (anchorEl) {
@@ -43,7 +55,7 @@ const CustomerHeader = () => {
   const handleLogout = () => {
     logout(); // Call the logout function from useAuthStore to clear session
     setAnchorEl(null); // Close the dropdown
-    toast.success("Thành công");
+    toast.success("Đăng xuất thành công");
     navigate("/home"); // Redirect to home
   };
 
@@ -150,7 +162,7 @@ const CustomerHeader = () => {
               <Box display="flex" alignItems="center" sx={{ gap: 4 }}> {/* Tạo khoảng cách lớn hơn giữa các icon */}
                 {/* Icon chuông thông báo */}
                 <IconButton color="inherit">
-                  <Badge  color="error">
+                  <Badge color="error">
                     <NotificationsIcon />
                   </Badge>
                 </IconButton>
@@ -215,13 +227,10 @@ const CustomerHeader = () => {
                     'aria-labelledby': 'basic-button',
                   }}
                 >
-                  <MenuItem onClick={() => { navigate("/profile"); handleMenuClose(); }}>
-                    Profile
+                  <MenuItem onClick={() => { navigate(`/profile/${accountId}`); handleMenuClose(); }}>
+                    Hồ sơ
                   </MenuItem>
-                  <MenuItem onClick={() => { navigate("/payment"); handleMenuClose(); }}>
-                    Payment
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                  <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
                 </Menu>
               </Box>
             )}

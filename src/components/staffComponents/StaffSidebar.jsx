@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom"; // Import useLocation
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Import useNavigate
+import { toast } from "react-toastify"; // Import toast
 
 const sidebarItems = [
   {
@@ -26,6 +27,7 @@ const sidebarItems = [
 
 function StaffSidebar() {
   const location = useLocation(); // Lấy vị trí hiện tại của đường dẫn
+  const navigate = useNavigate(); // Khai báo useNavigate
   const [activeItem, setActiveItem] = useState("");
 
   // Cập nhật activeItem dựa trên đường dẫn hiện tại khi component được mount
@@ -36,6 +38,16 @@ function StaffSidebar() {
       setActiveItem(currentItem.label);
     }
   }, [location]);
+
+  // Hàm xử lý đăng xuất
+  const handleLogout = () => {
+    sessionStorage.clear(); // Xóa dữ liệu khỏi session storage
+    toast.success("Đăng xuất thành công"); // Hiển thị thông báo
+    setTimeout(() => {
+      navigate("/"); // Chuyển hướng về trang home
+      window.location.reload(); // Tải lại trang để cập nhật thông tin
+    }, 1000); // Đợi 1 giây trước khi chuyển hướng
+  };
 
   return (
     <nav className="flex flex-col w-[15%] max-md:ml-0 max-md:w-full h-full min-h-screen overflow-y-auto">
@@ -60,19 +72,34 @@ function StaffSidebar() {
                       activeItem === item.label ? "bg-blue-100" : ""
                     }`}
                   >
-                    <Link
-                      to={item.path}
-                      className="flex items-center gap-2 w-full"
-                      onClick={() => setActiveItem(item.label)}
-                    >
-                      <img
-                        loading="lazy"
-                        src={item.icon}
-                        alt=""
-                        className="object-contain shrink-0 self-stretch my-auto w-5 aspect-square"
-                      />
-                      <span className="self-stretch my-auto">{item.label}</span>
-                    </Link>
+                    {item.label === "Đăng xuất" ? (
+                      <div
+                        className="flex items-center gap-2 w-full"
+                        onClick={handleLogout} // Gọi hàm handleLogout khi nhấn vào Đăng xuất
+                      >
+                        <img
+                          loading="lazy"
+                          src={item.icon}
+                          alt=""
+                          className="object-contain shrink-0 self-stretch my-auto w-5 aspect-square"
+                        />
+                        <span className="self-stretch my-auto">{item.label}</span>
+                      </div>
+                    ) : (
+                      <Link
+                        to={item.path}
+                        className="flex items-center gap-2 w-full"
+                        onClick={() => setActiveItem(item.label)}
+                      >
+                        <img
+                          loading="lazy"
+                          src={item.icon}
+                          alt=""
+                          className="object-contain shrink-0 self-stretch my-auto w-5 aspect-square"
+                        />
+                        <span className="self-stretch my-auto">{item.label}</span>
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

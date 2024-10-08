@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios from "../axiosCustomize";
 
 const getAllDrinkCate = async () => {
     return await axios.get('api/v1/DrinkCategory')

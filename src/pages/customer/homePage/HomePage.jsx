@@ -111,6 +111,10 @@ const BarBuddyDrinks = React.memo(() => {
     dataFetchDrink();
   }, []);
 
+ useEffect(() => {
+  console.log(drinkData)
+}, [drinkData]);
+
   const infiniteData = useMemo(() => {
     return [...drinkData, ...drinkData, ...drinkData];
   }, [drinkData]);
