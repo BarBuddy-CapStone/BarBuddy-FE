@@ -1,8 +1,41 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { releaseTable } from 'src/lib/service/BookingTableService';
+import useAuthStore from 'src/lib/hooks/useUserStore';
 
-const SelectedList = ({ selectedTables, setSelectedTables, onRemove }) => {
-  const handleRemove = (tableId) => {
-    onRemove(tableId);
+const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId }) => {
+  const [countdowns, setCountdowns] = useState({});
+  const { token } = useAuthStore();
+  console.log("Current token:", token);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const updatedCountdowns = {};
+      selectedTables.forEach(table => {
+        if (table.holdExpiry) {
+          const timeLeft = Math.max(0, Math.floor((table.holdExpiry - now) / 1000));
+          updatedCountdowns[table.tableId] = timeLeft;
+        }
+      });
+      setCountdowns(updatedCountdowns);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [selectedTables]);
+
+  const handleRemove = async (tableId) => {
+    console.log("Attempting to release table:", tableId);
+    try {
+      const response = await releaseTable(token, { barId, tableId });
+      console.log("Release table response:", response);
+      if (response.data.statusCode === 200) {
+        onRemove(tableId);
+      } else {
+        console.error("Failed to release table:", response.data);
+      }
+    } catch (error) {
+      console.error("Error releasing table:", error);
+    }
   };
 
   return (
@@ -13,7 +46,14 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove }) => {
       <div className="shrink-0 self-stretch mt-4 h-px border border-amber-400 border-solid" />
       {selectedTables.map((table) => (
         <div key={table.tableId} className="flex gap-5 justify-between mt-4 ml-7 max-w-full leading-none w-[164px] max-md:ml-2.5">
-          <div className="my-auto text-sm font-notoSansSC">{table.tableName}</div>
+          <div className="my-auto text-sm font-notoSansSC">
+            {table.tableName}
+            {countdowns[table.tableId] !== undefined && (
+              <span className="ml-2 text-xs text-amber-400">
+                ({countdowns[table.tableId]}s)
+              </span>
+            )}
+          </div>
           <img
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/60b2292fdddb88def1d62fba646def558e1bd6c427bf27025633c14ac4a99ae3?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6"
             className="object-contain shrink-0 w-6 aspect-square cursor-pointer"

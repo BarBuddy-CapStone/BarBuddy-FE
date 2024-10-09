@@ -141,9 +141,14 @@ const BookingTable = () => {
               selectedTables={selectedTables}
               setSelectedTables={setSelectedTables}
               filteredTables={filteredTables}
+              setFilteredTables={setFilteredTables}
               tableTypeInfo={tableTypeInfo}
               isLoading={isLoading}
               hasSearched={hasSearched}
+              barId={barId}  // Add this line
+              selectedTableTypeId={selectedTableTypeId}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
             />
             <TimeSelection 
               startTime={startTime} 
@@ -163,6 +168,7 @@ const BookingTable = () => {
               setSelectedTables={setSelectedTables}
               onRemove={handleRemoveTable}
               barInfo={barInfo}
+              barId={barId}  // Add this line
             />
           </div>
         </div>
