@@ -66,7 +66,7 @@ function LoginForm({ onClose, onSwitchToRegister }) {
         <button className="text-gray-400">Quên mật khẩu ?</button>
         <div className="flex gap-0.5">
           <div className="grow text-gray-400">Bạn chưa có tài khoản ?</div>
-          <button className="text-orange-400" onClick={onSwitchToRegister}>
+          <button className="text-orange-400" onClick={() => navigate('/register')}>
             Đăng ký
           </button>
         </div>

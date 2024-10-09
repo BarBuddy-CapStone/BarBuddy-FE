@@ -1,8 +1,61 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { register } from '../../lib/service/authenService'; // Thêm import hàm register
+import { useNavigate } from 'react-router-dom';
 
 const Registration = ({ onClose, onSwitchToLogin }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [birthday, setBirthday] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
+
+  const handleRegister = async () => {
+    // Xác thực các trường
+    if (!email || !password || !confirmPassword || !fullName || !phoneNumber || !birthday) {
+      setErrorMessage("Tất cả các trường đều là bắt buộc."); // Cập nhật thông báo lỗi
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage("Mật khẩu và xác nhận mật khẩu không khớp."); // Cập nhật thông báo lỗi
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setErrorMessage("Địa chỉ email không hợp lệ."); // Cập nhật thông báo lỗi
+      return;
+    }
+
+    setErrorMessage(""); // Xóa thông báo lỗi nếu không có lỗi
+
+    const data = {
+      email,
+      password,
+      confirmPassword,
+      fullname: fullName, // Chuyển đổi tên trường
+      phone: phoneNumber, // Chuyển đổi tên trường
+      dob: birthday, // Chuyển đổi tên trường
+    };
+
+    try {
+      const response = await register(data); // Gọi hàm register
+      if (response.data.statusCode === 200) {
+        navigate("/login");
+      }
+    } catch (error) {
+      setErrorMessage("Đăng ký thất bại: " + error.message); // Cập nhật thông báo lỗi
+    }
+  };
+
   return (
     <div className="flex flex-col px-7 py-11 w-full max-w-xl rounded-xl bg-zinc-900">
+      {/* Hiển thị thông báo lỗi */}
+      {errorMessage && (
+        <div className="text-red-500 text-sm mb-4">{errorMessage}</div>
+      )}
       {/* Tiêu đề */}
       <div className='flex'>
         <div className="flex gap-0.5 self-start text-2xl text-orange-400">
@@ -29,6 +82,8 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
             type="email"
             className="px-5 py-3 mt-2 rounded border border-gray-200 text-gray-200 bg-zinc-900 w-full"
             placeholder="nguyenvana@gmail.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
         <div className="col-span-2 md:col-span-1">
@@ -37,6 +92,8 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
             type="text"
             className="px-5 py-3 mt-2 rounded border border-gray-200 text-gray-200 bg-zinc-900 w-full"
             placeholder="nguyenvana"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
           />
         </div>
 
@@ -46,6 +103,8 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
             type="password"
             className="px-5 py-3 mt-2 rounded border border-gray-200 text-gray-200 bg-zinc-900 w-full"
             placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
         <div className="col-span-2 md:col-span-1">
@@ -54,6 +113,8 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
             type="password"
             className="px-5 py-3 mt-2 rounded border border-gray-200 text-gray-200 bg-zinc-900 w-full"
             placeholder="••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </div>
 
@@ -62,6 +123,8 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
           <input
             type="date"
             className="px-5 py-3 mt-2 rounded border border-gray-200 text-gray-200 bg-zinc-900 w-full"
+            value={birthday}
+            onChange={(e) => setBirthday(e.target.value)}
           />
         </div>
         <div className="col-span-2 md:col-span-1">
@@ -70,13 +133,18 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
             type="number"
             className="px-5 py-3 mt-2 rounded border border-gray-200 text-gray-200 bg-zinc-900 w-full"
             placeholder="123123123"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
           />
         </div>
       </div>
 
       {/* Nút và liên kết */}
       <div className="flex justify-between items-center mt-6">
-        <button className="flex-1 text-base bg-orange-400 text-black py-3 px-5 rounded-[64px] w-full max-w-[50%]">
+        <button 
+          className="flex-1 text-base bg-orange-400 text-black py-3 px-5 rounded-[64px] w-full max-w-[50%]"
+          onClick={handleRegister} // Thay đổi sự kiện onClick
+        >
           Đăng ký
         </button>
 
