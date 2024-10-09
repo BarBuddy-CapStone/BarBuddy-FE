@@ -3,16 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify"; // Import toast
 import { useAuthStore } from "src/lib"; // Import the Auth Store
 import { TextField, Button } from "@mui/material"; // Import MUI TextField and Button
+import { boookingtableNow } from "src/lib/service/BookingTableService"; // Import the API function
 
-const CustomerForm = ({ selectedTables }) => {
-  const { userInfo } = useAuthStore(); // Fetch userInfo from Auth Store
-
-  // Initialize state with user information from Auth Store
+const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate }) => {
+  const { userInfo, token } = useAuthStore(); // Lấy token từ Auth Store
   const [name, setName] = useState(userInfo.fullname || "");
   const [email, setEmail] = useState(userInfo.email || "");
   const [phone, setPhone] = useState(userInfo.phone || ""); // Adjust the field name if needed
   const [note, setNote] = useState(""); // Initially empty for user to type
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,6 +33,48 @@ const CustomerForm = ({ selectedTables }) => {
       return;
     }
     navigate("/bookingdrink"); // Redirect if tables are selected
+  };
+
+  const handleBookNow = async () => {
+    if (selectedTables.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một bàn trước khi đặt bàn!");
+      return;
+    }
+
+    if (!selectedDate) {
+      toast.error("Vui lòng chọn ngày đặt bàn!");
+      return;
+    }
+
+    try {
+      // Thêm ":00" vào cuối chuỗi thời gian
+      const formattedTime = selectedTime + ":00";
+
+      // Đảm bảo selectedDate là một chuỗi ngày hợp lệ (YYYY-MM-DD)
+      const formattedDate = new Date(selectedDate).toISOString().split('T')[0];
+
+      const bookingData = {
+        barId: barId,
+        bookingDate: formattedDate,
+        bookingTime: formattedTime, // Sử dụng thời gian đã được định dạng
+        note: note || "string", // Giữ nguyên như yêu cầu
+        tableIds: selectedTables.map(table => table.tableId)
+      };
+
+      console.log("Booking data:", bookingData); // Log để kiểm tra
+
+      const response = await boookingtableNow(token, bookingData);
+      if (response.status === 200) {
+        toast.success("Đặt bàn thành công!");
+        // Có thể chuyển hướng đến trang xác nhận hoặc làm mới form
+        // navigate("/booking-confirmation");
+      } else {
+        toast.error("Đặt bàn thất bại. Vui lòng thử lại!");
+      }
+    } catch (error) {
+      console.error("Error booking table:", error);
+      toast.error("Có lỗi xảy ra khi đặt bàn. Vui lòng thử lại!");
+    }
   };
 
   return (
@@ -135,6 +175,7 @@ const CustomerForm = ({ selectedTables }) => {
           variant="contained"
           color="warning"
           sx={{ backgroundColor: "#FFA500" }} // Make button stand out
+          onClick={handleBookNow} // Add onClick handler for booking
         >
           Đặt bàn ngay
         </Button>

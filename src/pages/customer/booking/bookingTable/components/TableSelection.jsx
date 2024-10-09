@@ -7,10 +7,11 @@ const TableSelection = ({ selectedTables, setSelectedTables, tables }) => {
   const handleTableSelect = (table) => {
     setSelectedTables((prevSelectedTables) => {
       // Toggle table selection
-      if (prevSelectedTables.includes(table.tableId)) {
-        return prevSelectedTables.filter((t) => t !== table.tableId);
+      if (prevSelectedTables.some((t) => t.tableId === table.tableId)) {
+        return prevSelectedTables.filter((t) => t.tableId !== table.tableId); // Deselect the table
       } else {
-        return [...prevSelectedTables, table.tableId];
+        // Chỉ thêm các thuộc tính cần thiết
+        return [...prevSelectedTables, { tableId: table.tableId, tableName: table.tableName }];
       }
     });
   };
@@ -34,7 +35,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, tables }) => {
       <h3 className="text-lg leading-none mb-4 text-amber-400">Chọn Bàn</h3>
       <div className="flex flex-wrap gap-3.5 items-start text-center text-black max-md:max-w-full">
         {tables.map((table) => {
-          const status = table.status === 1 ? 'disabled' : selectedTables.includes(table.tableId) ? 'selected' : 'available';
+          const status = table.status === 1 ? 'disabled' : selectedTables.some((t) => t.tableId === table.tableId) ? 'selected' : 'available';
 
           return (
             <CustomButton
@@ -43,7 +44,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, tables }) => {
               status={status}
               disabled={status === 'disabled'}
             >
-              {table.tableName}
+              {table.tableName} {/* Display the table name */}
             </CustomButton>
           );
         })}

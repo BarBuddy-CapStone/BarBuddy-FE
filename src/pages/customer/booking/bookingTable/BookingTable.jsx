@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { getBarTableById } from "src/lib/service/customerService";
+import CustomerForm from './components/CustomerForm';
 
 import {
   BookingTableInfo,
-  CustomerForm,
   TableSelection,
   TimeSelection,
   TableSidebar,
@@ -20,6 +20,7 @@ const BookingTable = () => {
   const [endTime, setEndTime] = useState(""); // State for endTime
   const [selectedTime, setSelectedTime] = useState(""); // State for capturing selected time
   const [selectedTables, setSelectedTables] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0].replace(/\//g, '-')); // Khởi tạo với ngày hiện tại, sử dụng dấu gạch ngang
 
   useEffect(() => {
     const fetchTableData = async () => {
@@ -58,8 +59,12 @@ const BookingTable = () => {
     setSelectedTime(time); // Set the selected time
   };
 
-  const handleRemoveTable = (table) => {
-    setSelectedTables((prev) => prev.filter((t) => t !== table));
+  const handleRemoveTable = (tableId) => {
+    setSelectedTables((prev) => prev.filter((t) => t.tableId !== tableId));
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date.toISOString().split('T')[0].replace(/\//g, '-'));
   };
 
   return (
@@ -72,6 +77,8 @@ const BookingTable = () => {
               barId={barId} 
               setTables={setTables} 
               selectedTime={selectedTime} // Pass selected time
+              selectedDate={selectedDate}
+              onDateChange={handleDateChange}
             />
             <TableSelection
               selectedTables={selectedTables}
@@ -84,13 +91,19 @@ const BookingTable = () => {
               endTime={endTime} 
               onTimeChange={handleTimeChange} // Handle time changes
             />
-            <CustomerForm selectedTables={selectedTables} />
+            <CustomerForm 
+              selectedTables={selectedTables} 
+              barId={barId}
+              selectedTime={selectedTime}
+              selectedDate={selectedDate}
+            />
           </div>
 
           {/* Right Sidebar: 1/4 Width */}
           <div className="flex flex-col w-1/4 max-md:w-full">
             <TableSidebar
               selectedTables={selectedTables}
+              setSelectedTables={setSelectedTables}
               onRemove={handleRemoveTable}
               barInfo={barInfo} // Bar info for sidebar if needed
             />

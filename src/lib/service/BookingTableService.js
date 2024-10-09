@@ -2,8 +2,18 @@ import axios from "../axiosCustomize";
 
 const filterBookingTable = async (params) => {
   return await axios.get(`api/bookingTable/filter`, {
-    params: params // Truyền các tham số qua query parameters
+    params: params,
   });
 };
 
-export { filterBookingTable };
+const boookingtableNow = async (token, data) => {
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json', // Thêm header này
+    },
+  };
+  return await axios.post(`api/Booking/booking-table`, JSON.stringify(data), config);
+};
+
+export { filterBookingTable, boookingtableNow };
