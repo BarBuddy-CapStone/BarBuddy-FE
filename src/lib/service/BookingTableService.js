@@ -6,6 +6,16 @@ const filterBookingTable = async (params) => {
   });
 };
 
+const holdTable = async (token, data) => {
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json', // Thêm header này
+    },
+  };
+  return await axios.post(`api/Booking/booking-table`, JSON.stringify(data), config);
+};
+
 const boookingtableNow = async (token, data) => {
   const config = {
     headers: {
@@ -15,5 +25,7 @@ const boookingtableNow = async (token, data) => {
   };
   return await axios.post(`api/Booking/booking-table`, JSON.stringify(data), config);
 };
+
+
 
 export { filterBookingTable, boookingtableNow };

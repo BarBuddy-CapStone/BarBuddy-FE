@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import TableBarIcon from "@mui/icons-material/TableBar";
-import InfoIcon from "@mui/icons-material/Info"; // Thêm icon thông tin
+import InfoIcon from "@mui/icons-material/Info";
 import { TextField, InputAdornment, MenuItem, Button } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -11,7 +11,6 @@ import viLocale from "date-fns/locale/vi";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
 import TableTypeService from "src/lib/service/tableTypeService";
-import { filterBookingTable } from "src/lib/service/BookingTableService";
 
 // CustomTextField for Date and Type
 const CustomTextField = styled(TextField)(({ theme }) => ({
@@ -80,11 +79,17 @@ const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
   },
 }));
 
-const BookingTableInfo = ({ barId, setTables, selectedTime }) => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+const BookingTableInfo = ({ 
+  barId, 
+  selectedTime, 
+  selectedDate, 
+  onDateChange, 
+  onTableTypeChange, 
+  onSearchTables,
+  selectedTableTypeId,
+}) => {
   const [selectedTableType, setSelectedTableType] = useState("");
-  const [selectedTableTypeId, setSelectedTableTypeId] = useState(""); // Add state for tableTypeId
-  const [selectedTypeDescription, setSelectedTypeDescription] = useState(""); // Store table description
+  const [selectedTypeDescription, setSelectedTypeDescription] = useState("");
   const [tableTypes, setTableTypes] = useState([]);
 
   useEffect(() => {
@@ -96,9 +101,10 @@ const BookingTableInfo = ({ barId, setTables, selectedTime }) => {
           setTableTypes(types);
 
           if (types.length > 0) {
-            setSelectedTableType(types[0].typeName);
-            setSelectedTableTypeId(types[0].tableTypeId); // Store the tableTypeId for the first entry
-            setSelectedTypeDescription(types[0].description); // Set default description
+            const defaultType = types[0];
+            setSelectedTableType(defaultType.typeName);
+            setSelectedTypeDescription(defaultType.description);
+            onTableTypeChange(defaultType.tableTypeId);
           }
         } else {
           console.error("Failed to fetch table types");
@@ -109,43 +115,31 @@ const BookingTableInfo = ({ barId, setTables, selectedTime }) => {
     };
 
     fetchTableTypes();
-  }, []);
+  }, []); // Chỉ gọi một lần khi component mount
 
   const handleDateChange = (newDate) => {
-    setSelectedDate(newDate); // Keep the actual date object for backend use
+    onDateChange(newDate);
   };
 
-  const handleSearchTables = async () => {
-    try {
-      const response = await filterBookingTable({
-        barId,
-        tableTypeId: selectedTableTypeId, // Send the correct tableTypeId to the backend
-        date: dayjs(selectedDate).format("YYYY/MM/DD"),
-        time: selectedTime, // Use the selected time from TimeSelection
-      });
-
-      if (response.status === 200) {
-        setTables(response.data.data.bookingTables[0].tables);
-      } else {
-        console.error("Failed to fetch tables");
-      }
-    } catch (error) {
-      console.error("Error fetching tables:", error);
-    }
+  const handleSearch = () => {
+    onSearchTables();
   };
 
   const handleTableTypeChange = (event) => {
     const selectedTypeName = event.target.value;
     setSelectedTableType(selectedTypeName);
 
-    // Find the selected table type and update the tableTypeId
     const selectedType = tableTypes.find(
       (type) => type.typeName === selectedTypeName
     );
     if (selectedType) {
       setSelectedTypeDescription(selectedType.description);
-      setSelectedTableTypeId(selectedType.tableTypeId); // Store the correct tableTypeId
+      onTableTypeChange(selectedType.tableTypeId);
     }
+  };
+
+  const isDateValid = (date) => {
+    return dayjs(date).isAfter(dayjs(), 'day') || dayjs(date).isSame(dayjs(), 'day');
   };
 
   return (
@@ -174,6 +168,8 @@ const BookingTableInfo = ({ barId, setTables, selectedTime }) => {
                 value={selectedDate}
                 onChange={handleDateChange}
                 inputFormat="dd/MM/yyyy"
+                minDate={new Date()}
+                shouldDisableDate={(date) => !isDateValid(date)}
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
@@ -217,6 +213,7 @@ const BookingTableInfo = ({ barId, setTables, selectedTime }) => {
 
             <Button
               variant="contained"
+              onClick={handleSearch}
               sx={{
                 backgroundColor: "#FFA500",
                 height: "56px",
@@ -226,7 +223,6 @@ const BookingTableInfo = ({ barId, setTables, selectedTime }) => {
                   opacity: 0.8,
                 },
               }}
-              onClick={handleSearchTables}
             >
               Tìm Bàn
             </Button>
