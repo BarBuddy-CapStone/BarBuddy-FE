@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from 'react-router-dom';
+import { useLocation } from "react-router-dom";
 import { getBarTableById } from "src/lib/service/customerService";
+import CustomerForm from './components/CustomerForm';
 
 import {
   BookingTableInfo,
-  CustomerForm,
   TableSelection,
   TimeSelection,
   TableSidebar,
@@ -16,7 +16,11 @@ const BookingTable = () => {
 
   const [tables, setTables] = useState([]);
   const [barInfo, setBarInfo] = useState({});
+  const [startTime, setStartTime] = useState(""); // State for startTime
+  const [endTime, setEndTime] = useState(""); // State for endTime
+  const [selectedTime, setSelectedTime] = useState(""); // State for capturing selected time
   const [selectedTables, setSelectedTables] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0].replace(/\//g, '-')); // Khởi tạo với ngày hiện tại, sử dụng dấu gạch ngang
 
   useEffect(() => {
     const fetchTableData = async () => {
@@ -24,18 +28,24 @@ const BookingTable = () => {
         const response = await getBarTableById(barId);
         if (response.status === 200) {
           setTables(response.data.data.tables); // Set the tables data
+
+          // Set startTime and endTime correctly
+          setStartTime(response.data.data.startTime.slice(0, 5));
+          setEndTime(response.data.data.endTime.slice(0, 5));
+
+          // Set barInfo for the sidebar or other components
           setBarInfo({
+            id: response.data.data.barId,
             name: response.data.data.barName,
             location: response.data.data.address,
-            openingHours: `${response.data.data.startTime.slice(0, 5)} - ${response.data.data.endTime.slice(0, 5)}`,
             description: response.data.data.description,
-            // Add any other fields you need to pass to the components
+            openingHours: `${response.data.data.startTime.slice(0, 5)} - ${response.data.data.endTime.slice(0, 5)}`,
           });
         } else {
-          console.error('Failed to fetch table data');
+          console.error("Failed to fetch table data");
         }
       } catch (error) {
-        console.error('Error fetching table data:', error);
+        console.error("Error fetching table data:", error);
       }
     };
 
@@ -44,8 +54,17 @@ const BookingTable = () => {
     }
   }, [barId]);
 
-  const handleRemoveTable = (table) => {
-    setSelectedTables((prev) => prev.filter((t) => t !== table));
+  // Function to handle time changes from TimeSelection component
+  const handleTimeChange = (time) => {
+    setSelectedTime(time); // Set the selected time
+  };
+
+  const handleRemoveTable = (tableId) => {
+    setSelectedTables((prev) => prev.filter((t) => t.tableId !== tableId));
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date.toISOString().split('T')[0].replace(/\//g, '-'));
   };
 
   return (
@@ -54,22 +73,39 @@ const BookingTable = () => {
         <div className="flex gap-2 max-md:flex-col">
           {/* Left Content: 3/4 Width */}
           <div className="flex flex-col w-3/4 max-md:w-full">
-            <BookingTableInfo barInfo={barInfo} />
+            <BookingTableInfo 
+              barId={barId} 
+              setTables={setTables} 
+              selectedTime={selectedTime} // Pass selected time
+              selectedDate={selectedDate}
+              onDateChange={handleDateChange}
+            />
             <TableSelection
               selectedTables={selectedTables}
               setSelectedTables={setSelectedTables}
               tables={tables} // Pass the tables data to the component
             />
-            <TimeSelection />
-            <CustomerForm selectedTables={selectedTables} />
+            {/* Pass startTime, endTime, and handleTimeChange to TimeSelection */}
+            <TimeSelection 
+              startTime={startTime} 
+              endTime={endTime} 
+              onTimeChange={handleTimeChange} // Handle time changes
+            />
+            <CustomerForm 
+              selectedTables={selectedTables} 
+              barId={barId}
+              selectedTime={selectedTime}
+              selectedDate={selectedDate}
+            />
           </div>
 
           {/* Right Sidebar: 1/4 Width */}
           <div className="flex flex-col w-1/4 max-md:w-full">
             <TableSidebar
               selectedTables={selectedTables}
+              setSelectedTables={setSelectedTables}
               onRemove={handleRemoveTable}
-              barInfo={barInfo}
+              barInfo={barInfo} // Bar info for sidebar if needed
             />
           </div>
         </div>

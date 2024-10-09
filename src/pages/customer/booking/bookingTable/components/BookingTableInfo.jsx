@@ -2,15 +2,18 @@ import React, { useState, useEffect } from "react";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import TableBarIcon from "@mui/icons-material/TableBar";
+import InfoIcon from "@mui/icons-material/Info"; // Thêm icon thông tin
 import { TextField, InputAdornment, MenuItem, Button } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import viLocale from "date-fns/locale/vi"; // Import Vietnamese locale
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import viLocale from "date-fns/locale/vi";
 import { styled } from "@mui/material/styles";
-import TableTypeService from "src/lib/service/tableTypeService"; // Import the TableTypeService class
-import { DatePicker } from "@mui/x-date-pickers";
+import dayjs from "dayjs";
+import TableTypeService from "src/lib/service/tableTypeService";
+import { filterBookingTable } from "src/lib/service/BookingTableService";
 
-// Custom TextField component
+// CustomTextField for Date and Type
 const CustomTextField = styled(TextField)(({ theme }) => ({
   "& .MuiOutlinedInput-root": {
     borderRadius: "5px",
@@ -42,7 +45,7 @@ const CustomTextField = styled(TextField)(({ theme }) => ({
   },
 }));
 
-// Custom DatePicker component
+// CustomDatePicker for Date
 const CustomDatePicker = styled(DatePicker)(({ theme }) => ({
   "& .MuiInputBase-root": {
     color: "white",
@@ -56,31 +59,46 @@ const CustomDatePicker = styled(DatePicker)(({ theme }) => ({
       borderColor: "#FFA500",
     },
   },
-  "& .MuiInputBase-input": {
-    color: "white",
-  },
   "& .MuiSvgIcon-root": {
     color: "#FFA500",
   },
 }));
 
-const BookingInfo = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTableType, setSelectedTableType] = useState(""); // Use string for display
-  const [tableTypes, setTableTypes] = useState([]); // State to store table types
+// CustomMenuItem for Dropdown
+const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
+  color: "#FFA500",
+  backgroundColor: "#000",
+  "&.Mui-selected": {
+    backgroundColor: "#333333",
+    color: "#FFA500",
+  },
+  "&.Mui-selected:hover": {
+    backgroundColor: "#555555",
+  },
+  "&:hover": {
+    backgroundColor: "#222222",
+  },
+}));
 
-  // Fetch table types on component mount
+const BookingTableInfo = ({ barId, setTables, selectedTime }) => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTableType, setSelectedTableType] = useState("");
+  const [selectedTableTypeId, setSelectedTableTypeId] = useState(""); // Add state for tableTypeId
+  const [selectedTypeDescription, setSelectedTypeDescription] = useState(""); // Store table description
+  const [tableTypes, setTableTypes] = useState([]);
+
   useEffect(() => {
     const fetchTableTypes = async () => {
       try {
-        const response = await TableTypeService.getAllTableTypes(); // Use the static method from TableTypeService
+        const response = await TableTypeService.getAllTableTypes();
         if (response.status === 200) {
           const types = response.data.data;
           setTableTypes(types);
-          
-          // Set the default value to the first item in the list
+
           if (types.length > 0) {
             setSelectedTableType(types[0].typeName);
+            setSelectedTableTypeId(types[0].tableTypeId); // Store the tableTypeId for the first entry
+            setSelectedTypeDescription(types[0].description); // Set default description
           }
         } else {
           console.error("Failed to fetch table types");
@@ -94,11 +112,40 @@ const BookingInfo = () => {
   }, []);
 
   const handleDateChange = (newDate) => {
-    setSelectedDate(newDate);
+    setSelectedDate(newDate); // Keep the actual date object for backend use
+  };
+
+  const handleSearchTables = async () => {
+    try {
+      const response = await filterBookingTable({
+        barId,
+        tableTypeId: selectedTableTypeId, // Send the correct tableTypeId to the backend
+        date: dayjs(selectedDate).format("YYYY/MM/DD"),
+        time: selectedTime, // Use the selected time from TimeSelection
+      });
+
+      if (response.status === 200) {
+        setTables(response.data.data.bookingTables[0].tables);
+      } else {
+        console.error("Failed to fetch tables");
+      }
+    } catch (error) {
+      console.error("Error fetching tables:", error);
+    }
   };
 
   const handleTableTypeChange = (event) => {
-    setSelectedTableType(event.target.value);
+    const selectedTypeName = event.target.value;
+    setSelectedTableType(selectedTypeName);
+
+    // Find the selected table type and update the tableTypeId
+    const selectedType = tableTypes.find(
+      (type) => type.typeName === selectedTypeName
+    );
+    if (selectedType) {
+      setSelectedTypeDescription(selectedType.description);
+      setSelectedTableTypeId(selectedType.tableTypeId); // Store the correct tableTypeId
+    }
   };
 
   return (
@@ -114,25 +161,11 @@ const BookingInfo = () => {
           <h2 className="mt-4 text-lg">Thông tin đặt bàn</h2>
           <hr className="shrink-0 mt-3 w-full h-px border border-amber-400 border-solid" />
 
-          {/* Booking Notice Section */}
-          <h3 className="mt-4 text-md">Lưu ý trước khi đặt bàn</h3>
-          <div className="flex flex-wrap gap-3 mt-3 text-gray-200">
-            <img
-              loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/80a0905ae3e6166bd70cf1df30466a09ecb84fdb8f839af7a1abaf8baa6d71d2?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6"
-              className="object-contain shrink-0 self-start w-5 aspect-square mt-1"
-              alt="Info icon"
-            />
-            <div className="flex-auto max-md:max-w-full ">
-              {tableTypes.map((tableType) => (
-                <div className="font-notoSansSC text-base" key={tableType.tableTypeId}>
-                  {tableType.typeName}: {tableType.minimumGuest}-{tableType.maximumGuest} khách. Mức giá tối thiểu {tableType.minimumPrice.toLocaleString()} VND
-                  <br />
-                </div>
-              ))}
-            </div>
+          {/* Display table type description */}
+          <div className="flex gap-3 items-center mt-4 text-stone-300">
+            <InfoIcon sx={{ color: "#FFA500" }} />
+            <span>{selectedTypeDescription}</span>
           </div>
-          <hr className="shrink-0 mt-4 w-full h-0.5 border border-amber-400 border-solid" />
 
           <h3 className="mt-4 text-md">Chọn Ngày</h3>
           <div className="flex flex-wrap gap-3 mt-3 items-center text-stone-300">
@@ -140,6 +173,7 @@ const BookingInfo = () => {
               <CustomDatePicker
                 value={selectedDate}
                 onChange={handleDateChange}
+                inputFormat="dd/MM/yyyy"
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
@@ -155,6 +189,7 @@ const BookingInfo = () => {
                 )}
               />
             </div>
+
             <div className="flex gap-2 items-center">
               <CustomTextField
                 select
@@ -170,12 +205,16 @@ const BookingInfo = () => {
                 }}
               >
                 {tableTypes.map((tableType) => (
-                  <MenuItem key={tableType.tableTypeId} value={tableType.typeName}>
+                  <CustomMenuItem
+                    key={tableType.tableTypeId}
+                    value={tableType.typeName}
+                  >
                     {tableType.typeName}
-                  </MenuItem>
+                  </CustomMenuItem>
                 ))}
               </CustomTextField>
             </div>
+
             <Button
               variant="contained"
               sx={{
@@ -187,6 +226,7 @@ const BookingInfo = () => {
                   opacity: 0.8,
                 },
               }}
+              onClick={handleSearchTables}
             >
               Tìm Bàn
             </Button>
@@ -197,4 +237,4 @@ const BookingInfo = () => {
   );
 };
 
-export default BookingInfo;
+export default BookingTableInfo;
