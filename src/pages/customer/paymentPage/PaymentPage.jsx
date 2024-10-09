@@ -31,14 +31,25 @@ function PaymentProcessing({ totalAmount, onPaymentSuccess }) {
   const requiredAmount = useMemo(() => totalAmount - discount, [totalAmount, discount]);
 
   const paymentData = {
-    paymentContent: "THANH TOAN DON HANG 0001",
-    paymentCurrency: "VND",
-    paymentRefId: "PAY5678",
-    requiredAmount: requiredAmount,
-    paymentLanguage: "vn",
-    merchantId: "MER1111",
-    paymentDestinationId: paymentOptions.find(option => option.name === selectedPayment)?.id,
-    signature: "12345ABCD"
+    "barId": "550e8400-e29b-41d4-a716-446655440000",
+    "bookingDate": "2024-10-07T12:00:15.368Z",
+    "bookingTime": "11:30:00",
+    "note": "string",
+    "tableIds": [
+      "660d7300-f30c-30c3-b827-335544330000",
+      "660d7300-f30c-30c3-b827-335544330001"
+    ],
+    "paymentDestination": "VNPAY",
+    "drinks": [
+      {
+        "drinkId": "550d7300-f30c-30c3-b827-335544330000",
+        "quantity": 1
+      },
+      {
+        "drinkId": "550d7300-f30c-30c3-b827-335544330001",
+        "quantity": 2
+      }
+    ]
   };
 
   const handlePayment = useCallback(async () => {
