@@ -4,11 +4,16 @@ export const getAllBar = async () => {
     return await axios.get(`api/v1/bars`);
 }
 
-export const getBarById = async (id) => {
-    return await axios.get(`api/v1/bar-detail?barId=${id}`);
+export const getBarById = async (barId) => {
+    return await axios.get(`api/v1/bar-detail/${barId}`);
 }
 
-export const getBranchById = (id) => {
+export const getBarTableById = async (barId) => {
+
+    return await axios.get(`api/v1/bar-table/${barId}`);
+}
+
+export const getBranchById =  (id) => {
     const branches = getBranchesData();
     return branches.find(branch => branch.id === id);
 }

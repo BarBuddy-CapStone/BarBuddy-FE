@@ -2,19 +2,16 @@ import React from 'react';
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 
-const TableSelection = ({ selectedTables, setSelectedTables }) => {
-  const tables = [
-    'TC A01', 'TC A02', 'TC A03', 'TC A04', 'TC A05', 'TC A06', 'TC A07', 'TC A08',
-    'TC A09', 'TC A10', 'TC A11', 'TC A12', 'TC A13', 'TC A14', 'TC A15', 'TC A16'
-  ];
-
+const TableSelection = ({ selectedTables, setSelectedTables, tables }) => {
+  
   const handleTableSelect = (table) => {
     setSelectedTables((prevSelectedTables) => {
       // Toggle table selection
-      if (prevSelectedTables.includes(table)) {
-        return prevSelectedTables.filter((t) => t !== table);
+      if (prevSelectedTables.some((t) => t.tableId === table.tableId)) {
+        return prevSelectedTables.filter((t) => t.tableId !== table.tableId); // Deselect the table
       } else {
-        return [...prevSelectedTables, table];
+        // Chỉ thêm các thuộc tính cần thiết
+        return [...prevSelectedTables, { tableId: table.tableId, tableName: table.tableName }];
       }
     });
   };
@@ -38,21 +35,22 @@ const TableSelection = ({ selectedTables, setSelectedTables }) => {
       <h3 className="text-lg leading-none mb-4 text-amber-400">Chọn Bàn</h3>
       <div className="flex flex-wrap gap-3.5 items-start text-center text-black max-md:max-w-full">
         {tables.map((table) => {
-          const status = table === 'TC A05' || table === 'TC A13' ? 'disabled' : selectedTables.includes(table) ? 'selected' : 'available';
+          const status = table.status === 1 ? 'disabled' : selectedTables.some((t) => t.tableId === table.tableId) ? 'selected' : 'available';
 
           return (
             <CustomButton
-              key={table}
+              key={table.tableId}
               onClick={() => handleTableSelect(table)}
               status={status}
               disabled={status === 'disabled'}
             >
-              {table}
+              {table.tableName} {/* Display the table name */}
             </CustomButton>
           );
         })}
       </div>
-      {/* Legend for table selection */}
+
+      {/* Legend */}
       <div className="flex gap-6 justify-end items-center mt-8 max-w-full text-sm text-center text-zinc-100">
         <div className="flex gap-2 items-center self-stretch my-auto">
           <div className="flex shrink-0 self-stretch my-auto w-6 h-6 rounded bg-neutral-500" aria-hidden="true" />

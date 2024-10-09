@@ -195,9 +195,9 @@ const PaymentHistory = () => {
                   </TableCell>
                   <TableCell
                     align="center"
-                    style={{ color: payment.status ? "#4CAF50" : "red" }}
+                    style={{ color: payment.status === 1 ? "#4CAF50" : payment.status === 2 ? "red" : "orange" }} // Cập nhật màu sắc
                   >
-                    {payment.status ? "Thành công" : "Thất bại"}
+                    {payment.status === 0 ? "Đang chờ" : payment.status === 1 ? "Thành công" : "Thất bại"}
                   </TableCell>
                   <TableCell align="center">
                     <ArrowForwardIosIcon

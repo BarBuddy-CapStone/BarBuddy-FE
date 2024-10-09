@@ -22,6 +22,10 @@ import BarDetail from "./customer/booking/bookingTable/components/BarDetails";
 import FilterSection from "./staff/table-registration/components/FilterSection";
 import BookingTable from "./staff/table-registration/components/BookingTable";
 
+// (auth)
+import Login from "./(auth)/login/Login";
+import Registration from "./(auth)/registration/Registration";
+
 export {
   EditEmotionCategory,
   AddEmotionCategory,
@@ -39,5 +43,7 @@ export {
   BookingTable,
   TableSidebar,
   SelectedList,
-  BarDetail
+  BarDetail,
+  Login,
+  Registration
 };
