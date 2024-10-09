@@ -1,15 +1,23 @@
 import axios from "../axiosCustomize"
 
-const payment = async (data) => {
-  return await axios.post('api/v1/Payment', data, {
+const payment = async (data, token) => {
+  var config = {
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
     }
-  })
+  }
+  return await axios.post('api/Booking/booking-drink', data, config)
 }
 
-const getPaymentDetail = async (apiId) => {
-  return await axios.get(`api/v1/Payment/payment-detail/${apiId}`);
+const getPaymentDetail = async (apiId, token) => {
+  var config = {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+  return await axios.get(`api/v1/Payment/payment-detail/${apiId}`, config);
 }
 
 
