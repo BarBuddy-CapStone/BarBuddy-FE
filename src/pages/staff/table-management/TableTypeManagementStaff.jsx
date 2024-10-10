@@ -14,7 +14,7 @@ const TableTypeManagementStaff = () => {
   const fetchTableTypes = async () => {
     try {
       const response = await TableTypeService.getAllTableTypes(); // Gọi API để lấy dữ liệu
-      setTableTypes(response.data); // Cập nhật state với dữ liệu nhận được
+      setTableTypes(response.data.data); // Cập nhật state với dữ liệu nhận được
     } catch (error) {
       console.error('Error fetching table types:', error); // Xử lý lỗi
     }

@@ -63,7 +63,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="admin/dashboard" element={<Dashboard />} />
 
           <Route path="admin/feedback" element={<Feedback />}/> 
-          <Route path="admin/feedbackdetail" element={<FeedbackDetail />}/> 
+          <Route path="admin/feedback/detail/:feedbackId" element={<FeedbackDetail />}/> 
 
           <Route path="admin/emotional" element={<EmotionalCategory />}/> 
 

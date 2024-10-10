@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import TableTypeService from '../../../lib/service/tableTypeService';
 import { toast } from 'react-toastify';
+import { CircularProgress } from "@mui/material"; // Import CircularProgress từ MUI
 
 const TableTypeManagementAdmin = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -12,21 +13,25 @@ const TableTypeManagementAdmin = () => {
   const [resetFormTrigger, setResetFormTrigger] = useState(false);
 
   const [status, setStatus] = useState(0);
+  const [loading, setLoading] = useState(false); // Thêm state loading
 
   useEffect(() => {
     fetchTableTypes();
   }, [status]); 
 
   const fetchTableTypes = useCallback(async () => {
+    setLoading(true); // Bắt đầu loading
     try {
       const response = await TableTypeService.getAllTableTypesAdmin({ Status: status });
-      setTableTypes(response.data.map((tableType) => ({
+      setTableTypes(response.data.data.map((tableType) => ({
         ...tableType,
         editIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb',
         deleteIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e',
       })));
     } catch {
       notify('Error fetching table types', 'error');
+    } finally {
+      setLoading(false); // Kết thúc loading
     }
   }, [status]);
 
@@ -96,12 +101,18 @@ const TableTypeManagementAdmin = () => {
       onStatusChange={handleStatusChange} 
     />
     <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
-      <TableTypeList
-        tableTypes={filteredTableTypes}
-        onOpenDeletePopup={(tableType) => handleDeletePopup(true, tableType)}
-        onTableTypeUpdated={fetchTableTypes}
-        notify={notify}
-      />
+      {loading ? ( // Kiểm tra nếu đang loading
+        <div className="flex justify-center py-4">
+          <CircularProgress /> {/* Hiển thị spinner */}
+        </div>
+      ) : (
+        <TableTypeList
+          tableTypes={filteredTableTypes}
+          onOpenDeletePopup={(tableType) => handleDeletePopup(true, tableType)}
+          onTableTypeUpdated={fetchTableTypes}
+          notify={notify}
+        />
+      )}
     </div>
   </div>
   <AddTableTypePopup

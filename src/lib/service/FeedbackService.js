@@ -16,6 +16,24 @@ const getAllFeedbackByBookingID = async (bookingId) => {
   return await axios.get(`api/feedback/booking/${bookingId}`);
 };
 
+const getAllFeedbackByAdmin = async (barId = null, status = null, pageIndex = 1, pageSize = 10) => {
+  // const config = {
+  //   headers: {
+  //     Authorization: `Bearer ${token}`,
+  //   },
+  // };
+  let url = `api/feedback/admin?PageIndex=${pageIndex}&PageSize=${pageSize}`;
+  
+  if (status !== null) {
+    url += `&Status=${status}`;
+  }
+  if (barId !== null) {
+    url += `&BarId=${barId}`;
+  }
+
+  return await axios.get(url);
+}
+
 const createFeedBack = async (data) => {
   //   const config = {
   //     headers: {
@@ -34,6 +52,15 @@ const UpdateFeedBack = async (id, data) => {
   return await axios.patch(`api/feedback/${id}`, data);
 };
 
+const UpdateStatusFeedBack = async (feedbackId, status) => {
+  //   const config = {
+  //     headers: {
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //   };
+  return await axios.patch(`api/feedback/status?FeedbackId=${feedbackId}&Status=${status}`);
+};
+
 const DeleteUpdateFeedBack = async (id) => {
   //   const config = {
   //     headers: {
@@ -50,4 +77,6 @@ export {
   createFeedBack,
   UpdateFeedBack,
   DeleteUpdateFeedBack,
+  getAllFeedbackByAdmin,
+  UpdateStatusFeedBack
 };
