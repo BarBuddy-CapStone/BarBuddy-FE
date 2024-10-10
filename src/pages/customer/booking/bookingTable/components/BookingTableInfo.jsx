@@ -115,14 +115,10 @@ const BookingTableInfo = ({
     };
 
     fetchTableTypes();
-  }, []); // Chỉ gọi một lần khi component mount
+  }, []); // Empty dependency array means this effect runs once on mount
 
   const handleDateChange = (newDate) => {
     onDateChange(newDate);
-  };
-
-  const handleSearch = () => {
-    onSearchTables();
   };
 
   const handleTableTypeChange = (event) => {
@@ -213,7 +209,7 @@ const BookingTableInfo = ({
 
             <Button
               variant="contained"
-              onClick={handleSearch}
+              onClick={onSearchTables}  // Thay đổi này
               sx={{
                 backgroundColor: "#FFA500",
                 height: "56px",

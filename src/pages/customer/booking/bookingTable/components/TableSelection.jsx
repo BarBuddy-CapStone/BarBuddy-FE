@@ -3,16 +3,14 @@ import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 import CircularProgress from '@mui/material/CircularProgress';
 import TableBarIcon from "@mui/icons-material/TableBar";
-import { holdTable, filterBookingTable } from 'src/lib/service/BookingTableService';
+import { holdTable } from 'src/lib/service/BookingTableService';
 import useAuthStore from 'src/lib/hooks/useUserStore';
 import { hubConnection, getTableStatusFromSignalR } from 'src/lib/Third-party/signalR/hubConnection';
-import dayjs from 'dayjs';
 
 const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, setFilteredTables, tableTypeInfo, isLoading, hasSearched, barId, selectedTableTypeId, selectedDate, selectedTime }) => {
   const { token } = useAuthStore();
   const [heldTables, setHeldTables] = useState({});
-  const prevSearchParamsRef = useRef({ barId, selectedTableTypeId, selectedDate, selectedTime });
-  
+
   const updateTableHeldStatus = useCallback((tableId, isHeld) => {
     setHeldTables(prev => ({
       ...prev,
@@ -48,39 +46,11 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
     setHeldTables(updatedHeldStatuses);
   }, [barId]);
 
-  const fetchInitialTableStatuses = useCallback(async () => {
-    const currentSearchParams = { barId, selectedTableTypeId, selectedDate, selectedTime };
-    const prevSearchParams = prevSearchParamsRef.current;
-
-    if (
-      !hasSearched ||
-      currentSearchParams.barId !== prevSearchParams.barId ||
-      currentSearchParams.selectedTableTypeId !== prevSearchParams.selectedTableTypeId ||
-      currentSearchParams.selectedDate !== prevSearchParams.selectedDate ||
-      currentSearchParams.selectedTime !== prevSearchParams.selectedTime
-    ) {
-      try {
-        const response = await filterBookingTable({
-          barId,
-          tableTypeId: selectedTableTypeId,
-          date: dayjs(selectedDate).format("YYYY/MM/DD"),
-          time: selectedTime
-        });
-        if (response.status === 200) {
-          const tables = response.data.data.bookingTables[0].tables;
-          setFilteredTables(tables);
-          await syncTableStatusesWithSignalR(tables);
-          prevSearchParamsRef.current = currentSearchParams;
-        }
-      } catch (error) {
-        console.error("Error fetching initial table statuses:", error);
-      }
-    }
-  }, [barId, selectedTableTypeId, selectedDate, selectedTime, hasSearched, syncTableStatusesWithSignalR, setFilteredTables]);
-
   useEffect(() => {
-    fetchInitialTableStatuses();
-  }, [fetchInitialTableStatuses]);
+    if (hasSearched && filteredTables.length > 0) {
+      syncTableStatusesWithSignalR(filteredTables);
+    }
+  }, [hasSearched, filteredTables, syncTableStatusesWithSignalR]);
 
   const handleTableSelect = async (table) => {
     if (table.status === 1 || table.status === 3) {
