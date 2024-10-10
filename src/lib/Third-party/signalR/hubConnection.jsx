@@ -14,7 +14,7 @@ const connection = new signalR.HubConnectionBuilder()
     transport: signalR.HttpTransportType.WebSockets,
     accessTokenFactory: () => {
       // Thêm logic để lấy token nếu cần
-      return localStorage.getItem('token');
+      return sessionStorage.getItem('token');
     }
   })
   .withAutomaticReconnect()
@@ -80,10 +80,18 @@ connection.on("TableReleased", (tableId) => {
 // Thêm vào cuối file
 export const getTableStatusFromSignalR = async (barId, tableId) => {
   try {
-    const status = await connection.invoke("GetTableStatus", barId, tableId);
-    return status;
+    const isHeld = await connection.invoke("GetTableStatus", barId, tableId);
+    return isHeld;
   } catch (error) {
     console.error("Error getting table status from SignalR:", error);
-    return null;
+    return false;
+  }
+};
+
+export const releaseTableSignalR = async (barId, tableId) => {
+  try {
+    await connection.invoke("ReleaseTable", barId, tableId);
+  } catch (error) {
+    console.error("Error releasing table via SignalR:", error);
   }
 };

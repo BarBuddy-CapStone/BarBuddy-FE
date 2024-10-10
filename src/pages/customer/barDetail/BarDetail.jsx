@@ -72,7 +72,7 @@ const BarDetail = () => {
     return (
         <div className="container bg-inherit p-4 flex flex-col items-center">
             <div className="bg-neutral-800 text-white p-4 rounded-lg shadow-lg w-full max-w-4xl">
-                <button className="text-yellow-500 mb-4" onClick={handleBack}>&lt; Quay Lại</button>
+                <button className="text-white-500 mb-4" onClick={handleBack}>&lt; Quay Lại</button>
                 <img src={barDetails.images} alt={barDetails.barName} className="w-full h-64 object-cover rounded-lg mb-4" />
                 <h1 className="text-2xl text-yellow-500 font-bold mb-2">{barDetails.barName}</h1>
                 <div className="flex items-center mb-2">

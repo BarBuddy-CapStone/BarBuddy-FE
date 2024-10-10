@@ -109,14 +109,41 @@ const BookingTable = () => {
     setSelectedTableTypeId(tableTypeId);
   };
 
-  const handleSearchTables = async () => {
-    if (!selectedTableTypeId) {
+  const handleSearch = async () => {
+    if (!barId || !selectedDate || !selectedTime || !selectedTableTypeId) {
       setOpenPopup(true);
       return;
     }
+
     setIsLoading(true);
-    await fetchFilteredTables();
-    setIsLoading(false);
+    try {
+      const response = await filterBookingTable({
+        barId,
+        tableTypeId: selectedTableTypeId,
+        date: dayjs(selectedDate).format("YYYY/MM/DD"),
+        time: selectedTime
+      });
+
+      console.log("Filter response:", response.data);
+
+      if (response.status === 200) {
+        const { tableTypeId, typeName, description, bookingTables } = response.data.data;
+        setTableTypeInfo({ tableTypeId, typeName, description });
+        if (bookingTables && bookingTables.length > 0 && bookingTables[0].tables.length > 0) {
+          console.log("Filtered tables:", bookingTables[0].tables);
+          setFilteredTables(bookingTables[0].tables);
+        } else {
+          setFilteredTables([]);
+          setOpenPopup(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching filtered tables:", error);
+      setOpenPopup(true);
+    } finally {
+      setIsLoading(false);
+      setHasSearched(true);
+    }
   };
 
   const handleClosePopup = () => {
@@ -134,8 +161,8 @@ const BookingTable = () => {
               selectedDate={selectedDate}
               onDateChange={handleDateChange}
               onTableTypeChange={handleTableTypeChange}
-              onSearchTables={handleSearchTables}
-              selectedTableTypeId={selectedTableTypeId}  // Truyền prop này
+              onSearchTables={handleSearch}
+              selectedTableTypeId={selectedTableTypeId}
             />
             <TableSelection
               selectedTables={selectedTables}
@@ -145,7 +172,7 @@ const BookingTable = () => {
               tableTypeInfo={tableTypeInfo}
               isLoading={isLoading}
               hasSearched={hasSearched}
-              barId={barId}  // Add this line
+              barId={barId}
               selectedTableTypeId={selectedTableTypeId}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
@@ -168,7 +195,7 @@ const BookingTable = () => {
               setSelectedTables={setSelectedTables}
               onRemove={handleRemoveTable}
               barInfo={barInfo}
-              barId={barId}  // Add this line
+              barId={barId}
             />
           </div>
         </div>
