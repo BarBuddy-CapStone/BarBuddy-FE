@@ -26,6 +26,15 @@ const releaseTable = async (token, data) => {
   return await axios.post(`api/bookingTable/releaseTable`, data, config);
 };
 
+const getAllHoldTable = async(barId) => {
+  // const config = {
+  //   headers: {
+  //     'Authorization': `Bearer ${token}`,
+  //   },
+  // };
+  return await axios.get(`api/bookingTable/getHoldTable/${barId}`);
+}
+
 const boookingtableNow = async (token, data) => {
   const config = {
     headers: {
@@ -36,4 +45,4 @@ const boookingtableNow = async (token, data) => {
   return await axios.post(`api/Booking/booking-table`, JSON.stringify(data), config);
 };
 
-export { filterBookingTable, boookingtableNow, holdTable, releaseTable };
+export { filterBookingTable, boookingtableNow, holdTable, releaseTable, getAllHoldTable };

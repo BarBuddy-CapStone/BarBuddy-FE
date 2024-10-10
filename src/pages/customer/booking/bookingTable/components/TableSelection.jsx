@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 import CircularProgress from '@mui/material/CircularProgress';
 import TableBarIcon from "@mui/icons-material/TableBar";
-import { holdTable } from 'src/lib/service/BookingTableService';
+import { holdTable, getAllHoldTable } from 'src/lib/service/BookingTableService';
 import useAuthStore from 'src/lib/hooks/useUserStore';
-import { hubConnection, getTableStatusFromSignalR } from 'src/lib/Third-party/signalR/hubConnection';
+import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 
 const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, setFilteredTables, tableTypeInfo, isLoading, hasSearched, barId, selectedTableTypeId, selectedDate, selectedTime }) => {
   const { token } = useAuthStore();
@@ -37,20 +37,27 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
     };
   }, [updateTableHeldStatus]);
 
-  const syncTableStatusesWithSignalR = useCallback(async (tables) => {
-    const updatedHeldStatuses = {};
-    await Promise.all(tables.map(async (table) => {
-      const isHeld = await getTableStatusFromSignalR(barId, table.tableId);
-      updatedHeldStatuses[table.tableId] = isHeld;
-    }));
-    setHeldTables(updatedHeldStatuses);
+  const syncHeldTablesStatus = useCallback(async () => {
+    try {
+      const response = await getAllHoldTable(barId);
+      if (response.status === 200) {
+        const heldTablesData = response.data.data;
+        const updatedHeldStatuses = {};
+        heldTablesData.forEach(table => {
+          updatedHeldStatuses[table.tableId] = table.isHeld;
+        });
+        setHeldTables(updatedHeldStatuses);
+      }
+    } catch (error) {
+      console.error("Error fetching held tables:", error);
+    }
   }, [barId]);
 
   useEffect(() => {
     if (hasSearched && filteredTables.length > 0) {
-      syncTableStatusesWithSignalR(filteredTables);
+      syncHeldTablesStatus();
     }
-  }, [hasSearched, filteredTables, syncTableStatusesWithSignalR]);
+  }, [hasSearched, filteredTables, syncHeldTablesStatus]);
 
   const handleTableSelect = async (table) => {
     if (table.status === 1 || table.status === 3) {
