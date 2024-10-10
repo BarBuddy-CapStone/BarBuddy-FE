@@ -1,27 +1,55 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { releaseTable } from 'src/lib/service/BookingTableService';
 import useAuthStore from 'src/lib/hooks/useUserStore';
+import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 
 const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId }) => {
   const [countdowns, setCountdowns] = useState({});
   const { token } = useAuthStore();
-  console.log("Current token:", token);
+  // console.log("Current token:", token);
+
+  const handleExpiredTable = useCallback(async (tableId) => {
+    try {
+      const response = await releaseTable(token, { barId, tableId });
+      if (response.data.statusCode === 200) {
+        onRemove(tableId);
+        // Notify other components about the table release
+        hubConnection.invoke("ReleaseTable", barId, tableId);
+      } else {
+        console.error("Failed to release expired table:", response.data);
+      }
+    } catch (error) {
+      console.error("Error releasing expired table:", error);
+    }
+  }, [token, barId, onRemove]);
 
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const updatedCountdowns = {};
+      let tablesChanged = false;
+
       selectedTables.forEach(table => {
         if (table.holdExpiry) {
           const timeLeft = Math.max(0, Math.floor((table.holdExpiry - now) / 1000));
           updatedCountdowns[table.tableId] = timeLeft;
+
+          if (timeLeft === 0 && countdowns[table.tableId] !== 0) {
+            handleExpiredTable(table.tableId);
+            tablesChanged = true;
+          }
         }
       });
+
       setCountdowns(updatedCountdowns);
+
+      if (tablesChanged) {
+        setSelectedTables(prev => prev.filter(table => updatedCountdowns[table.tableId] > 0));
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [selectedTables]);
+  }, [selectedTables, handleExpiredTable, setSelectedTables, countdowns]);
 
   const handleRemove = async (tableId) => {
     console.log("Attempting to release table:", tableId);
