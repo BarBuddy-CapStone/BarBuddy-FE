@@ -78,9 +78,14 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
   // Check if both email and password fields have values
   const isLoginDisabled = email === "" || password === "";
 
+  const handleSwitchToRegister = () => {
+    onSwitchToRegister(); // Gọi hàm để chuyển sang form đăng ký
+    onClose(); // Đóng popup đăng nhập
+  };
+
   return (
     <div
-      className="relative flex flex-col px-7 py-11 w-full max-w-md rounded-xl bg-zinc-900"
+      className={`relative flex flex-col px-7 py-11 w-full max-w-md rounded-xl bg-zinc-900 transition-transform duration-500`} // Xóa showLogin
       style={{ borderRadius: "16px" }}
     >
       <button
@@ -142,7 +147,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
             fullWidth
             variant="contained"
             sx={{
-              backgroundColor: isLoginDisabled ? "#FFA500" : "#FFA500",
+              backgroundColor: isLoginDisabled ? "#FFA500" : "#FF8C00",
               "&:hover": {
                 backgroundColor: isLoginDisabled ? "#FFA500" : "#FF8C00",
               },

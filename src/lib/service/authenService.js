@@ -8,3 +8,7 @@ export const register = async (data) => {
   return await axios.post("api/authen/register", data);
 };
 
+export const verifyOtp = async (data) => {
+  return await axios.post("api/authen/verify", data);
+};
+
