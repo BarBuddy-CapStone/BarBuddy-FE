@@ -3,13 +3,20 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getOneDrink } from "src/lib/service/managerDrinksService";
 
 const InfoItem = ({ data, emotion }) => {
+    // Format price to Vietnamese currency
+    const formattedPrice = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+        minimumFractionDigits: 0
+    }).format(data.price);
+
     return (
         <Fragment>
             <li className="mt-4 first:mt-0">
                 <span className="text-amber-400 text-base">Tên:</span> {data.drinkName}
             </li>
             <li className="mt-4 first:mt-0">
-                <span className="text-amber-400 text-base">Giá tiền: </span> {data.price}
+                <span className="text-amber-400 text-base">Giá tiền: </span> {formattedPrice}
             </li>
             <li className="mt-4 first:mt-0">
                 <span className="text-amber-400 text-base">Loại đồ uống:</span> {data.drinkCategoryResponse.drinksCategoryName}

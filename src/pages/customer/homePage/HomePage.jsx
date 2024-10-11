@@ -79,6 +79,13 @@ const DrinkCard = React.memo(({ images, drinkName, price, drinkId }) => {
     redirect(`/drinkDetail?drinkId=${drinkId}`);
   };
 
+  // Format price to Vietnamese currency
+  const formattedPrice = new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    minimumFractionDigits: 0
+  }).format(price);
+
   return (
     <div className="flex flex-col px-2.5 py-3 w-1/6 flex-shrink-0 max-md:w-full transition-transform transform hover:scale-105">
       <div className="flex flex-col grow items-center w-full text-center rounded-xl bg-neutral-700 max-md:mt-7">
@@ -93,7 +100,7 @@ const DrinkCard = React.memo(({ images, drinkName, price, drinkId }) => {
             {drinkName}
           </h3>
         </button>
-        <p className="mt-1 text-sm leading-snug text-amber-400">{price}</p>
+        <p className="mt-1 text-sm leading-snug text-amber-400">{formattedPrice}</p>
       </div>
     </div>
   );

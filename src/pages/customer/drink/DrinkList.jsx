@@ -22,12 +22,13 @@ const FilterSection = ({
     const [tempSelectedDrink, setTempSelectedDrink] = useState(selectedDrink);
     const [tempSelectedEmotions, setTempSelectedEmotions] = useState([...selectedEmotions]);
     const [selectedCateId, setSelectedCateId] = useState(null);
+
     useEffect(() => {
         if (isDrinksModalOpen) {
             setTempSelectedDrink(selectedDrink);
         }
         if (isEmotionsModalOpen) {
-            setTempSelectedEmotions([...selectedEmotions]); // Copy the main screen emotions into the modal
+            setTempSelectedEmotions([...selectedEmotions]);
         }
     }, [isDrinksModalOpen, isEmotionsModalOpen, selectedDrink, selectedEmotions]);
 
@@ -37,17 +38,13 @@ const FilterSection = ({
 
     const handleEmotionChange = (key, isModal = false) => {
         if (isModal) {
-            if (tempSelectedEmotions.includes(key)) {
-                setTempSelectedEmotions(tempSelectedEmotions.filter((emotion) => emotion !== key));
-            } else {
-                setTempSelectedEmotions([...tempSelectedEmotions, key]);
-            }
+            setTempSelectedEmotions(prev => 
+                prev.includes(key) ? prev.filter(e => e !== key) : [...prev, key]
+            );
         } else {
-            if (selectedEmotions.includes(key)) {
-                setSelectedEmotions(selectedEmotions.filter((emotion) => emotion !== key));
-            } else {
-                setSelectedEmotions([...selectedEmotions, key]);
-            }
+            setSelectedEmotions(prev => 
+                prev.includes(key) ? prev.filter(e => e !== key) : [...prev, key]
+            );
         }
     };
 
@@ -65,95 +62,102 @@ const FilterSection = ({
         setCateModalOpen(false);
     }
 
+    const handleClearDrinkSelection = () => {
+        setSelectedDrink(null);
+    };
+
+    const handleClearEmotionsSelection = () => {
+        setSelectedEmotions([]);
+    };
+
     return (
         <aside className="flex flex-col w-[20%] max-md:ml-0 max-md:w-full">
-            <div className="flex flex-col px-6 py-4 mx-auto w-full rounded-md bg-neutral-800 shadow-[0px_0px_16px_rgba(0,0,0,0.07)] max-md:px-4 max-md:mt-8">
-                <div className='flex text-center'><h3 className="self-start font-bold mt-4 text-xl leading-none text-amber-400 center-text">Bộ lọc</h3></div>
-                <div className="shrink-0 mt-3 h-px border border-amber-400 border-solid max-md:max-w-full" />
-                <h3 className="self-start mt-4 text-base leading-none text-amber-400">Danh mục thức uống</h3>
-                <div className="flex flex-col justify-center pl-4 pr-1 py-2 mt-4 pr-4 text-sm leading-none text-white rounded-xl bg-neutral-700 max-md:mr-0.5">
-                    {dataDrinkCate.map((cate) => (
-                        <Fragment key={cate.drinksCategoryId}>
-                            <div className='flex justify-between text-center items-center mt-1 mb-2'>
-                                <label className="flex items-center gap-2 mb-1 text-sm text-center">
-                                    <input
-                                        type="radio"
-                                        name="drink-category"
-                                        className="form-radio h-5 w-5"
-                                        checked={selectedDrink === cate.drinksCategoryName}
-                                        onChange={() => setSelectedDrink(cate.drinksCategoryName)}
-                                    />
-                                    <span>{cate.drinksCategoryName}</span>
-                                </label>
-                                <button onClick={() => {
-                                    setSelectedCateId(cate.drinksCategoryId);
-                                    setCateModalOpen(true);
-                                }}>
-                                    <span className='text-amber-400 hover:text-amber-500'>Xem chi tiết</span>
+            <div className="flex flex-col px-6 py-4 mx-auto w-full rounded-md bg-neutral-800 shadow-[0px_0px_16px_rgba(0,0,0,0.07)] max-md:px-4 max-md:mt-8 h-[calc(100vh-100px)]">
+                <div className='flex text-center sticky top-0 bg-neutral-800 z-10 pb-3'>
+                    <h3 className="self-start font-bold mt-4 text-xl leading-none text-amber-400 center-text">Bộ lọc</h3>
+                </div>
+                <div className="shrink-0 mt-3 h-px border border-amber-400 border-solid max-md:max-w-full sticky top-12 bg-neutral-800 z-10" />
+                <div className="overflow-y-auto flex-grow custom-scrollbar" style={{ maxHeight: 'calc(100% - 60px)' }}>
+                    <div className="flex justify-between items-center mt-4">
+                        <h3 className="text-base leading-none text-amber-400">Danh mục thức uống</h3>
+                        <div className="flex gap-2">
+                            <button onClick={() => setDrinksModalOpen(true)} className="text-amber-400 text-xs hover:text-amber-500">
+                                Xem tất cả
+                            </button>
+                            {selectedDrink && (
+                                <button onClick={handleClearDrinkSelection} className="text-red-400 text-xs hover:text-red-500">
+                                    Xóa chọn
                                 </button>
-                            </div>
-                        </Fragment>
-                    ))}
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex flex-col justify-center pl-4 pr-1 py-2 mt-4 text-sm leading-none text-white rounded-xl bg-neutral-700 max-md:mr-0.5">
+                        {dataDrinkCate.map((cate) => (
+                            <Fragment key={cate.drinksCategoryId}>
+                                <div className='flex justify-between text-center items-center mt-1 mb-2'>
+                                    <label className="flex items-center gap-2 mb-1 text-sm text-center">
+                                        <input
+                                            type="radio"
+                                            name="drink-category"
+                                            className="form-radio h-4 w-4"
+                                            checked={selectedDrink === cate.drinksCategoryName}
+                                            onChange={() => setSelectedDrink(cate.drinksCategoryName)}
+                                        />
+                                        <span className="truncate">{cate.drinksCategoryName}</span>
+                                    </label>
+                                    <button onClick={() => {
+                                        setSelectedCateId(cate.drinksCategoryId);
+                                        setCateModalOpen(true);
+                                    }}>
+                                        <span className='text-amber-400 hover:text-amber-500 text-xs'>Chi tiết</span>
+                                    </button>
+                                </div>
+                            </Fragment>
+                        ))}
+                    </div>
+                    
+                    <div className="flex justify-between items-center mt-4">
+                        <h3 className="text-base leading-none text-amber-400">Cảm xúc</h3>
+                        <div className="flex gap-2">
+                            <button onClick={() => setEmotionsModalOpen(true)} className="text-amber-400 text-xs hover:text-amber-500">
+                                Xem tất cả
+                            </button>
+                            {selectedEmotions.length > 0 && (
+                                <button onClick={handleClearEmotionsSelection} className="text-red-400 text-xs hover:text-red-500">
+                                    Xóa chọn
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex flex-col justify-center pl-4 pr-1 py-2 mt-4 text-sm leading-none text-white rounded-xl bg-neutral-700 max-md:mr-0.5 max-h-40 overflow-y-auto custom-scrollbar">
+                        {dataDrinkEmo.map((emotion) => (
+                            <label
+                                key={emotion.emotionalDrinksCategoryId}
+                                className="flex items-center gap-2 mb-2 text-sm"
+                            >
+                                <input
+                                    type="checkbox"
+                                    className="form-checkbox h-4 w-4"
+                                    checked={selectedEmotions.includes(emotion.emotionalDrinksCategoryId)}
+                                    onChange={() => handleEmotionChange(emotion.emotionalDrinksCategoryId)}
+                                />
+                                <span className="truncate">{emotion.categoryName}</span>
+                            </label>
+                        ))}
+                    </div>
                 </div>
 
-                {isCateModalOpen && selectedCateId && (
-                    <Modal
-                        title={dataDrinkCate.find(cate => cate.drinksCategoryId === selectedCateId)?.drinksCategoryName || 'Không có tên'}
-                        onClose={() => setCateModalOpen(false)} onConfirm={handleConfirmCate}
-                    >
-                        {dataDrinkCate.find(cate => cate.drinksCategoryId === selectedCateId)?.description || 'Không có mô tả.'}
-                    </Modal>
-                )}
-                <div className='flex justify-evenly'>
-                    <button onClick={() => setDrinksModalOpen(true)} className="mt-2 text-amber-400 text-sm hover:text-amber-500">
-                        Xem tất cả
-                    </button>
-                    {selectedDrink &&
-                        <button onClick={() => setSelectedDrink(null)} className="mt-2 text-red-400 text-sm hover:text-red-500">
-                            Xóa chọn
-                        </button>}
-                </div>
-                {/* Emotions section */}
-                <h3 className="self-start mt-4 text-base leading-none text-amber-400">Cảm xúc</h3>
-                <div
-                    className={`overflow-y-auto flex flex-col justify-center pl-4 pr-1 py-2 mt-4 text-sm leading-none text-white rounded-xl bg-neutral-700 max-md:mr-0.5 ${dataDrinkEmo.length > 5 ? 'max-h-20' : ''
-                        }`}
-                    style={{ maxHeight: '160px', paddingTop: '2.5rem', paddingBottom: '0.5rem' }}
-                >
-                    {dataDrinkEmo.map((emotion, index) => (
-                        <label
-                            key={emotion.emotionalDrinksCategoryId}
-                            className={`flex items-center gap-2 mb-2 text-sm ${index === 0 ? 'mt-2' : ''} ${index === dataDrinkEmo.length - 1 ? 'mb-2' : ''}`}
+                <div className="mt-4">
+                    <PriceFilter dataDrinkPrice={dataDrinkPrice} onPriceChange={setPriceRange} />
+
+                    <div className="flex justify-center mt-5">
+                        <button 
+                            onClick={onApplyFilters} 
+                            className="px-4 py-2 bg-amber-400 text-white rounded-xl hover:bg-amber-500 transition-colors"
                         >
-                            <input
-                                type="checkbox"
-                                className="form-checkbox h-5 w-5"
-                                checked={selectedEmotions.includes(emotion.emotionalDrinksCategoryId)}
-                                onChange={() => handleEmotionChange(emotion.emotionalDrinksCategoryId)}
-                            />
-                            <span>{emotion.categoryName}</span>
-                        </label>
-                    ))}
-
-                </div>
-
-
-                <div className='flex justify-evenly'>
-                    <button onClick={() => setEmotionsModalOpen(true)} className="mt-2 text-amber-400 text-sm hover:text-amber-500">
-                        Xem tất cả
-                    </button>
-                    {selectedEmotions.length > 0 &&
-                        <button onClick={() => setSelectedEmotions([])} className="mt-2 text-red-400 text-sm hover:text-red-500">
-                            Xóa chọn
+                            Xác nhận
                         </button>
-                    }
-                </div>
-                <PriceFilter dataDrinkPrice={dataDrinkPrice} onPriceChange={setPriceRange} />
-
-                <div className="flex flex-col justify-center pr-1 py-2 mt-5 text-sm leading-none text-white rounded-xl bg-neutral-700 max-md:mr-0.5 group hover:bg-amber-400">
-                    <button onClick={onApplyFilters} className="text-amber-400 text-base group-hover:text-white">
-                        Xác nhận
-                    </button>
+                    </div>
                 </div>
             </div>
 
@@ -165,8 +169,8 @@ const FilterSection = ({
                                 type="radio"
                                 name="drink-category"
                                 className="form-radio h-5 w-5"
-                                checked={tempSelectedDrink === drink?.drinksCategoryName} // Compare the name
-                                onChange={() => handleDrinkChange(drink?.drinksCategoryName)} // Set the drink name
+                                checked={tempSelectedDrink === drink?.drinksCategoryName}
+                                onChange={() => handleDrinkChange(drink?.drinksCategoryName)}
                             />
                             <span>{drink?.drinksCategoryName}</span>
                         </label>
@@ -174,7 +178,6 @@ const FilterSection = ({
                 </Modal>
             )}
 
-            {/* Emotions Modal */}
             {isEmotionsModalOpen && (
                 <Modal title="Cảm xúc" onClose={() => setEmotionsModalOpen(false)} onConfirm={handleConfirmEmotions}>
                     {dataDrinkEmo.map((emotion) => (
@@ -182,12 +185,22 @@ const FilterSection = ({
                             <input
                                 type="checkbox"
                                 className="form-checkbox h-5 w-5"
-                                checked={tempSelectedEmotions.includes(emotion.emotionalDrinksCategoryId)} // Bind to modal temp state
-                                onChange={() => handleEmotionChange(emotion.emotionalDrinksCategoryId, true)} // Update modal temp state
+                                checked={tempSelectedEmotions.includes(emotion.emotionalDrinksCategoryId)}
+                                onChange={() => handleEmotionChange(emotion.emotionalDrinksCategoryId, true)}
                             />
                             <span>{emotion.categoryName}</span>
                         </label>
                     ))}
+                </Modal>
+            )}
+
+            {isCateModalOpen && selectedCateId && (
+                <Modal
+                    title={dataDrinkCate.find(cate => cate.drinksCategoryId === selectedCateId)?.drinksCategoryName || 'Không có tên'}
+                    onClose={() => setCateModalOpen(false)} 
+                    onConfirm={handleConfirmCate}
+                >
+                    {dataDrinkCate.find(cate => cate.drinksCategoryId === selectedCateId)?.description || 'Không có mô tả.'}
                 </Modal>
             )}
         </aside>
@@ -222,11 +235,18 @@ const Modal = ({ title, children, onClose, onConfirm }) => {
 };
 
 const DrinkCard = ({ images, drinkName, price, withDivider, drinkId }) => {
-
     const redirect = useNavigate();
     const drinkDetailHandle = () => {
         redirect(`/drinkDetail?drinkId=${drinkId}`)
     }
+
+    // Format price to Vietnamese currency
+    const formattedPrice = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+        minimumFractionDigits: 0
+    }).format(price);
+
     return (
         <div className="flex flex-col w-full">
             <div
@@ -243,12 +263,13 @@ const DrinkCard = ({ images, drinkName, price, withDivider, drinkId }) => {
                 <button onClick={drinkDetailHandle}>
                     <h3 className="mt-1 text-base leading-5 text-zinc-100 truncate">{drinkName}</h3>
                 </button>
-                <p className="mt-1 text-sm leading-tight text-amber-400">Giá: {price} VND</p>
+                <p className="mt-1 text-sm leading-tight text-amber-400">Giá: {formattedPrice}</p>
             </div>
             {withDivider && <div className="flex shrink-0 mt-5 h-2.5 rounded-sm bg-neutral-700" />}
         </div>
     );
 }
+
 const PriceFilter = ({ dataDrinkPrice, onPriceChange }) => {
     const STEP = 1;
     const MIN = 0;
@@ -342,6 +363,34 @@ const BackButton = () => (
     </button>
 );
 
+const styles = `
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #18191a;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #555;
+}
+
+/* Cho Firefox */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #888 #18191a;
+}
+`;
+
+const StyleTag = () => (
+    <style>{styles}</style>
+);
 
 const DrinkList = () => {
     const location = useLocation();
@@ -410,47 +459,50 @@ const DrinkList = () => {
     };
 
     return (
-        <div className="flex flex-col items-center">
-            <div className="overflow-hidden w-full max-md:max-w-full">
-                <div className="flex gap-5 justify-center max-md:flex-col">
-                    <FilterSection
-                        dataDrinkCate={dataDrinkCate}
-                        dataDrinkEmo={dataDrinkEmo}
-                        dataDrinkPrice={dataDrinkPrice}
-                        selectedDrink={selectedDrink}
-                        setSelectedDrink={setSelectedDrink}
-                        selectedEmotions={selectedEmotions}
-                        setSelectedEmotions={setSelectedEmotions}
-                        priceRange={priceRange}
-                        setPriceRange={setPriceRange}
-                        onApplyFilters={applyFilters} // Pass the filter function
-                    />
-                    <main className="flex flex-col w-[60%] max-md:w-full ">
-                        <section className="flex flex-col px-6 pt-4 mx-auto w-full bg-neutral-800 max-md:px-4 max-md:mt-8 max-md:max-w-full rounded-md">
+        <>
+            <StyleTag />
+            <div className="flex flex-col items-center">
+                <div className="overflow-hidden w-full max-md:max-w-full">
+                    <div className="flex gap-5 justify-center max-md:flex-col">
+                        <FilterSection
+                            dataDrinkCate={dataDrinkCate}
+                            dataDrinkEmo={dataDrinkEmo}
+                            dataDrinkPrice={dataDrinkPrice}
+                            selectedDrink={selectedDrink}
+                            setSelectedDrink={setSelectedDrink}
+                            selectedEmotions={selectedEmotions}
+                            setSelectedEmotions={setSelectedEmotions}
+                            priceRange={priceRange}
+                            setPriceRange={setPriceRange}
+                            onApplyFilters={applyFilters} // Pass the filter function
+                        />
+                        <main className="flex flex-col w-[60%] max-md:w-full ">
+                            <section className="flex flex-col px-6 pt-4 mx-auto w-full bg-neutral-800 max-md:px-4 max-md:mt-8 max-md:max-w-full rounded-md">
 
-                            <div className="flex flex-wrap gap-4 justify-between max-w-full leading-snug w-[646px] text-center items-center">
-                                <BackButton />
-                                <h2 className="text-xl text-center ceter-text text-amber-400 font-bold mr-[20%]">Danh sách đồ uống</h2>
-                            </div>
-                            <div className="shrink-0 mt-3 h-px border border-amber-400 border-solid max-md:max-w-full" />
-                            <div className="mt-5 max-md:max-w-full">
-                                <div className="grid grid-cols-4 gap-4 mb-6 max-md:grid-cols-2">
-                                    {filteredDrinks.length > 0 ? (
-                                        filteredDrinks.map((drink, index) => (
-                                            <DrinkCard key={index} {...drink} />
-                                        ))
-                                    ) : (
-                                        <div>
-                                            <span style={{ color: 'wheat' }}>Không có sản phẩm nào cả</span>
-                                        </div>
-                                    )}
+                                <div className="flex flex-wrap gap-4 justify-between max-w-full leading-snug w-[646px] text-center items-center">
+                                    <BackButton />
+                                    <h2 className="text-xl text-center ceter-text text-amber-400 font-bold mr-[20%]">Danh sách đồ uống</h2>
                                 </div>
-                            </div>
-                        </section>
-                    </main>
+                                <div className="shrink-0 mt-3 h-px border border-amber-400 border-solid max-md:max-w-full" />
+                                <div className="mt-5 max-md:max-w-full">
+                                    <div className="grid grid-cols-4 gap-4 mb-6 max-md:grid-cols-2">
+                                        {filteredDrinks.length > 0 ? (
+                                            filteredDrinks.map((drink, index) => (
+                                                <DrinkCard key={index} {...drink} />
+                                            ))
+                                        ) : (
+                                            <div>
+                                                <span style={{ color: 'wheat' }}>Không có sản phẩm nào cả</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </section>
+                        </main>
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
