@@ -42,7 +42,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
             navigate("/admin/dashboard");
             break;
           case "STAFF":
-            navigate("/staff");
+            navigate("/staff/table-management");
             break;
           case "CUSTOMER":
           default:

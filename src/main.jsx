@@ -90,12 +90,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </Route>
 
         {/* Route Của Staff */}
-        <Route path="/staff" element={<StaffLayout />}>
-          <Route path="table-management" element={<TableManagement />}/> 
-          <Route path="table-management/table/:tableTypeId" element={<TableManagementDetail />}/> 
-          <Route path="payment-history" element={<PaymentHistoryStaff />}/> 
-          <Route path="table-registrations" element={<BookingList />}/> 
-          <Route path="table-registration-detail/:bookingId" element={<BookingDetail />}/> 
+        <Route path="/" element={<StaffLayout />}>
+          <Route path="staff/table-management" element={<TableManagement />}/> 
+          <Route path="staff/table-management/table/:tableTypeId" element={<TableManagementDetail />}/> 
+          <Route path="staff/payment-history" element={<PaymentHistoryStaff />}/> 
+          <Route path="staff/table-registrations" element={<BookingList />}/> 
+          <Route path="staff/table-registration-detail/:bookingId" element={<BookingDetail />}/> 
         </Route>
 
         {/* Route Của Customer */}

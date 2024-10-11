@@ -71,7 +71,7 @@ function AdminSidebar() {
     setTimeout(() => {
       navigate("/"); // Chuyển hướng về trang home
       window.location.reload(); // Tải lại trang để cập nhật thông tin
-    }, 1000); // Đợi 1 giây trước khi chuyển hướng
+    }, 1500); // Đợi 1 giây trước khi chuyển hướng
   };
 
   return (
