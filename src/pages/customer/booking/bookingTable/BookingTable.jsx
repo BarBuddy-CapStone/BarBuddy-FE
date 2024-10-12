@@ -196,6 +196,8 @@ const BookingTable = () => {
               onRemove={handleRemoveTable}
               barInfo={barInfo}
               barId={barId}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
             />
           </div>
         </div>

@@ -3,25 +3,31 @@ import { releaseTable } from 'src/lib/service/BookingTableService';
 import useAuthStore from 'src/lib/hooks/useUserStore';
 import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 
-const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId }) => {
+const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, selectedDate, selectedTime }) => {
   const [countdowns, setCountdowns] = useState({});
   const { token } = useAuthStore();
-  // console.log("Current token:", token);
 
   const handleExpiredTable = useCallback(async (tableId) => {
+    if (!selectedDate || !selectedTime) {
+      console.error("selectedDate or selectedTime is missing");
+      return;
+    }
     try {
-      const response = await releaseTable(token, { barId, tableId });
+      const data = {
+        barId: barId,
+        tableId: tableId,
+        date: selectedDate,
+        time: selectedTime + ":00" // Thêm ":00" vào cuối để có định dạng "hh:mm:ss"
+      };
+      const response = await releaseTable(token, data);
       if (response.data.statusCode === 200) {
         onRemove(tableId);
-        // Notify other components about the table release
-        hubConnection.invoke("ReleaseTable", barId, tableId);
-      } else {
-        console.error("Failed to release expired table:", response.data);
+        await hubConnection.invoke("ReleaseTable", barId, tableId, selectedDate, selectedTime + ":00");
       }
     } catch (error) {
       console.error("Error releasing expired table:", error);
     }
-  }, [token, barId, onRemove]);
+  }, [barId, selectedDate, selectedTime, onRemove, token]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -52,14 +58,22 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId }) =>
   }, [selectedTables, handleExpiredTable, setSelectedTables, countdowns]);
 
   const handleRemove = async (tableId) => {
+    if (!selectedDate || !selectedTime) {
+      console.error("selectedDate or selectedTime is missing");
+      return;
+    }
     console.log("Attempting to release table:", tableId);
     try {
-      const response = await releaseTable(token, { barId, tableId });
-      console.log("Release table response:", response);
+      const data = {
+        barId: barId,
+        tableId: tableId,
+        date: selectedDate,
+        time: selectedTime + ":00" // Thêm ":00" vào cuối để có định dạng "hh:mm:ss"
+      };
+      const response = await releaseTable(token, data);
       if (response.data.statusCode === 200) {
         onRemove(tableId);
-      } else {
-        console.error("Failed to release table:", response.data);
+        await hubConnection.invoke("ReleaseTable", barId, tableId, selectedDate, selectedTime + ":00");
       }
     } catch (error) {
       console.error("Error releasing table:", error);

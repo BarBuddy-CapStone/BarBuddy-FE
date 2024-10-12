@@ -2,7 +2,7 @@ import React from "react";
 import { BarDetail, SelectedList } from "src/pages";
 import useAuthStore from 'src/lib/hooks/useUserStore';
 
-const TableSidebar = ({ selectedTables, setSelectedTables, onRemove, barInfo, barId }) => {
+const TableSidebar = ({ selectedTables, setSelectedTables, onRemove, barInfo, barId, selectedDate, selectedTime }) => {
   const { token } = useAuthStore();
 
   return (
@@ -14,6 +14,8 @@ const TableSidebar = ({ selectedTables, setSelectedTables, onRemove, barInfo, ba
         onRemove={onRemove} 
         barId={barId}
         token={token}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
       />
     </div>
   );

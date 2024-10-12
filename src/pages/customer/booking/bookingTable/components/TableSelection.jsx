@@ -21,7 +21,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
   useEffect(() => {
     console.log("Setting up SignalR listeners");
     
-    hubConnection.on("TableHoId", (tableId) => {
+    hubConnection.on("TableHeld", (tableId) => {
       console.log("Table held:", tableId);
       updateTableHeldStatus(tableId, true);
     });
@@ -32,7 +32,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
     });
 
     return () => {
-      hubConnection.off("TableHoId");
+      hubConnection.off("TableHeld");
       hubConnection.off("TableReleased");
     };
   }, [updateTableHeldStatus]);
@@ -64,7 +64,9 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
       try {
         const data = {
           barId: barId,
-          tableId: table.tableId
+          tableId: table.tableId,
+          date: selectedDate,
+          time: selectedTime + ":00" // Thêm ":00" vào cuối để có định dạng "hh:mm:ss"
         };
         const response = await holdTable(token, data);
         if (response.data.statusCode === 200) {
@@ -79,6 +81,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
             }
           ]);
           updateTableHeldStatus(table.tableId, true);
+          await updateTableStatusViaSignalR(table.tableId, true);
         }
       } catch (error) {
         console.error("Error holding table:", error);
@@ -105,6 +108,18 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
     borderRadius: '4px',
     padding: '8px 16px',
   }));
+
+  const updateTableStatusViaSignalR = async (tableId, isHeld) => {
+    try {
+      if (isHeld) {
+        await hubConnection.invoke("HoldTable", barId, tableId, selectedDate, selectedTime + ":00");
+      } else {
+        await hubConnection.invoke("ReleaseTable", barId, tableId, selectedDate, selectedTime + ":00");
+      }
+    } catch (error) {
+      console.error("Error updating table status via SignalR:", error);
+    }
+  };
 
   return (
     <div className="mt-6">

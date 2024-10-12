@@ -67,14 +67,16 @@ connection.on("*", (name, message) => {
 export const hubConnection = connection;
 
 // Thêm các listener cho các sự kiện cụ thể
-connection.on("TableHoId", (tableId) => {
+connection.on("TableHeld", (tableId) => {
   console.log("Table held:", tableId);
-  // Xử lý sự kiện khi bàn được giữ
+  // Broadcast the event to all components
+  document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId, isHeld: true } }));
 });
 
 connection.on("TableReleased", (tableId) => {
   console.log("Table released:", tableId);
-  // Xử lý sự kiện khi bàn được giải phóng
+  // Broadcast the event to all components
+  document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId, isHeld: false } }));
 });
 
 // Thêm vào cuối file
@@ -88,9 +90,18 @@ export const getTableStatusFromSignalR = async (barId, tableId) => {
   }
 };
 
-export const releaseTableSignalR = async (barId, tableId) => {
+// Add new methods for holding and releasing tables
+export const holdTableSignalR = async (barId, tableId, date, time) => {
   try {
-    await connection.invoke("ReleaseTable", barId, tableId);
+    await connection.invoke("HoldTable", barId, tableId, date, time + ":00");
+  } catch (error) {
+    console.error("Error holding table via SignalR:", error);
+  }
+};
+
+export const releaseTableSignalR = async (barId, tableId, date, time) => {
+  try {
+    await connection.invoke("ReleaseTable", barId, tableId, date, time + ":00");
   } catch (error) {
     console.error("Error releasing table via SignalR:", error);
   }
