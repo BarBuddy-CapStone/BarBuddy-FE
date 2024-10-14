@@ -21,8 +21,8 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
   useEffect(() => {
     console.log("Setting up SignalR listeners");
     
-    hubConnection.on("TableHeld", (tableId) => {
-      console.log("Table held:", tableId);
+    hubConnection.on("TableHoId", (tableId) => {
+      console.log("Table HoId:", tableId);
       updateTableHeldStatus(tableId, true);
     });
 
@@ -32,7 +32,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
     });
 
     return () => {
-      hubConnection.off("TableHeld");
+      hubConnection.off("TableHoId");
       hubConnection.off("TableReleased");
     };
   }, [updateTableHeldStatus]);
