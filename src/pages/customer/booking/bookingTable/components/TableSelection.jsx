@@ -60,32 +60,54 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
   }, [hasSearched, filteredTables, syncHeldTablesStatus]);
 
   const handleTableSelect = async (table) => {
+    console.log("Attempting to hold table:", table);
     if (table.status === 1 || table.status === 3) {
       try {
         const data = {
           barId: barId,
           tableId: table.tableId,
           date: selectedDate,
-          time: selectedTime + ":00" // Thêm ":00" vào cuối để có định dạng "hh:mm:ss"
+          time: selectedTime + ":00"
         };
+        console.log("Sending hold request with data:", data);
         const response = await holdTable(token, data);
+        console.log("Hold table response:", response);
+        
         if (response.data.statusCode === 200) {
           const holdData = response.data.data;
-          setSelectedTables((prevSelectedTables) => [
-            ...prevSelectedTables,
-            {
-              tableId: table.tableId,
-              tableName: table.tableName,
-              isHeld: holdData.isHeld,
-              holdExpiry: new Date(holdData.holdExpiry).getTime()
-            }
-          ]);
+          console.log("Hold data received:", holdData);
+          
+          setSelectedTables((prevSelectedTables) => {
+            const updatedTables = [
+              ...prevSelectedTables,
+              {
+                tableId: table.tableId,
+                tableName: table.tableName,
+                isHeld: holdData.isHeld,
+                holdExpiry: new Date(holdData.holdExpiry).getTime()
+              }
+            ];
+            console.log("Updated selected tables:", updatedTables);
+            return updatedTables;
+          });
+          
           updateTableHeldStatus(table.tableId, true);
-          await updateTableStatusViaSignalR(table.tableId, true);
+          console.log("Table held status updated for:", table.tableId);
+          
+          // Gọi SignalR để cập nhật trạng thái bàn cho tất cả các client
+          await hubConnection.invoke("HoldTable", barId, table.tableId, selectedDate, selectedTime + ":00");
+          console.log("SignalR HoldTable invoked for table:", table.tableId);
+        } else {
+          console.error("Hold table request failed:", response.data);
         }
       } catch (error) {
         console.error("Error holding table:", error);
+        if (error.response) {
+          console.error("Error response:", error.response.data);
+        }
       }
+    } else {
+      console.log("Table not available for holding:", table);
     }
   };
 
@@ -120,6 +142,29 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
       console.error("Error updating table status via SignalR:", error);
     }
   };
+
+  useEffect(() => {
+    const handleTableStatusChange = (event) => {
+      const { tableId, isHeld } = event.detail;
+      console.log("Table status changed via SignalR:", tableId, isHeld);
+      updateTableHeldStatus(tableId, isHeld);
+      
+      // Cập nhật filteredTables nếu cần
+      setFilteredTables(prevTables => 
+        prevTables.map(table => 
+          table.tableId === tableId 
+            ? { ...table, status: isHeld ? 2 : 1 } // Giả sử 2 là trạng thái đã giữ, 1 là trống
+            : table
+        )
+      );
+    };
+
+    document.addEventListener('tableStatusChanged', handleTableStatusChange);
+
+    return () => {
+      document.removeEventListener('tableStatusChanged', handleTableStatusChange);
+    };
+  }, [updateTableHeldStatus, setFilteredTables]);
 
   return (
     <div className="mt-6">

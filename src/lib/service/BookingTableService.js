@@ -14,6 +14,7 @@ const holdTable = async (token, data) => {
       'Content-Type': 'application/json',
     },
   };
+  console.log("Sending holdTable request with data:", data);
   return await axios.post(`api/bookingTable/holdTable`, data, config);
 };
 

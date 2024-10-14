@@ -14,7 +14,7 @@ const connection = new signalR.HubConnectionBuilder()
     transport: signalR.HttpTransportType.WebSockets,
     accessTokenFactory: () => {
       // Thêm logic để lấy token nếu cần
-      return sessionStorage.getItem('token');
+      return sessionStorage.getItem('authToken');
     }
   })
   .withAutomaticReconnect()
@@ -68,8 +68,7 @@ export const hubConnection = connection;
 
 // Thêm các listener cho các sự kiện cụ thể
 connection.on("TableHeld", (tableId) => {
-  console.log("Table held:", tableId);
-  // Broadcast the event to all components
+  console.log("Table held via SignalR:", tableId);
   document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId, isHeld: true } }));
 });
 
@@ -93,7 +92,8 @@ export const getTableStatusFromSignalR = async (barId, tableId) => {
 // Add new methods for holding and releasing tables
 export const holdTableSignalR = async (barId, tableId, date, time) => {
   try {
-    await connection.invoke("HoldTable", barId, tableId, date, time + ":00");
+    await hubConnection.invoke("HoldTable", barId, tableId, date, time);
+    console.log(`Table ${tableId} held via SignalR`);
   } catch (error) {
     console.error("Error holding table via SignalR:", error);
   }
@@ -101,7 +101,8 @@ export const holdTableSignalR = async (barId, tableId, date, time) => {
 
 export const releaseTableSignalR = async (barId, tableId, date, time) => {
   try {
-    await connection.invoke("ReleaseTable", barId, tableId, date, time + ":00");
+    await hubConnection.invoke("ReleaseTable", barId, tableId, date, time);
+    console.log(`Table ${tableId} released via SignalR`);
   } catch (error) {
     console.error("Error releasing table via SignalR:", error);
   }
