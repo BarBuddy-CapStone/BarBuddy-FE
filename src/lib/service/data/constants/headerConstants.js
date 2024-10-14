@@ -1,18 +1,20 @@
 const headerConstants = {
   // Header của Admin
   dasboard: "DASHBOARD",
-  managerBarBranch: "QUẢN LÍ CHI NHÁNH BAR",
-  tableType: "QUÁN LÍ BÀN",
-  customer: "QUẢN LÍ TÀI KHOẢN CUSTOMER",
-  staff: "QUẢN LÍ TÀI KHOẢN STAFF",
-  emotional: "QUẢN LÍ DANH MỤC CẢM XÚC",
-  drink: "QUẢN LÍ THỨC UỐNG",
-  feedback: "QUẢN LÍ FEEDBACK",
+  managerBarBranch: "QUẢN LÝ CHI NHÁNH BAR",
+  payment: "QUẢN LÝ GIAO DỊCH",
+  tableType: "QUẢN LÝ BÀN",
+  customer: "QUẢN LÝ TÀI KHOẢN CUSTOMER",
+  staff: "QUẢN LÝ TÀI KHOẢN STAFF",
+  emotional: "QUẢN LÝ DANH MỤC CẢM XÚC",
+  drink: "QUẢN LÝ THỨC UỐNG",
+  feedback: "QUẢN LÝ FEEDBACK",
 
   // Header của Staff
   headerStaff: {
     table: "QUẢN LÍ BÀN",
-    table_list: "DANH SÁCH ĐẶT BÀN",
+    table_booking_list: "DANH SÁCH ĐẶT BÀN",
+    table_booking_detail: "CHI TIẾT ĐẶT BÀN",
     payment_history: "THANH TOÁN"
   },
   headerCustomer: {

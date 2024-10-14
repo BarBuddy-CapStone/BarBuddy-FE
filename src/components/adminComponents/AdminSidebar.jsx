@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; // Import Link, useLocation và useNavigate
 import { toast } from "react-toastify"; // Import toast
+import CloseIcon from "@mui/icons-material/Close"; // Thêm import này
 
 const sidebarItems = [
   {
@@ -50,7 +51,7 @@ const sidebarItems = [
   },
 ];
 
-function AdminSidebar() {
+function AdminSidebar({ className, isOpen, onClose }) {
   const location = useLocation(); // Lấy vị trí hiện tại của đường dẫn
   const navigate = useNavigate(); // Khai báo useNavigate
   const [activeItem, setActiveItem] = useState("");
@@ -74,63 +75,69 @@ function AdminSidebar() {
     }, 1500); // Đợi 1 giây trước khi chuyển hướng
   };
 
+  const handleItemClick = (label) => {
+    setActiveItem(label);
+    if (window.innerWidth < 768) {
+      onClose();
+    }
+  };
+
   return (
-    <nav className="flex flex-col w-[15%] max-md:ml-0 max-md:w-full h-full min-h-screen overflow-y-auto">
-      <div className="flex overflow-hidden flex-col mx-auto w-full bg-white h-full">
-        <div className="flex overflow-hidden gap-3 justify-between items-start py-px pl-6 bg-white max-md:pl-3">
-          <div className="flex flex-col mt-5">
-            <img
-              loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/2a0a0c1b5ecdf562f92f44965e83233e25cd253bd5323f36c1b1977b0b39805d?placeholderIfAbsent=true&apiKey=402c56a5a1d94d11bd24e7050966bb9d"
-              alt="Bar Buddy 1 logo"
-              className="object-contain aspect-[2.07] w-[200px]"
-            />
-            <div className="flex flex-col pl-2">
-              <h1 className="self-center text-xl font-bold text-sky-900 text-opacity-90">
-                Bar Buddy 1
-              </h1>
-              <ul className="flex flex-col items-start mt-10 text-md text-blue-900 max-md:mt-8 w-full">
-                {sidebarItems.map((item, index) => (
-                  <li
-                    key={index}
-                    className={`flex overflow-hidden gap-3 items-center px-2 py-1 mt-3 whitespace-nowrap rounded-lg cursor-pointer w-full ${
-                      activeItem === item.label ? "bg-blue-100" : ""
-                    }`}
-                  >
-                    {item.label === "Đăng xuất" ? (
-                      <div
-                        className="flex items-center gap-2 w-full"
-                        onClick={handleLogout} // Gọi hàm handleLogout khi nhấn vào Đăng xuất
-                      >
-                        <img
-                          loading="lazy"
-                          src={item.icon}
-                          alt=""
-                          className="object-contain shrink-0 self-stretch my-auto w-5 aspect-square"
-                        />
-                        <span className="self-stretch my-auto">{item.label}</span>
-                      </div>
-                    ) : (
-                      <Link
-                        to={item.path}
-                        className="flex items-center gap-2 w-full"
-                        onClick={() => setActiveItem(item.label)}
-                      >
-                        <img
-                          loading="lazy"
-                          src={item.icon}
-                          alt=""
-                          className="object-contain shrink-0 self-stretch my-auto w-5 aspect-square"
-                        />
-                        <span className="self-stretch my-auto">{item.label}</span>
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+    <nav className={`${className} bg-white flex flex-col`}>
+      <div className="flex justify-between items-center p-4 md:hidden">
+        <h2 className="text-xl font-bold">Danh Mục</h2>
+        <button onClick={onClose} aria-label="Close menu">
+          <CloseIcon />
+        </button>
+      </div>
+      <div className="flex flex-col flex-grow overflow-y-auto">
+        <div className="flex justify-center items-center py-8">
+          <img
+            loading="lazy"
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/2a0a0c1b5ecdf562f92f44965e83233e25cd253bd5323f36c1b1977b0b39805d?placeholderIfAbsent=true&apiKey=402c56a5a1d94d11bd24e7050966bb9d"
+            alt="Bar Buddy 1 logo"
+            className="object-contain h-24 w-auto"
+          />
         </div>
+        <ul className="flex flex-col space-y-2 px-4">
+          {sidebarItems.map((item, index) => (
+            <li
+              key={index}
+              className={`rounded-lg overflow-hidden ${
+                activeItem === item.label ? "bg-blue-100" : ""
+              }`}
+            >
+              {item.label === "Đăng xuất" ? (
+                <div
+                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                  onClick={handleLogout}
+                >
+                  <img
+                    loading="lazy"
+                    src={item.icon}
+                    alt=""
+                    className="w-5 h-5 object-contain"
+                  />
+                  <span>{item.label}</span>
+                </div>
+              ) : (
+                <Link
+                  to={item.path}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition-colors duration-200"
+                  onClick={() => handleItemClick(item.label)}
+                >
+                  <img
+                    loading="lazy"
+                    src={item.icon}
+                    alt=""
+                    className="w-5 h-5 object-contain"
+                  />
+                  <span>{item.label}</span>
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
     </nav>
   );

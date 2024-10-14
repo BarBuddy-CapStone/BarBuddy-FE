@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import PaymentHistoryService from "../../../lib/service/paymentHistoryService";
+import { CircularProgress } from "@mui/material"; // Thêm import này
 
 function PaymentHistory() {
   const [activeTab, setActiveTab] = useState("Hoàn thành");
@@ -13,10 +14,12 @@ function PaymentHistory() {
   const [payments, setPayments] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [searchParams, setSearchParams] = useState({});
+  const [loading, setLoading] = useState(true);
 
   // Fetch payment history
   useEffect(() => {
     const fetchPayments = async () => {
+      setLoading(true); // Bắt đầu loading
       try {
         const userInfo = JSON.parse(sessionStorage.getItem("userInfo")); // Lấy userInfo từ session storage
         const barId = userInfo ? userInfo.identityId : null; // Trích xuất identityId
@@ -45,6 +48,8 @@ function PaymentHistory() {
         setTotalPages(response.data.totalPage);
       } catch (error) {
         console.error("Error fetching payment history:", error);
+      } finally {
+        setLoading(false); // Kết thúc loading
       }
     };
 
@@ -52,6 +57,7 @@ function PaymentHistory() {
   }, [currentPage, searchParams, activeTab]);
 
   const handleSearch = (params) => {
+    setLoading(true); // Bắt đầu loading khi thực hiện filter
     setSearchParams(params);
     setCurrentPage(1);
   };
@@ -119,21 +125,24 @@ function PaymentHistory() {
                   : "Thất bại"
               }
               onRowClick={handleRowClick}
+              loading={loading}
             />
-            <Stack
-              spacing={2}
-              direction="row"
-              justifyContent="center"
-              alignItems="center"
-              sx={{ mt: 2 }}
-            >
-              <Pagination
-                count={totalPages}
-                page={currentPage}
-                onChange={handlePageChange}
-                color="primary"
-              />
-            </Stack>
+            {!loading && payments.length > 0 && (
+              <Stack
+                spacing={2}
+                direction="row"
+                justifyContent="center"
+                alignItems="center"
+                sx={{ mt: 2 }}
+              >
+                <Pagination
+                  count={totalPages}
+                  page={currentPage}
+                  onChange={handlePageChange}
+                  color="primary"
+                />
+              </Stack>
+            )}
             {isModalOpen && selectedPayment && (
               <TransactionModal
                 payment={selectedPayment}
@@ -287,16 +296,17 @@ SearchForm.propTypes = {
 };
 
 // Payment table
-function PaymentTable({ payments, tabStatus, onRowClick }) {
+function PaymentTable({ payments, tabStatus, onRowClick, loading }) {
   PaymentTable.propTypes = {
     payments: PropTypes.array.isRequired,
     tabStatus: PropTypes.string.isRequired,
     onRowClick: PropTypes.func.isRequired,
+    loading: PropTypes.bool.isRequired,
   };
 
   return (
     <div className="flex flex-col self-center mt-9 w-full text-sm leading-5 bg-white rounded-xl">
-      {/* Table Header */}
+      {/* Table Header - Luôn hiển thị */}
       <div className="flex bg-white rounded-t-xl font-semibold text-neutral-900 w-full">
         <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">
           Ngày giao dịch
@@ -313,17 +323,19 @@ function PaymentTable({ payments, tabStatus, onRowClick }) {
         <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">
           Trạng thái
         </div>
-        <div className="flex items-center justify-center text-center py-3 w-16"></div>{" "}
-        {/* Action column */}
+        <div className="flex items-center justify-center text-center py-3 w-16"></div>
       </div>
 
-      {/* Check if there are no payments */}
-      {payments.length === 0 ? (
+      {/* Table Body */}
+      {loading ? (
+        <div className="flex justify-center items-center py-6">
+          <CircularProgress />
+        </div>
+      ) : payments.length === 0 ? (
         <div className="flex justify-center items-center py-6">
           <p className="text-red-500">Không có dữ liệu để hiển thị.</p>
         </div>
       ) : (
-        // Table Rows
         payments.map((payment, index) => (
           <div
             key={index}

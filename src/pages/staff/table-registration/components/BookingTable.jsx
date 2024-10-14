@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom"; // Thêm import useNavigate
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'; // Nhập biểu tượng
+import { CircularProgress } from '@mui/material'; // Thêm import này
 
 function BookingTableRow({ booking, isEven, onViewDetails }) {
   const rowClass = isEven ? "bg-orange-50" : "bg-white shadow-sm hover:bg-gray-100 transition duration-150";
@@ -75,7 +76,7 @@ function getStatusClass(status) {
 }
 
 
-function BookingTable({ filter, bookings }) {
+function BookingTable({ filter, bookings, loading }) {
   const navigate = useNavigate(); // Khai báo useNavigate
 
   const handleViewDetails = (bookingId) => {
@@ -84,9 +85,9 @@ function BookingTable({ filter, bookings }) {
 
   const filteredBookings = bookings.filter(booking => {
     return (
-      (filter.name ? booking.customerName.includes(filter.name) : true) &&
+      (filter.name ? booking.customerName.toLowerCase().includes(filter.name.toLowerCase()) : true) &&
       (filter.phone ? booking.phone.includes(filter.phone) : true) &&
-      (filter.email ? booking.email.includes(filter.email) : true) &&
+      (filter.email ? booking.email.toLowerCase().includes(filter.email.toLowerCase()) : true) &&
       (filter.status === "All" || (filter.status ? booking.status === filter.status : true))
     );
   });
@@ -106,14 +107,28 @@ function BookingTable({ filter, bookings }) {
           </tr>
         </thead>
         <tbody>
-          {filteredBookings.map((booking, index) => (
-            <BookingTableRow
-              key={booking.bookingId} // Sử dụng bookingId làm key duy nhất
-              booking={booking}
-              isEven={index % 2 === 0}
-              onViewDetails={handleViewDetails} // Truyền hàm handleViewDetails
-            />
-          ))}
+          {loading ? (
+            <tr>
+              <td colSpan="7" className="text-center py-4 h-32">
+                <CircularProgress />
+              </td>
+            </tr>
+          ) : filteredBookings.length === 0 ? (
+            <tr>
+              <td colSpan="7" className="text-center py-4 h-32">
+                <p className="text-red-500 text-lg font-semibold">Không có lịch đặt chỗ</p>
+              </td>
+            </tr>
+          ) : (
+            filteredBookings.map((booking, index) => (
+              <BookingTableRow
+                key={booking.bookingId}
+                booking={booking}
+                isEven={index % 2 === 0}
+                onViewDetails={handleViewDetails}
+              />
+            ))
+          )}
         </tbody>
       </table>
     </div>

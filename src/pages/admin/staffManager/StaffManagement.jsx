@@ -5,6 +5,7 @@ import { getStaffAccounts } from '../../../lib/service/adminService'; // Import 
 import { toast, ToastContainer } from 'react-toastify'; // Import toast
 import 'react-toastify/dist/ReactToastify.css';
 import Pagination from '@mui/material/Pagination'; // Import Pagination từ MUI
+import { CircularProgress } from '@mui/material'; // Thêm import này
 
 // Các components
 const StaffTable = ({ staffData }) => (
@@ -145,24 +146,29 @@ const StaffManagement = () => {
     const [filteredStaff, setFilteredStaff] = useState([]);
     const [pageIndex, setPageIndex] = useState(1);
     const [pageSize, setPageSize] = useState(6);
-    const [totalCustomers, setTotalCustomers] = useState(0);
+    const [totalStaff, setTotalStaff] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedBar, setSelectedBar] = useState(null);
     const location = useLocation();
 
     useEffect(() => {
         const loadData = async () => {
+            setIsLoading(true);
             try {
-                const response = await getStaffAccounts(pageSize, pageIndex); // Gọi hàm với pageSize và pageIndex
+                const response = await getStaffAccounts(pageSize, pageIndex);
                 const data = response.data.items;
-                setTotalCustomers(response.data.count); // Tính tổng số trang
-
+                setTotalStaff(response.data.count);
                 setStaffData(data);
                 setFilteredStaff(data);
-            } catch {
-                setError('Failed to fetch staff data');
+            } catch (error) {
+                console.error('Failed to fetch staff data:', error);
+                toast.error('Không thể tải danh sách nhân viên.');
+            } finally {
+                setIsLoading(false);
             }
         };
         loadData();
-    }, [pageIndex]); // Thêm pageIndex vào dependency array
+    }, [pageIndex, pageSize]);
 
     useEffect(() => {
         if (location.state && location.state.successMessage) {
@@ -171,15 +177,24 @@ const StaffManagement = () => {
     }, [location.state]);
     
     const handlePageChange = (event, value) => {
-        setPageIndex(value); // Cập nhật pageIndex khi người dùng chọn trang
+        setPageIndex(value);
     };
 
     const handleSearch = (searchTerm) => {
-        setFilteredStaff(staffData.filter(staff => staff.name.toLowerCase().includes(searchTerm.toLowerCase())));
+        const filtered = staffData.filter(staff => 
+            staff.fullname.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredStaff(filtered);
     };
 
     const handleFilter = (bar) => {
-        setFilteredStaff(staffData.filter(staff => staff.bar === bar));
+        setSelectedBar(bar);
+        if (bar === 'All') {
+            setFilteredStaff(staffData);
+        } else {
+            const filtered = staffData.filter(staff => staff.bar && staff.bar.barName === bar);
+            setFilteredStaff(filtered);
+        }
     };
 
     return (
@@ -191,14 +206,39 @@ const StaffManagement = () => {
                     <AddStaffButton />
                 </div>
                 <div className="flex overflow-hidden flex-col mt-14 max-w-full text-sm leading-5 table-container">
-                    <StaffTable staffData={filteredStaff} />
+                    <table className="min-w-full text-sm table-auto border-collapse">
+                        <StaffTableHeader />
+                        <tbody>
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-4">
+                                        <CircularProgress />
+                                    </td>
+                                </tr>
+                            ) : filteredStaff.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="text-red-500 text-center py-4 text-lg">
+                                        Không có nhân viên
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredStaff.map((staff, index) => (
+                                    <StaffTableRow key={index} staff={staff} index={index} />
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-                <Pagination
-                    count={Math.ceil(totalCustomers / pageSize)} // Số trang tổng cộng
-                    page={pageIndex} // Trang hiện tại
-                    onChange={handlePageChange} // Hàm xử lý khi trang thay đổi
-                    color="primary" // Màu sắc của Pagination
-                />
+                {!isLoading && filteredStaff.length > 0 && (
+                    <div className="flex justify-center mt-4">
+                        <Pagination
+                            count={Math.ceil(totalStaff / pageSize)}
+                            page={pageIndex}
+                            onChange={handlePageChange}
+                            color="primary"
+                        />
+                    </div>
+                )}
             </div>
             <ToastContainer />
         </main>

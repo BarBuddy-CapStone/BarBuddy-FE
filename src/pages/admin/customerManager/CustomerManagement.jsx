@@ -5,6 +5,7 @@ import { getCustomerAccounts } from 'src/lib/service/adminService';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
 
 const SearchCustomerName = ({ onSearch }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -33,7 +34,7 @@ const AddCustomerButton = () => {
             className="overflow-hidden gap-2 self-stretch pr-6 pl-6 w-auto italic bg-blue-600 max-h-[60px] rounded-[50px] whitespace-nowrap"
             onClick={() => navigate('/admin/customer-creation')}
         >
-            Thêm customer
+            Thêm khách hàng
         </button>
     );
 }
@@ -123,22 +124,31 @@ const CustomerTable = ({ customerData }) => {
 };
 
 const CustomerManagement = () => {
-    const [filteredCustomers, setFilteredCustomers] = useState([]); // Thay đổi state để lưu danh sách khách hàng
+    const [filteredCustomers, setFilteredCustomers] = useState([]);
     const [pageIndex, setPageIndex] = useState(1);
     const [pageSize, setPageSize] = useState(6);
-    const [totalCustomers, setTotalCustomers] = useState(0); // Thêm state cho tổng số khách hàng
+    const [totalCustomers, setTotalCustomers] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
-    const location = useLocation(); // Khai báo useLocation
+    const location = useLocation();
 
     useEffect(() => {
         const fetchCustomers = async () => {
-            const response = await getCustomerAccounts(pageSize, pageIndex); // Gọi hàm với pageSize và pageIndex
-            setFilteredCustomers(response.data.items); // Cập nhật danh sách khách hàng đã lấy từ API
-            setTotalCustomers(response.data.count); // Lưu tổng số khách hàng từ phản hồi
+            setIsLoading(true); // Bắt đầu loading
+            try {
+                const response = await getCustomerAccounts(pageSize, pageIndex);
+                setFilteredCustomers(response.data.items);
+                setTotalCustomers(response.data.count);
+            } catch (error) {
+                console.error("Error fetching customers:", error);
+                toast.error("Không thể tải danh sách khách hàng.");
+            } finally {
+                setIsLoading(false); // Kết thúc loading
+            }
         };
 
         fetchCustomers();
-    }, [pageIndex, pageSize]); // Thêm pageIndex và pageSize vào dependency array
+    }, [pageIndex, pageSize]);
 
     const handleSearch = (searchTerm) => {
         const filtered = customerData.filter(customer =>
@@ -154,6 +164,10 @@ const CustomerManagement = () => {
         }
     }, [location.state]);
 
+    const handlePageChange = (event, value) => {
+        setPageIndex(value);
+    };
+
     return (
         <main className="flex-1 overflow-x-hidden overflow-y-auto mr-100 bg-gray-100">
             <div className="container mx-auto px-6 py-8">
@@ -162,17 +176,47 @@ const CustomerManagement = () => {
                     <AddCustomerButton />
                 </div>
                 <div className="flex overflow-hidden flex-col mt-14 max-w-full text-sm leading-5 table-container">
-                    <CustomerTable customerData={filteredCustomers} /> 
+                    <table className="min-w-full text-sm table-auto border-collapse">
+                        <CustomerTableHeader />
+                        <tbody>
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-4">
+                                        <CircularProgress />
+                                    </td>
+                                </tr>
+                            ) : filteredCustomers.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="text-red-500 text-center py-4 text-lg">
+                                        Không có khách hàng
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredCustomers.map((customer, index) => (
+                                    <CustomerTableRow
+                                        key={index}
+                                        customer={customer}
+                                        index={index}
+                                        isEven={index % 2 === 0}
+                                        onViewDetails={() => handleViewDetail(customer.accountId)}
+                                    />
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-                <Pagination
-                    count={Math.ceil(totalCustomers / pageSize)}
-                    page={pageIndex}
-                    onChange={(event, value) => setPageIndex(value)} // Cập nhật pageIndex khi thay đổi
-                    variant="outlined"
-                    shape="rounded"
-                />
+                {!isLoading && filteredCustomers.length > 0 && (
+                    <div className="flex justify-center mt-4">
+                        <Pagination
+                            count={Math.ceil(totalCustomers / pageSize)}
+                            page={pageIndex}
+                            onChange={handlePageChange}
+                            color="primary"
+                        />
+                    </div>
+                )}
             </div>
-            <ToastContainer /> {/* Thêm ToastContainer vào trong JSX */}
+            <ToastContainer />
         </main>
     );
 }

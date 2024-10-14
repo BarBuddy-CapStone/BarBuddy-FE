@@ -102,8 +102,12 @@ const TableTypeManagementAdmin = () => {
     />
     <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
       {loading ? ( // Kiểm tra nếu đang loading
-        <div className="flex justify-center py-4">
+        <div className="flex justify-center items-center h-32">
           <CircularProgress /> {/* Hiển thị spinner */}
+        </div>
+      ) : filteredTableTypes.length === 0 ? ( // Kiểm tra nếu không có dữ liệu
+        <div className="flex justify-center items-center h-32">
+          <p className="text-red-500 text-lg font-semibold">Không có loại bàn</p>
         </div>
       ) : (
         <TableTypeList
@@ -306,6 +310,14 @@ TableTypeCard.propTypes = {
 
 // DeleteTableTypePopup component
 const DeleteTableTypePopup = ({ isOpen, onClose, onDelete, tableType }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleDelete = async () => {
+    setIsLoading(true);
+    await onDelete();
+    setIsLoading(false);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -317,8 +329,8 @@ const DeleteTableTypePopup = ({ isOpen, onClose, onDelete, tableType }) => {
           <button type="button" className="bg-gray-400 text-white py-3 w-48 rounded-full" onClick={onClose}>
             Hủy bỏ
           </button>
-          <button type="button" className="bg-blue-600 text-white py-3 w-48 rounded-full" onClick={onDelete}>
-            Xóa
+          <button type="button" className="bg-blue-600 text-white py-3 w-48 rounded-full flex items-center justify-center" onClick={handleDelete} disabled={isLoading}>
+            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Xóa'}
           </button>
         </div>
       </div>
@@ -341,6 +353,7 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
   const [maximumGuest, setMaximumGuest] = useState('');
   const [minimumPrice, setMinimumPrice] = useState('');
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen || resetFormTrigger) {
@@ -375,9 +388,10 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
     return Object.keys(formErrors).length === 0;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateForm()) return;
+    setIsLoading(true);
     const tableTypeData = {
       typeName,
       description,
@@ -385,7 +399,8 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
       maximumGuest: parseInt(maximumGuest, 10),
       minimumPrice: parseFloat(minimumPrice),
     };
-    handleAddTableType(event, tableTypeData);
+    await handleAddTableType(event, tableTypeData);
+    setIsLoading(false);
   };
 
   return isOpen ? (
@@ -456,8 +471,8 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
             <button type="button" className="bg-gray-400 text-white py-3 w-64 rounded-full" onClick={onClose}>
               Hủy bỏ
             </button>
-            <button type="submit" className="bg-blue-600 text-white py-3 w-64 rounded-full">
-              Thêm
+            <button type="submit" className="bg-blue-600 text-white py-3 w-64 rounded-full flex items-center justify-center" disabled={isLoading}>
+              {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Thêm'}
             </button>
           </div>
         </form>
@@ -482,6 +497,7 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
   const [maximumGuest, setMaximumGuest] = useState('');
   const [minimumPrice, setMinimumPrice] = useState('');
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (tableType) {
@@ -518,6 +534,7 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
   const handleEditTableType = async (event) => {
     event.preventDefault();
     if (!validateForm()) return;
+    setIsLoading(true);
 
     const minGuest = parseInt(minimumGuest, 10);
     const maxGuest = parseInt(maximumGuest, 10);
@@ -541,6 +558,8 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
       }
     } catch (error) {
       handleNotification('Error updating table type.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -618,9 +637,10 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
             </button>
             <button
               type="submit"
-              className="bg-blue-600 text-white py-3 w-64 rounded-full"
+              className="bg-blue-600 text-white py-3 w-64 rounded-full flex items-center justify-center"
+              disabled={isLoading}
             >
-              Lưu
+              {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Lưu'}
             </button>
           </div>
         </form>

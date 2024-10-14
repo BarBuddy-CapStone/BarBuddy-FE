@@ -5,6 +5,7 @@ import TableService from "../../../lib/service/tableService";
 import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
 import { toast } from 'react-toastify';
+import { CircularProgress } from '@mui/material';
 
 function TableManagement() {
   const { tableTypeId } = useParams();
@@ -29,17 +30,27 @@ function TableManagement() {
   });
   const [tableToDelete, setTableToDelete] = useState(null);
   const [tableTypeName, setTableTypeName] = useState(""); // Thêm state cho tableTypeName
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); // Lấy userInfo từ session storage
-      const barId = userInfo ? userInfo.identityId : null; // Trích xuất identityId
+      setIsLoading(true);
+      try {
+        const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); // Lấy userInfo từ session storage
+        const barId = userInfo ? userInfo.identityId : null; // Trích xuất identityId
 
-      const response = await TableService.getTables(barId, tableTypeId, null, pageIndex, pageSize);
-      setTableData(response.response);
-      setTotalPages(response.totalPage);
-      setTableTypeName(response.tableTypeName); // Lưu tableTypeName từ phản hồi
+        const response = await TableService.getTables(barId, tableTypeId, null, pageIndex, pageSize);
+        setTableData(response.response);
+        setTotalPages(response.totalPage);
+        setTableTypeName(response.tableTypeName); // Lưu tableTypeName từ phản hồi
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách bàn:", error);
+        toast.error("Có lỗi xảy ra khi tải dữ liệu");
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchData();
   }, [pageIndex, tableTypeId]); // Chạy lại khi pageIndex hoặc tableTypeId thay đổi
@@ -91,20 +102,27 @@ function TableManagement() {
   };
 
   const handleSaveTable = async () => {
-    if (!currentTable.tableName.trim()) {
+    const trimmedTableName = currentTable.tableName.trim();
+    
+    if (!trimmedTableName) {
       toast.error("Vui lòng nhập tên bàn");
       return;
     }
-
-    setIsLoading(true);
+    
+    if (trimmedTableName.length < 6) {
+      toast.error("Tên bàn phải có ít nhất 5 ký tự");
+      return;
+    }
+    
+    setIsSaving(true);
     try {
-      const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); // Lấy userInfo từ session storage
-      const barId = userInfo ? userInfo.identityId : null; // Trích xuất identityId
+      const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+      const barId = userInfo ? userInfo.identityId : null;
 
       const tableData = {
-        barId: barId, // Sử dụng barId từ session storage
+        barId: barId,
         tableTypeId: tableTypeId,
-        tableName: currentTable.tableName.trim(),
+        tableName: trimmedTableName,
         status: parseInt(currentTable.status)
       };
 
@@ -123,17 +141,18 @@ function TableManagement() {
         setTotalPages(updatedTables.totalPage);
         closeModal();
       } else {
-        toast.error(isEditing ? "Có lỗi xảy ra khi cập nhật bàn" : "Có lỗi xảy ra khi thêm bàn mới");
+        throw new Error(response.data.message || "Có lỗi xảy ra");
       }
     } catch (error) {
       console.error("Lỗi khi xử lý bàn:", error);
-      toast.error("Có lỗi xảy ra khi xử lý bàn");
+      toast.error(error.message || "Có lỗi xảy ra khi xử lý bàn");
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
   const handleConfirmDelete = async () => {
+    setIsDeleting(true);
     try {
       const response = await TableService.deleteTable(tableToDelete.tableId);
       
@@ -155,6 +174,10 @@ function TableManagement() {
     } catch (error) {
       console.error("Error deleting table:", error);
       toast.error("Đã xảy ra lỗi hệ thống!"); // Hiển thị thông báo lỗi
+    } finally {
+      setIsDeleting(false);
+      setTableToDelete(null);
+      closeDeletePopup();
     }
   };
 
@@ -182,7 +205,11 @@ function TableManagement() {
                 <div className="text-center break-words">Hành động</div>
               </div>
 
-              {filteredTableData.length === 0 ? (
+              {isLoading ? (
+                <div className="flex justify-center items-center h-32">
+                  <CircularProgress />
+                </div>
+              ) : filteredTableData.length === 0 ? (
                 <div className="text-red-500 text-center mt-4">
                   Không có bàn
                 </div>
@@ -237,6 +264,7 @@ function TableManagement() {
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                       required
                     />
+                    <p className="mt-1 text-sm text-gray-500">Tên bàn phải có ít nhất 6 ký tự</p>
                   </div>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700">Trạng thái</label>
@@ -251,20 +279,24 @@ function TableManagement() {
                       <option value={2}>Đã đặt trước</option>
                     </select>
                   </div>
-                  <div className="flex justify-end gap-4">
+                  <div className="flex justify-end mt-6">
                     <button
-                      className="px-4 py-2 bg-gray-200 text-gray-800 rounded-full"
+                      className="px-4 py-2 bg-gray-200 text-gray-800 rounded-full mr-2 w-32"
                       onClick={closeModal}
-                      disabled={isLoading}
+                      disabled={isSaving}
                     >
                       Hủy
                     </button>
                     <button
-                      className="px-4 py-2 bg-blue-600 text-white rounded-full"
+                      className="px-4 py-2 bg-blue-600 w-32 text-white rounded-full flex items-center justify-center"
                       onClick={handleSaveTable}
-                      disabled={isLoading}
+                      disabled={isSaving}
                     >
-                      {isLoading ? "Đang xử lý..." : (isEditing ? "Cập nhật" : "Lưu")}
+                      {isSaving ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        isEditing ? "Cập nhật" : "Lưu"
+                      )}
                     </button>
                   </div>
                 </div>
@@ -284,14 +316,16 @@ function TableManagement() {
                     <button
                       className="bg-gray-400 text-white py-3 w-48 rounded-full"
                       onClick={closeDeletePopup}
+                      disabled={isDeleting}
                     >
                       Hủy bỏ
                     </button>
                     <button
-                      className="bg-blue-600 text-white py-3 w-48 rounded-full"
+                      className="bg-blue-600 text-white py-3 w-48 rounded-full flex items-center justify-center"
                       onClick={handleConfirmDelete}
+                      disabled={isDeleting}
                     >
-                      Xóa
+                      {isDeleting ? <CircularProgress size={24} color="inherit" /> : "Xóa"}
                     </button>
                   </div>
                 </div>

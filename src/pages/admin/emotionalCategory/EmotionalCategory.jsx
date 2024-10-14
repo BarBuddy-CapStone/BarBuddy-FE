@@ -5,6 +5,7 @@ import { AddEmotionCategory, EditEmotionCategory, DeleteEmotionCategory } from "
 import { getAllEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { CircularProgress } from "@mui/material";
 
 function EmotionCategoryButton({ category, onEdit, onDelete, onView }) {
   return (
@@ -32,9 +33,11 @@ function EmotionalCategory() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentEditCategory, setCurrentEditCategory] = useState({ id: '', name: '' });
   const [currentDeleteCategory, setCurrentDeleteCategory] = useState({ id: '', name: '' });
+  const [isLoading, setIsLoading] = useState(true);
 
   const redirect = useNavigate();
   const fetchEmotionCategories = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await getAllEmotionCategory();
       const categories = response.data?.data?.result || [];
@@ -42,6 +45,8 @@ function EmotionalCategory() {
     } catch (error) {
       console.error("Error fetching emotion categories:", error);
       toast.error("Không thể tải danh sách danh mục cảm xúc.");
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -97,17 +102,25 @@ function EmotionalCategory() {
           </button>
         </div>
 
-        <div className="grid grid-cols-4 gap-8 mt-6 max-md:grid-cols-2 max-sm:grid-cols-1">
-          {emotionCategories.map((category) => (
-            <EmotionCategoryButton
-              key={category.emotionalDrinksCategoryId}
-              category={category}
-              onEdit={handleEdit}
-              onDelete={handleDelete} // Pass handleDelete to the button
-              onView={handleView}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-32">
+            <CircularProgress />
+          </div>
+        ) : emotionCategories.length === 0 ? (
+          <div className="text-red-500 text-center text-lg">Không có loại cảm xúc</div>
+        ) : (
+          <div className="grid grid-cols-4 gap-8 mt-6 max-md:grid-cols-2 max-sm:grid-cols-1">
+            {emotionCategories.map((category) => (
+              <EmotionCategoryButton
+                key={category.emotionalDrinksCategoryId}
+                category={category}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onView={handleView}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {isAdding && (

@@ -181,7 +181,7 @@ const Feedback = () => {
 
         {/* Table Data */}
         {loading ? (
-          <div className="flex justify-center py-4">
+          <div className="flex justify-center items-center h-32">
             <CircularProgress /> {/* Hiển thị spinner */}
           </div>
         ) : feedbackData.length === 0 ? (
@@ -304,19 +304,19 @@ const Feedback = () => {
               />
               <span className="text-center">{selectedFeedback.isDeleted ? "Đang ẩn" : "Đang hiển thị"}</span> {/* Căn giữa chữ */}
             </div>
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-between mt-6">
               <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
-                onClick={handleUpdateStatus} // Gọi hàm cập nhật trạng thái
-              >
-                {updating ? <CircularProgress size={24} color="inherit" className="mr-2" /> : null} {/* Hiển thị spinner khi đang cập nhật */}
-                Lưu
-              </button>
-              <button
-                className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-blue-700 ml-2"
+                className="bg-gray-400 text-white py-3 w-48 rounded-full"
                 onClick={() => setShowPopup(false)} // Đóng pop-up
               >
                 Đóng
+              </button>
+              <button
+                className="bg-blue-600 text-white py-3 w-48 rounded-full flex items-center justify-center"
+                onClick={handleUpdateStatus}
+                disabled={updating}
+              >
+                {updating ? <CircularProgress size={24} color="inherit" /> : 'Lưu'}
               </button>
             </div>
           </div>

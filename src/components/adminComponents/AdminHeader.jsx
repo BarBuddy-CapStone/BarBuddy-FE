@@ -1,7 +1,9 @@
 import React from "react";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+import MenuIcon from "@mui/icons-material/Menu";
 import { useLocation } from "react-router-dom";
 import { headerConstants } from "src/lib";
+
 const getTitlePath = (pathName) => {
   switch (pathName) {
     case "/admin/dashboard":
@@ -16,6 +18,9 @@ const getTitlePath = (pathName) => {
 
     case "/admin/table-type-management":
       return headerConstants.tableType;
+
+    case "/admin/payment-history":
+      return headerConstants.payment;
 
     case "/admin/customers":
       return headerConstants.customer;
@@ -51,13 +56,23 @@ const getTitlePath = (pathName) => {
       return "Admin";
   }
 };
-const AdminHeader = ({ className }) => {
+
+const AdminHeader = ({ className, onMenuClick, isSidebarOpen }) => {
   const location = useLocation();
   const title = getTitlePath(location.pathname);
 
   return (
     <header className={`flex justify-between items-center p-4 ${className}`}>
-      <h1 className="text-2xl font-bold text-sky-900">{title}</h1>
+      <div className="flex items-center">
+        <button 
+          className="mr-4 md:hidden" 
+          onClick={onMenuClick}
+          aria-label="Toggle menu"
+        >
+          <MenuIcon />
+        </button>
+        <h1 className="text-2xl font-bold text-sky-900 px-2">{title}</h1>
+      </div>
       <div className="flex items-center space-x-4">
         <button aria-label="Notifications" className="p-1">
           <NotificationsNoneIcon fontSize="large" />

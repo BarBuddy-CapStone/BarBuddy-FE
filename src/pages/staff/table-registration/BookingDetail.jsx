@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BookingService from 'src/lib/service/bookingService';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { IconButton } from '@mui/material';
+import { IconButton, CircularProgress } from '@mui/material';
 import { toast } from 'react-toastify';
 
 const BookingDetail = () => {
@@ -11,6 +11,7 @@ const BookingDetail = () => {
 
   const [Booking, setBooking] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -30,6 +31,7 @@ const BookingDetail = () => {
   }, [bookingId]);
 
   const handleSave = async () => {
+    setIsUpdating(true);
     try {
       await BookingService.updateStatusBooking(bookingId, parseInt(selectedStatus));
       setBooking(prevBooking => ({
@@ -40,6 +42,8 @@ const BookingDetail = () => {
     } catch (error) {
       console.error("Lỗi khi cập nhật trạng thái:", error);
       toast.error("Không thể cập nhật trạng thái. Vui lòng thử lại sau.");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -183,10 +187,15 @@ const BookingDetail = () => {
 
             <div className="flex justify-end">
               <button
-                className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors w-[150px]"
+                className="px-6 py-2 mt-4 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors w-[150px] flex items-center justify-center"
                 onClick={handleSave}
+                disabled={isUpdating}
               >
-                Cập nhật
+                {isUpdating ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Cập nhật"
+                )}
               </button>
             </div>
           </div>

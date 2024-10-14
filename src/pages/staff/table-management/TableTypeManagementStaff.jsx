@@ -2,21 +2,26 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import TableTypeService from '../../../lib/service/tableTypeService'; // Thêm import service
+import { CircularProgress } from '@mui/material'; // Thêm import này
 
 const TableTypeManagementStaff = () => {
   const [searchTerm, setSearchTerm] = useState(''); // New state for search term
   const [tableTypes, setTableTypes] = useState([]); // Thêm state cho tableTypes
+  const [loading, setLoading] = useState(true); // Thêm state loading
 
   useEffect(() => {
     fetchTableTypes(); // Gọi hàm fetchTableTypes khi component mount
   }, []);
 
   const fetchTableTypes = async () => {
+    setLoading(true); // Bắt đầu loading
     try {
       const response = await TableTypeService.getAllTableTypes(); // Gọi API để lấy dữ liệu
       setTableTypes(response.data.data); // Cập nhật state với dữ liệu nhận được
     } catch (error) {
       console.error('Error fetching table types:', error); // Xử lý lỗi
+    } finally {
+      setLoading(false); // Kết thúc loading
     }
   };
 
@@ -35,7 +40,17 @@ const TableTypeManagementStaff = () => {
         <div className="flex flex-col w-full max-md:ml-0 max-md:w-full">
           <BelowHeader searchTerm={searchTerm} onSearchChange={handleSearchChange} />
           <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
-            <TableTypeList tableTypes={filteredTableTypes} />
+            {loading ? (
+              <div className="flex justify-center items-center h-32">
+                <CircularProgress />
+              </div>
+            ) : filteredTableTypes.length === 0 ? (
+              <div className="flex justify-center items-center h-32">
+                <p className="text-red-500 text-lg font-semibold">Không có loại bàn</p>
+              </div>
+            ) : (
+              <TableTypeList tableTypes={filteredTableTypes} />
+            )}
           </div>
         </div>
       </div>

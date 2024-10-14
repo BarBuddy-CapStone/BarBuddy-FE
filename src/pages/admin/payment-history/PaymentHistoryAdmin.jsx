@@ -4,6 +4,7 @@ import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
 import { useNavigate } from 'react-router-dom';
 import PaymentHistoryService from '../../../lib/service/paymentHistoryService';
+import { CircularProgress } from '@mui/material'; // Thêm import này
 
 function PaymentHistory() {
   const [activeTab, setActiveTab] = useState('Hoàn thành');
@@ -16,10 +17,12 @@ function PaymentHistory() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchParams, setSearchParams] = useState({});
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false); // Thêm state cho loading
 
   // Fetch payment history
   useEffect(() => {
     const fetchPayments = async () => {
+      setLoading(true); // Bắt đầu loading
       try {
         const params = {
           Status: activeTab === 'Hoàn thành' ? 1 : activeTab === 'Đang chờ' ? 0 : 2,
@@ -44,6 +47,8 @@ function PaymentHistory() {
         setTotalPages(response.data.totalPage);
       } catch (error) {
         console.error('Error fetching payment history:', error);
+      } finally {
+        setLoading(false); // Kết thúc loading
       }
     };
 
@@ -125,11 +130,34 @@ function PaymentHistory() {
               </button>
             </div>
 
-            <PaymentTable
-              payments={payments}
-              tabStatus={activeTab === 'Hoàn thành' ? 'Thành công' : activeTab === 'Đang chờ' ? 'Đang chờ' : 'Thất bại'}
-              onRowClick={handleRowClick}
-            />
+            <div className="flex flex-col self-center mt-9 w-full text-sm leading-5 bg-white rounded-xl">
+              {/* Table Header */}
+              <div className="flex bg-white rounded-t-xl font-semibold text-neutral-900 w-full">
+                <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">Ngày giao dịch</div>
+                <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">Tên khách hàng</div>
+                <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">Số điện thoại</div>
+                <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">Tổng tiền</div>
+                <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">Trạng thái</div>
+                <div className="flex items-center justify-center text-center px-4 py-3 w-16"></div> {/* Action column */}
+              </div>
+
+              {/* Table Body */}
+              {loading ? (
+                <div className="flex justify-center items-center h-32">
+                  <CircularProgress />
+                </div>
+              ) : payments.length === 0 ? (
+                <div className="flex justify-center items-center py-6">
+                  <p className="text-red-500">Không có dữ liệu để hiển thị.</p>
+                </div>
+              ) : (
+                <PaymentTable
+                  payments={payments}
+                  tabStatus={activeTab === 'Hoàn thành' ? 'Thành công' : activeTab === 'Đang chờ' ? 'Đang chờ' : 'Thất bại'}
+                  onRowClick={handleRowClick}
+                />
+              )}
+            </div>
 
             <Stack spacing={2} direction="row" justifyContent="center" alignItems="center" sx={{ mt: 2 }}>
               <Pagination
@@ -160,11 +188,13 @@ function SearchForm({ barBranches, onSearch }) {
   const [customerName, setCustomerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const isAnyFieldFilled = transactionDate || selectedBranch !== 'null' || customerName || phoneNumber || email;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSearching(true);
 
     const searchParams = {
       CustomerName: customerName || null,
@@ -174,16 +204,19 @@ function SearchForm({ barBranches, onSearch }) {
       PaymentDate: transactionDate || null,
     };
 
-    onSearch(searchParams);
+    await onSearch(searchParams);
+    setIsSearching(false);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     setTransactionDate('');
     setSelectedBranch('null');
     setCustomerName('');
     setPhoneNumber('');
     setEmail('');
-    onSearch({});
+    setIsSearching(true);
+    await onSearch({});
+    setIsSearching(false);
   };
 
   return (
@@ -277,17 +310,18 @@ function SearchForm({ barBranches, onSearch }) {
             type="button"
             className={`px-6 py-1.5 text-sm font-semibold text-white bg-gray-500 rounded-full hover:bg-gray-300 w-[150px] text-center ${!isAnyFieldFilled ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleReset}
-            disabled={!isAnyFieldFilled}
+            disabled={!isAnyFieldFilled || isSearching}
           >
-            Xóa bộ lọc
+            {isSearching ? <CircularProgress size={20} color="inherit" /> : 'Xóa bộ lọc'}
           </button>
 
           {/* Submit Button */}
           <button
             type="submit"
             className="px-6 py-1.5 text-sm font-semibold text-white bg-blue-900 rounded-full hover:bg-blue-800 w-[150px] text-center"
+            disabled={isSearching}
           >
-            Xem
+            {isSearching ? <CircularProgress size={20} color="inherit" /> : 'Xem'}
           </button>
         </div>
       </div>
@@ -313,54 +347,36 @@ function PaymentTable({ payments, tabStatus, onRowClick }) {
   };
 
   return (
-    <div className="flex flex-col self-center mt-9 w-full text-sm leading-5 bg-white rounded-xl">
-      {/* Table Header */}
-      <div className="flex bg-white rounded-t-xl font-semibold text-neutral-900 w-full">
-        <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">Ngày giao dịch</div>
-        <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">Tên khách hàng</div>
-        <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">Số điện thoại</div>
-        <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">Tổng tiền</div>
-        <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">Trạng thái</div>
-        <div className="flex items-center justify-center text-center px-4 py-3 w-16"></div> {/* Action column */}
-      </div>
-
-      {/* Check if there are no payments */}
-      {payments.length === 0 ? (
-        <div className="flex justify-center items-center py-6">
-          <p className="text-red-500">Không có dữ liệu để hiển thị.</p>
-        </div>
-      ) : (
-        // Table Rows
-        payments.map((payment, index) => (
+    <>
+      {payments.map((payment, index) => (
+        <div
+          key={index}
+          className={`flex items-center border-t border-gray-300 ${
+            index % 2 === 0 ? 'bg-orange-50' : 'bg-white'
+          } ${index === payments.length - 1 ? 'rounded-b-xl' : ''}`}
+          onClick={() => onRowClick(payment)}
+        >
+          <div className="flex items-center justify-center text-center py-3 w-1/5">{payment.date}</div>
+          <div className="flex items-center justify-center text-center py-3 w-1/5">{payment.name}</div>
+          <div className="flex items-center justify-center text-center py-3 w-1/5 break-words">{payment.phone}</div>
+          <div className="flex items-center justify-center text-center py-3 w-1/5">{payment.total}</div>
           <div
-            key={index}
-            className={`flex items-center border-t border-gray-300 ${
-              index % 2 === 0 ? 'bg-orange-50' : 'bg-white'
-            } ${index === payments.length - 1 ? 'rounded-b-xl' : ''}`}
-            onClick={() => onRowClick(payment)} // Open modal on row click
+            className={`flex items-center justify-center text-center py-3 w-1/5 font-bold ${
+              payment.status === 1 ? 'text-green-600' : payment.status === 2 ? 'text-red-600' : 'text-orange-600'
+            }`}
           >
-            <div className="flex items-center justify-center text-center py-3 w-1/5">{payment.date}</div>
-            <div className="flex items-center justify-center text-center py-3 w-1/5">{payment.name}</div>
-            <div className="flex items-center justify-center text-center py-3 w-1/5 break-words">{payment.phone}</div>
-            <div className="flex items-center justify-center text-center py-3 w-1/5">{payment.total}</div>
-            <div
-              className={`flex items-center justify-center text-center py-3 w-1/5 font-bold ${
-                payment.status === 1 ? 'text-green-600' : payment.status === 2 ? 'text-red-600' : 'text-orange-600'
-              }`}
-            >
-              {payment.status === 1 ? 'Hoàn thành' : payment.status === 2 ? 'Thất bại' : 'Đang chờ'} {/* Cập nhật trạng thái */}
-            </div>
-            <div className="flex items-center justify-center text-center py-3 w-16">
-              <img
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/991df118f925ffab94381e6c044c6f0de9bb50883bc39a8081acecdaf2236760?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e"
-                alt="Action Icon"
-                className="cursor-pointer w-5 h-5"
-              />
-            </div>
+            {payment.status === 1 ? 'Hoàn thành' : payment.status === 2 ? 'Thất bại' : 'Đang chờ'}
           </div>
-        ))
-      )}
-    </div>
+          <div className="flex items-center justify-center text-center py-3 w-16">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets/TEMP/991df118f925ffab94381e6c044c6f0de9bb50883bc39a8081acecdaf2236760?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e"
+              alt="Action Icon"
+              className="cursor-pointer w-5 h-5"
+            />
+          </div>
+        </div>
+      ))}
+    </>
   );
 }
 
