@@ -52,23 +52,32 @@ function BookingDetailPage() {
   const [bookingData, setBookingData] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Fetch booking details from API
   useEffect(() => {
     const fetchBookingData = async () => {
+      setLoading(true);
       try {
         const response = await BookingService.getBookingById(bookingId);
         setBookingData(response.data.data);
       } catch (error) {
         console.error("Error fetching booking data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchBookingData();
   }, [bookingId]);
 
-  if (!bookingData) {
-    return <div>Loading...</div>;
+  // Hiển thị loading spinner khi đang tải dữ liệu
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <CircularProgress style={{ color: '#FFBF00' }} />
+      </div>
+    );
   }
 
   // Destructure the booking data
@@ -263,7 +272,7 @@ function BookingDetailPage() {
         <div className="text-gray-400 text-sm">
           <h3 className="text-amber-400 mb-2">Lưu ý</h3>
           <ul className="list-disc list-inside">
-            <li>Vui lòng tới trư��c 15 phút để có trải nghiệm tốt nhất.</li>
+            <li>Vui lòng tới trưc 15 phút để có trải nghiệm tốt nhất.</li>
             <li>Vui lòng mang theo CCCD hoặc giấy tờ tùy thân hợp lệ.</li>
             <li>Đặt bàn sẽ được hoàn thành sau khi khách hàng check-in.</li>
             <li>

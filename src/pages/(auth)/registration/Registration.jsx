@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
-import { register } from '../../../lib/service/authenService';
+import React, { useState, useEffect } from 'react';
+import { register, googleLogin } from '../../../lib/service/authenService';
 import OtpPopup from 'src/components/popupOtp/OtpPopup';
-import Login from 'src/pages/(auth)/login/Login'; // Import Login
-import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
+import Login from 'src/pages/(auth)/login/Login';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useAuthStore } from "src/lib";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { jwtDecode } from 'jwt-decode';
 
-const Registration = ({ onClose, onSwitchToLogin }) => {
+const Registration = ({ onClose }) => {
   const [email, setEmail] = useState('');
   const [fullname, setFullname] = useState('');
   const [password, setPassword] = useState('');
@@ -12,14 +16,105 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
   const [phone, setPhone] = useState('');
   const [dob, setDob] = useState('');
   const [showOtpPopup, setShowOtpPopup] = useState(false);
-  const [showLoginPopup, setShowLoginPopup] = useState(false); // State để kiểm soát hiển thị Login
-  const [showRegistrationPopup, setShowRegistrationPopup] = useState(true); // State để kiểm soát hiển thị Registration
-  const [loading, setLoading] = useState(false); // State để kiểm soát trạng thái loading
-  const [errors, setErrors] = useState({}); // State để lưu trữ các lỗi của form
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
+  const [showRegistrationPopup, setShowRegistrationPopup] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const loginStore = useAuthStore();
+  const navigate = useNavigate();
+  const [currentPopup, setCurrentPopup] = useState('registration'); // Trạng thái duy nhất để quản lý pop-up
+
+  useEffect(() => {
+    const loadGoogleScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+      script.onload = initializeGoogleSignIn;
+    };
+
+    const initializeGoogleSignIn = () => {
+      window.google.accounts.id.initialize({
+        client_id: '294668771815-0ofnuitrmh09f1gs9ift8ap8qnodsnac.apps.googleusercontent.com',
+        callback: handleGoogleResponse
+      });
+      
+      // Hiển thị pop-up nhỏ tự động
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          console.log('One Tap không được hiển thị');
+        }
+      });
+
+      // Render nút đăng nhập Google
+      window.google.accounts.id.renderButton(
+        document.getElementById("googleSignInDiv"),
+        { 
+          theme: "filled_black",
+          size: "large",
+          width: "100%",
+          text: "signup_with",
+          shape: "pill",
+          logo_alignment: "center",
+          type: "standard"
+        }
+      );
+    };
+
+    loadGoogleScript();
+  }, []);
+
+  const handleGoogleResponse = async (response) => {
+    try {
+      setGoogleLoading(true);
+      setErrors({});
+
+      const token = response.credential;
+      const googleLoginResponse = await googleLogin(token);
+      
+      if (googleLoginResponse.data.statusCode === 200) {
+        const userData = googleLoginResponse.data.data;
+        loginStore.login(userData.accessToken, userData);
+
+        const decodedToken = jwtDecode(userData.accessToken);
+        const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+        toast.success("Đăng nhập Google thành công!");
+        onClose();
+
+        switch (userRole) {
+          case "ADMIN":
+            navigate("/admin/dashboard");
+            break;
+          case "STAFF":
+            navigate("/staff/table-management");
+            break;  
+          case "CUSTOMER":
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+            break;
+          default:
+            navigate("/home");
+            break;
+        }
+      }
+    } catch (error) {
+      console.error('Lỗi đăng nhập Google:', error);
+      setErrors({ google: "Đăng nhập bằng Google thất bại. Vui lòng thử lại." });
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleSwitchToRegister = () => {
+    setCurrentPopup('registration');
+  };
 
   const handleSwitchToLogin = () => {
-    setShowRegistrationPopup(false);
-    setShowLoginPopup(true);
+    setCurrentPopup('login');
   };
 
   const validateFields = () => {
@@ -49,41 +144,38 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
       dob,
     };
 
-    setLoading(true); // Bắt đầu loading
+    setLoading(true);
     try {
       const response = await register(data);
       if (response.status === 200) {
         setShowRegistrationPopup(false);
-        setShowOtpPopup(true); // Đảm bảo rằng điều này được gọi khi đăng ký thành công
+        setShowOtpPopup(true);
       } else {
-        // Xử lý trường hợp response không phải 200
         console.error('Đăng ký thất bại:', response);
       }
     } catch (error) {
-      console.error('Lỗi khi đăng ký:', error); // In ra lỗi để kiểm tra
-      // Xử lý lỗi (ví dụ: thông báo lỗi)
+      console.error('Lỗi khi đăng ký:', error);
     } finally {
-      setLoading(false); // Kết thúc loading
+      setLoading(false);
     }
   };
 
   const handleOtpSuccess = () => {
-    // Ẩn OtpPopup và hiển thị Login
     setShowOtpPopup(false);
     setShowLoginPopup(true);
   };
 
-  const handleSwitchToRegister = () => {
-    setShowLoginPopup(false);
-    setShowRegistrationPopup(true);
-  };
-
   return (
     <div>
-      {showOtpPopup && <OtpPopup onClose={() => setShowOtpPopup(false)} email={email} onSuccess={handleOtpSuccess} />}
-      {showLoginPopup && <Login onClose={() => setShowLoginPopup(false)} onSwitchToRegister={handleSwitchToRegister} />}
-      {showRegistrationPopup && (
-        <div className={`relative flex flex-col px-7 py-11 w-full max-w-xl rounded-xl bg-zinc-900 transition-transform duration-500 ${showRegistrationPopup ? 'translate-x-0' : '-translate-x-full'}`} style={{ borderRadius: '16px' }}>
+      {currentPopup === 'otp' && <OtpPopup onClose={() => setCurrentPopup('login')} email={email} onSuccess={handleOtpSuccess} />}
+      {currentPopup === 'login' && (
+        <Login 
+          onClose={() => setCurrentPopup('registration')} 
+          onSwitchToRegister={handleSwitchToRegister} // Đảm bảo hàm này được truyền vào
+        />
+      )}
+      {currentPopup === 'registration' && (
+        <div className={`relative flex flex-col px-7 py-6 w-full max-w-xl rounded-xl bg-neutral-800 transition-transform duration-500`}>
           <div className='relative w-full'>
             <div className="flex gap-0.5 self-start text-2xl text-orange-400">
               <div className='font-notoSansSC text-2xl'>Đăng ký</div>
@@ -96,13 +188,12 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
             </button>
           </div>
 
-          {loading ? ( // Hiển thị spinner khi đang loading
+          {loading ? (
             <div className="flex justify-center items-center h-32">
               <CircularProgress />
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-6 mt-7">
-              {/* Các trường nhập liệu */}
               <div className="col-span-2 md:col-span-1">
                 <div className="text-xs text-gray-400">Địa chỉ Email</div>
                 <input
@@ -173,22 +264,24 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
             </div>
           )}
 
-          <div className="flex justify-between items-center mt-6">
-            <button onClick={handleRegister} className="flex-1 text-base bg-orange-400 text-black py-3 px-5 rounded-[64px] w-full max-w-[50%]">
+          <div className="flex flex-col items-center mt-6 w-full">
+            <button 
+              onClick={handleRegister} 
+              className="text-base bg-orange-400 text-black py-3 px-5 rounded-[64px] w-full mb-4"
+            >
               Đăng ký
             </button>
 
-            <div className="text-center flex-grow text-zinc-100">hoặc</div>
+            <div className="flex items-center w-full my-4">
+              <div className="flex-grow border-t border-gray-400"></div>
+              <span className="px-3 text-gray-400 text-sm">Hoặc</span>
+              <div className="flex-grow border-t border-gray-400"></div>
+            </div>
 
-            <button className="flex items-center text-center justify-center bg-zinc-800 text-white py-3 px-7 rounded-[64px] w-full max-w-[35%]">
-              <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/60e2c583c050e4144ff530c58b0a844f76ad69b2a4ce4e71e263c2acbbc2bb3a?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f"
-                className="w-5 h-5 mr-2"
-                alt="Google icon"
-              />
-              Google
-            </button>
+            {/* Container cho nút đăng nhập Google */}
+            <div className="w-full flex justify-center items-center mt-4">
+              <div id="googleSignInDiv" className="google-btn"></div>
+            </div>
           </div>
 
           <div className="flex justify-center mt-4">

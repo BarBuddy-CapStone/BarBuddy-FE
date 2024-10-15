@@ -1,11 +1,13 @@
-import React, { useState } from "react";
-import { login } from "../../../lib/service/authenService"; // Nhập hàm login
+import React, { useState, useEffect } from "react";
+import { login, googleLogin } from "../../../lib/service/authenService"; // Nhập hàm login
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "src/lib"; // Nhập useAuthStore
 import { Button, CircularProgress, Alert } from "@mui/material"; // Import MUI Button, CircularProgress, and Alert
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
 import {jwtDecode} from 'jwt-decode'; // Import jwt-decode
+// Import icon Google (ví dụ sử dụng Material-UI icons)
+import GoogleIcon from '@mui/icons-material/Google';
 
 function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const [email, setEmail] = useState(""); // Trạng thái cho email
@@ -14,6 +16,91 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const [error, setError] = useState(null); // State for error handling
   const navigate = useNavigate();
   const loginStore = useAuthStore(); // Khởi tạo useAuthStore
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    const loadGoogleScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+      script.onload = initializeGoogleSignIn;
+    };
+
+    const initializeGoogleSignIn = () => {
+      window.google.accounts.id.initialize({
+        client_id: '294668771815-0ofnuitrmh09f1gs9ift8ap8qnodsnac.apps.googleusercontent.com',
+        callback: handleGoogleResponse
+      });
+      
+      // Hiển thị pop-up nhỏ tự động
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        }
+      });
+
+      // Render nút đăng nhập Google với theme sáng hơn
+      window.google.accounts.id.renderButton(
+        document.getElementById("googleSignInDiv"),
+        { 
+          theme: "filled_black", // hoặc "filled_blue"
+          size: "large",
+          width: "100%",
+          text: "signin_with",
+          shape: "pill"
+        }
+      );
+    };
+
+    loadGoogleScript();
+  }, []);
+
+  const handleGoogleResponse = async (response) => {
+    try {
+      setGoogleLoading(true);
+      setError(null);
+
+      const token = response.credential;
+
+      const googleLoginResponse = await googleLogin(token);
+      
+      if (googleLoginResponse.data.statusCode === 200) {
+        const userData = googleLoginResponse.data.data;
+        loginStore.login(userData.accessToken, userData);
+
+        const decodedToken = jwtDecode(userData.accessToken);
+        const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+        toast.success("Đăng nhập Google thành công!");
+        onLoginSuccess(userData);
+        onClose();
+
+        // Chuyển hướng dựa trên vai trò
+        switch (userRole) {
+          case "ADMIN":
+            navigate("/admin/dashboard");
+            break;
+          case "STAFF":
+            navigate("/staff/table-management");
+            break;  
+          case "CUSTOMER":
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+            break;
+          default:
+            navigate("/home");
+            break;
+        }
+      }
+    } catch (error) {
+      console.error('Lỗi đăng nhập Google:', error);
+      setError("Đăng nhập bằng Google thất bại. Vui lòng thử lại.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   // Function to handle login
   const handleLogin = async () => {
@@ -40,13 +127,20 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
         switch (userRole) {
           case "ADMIN":
             navigate("/admin/dashboard");
+            window.location.reload();
             break;
           case "STAFF":
             navigate("/staff/table-management");
+            window.location.reload();
             break;
           case "CUSTOMER":
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+            break;
           default:
             navigate("/home");
+            window.location.reload();
             break;
         }
       }
@@ -79,13 +173,17 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const isLoginDisabled = email === "" || password === "";
 
   const handleSwitchToRegister = () => {
-    onSwitchToRegister(); // Gọi hàm để chuyển sang form đăng ký
-    onClose(); // Đóng popup đăng nhập
+    if (typeof onSwitchToRegister === 'function') {
+      onSwitchToRegister(); // Gọi hàm để chuyển sang form đăng ký
+    } else {
+      console.error('onSwitchToRegister is not a function');
+    }
+    // Không gọi onClose ở đây nếu bạn chỉ muốn chuyển đổi giữa các pop-up
   };
 
   return (
     <div
-      className={`relative flex flex-col px-7 py-11 w-full max-w-md rounded-xl bg-zinc-900 transition-transform duration-500`} // Xóa showLogin
+      className={`relative flex flex-col px-7 py-6 w-full max-w-md rounded-xl bg-neutral-800 transition-transform duration-500`} // Xóa showLogin
       style={{ borderRadius: "16px" }}
     >
       <button
@@ -132,7 +230,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
         <button className="text-gray-400">Quên mật khẩu ?</button>
         <div className="flex gap-0.5">
           <div className="grow text-gray-400">Bạn chưa có tài khoản ?</div>
-          <button className="text-orange-400" onClick={onSwitchToRegister}>
+          <button className="text-orange-400" onClick={handleSwitchToRegister}>
             Đăng ký
           </button>
         </div>
@@ -142,27 +240,46 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
         {loading ? ( // Nếu đang tải, hiển thị spinner thay vì nút
           <CircularProgress size={40} color="inherit" />
         ) : (
-          <Button
-            onClick={handleLogin}
-            fullWidth
-            variant="contained"
-            sx={{
-              backgroundColor: isLoginDisabled ? "#FFA500" : "#FF8C00",
-              "&:hover": {
-                backgroundColor: isLoginDisabled ? "#FFA500" : "#FF8C00",
-              },
-              color: "black",
-              height: "48px",
-              borderRadius: "64px",
-              textTransform: "none",
-              fontSize: "18px",
-              opacity: isLoginDisabled ? 0.7 : 1,
-              pointerEvents: isLoginDisabled ? "none" : "auto",
-            }}
-            disabled={loading || isLoginDisabled} // Disable button if loading or fields are empty
-          >
-            Đăng nhập
-          </Button>
+          <>
+            <Button
+              onClick={handleLogin}
+              fullWidth
+              variant="contained"
+              sx={{
+                backgroundColor: isLoginDisabled ? "rgba(255, 140, 0, 0.3)" : "#FF8C00", // Màu cam nhạt khi bị vô hiệu hóa
+                "&:hover": {
+                  backgroundColor: isLoginDisabled ? "rgba(255, 140, 0, 0.3)" : "#FF7000", // Giữ nguyên màu khi hover nếu bị vô hiệu hóa
+                },
+                color: isLoginDisabled ? "rgba(0, 0, 0, 0.9)" : "black", // Màu chữ mờ hơn khi bị vô hiệu hóa
+                height: "48px",
+                borderRadius: "64px",
+                textTransform: "none",
+                fontSize: "18px",
+                opacity: 1, // Không cần opacity nữa vì chúng ta đã sử dụng rgba
+                pointerEvents: isLoginDisabled ? "none" : "auto",
+                transition: "all 0.3s ease", // Thêm hiệu ứng chuyển đổi mượt mà
+                boxShadow: "none", // Loại bỏ shadow mặc định của MUI Button
+                "&:disabled": {
+                  backgroundColor: "rgba(255, 140, 0, 0.3)", // Đảm bảo mu khng thay đổi khi bị disabled
+                },
+              }}
+              disabled={loading || isLoginDisabled}
+            >
+              Đăng nhập
+            </Button>
+
+            {/* Thêm dòng phân cách */}
+            <div className="flex items-center w-full my-4">
+              <div className="flex-grow border-t border-gray-400"></div>
+              <span className="px-3 text-gray-400 text-sm">Hoặc</span>
+              <div className="flex-grow border-t border-gray-400"></div>
+            </div>
+
+            {/* Container cho nút đăng nhập Google */}
+            <div className="google-btn-container w-full flex justify-center items-center">
+              <div id="googleSignInDiv" className="google-btn"></div>
+            </div>
+          </>
         )}
       </div>
     </div>
