@@ -41,47 +41,55 @@ const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
   },
 }));
 
-const TimeSelection = ({ startTime, endTime, onTimeChange }) => {
+const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate }) => {
   const [selectedTime, setSelectedTime] = useState("");
   const [timeOptions, setTimeOptions] = useState([]);
 
-  // Generate time options between startTime and endTime with 1-hour interval
-  const generateTimeOptions = (start, end) => {
+  const generateTimeOptions = (start, end, date) => {
     const options = [];
-    let currentTime = dayjs(`2000-01-01 ${start}`);
-    let endTimeObj = dayjs(`2000-01-01 ${end}`);
+    const currentDate = dayjs(date);
+    const now = dayjs();
+    
+    let currentTime = currentDate.hour(parseInt(start.split(':')[0])).minute(parseInt(start.split(':')[1]));
+    let endTimeObj = currentDate.hour(parseInt(end.split(':')[0])).minute(parseInt(end.split(':')[1]));
 
-    // If endTime is earlier than startTime, assume endTime is the next day
+    // Nếu endTime là trước startTime, giả sử nó là ngày hôm sau
     if (endTimeObj.isBefore(currentTime)) {
-      endTimeObj = endTimeObj.add(1, "day");
+      endTimeObj = endTimeObj.add(1, 'day');
     }
 
-    // Generate time options every 1 hour
-    while (currentTime.isBefore(endTimeObj) || currentTime.isSame(endTimeObj)) {
+    // Nếu ngày được chọn là hôm nay, bắt đầu từ giờ hiện tại + 1
+    if (currentDate.isSame(now, 'day')) {
+      currentTime = now.add(1, 'hour').startOf('hour');
+    }
+
+    while (currentTime.isBefore(endTimeObj)) {
       options.push(currentTime.format("HH:mm"));
-      currentTime = currentTime.add(1, "hour"); // Add 1-hour intervals
+      currentTime = currentTime.add(1, "hour");
     }
 
     return options;
   };
 
-  // Update time options whenever startTime or endTime changes
   useEffect(() => {
-    if (startTime && endTime) {
-      const newTimeOptions = generateTimeOptions(startTime, endTime);
+    if (startTime && endTime && selectedDate) {
+      const newTimeOptions = generateTimeOptions(startTime, endTime, selectedDate);
       setTimeOptions(newTimeOptions);
 
-      if (newTimeOptions.length > 0) {
-        setSelectedTime(newTimeOptions[0]); // Set default selected time to the first option
-        onTimeChange(newTimeOptions[0]); // Pass default selected time to parent
+      if (newTimeOptions.length > 0 && !selectedTime) {
+        setSelectedTime(newTimeOptions[0]);
+        onTimeChange(newTimeOptions[0]);
+      } else if (newTimeOptions.length === 0) {
+        setSelectedTime("");
+        onTimeChange("");
       }
     }
-  }, [startTime, endTime]);
+  }, [startTime, endTime, selectedDate]);
 
   const handleTimeChange = (event) => {
     const newTime = event.target.value;
     setSelectedTime(newTime);
-    onTimeChange(newTime); // Pass selected time to parent
+    onTimeChange(newTime);
   };
 
   return (

@@ -9,7 +9,7 @@ import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 import dayjs from 'dayjs';
 
 const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, setFilteredTables, tableTypeInfo, isLoading, hasSearched, barId, selectedTableTypeId, selectedDate, selectedTime }) => {
-  const { token } = useAuthStore();
+  const { token, accountId } = useAuthStore();
   const [heldTables, setHeldTables] = useState({});
 
   const updateTableHeldStatus = useCallback((tableId, isHeld, holderId, date, time) => {
@@ -70,7 +70,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
           setSelectedTables(prevSelectedTables => [...prevSelectedTables, newSelectedTable]);
           
           // Cập nhật trạng thái bàn ngay lập tức
-          updateTableHeldStatus(table.tableId, true, holdData.date, holdData.time);
+          updateTableHeldStatus(table.tableId, true, accountId, holdData.date, holdData.time);
           
           await hubConnection.invoke("HoldTable", {
             barId: barId,
@@ -117,7 +117,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
       isHeld ? '#FFA500' :  // Cam cho bàn đã được đặt bởi người khác
       status === 0 ? '#FFA500' :  // Cam cho bàn không khả dụng
       '#D3D3D3',  // Xám nhạt cho bàn trống
-    color: status === 1 || status === 3 ? '#000' : '#fff',
+    color: '#fff',
     '&:hover': {
       backgroundColor: 
         isCurrentUserHolding ? '#A0522D' :
@@ -150,7 +150,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
         <>
           <div className="flex flex-wrap gap-3.5 items-start text-center text-black max-md:max-w-full">
             {filteredTables.map((table) => {
-              const isCurrentUserHolding = table.isHeld && table.holderId  &&
+              const isCurrentUserHolding = table.isHeld && table.holderId === accountId &&
                                            table.date === dayjs(selectedDate).format('YYYY-MM-DD') &&
                                            table.time === selectedTime + ":00";
 

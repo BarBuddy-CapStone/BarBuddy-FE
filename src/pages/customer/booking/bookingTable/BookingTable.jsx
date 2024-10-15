@@ -185,6 +185,7 @@ const BookingTable = () => {
               startTime={startTime} 
               endTime={endTime} 
               onTimeChange={handleTimeChange}
+              selectedDate={selectedDate}
             />
             <CustomerForm 
               selectedTables={selectedTables} 

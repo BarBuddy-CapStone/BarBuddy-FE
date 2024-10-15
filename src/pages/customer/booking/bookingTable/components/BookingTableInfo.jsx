@@ -3,7 +3,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import TableBarIcon from "@mui/icons-material/TableBar";
 import InfoIcon from "@mui/icons-material/Info";
-import { TextField, InputAdornment, MenuItem, Button } from "@mui/material";
+import { TextField, InputAdornment, Button, Menu, MenuItem } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -85,7 +85,8 @@ const BookingTableInfo = ({
   onDateChange, 
   onTableTypeChange, 
   onSearchTables,
-  selectedTableTypeId
+  selectedTableTypeId,
+  selectedTime
 }) => {
   const [selectedTableType, setSelectedTableType] = useState("");
   const [selectedTypeDescription, setSelectedTypeDescription] = useState("");
@@ -112,18 +113,19 @@ const BookingTableInfo = ({
     onDateChange(newDate);
   };
 
-  const handleTableTypeChange = (event) => {
-    const selectedTypeId = event.target.value;
-    const selectedType = tableTypes.find(type => type.tableTypeId === selectedTypeId);
-    if (selectedType) {
-      setSelectedTableType(selectedTypeId);
-      setSelectedTypeDescription(selectedType.description);
-      onTableTypeChange(selectedTypeId);
-    } else {
-      setSelectedTableType("");
-      setSelectedTypeDescription("");
-      onTableTypeChange("");
-    }
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleTableTypeChange = (tableType) => {
+    setSelectedTableType(tableType.tableTypeId);
+    setSelectedTypeDescription(tableType.description);
+    onTableTypeChange(tableType.tableTypeId);
+    handleClose();
   };
 
   const isDateValid = (date) => {
@@ -178,7 +180,7 @@ const BookingTableInfo = ({
               <CustomTextField
                 select
                 value={selectedTableType}
-                onChange={handleTableTypeChange}
+                onChange={(event) => handleTableTypeChange(tableTypes.find(t => t.tableTypeId === event.target.value))}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
