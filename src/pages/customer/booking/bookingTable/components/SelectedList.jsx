@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { releaseTable } from 'src/lib/service/BookingTableService';
 import useAuthStore from 'src/lib/hooks/useUserStore';
-import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
+import { hubConnection, releaseTableSignalR } from 'src/lib/Third-party/signalR/hubConnection';
 
 const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, selectedDate, selectedTime }) => {
   const [countdowns, setCountdowns] = useState({});
@@ -17,12 +17,12 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
         barId: barId,
         tableId: tableId,
         date: selectedDate,
-        time: selectedTime + ":00" // Thêm ":00" vào cuối để có định dạng "hh:mm:ss"
+        time: selectedTime + ":00"
       };
       const response = await releaseTable(token, data);
       if (response.data.statusCode === 200) {
         onRemove(tableId);
-        await hubConnection.invoke("ReleaseTable", barId, tableId, selectedDate, selectedTime + ":00");
+        await releaseTableSignalR(data);
       }
     } catch (error) {
       console.error("Error releasing expired table:", error);
@@ -68,12 +68,12 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
         barId: barId,
         tableId: tableId,
         date: selectedDate,
-        time: selectedTime + ":00" // Thêm ":00" vào cuối để có định dạng "hh:mm:ss"
+        time: selectedTime + ":00"
       };
       const response = await releaseTable(token, data);
       if (response.data.statusCode === 200) {
         onRemove(tableId);
-        await hubConnection.invoke("ReleaseTable", barId, tableId, selectedDate, selectedTime + ":00");
+        await releaseTableSignalR(data);
       }
     } catch (error) {
       console.error("Error releasing table:", error);

@@ -13,12 +13,11 @@ const connection = new signalR.HubConnectionBuilder()
     skipNegotiation: false,
     transport: signalR.HttpTransportType.WebSockets,
     accessTokenFactory: () => {
-      // Thêm logic để lấy token nếu cần
       return sessionStorage.getItem('authToken');
     }
   })
   .withAutomaticReconnect()
-  .configureLogging(signalR.LogLevel.Debug)  // Thay đổi level logging để debug
+  .configureLogging(signalR.LogLevel.Debug)
   .build();
 
 // Bắt đầu kết nối
@@ -67,16 +66,14 @@ connection.on("*", (name, message) => {
 export const hubConnection = connection;
 
 // Thêm các listener cho các sự kiện cụ thể
-connection.on("TableHoId", (tableId) => {
-  console.log("Table HoId:", tableId);
-  // Broadcast the event to all components
-  document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId, isHeld: true } }));
+connection.on("TableHoId", (response) => {
+  console.log("Table held via SignalR:", response);
+  document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId: response.tableId, isHeld: true, holderId: response.holderId } }));
 });
 
-connection.on("TableReleased", (tableId) => {
-  console.log("Table released:", tableId);
-  // Broadcast the event to all components
-  document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId, isHeld: false } }));
+connection.on("TableReleased", (response) => {
+  console.log("Table released:", response);
+  document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId: response.tableId, isHeld: false, holderId: null } }));
 });
 
 // Thêm vào cuối file
@@ -91,17 +88,19 @@ export const getTableStatusFromSignalR = async (barId, tableId) => {
 };
 
 // Add new methods for holding and releasing tables
-export const holdTableSignalR = async (barId, tableId, date, time) => {
+export const holdTableSignalR = async (data) => {
   try {
-    await connection.invoke("HoldTable", barId, tableId, date, time + ":00");
+    await hubConnection.invoke("HoldTable", data);
+    console.log(`Table ${data.tableId} held via SignalR`);
   } catch (error) {
     console.error("Error holding table via SignalR:", error);
   }
 };
 
-export const releaseTableSignalR = async (barId, tableId, date, time) => {
+export const releaseTableSignalR = async (data) => {
   try {
-    await connection.invoke("ReleaseTable", barId, tableId, date, time + ":00");
+    await hubConnection.invoke("ReleaseTable", data);
+    console.log(`Table ${data.tableId} released via SignalR`);
   } catch (error) {
     console.error("Error releasing table via SignalR:", error);
   }

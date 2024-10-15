@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 import CircularProgress from '@mui/material/CircularProgress';
 import TableBarIcon from "@mui/icons-material/TableBar";
-import { holdTable, getAllHoldTable } from 'src/lib/service/BookingTableService';
+import { holdTable, releaseTable } from 'src/lib/service/BookingTableService';
 import useAuthStore from 'src/lib/hooks/useUserStore';
 import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 
@@ -11,24 +11,48 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
   const { token } = useAuthStore();
   const [heldTables, setHeldTables] = useState({});
 
-  const updateTableHeldStatus = useCallback((tableId, isHeld) => {
+  const updateTableHeldStatus = useCallback((tableId, isHeld, holderId) => {
     setHeldTables(prev => ({
       ...prev,
-      [tableId]: isHeld
+      [tableId]: { isHeld, holderId }
     }));
-  }, []);
+    
+    setFilteredTables(prevTables => 
+      prevTables.map(table => 
+        table.tableId === tableId 
+          ? { ...table, status: isHeld ? 2 : 1, holderId } 
+          : table
+      )
+    );
+  }, [setFilteredTables]);
+
+  const handleTableRelease = useCallback(async (tableId) => {
+    try {
+      const data = {
+        barId: barId,
+        tableId: tableId,
+        date: selectedDate,
+        time: selectedTime + ":00"
+      };
+      await releaseTable(token, data);
+      updateTableHeldStatus(tableId, false, null);
+      setSelectedTables(prevTables => prevTables.filter(table => table.tableId !== tableId));
+    } catch (error) {
+      console.error("Error releasing table:", error);
+    }
+  }, [barId, selectedDate, selectedTime, token, updateTableHeldStatus, setSelectedTables]);
 
   useEffect(() => {
     console.log("Setting up SignalR listeners");
     
-    hubConnection.on("TableHoId", (tableId) => {
-      console.log("Table HoId:", tableId);
-      updateTableHeldStatus(tableId, true);
+    hubConnection.on("TableHoId", (response) => {
+      console.log("Table HoId:", response);
+      updateTableHeldStatus(response.tableId, true, response.holderId);
     });
 
-    hubConnection.on("TableReleased", (tableId) => {
-      console.log("Table released:", tableId);
-      updateTableHeldStatus(tableId, false);
+    hubConnection.on("TableReleased", (response) => {
+      console.log("Table released:", response);
+      updateTableHeldStatus(response.tableId, false, null);
     });
 
     return () => {
@@ -37,30 +61,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
     };
   }, [updateTableHeldStatus]);
 
-  const syncHeldTablesStatus = useCallback(async () => {
-    try {
-      const response = await getAllHoldTable(barId);
-      if (response.status === 200) {
-        const heldTablesData = response.data.data;
-        const updatedHeldStatuses = {};
-        heldTablesData.forEach(table => {
-          updatedHeldStatuses[table.tableId] = table.isHeld;
-        });
-        setHeldTables(updatedHeldStatuses);
-      }
-    } catch (error) {
-      console.error("Error fetching held tables:", error);
-    }
-  }, [barId]);
-
-  useEffect(() => {
-    if (hasSearched && filteredTables.length > 0) {
-      syncHeldTablesStatus();
-    }
-  }, [hasSearched, filteredTables, syncHeldTablesStatus]);
-
   const handleTableSelect = async (table) => {
-    console.log("Attempting to hold table:", table);
     if (table.status === 1 || table.status === 3) {
       try {
         const data = {
@@ -69,58 +70,48 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
           date: selectedDate,
           time: selectedTime + ":00"
         };
-        console.log("Sending hold request with data:", data);
         const response = await holdTable(token, data);
-        console.log("Hold table response:", response);
         
         if (response.data.statusCode === 200) {
           const holdData = response.data.data;
-          console.log("Hold data received:", holdData);
+          setSelectedTables((prevSelectedTables) => [
+            ...prevSelectedTables,
+            {
+              tableId: table.tableId,
+              tableName: table.tableName,
+              isHeld: holdData.isHeld,
+              holdExpiry: new Date(holdData.holdExpiry).getTime()
+            }
+          ]);
           
-          setSelectedTables((prevSelectedTables) => {
-            const updatedTables = [
-              ...prevSelectedTables,
-              {
-                tableId: table.tableId,
-                tableName: table.tableName,
-                isHeld: holdData.isHeld,
-                holdExpiry: new Date(holdData.holdExpiry).getTime()
-              }
-            ];
-            console.log("Updated selected tables:", updatedTables);
-            return updatedTables;
+          updateTableHeldStatus(table.tableId, true, token);
+          await hubConnection.invoke("HoldTable", {
+            barId: barId,
+            tableId: table.tableId,
+            date: selectedDate,
+            time: selectedTime + ":00"
           });
-          
-          updateTableHeldStatus(table.tableId, true);
-          console.log("Table held status updated for:", table.tableId);
-          
-          // Gọi SignalR để cập nhật trạng thái bàn cho tất cả các client
-          await hubConnection.invoke("HoldTable", barId, table.tableId, selectedDate, selectedTime + ":00");
-          console.log("SignalR HoldTable invoked for table:", table.tableId);
         } else {
           console.error("Hold table request failed:", response.data);
         }
       } catch (error) {
         console.error("Error holding table:", error);
-        if (error.response) {
-          console.error("Error response:", error.response.data);
-        }
       }
-    } else {
-      console.log("Table not available for holding:", table);
     }
   };
 
-  const CustomButton = styled(Button)(({ status, isHeld, isSelected }) => ({
+  const CustomButton = styled(Button)(({ status, isHeld, isCurrentUserHolding }) => ({
     backgroundColor: 
-      isSelected ? '#D2691E' :  // Nâu nhạt cho "đang chọn"
-      isHeld || status === 0 || status === 2 ? '#FFA500' :  // Cam cho "đã hết bàn"
-      '#D3D3D3',  // Xám nhạt cho "trống"
+      isCurrentUserHolding ? '#D2691E' :
+      isHeld ? '#FFA500' :
+      status === 0 ? '#FFA500' :
+      '#D3D3D3',  // Màu trắng cho bàn trống
     color: status === 1 || status === 3 ? '#000' : '#fff',
     '&:hover': {
       backgroundColor: 
-        isSelected ? '#A0522D' :
-        isHeld || status === 0 || status === 2 ? '#FF8C00' :
+        isCurrentUserHolding ? '#A0522D' :
+        isHeld ? '#FF8C00' :
+        status === 0 ? '#FF8C00' :
         '#C0C0C0',
     },
     '&:disabled': {
@@ -130,41 +121,6 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
     borderRadius: '4px',
     padding: '8px 16px',
   }));
-
-  const updateTableStatusViaSignalR = async (tableId, isHeld) => {
-    try {
-      if (isHeld) {
-        await hubConnection.invoke("HoldTable", barId, tableId, selectedDate, selectedTime + ":00");
-      } else {
-        await hubConnection.invoke("ReleaseTable", barId, tableId, selectedDate, selectedTime + ":00");
-      }
-    } catch (error) {
-      console.error("Error updating table status via SignalR:", error);
-    }
-  };
-
-  useEffect(() => {
-    const handleTableStatusChange = (event) => {
-      const { tableId, isHeld } = event.detail;
-      console.log("Table status changed via SignalR:", tableId, isHeld);
-      updateTableHeldStatus(tableId, isHeld);
-      
-      // Cập nhật filteredTables nếu cần
-      setFilteredTables(prevTables => 
-        prevTables.map(table => 
-          table.tableId === tableId 
-            ? { ...table, status: isHeld ? 2 : 1 } // Giả sử 2 là trạng thái đã giữ, 1 là trống
-            : table
-        )
-      );
-    };
-
-    document.addEventListener('tableStatusChanged', handleTableStatusChange);
-
-    return () => {
-      document.removeEventListener('tableStatusChanged', handleTableStatusChange);
-    };
-  }, [updateTableHeldStatus, setFilteredTables]);
 
   return (
     <div className="mt-6">
@@ -183,8 +139,9 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
         <>
           <div className="flex flex-wrap gap-3.5 items-start text-center text-black max-md:max-w-full">
             {filteredTables.map((table) => {
-              const isSelected = selectedTables.some((t) => t.tableId === table.tableId);
-              const isHeld = heldTables[table.tableId];
+              const heldInfo = heldTables[table.tableId] || {};
+              const isHeld = heldInfo.isHeld;
+              const isCurrentUserHolding = heldInfo.holderId === token;
 
               return (
                 <CustomButton
@@ -192,8 +149,8 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
                   onClick={() => (table.status === 1 || table.status === 3) && !isHeld && handleTableSelect(table)}
                   status={table.status}
                   isHeld={isHeld}
-                  isSelected={isSelected}
-                  disabled={(table.status === 0 || table.status === 2) || (isHeld && !isSelected)}
+                  isCurrentUserHolding={isCurrentUserHolding}
+                  disabled={(table.status === 0) || (isHeld && !isCurrentUserHolding)}
                 >
                   {table.tableName}
                 </CustomButton>
