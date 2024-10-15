@@ -15,6 +15,7 @@ import LiquorIcon from "@mui/icons-material/Liquor";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { BookingService } from "src/lib";
+import CircularProgress from '@mui/material/CircularProgress';
 
 // Function to format date and time
 const formatDateTime = (bookingDate, bookingTime) => {
@@ -57,7 +58,7 @@ function BookingDetailPage() {
     const fetchBookingData = async () => {
       try {
         const response = await BookingService.getBookingById(bookingId);
-        setBookingData(response.data);
+        setBookingData(response.data.data);
       } catch (error) {
         console.error("Error fetching booking data:", error);
       }
@@ -262,7 +263,7 @@ function BookingDetailPage() {
         <div className="text-gray-400 text-sm">
           <h3 className="text-amber-400 mb-2">Lưu ý</h3>
           <ul className="list-disc list-inside">
-            <li>Vui lòng tới trước 15 phút để có trải nghiệm tốt nhất.</li>
+            <li>Vui lòng tới trư��c 15 phút để có trải nghiệm tốt nhất.</li>
             <li>Vui lòng mang theo CCCD hoặc giấy tờ tùy thân hợp lệ.</li>
             <li>Đặt bàn sẽ được hoàn thành sau khi khách hàng check-in.</li>
             <li>

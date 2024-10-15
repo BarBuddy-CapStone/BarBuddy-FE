@@ -1,9 +1,29 @@
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import PersonalInfo from "./PersonalInfoComponent";
-import { ToastContainer } from "react-toastify"; // For showing notifications
 import BookingHistory from "./RecentBookingComponent";
+import CircularProgress from '@mui/material/CircularProgress';
+
 function ProfilePage() {
-  const { accountId } = useParams(); // Extract accountId from URL
+  const { accountId } = useParams();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Giả lập thời gian loading
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <CircularProgress style={{ color: '#FFBF00' }} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row space-y-6 lg:space-y-0 px-8">

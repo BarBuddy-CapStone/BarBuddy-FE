@@ -94,8 +94,8 @@ function CustomerBookingHistory() {
           pageIndex,
           5
         ); // Fetch bookings with pagination
-        setBookings(response.data.response); // Set bookings from API response
-        setTotalPages(response.data.totalPage); // Set total pages
+        setBookings(response.data.data.response); // Set bookings from API response
+        setTotalPages(response.data.data.totalPage); // Set total pages
         setLoading(false);
       } catch (err) {
         setError(err.message);

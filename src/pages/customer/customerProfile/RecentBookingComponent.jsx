@@ -7,6 +7,7 @@ import {
 import { addHours, addDays, isBefore } from "date-fns";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import CircularProgress from '@mui/material/CircularProgress';
 
 function BookingHistory({ accountId }) {
   const [bookings, setBookings] = useState([]);
@@ -20,6 +21,9 @@ function BookingHistory({ accountId }) {
   const [rating, setRating] = useState(0); // Trạng thái cho số sao
   const [comment, setComment] = useState(""); // Trạng thái cho bình luận
   const [showRatingPopup, setShowRatingPopup] = useState(false); // Trạng thái cho popup đánh giá
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [loadingRating, setLoadingRating] = useState(false);
+  const [loadingCancel, setLoadingCancel] = useState(false);
 
   const navigate = useNavigate();
 
@@ -27,7 +31,7 @@ function BookingHistory({ accountId }) {
     const fetchBookings = async () => {
       try {
         const data = await BookingService.getRecentBookings(accountId, 4);
-        setBookings(data);
+        setBookings(data.data);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -41,10 +45,9 @@ function BookingHistory({ accountId }) {
   }, [accountId]);
 
   const handleCancelBooking = async (bookingId) => {
+    setLoadingCancel(true);
     try {
-      setCancellingBookingId(bookingId);
       await BookingService.cancelBooking(bookingId);
-
       setBookings((prevBookings) =>
         prevBookings.map((booking) =>
           booking.bookingId === bookingId ? { ...booking, status: 1 } : booking
@@ -53,10 +56,10 @@ function BookingHistory({ accountId }) {
       toast.success("Đặt bàn đã được hủy thành công");
       setShowConfirm(false);
     } catch (error) {
-      toast.error("Đặt bàn đã được hủy thất bại");
+      toast.error("Hủy đặt bàn thất bại");
       console.error("Error while canceling:", error);
     } finally {
-      setCancellingBookingId(null);
+      setLoadingCancel(false);
     }
   };
 
@@ -79,13 +82,16 @@ function BookingHistory({ accountId }) {
   };
 
   const handleViewFeedback = async (bookingId) => {
+    setLoadingFeedback(true);
     try {
       const response = await getAllFeedbackByBookingID(bookingId);
-      console.log("Feedback data:", response.data); // Log dữ liệu phản hồi
-      setFeedback(response.data.data); // Gán dữ liệu phản hồi vào state feedback
+      setFeedback(response.data.data);
       setShowFeedbackPopup(true);
     } catch (error) {
       console.error("Error fetching feedback:", error);
+      toast.error("Không thể tải đánh giá. Vui lòng thử lại sau.");
+    } finally {
+      setLoadingFeedback(false);
     }
   };
 
@@ -100,51 +106,50 @@ function BookingHistory({ accountId }) {
   };
 
   const handleSubmitRating = async () => {
-    // Xác thực số sao
     if (rating < 1 || rating > 5) {
       toast.error("Vui lòng chọn số sao từ 1 đến 5.");
       return;
     }
-
-    // Xác thực độ dài bình luận
     if (comment.length < 10 || comment.length > 500) {
       toast.error("Bình luận phải có độ dài từ 10 đến 500 ký tự.");
       return;
     }
 
+    setLoadingRating(true);
     try {
       const feedbackData = {
-        bookingId: selectedBookingId, // ID của booking
-        rating: rating, // Số sao đã chọn
-        comment: comment, // Bình luận của người dùng
+        bookingId: selectedBookingId,
+        rating: rating,
+        comment: comment,
       };
-
-      // Gọi API để gửi đánh giá
-      await createFeedBack(feedbackData); 
-
-      // Cập nhật trạng thái booking để đánh dấu đã được đánh giá
+      await createFeedBack(feedbackData);
       setBookings((prevBookings) =>
         prevBookings.map((booking) =>
           booking.bookingId === selectedBookingId ? { ...booking, isRated: true } : booking
         )
       );
-
       toast.success("Đánh giá đã được gửi thành công!");
       setShowRatingPopup(false);
-      setRating(0); // Đặt lại số sao
-      setComment(""); // Đặt lại bình luận
+      setRating(0);
+      setComment("");
     } catch (error) {
       toast.error("Đã xảy ra lỗi khi gửi đánh giá.");
       console.error("Error submitting rating:", error);
+    } finally {
+      setLoadingRating(false);
     }
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-[500px]">
+        <CircularProgress style={{ color: '#FFBF00' }} />
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>Lỗi: {error}</div>;
   }
 
   // Hàm định dạng thời gian
@@ -260,8 +265,13 @@ function BookingHistory({ accountId }) {
                           e.stopPropagation();
                           handleViewFeedback(booking.bookingId);
                         }}
+                        disabled={loadingFeedback}
                       >
-                        Xem đánh giá
+                        {loadingFeedback ? (
+                          <CircularProgress size={20} style={{ color: 'black' }} />
+                        ) : (
+                          "Xem đánh giá"
+                        )}
                       </button>
                     ) : (
                       canReviewBooking(booking.bookingDate) && (
@@ -318,8 +328,13 @@ function BookingHistory({ accountId }) {
               <button
                 className="px-6 py-3 w-full bg-amber-400 text-neutral-800 rounded-full hover:bg-amber-300 transition duration-200"
                 onClick={() => handleCancelBooking(selectedBookingId)}
+                disabled={loadingCancel}
               >
-                Xác nhận
+                {loadingCancel ? (
+                  <CircularProgress size={20} style={{ color: 'white' }} />
+                ) : (
+                  "Xác nhận hủy"
+                )}
               </button>
             </div>
           </div>
@@ -421,8 +436,13 @@ function BookingHistory({ accountId }) {
               <button
                 className="px-6 py-2 bg-amber-400 w-[140px] text-black rounded-full hover:bg-amber-500 ml-6"
                 onClick={handleSubmitRating} // Gửi đánh giá
+                disabled={loadingRating}
               >
-                Gửi đánh giá
+                {loadingRating ? (
+                  <CircularProgress size={20} style={{ color: 'black' }} />
+                ) : (
+                  "Gửi đánh giá"
+                )}
               </button>
             </div>
           </div>

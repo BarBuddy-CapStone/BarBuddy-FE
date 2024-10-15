@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import AccountService from "../../../lib/service/accountService";
 import { toast } from "react-toastify";
+import CircularProgress from '@mui/material/CircularProgress';
 
 function PersonalInfo({ accountId }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -122,11 +123,15 @@ function PersonalInfo({ accountId }) {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-[500px]">
+        <CircularProgress style={{ color: '#FFBF00' }} />
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>Lỗi: {error}</div>;
   }
 
   return (
