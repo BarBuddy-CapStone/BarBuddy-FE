@@ -3,7 +3,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import TableBarIcon from "@mui/icons-material/TableBar";
 import InfoIcon from "@mui/icons-material/Info";
-import { TextField, InputAdornment, MenuItem, Button } from "@mui/material";
+import { TextField, InputAdornment, Button, Menu, MenuItem } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -81,12 +81,12 @@ const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
 
 const BookingTableInfo = ({ 
   barId, 
-  selectedTime, 
   selectedDate, 
   onDateChange, 
   onTableTypeChange, 
   onSearchTables,
   selectedTableTypeId,
+  selectedTime
 }) => {
   const [selectedTableType, setSelectedTableType] = useState("");
   const [selectedTypeDescription, setSelectedTypeDescription] = useState("");
@@ -97,15 +97,7 @@ const BookingTableInfo = ({
       try {
         const response = await TableTypeService.getAllTableTypes();
         if (response.status === 200) {
-          const types = response.data.data;
-          setTableTypes(types);
-
-          if (types.length > 0) {
-            const defaultType = types[0];
-            setSelectedTableType(defaultType.typeName);
-            setSelectedTypeDescription(defaultType.description);
-            onTableTypeChange(defaultType.tableTypeId);
-          }
+          setTableTypes(response.data.data);
         } else {
           console.error("Failed to fetch table types");
         }
@@ -115,23 +107,25 @@ const BookingTableInfo = ({
     };
 
     fetchTableTypes();
-  }, []); // Empty dependency array means this effect runs once on mount
+  }, []);
 
   const handleDateChange = (newDate) => {
     onDateChange(newDate);
   };
 
-  const handleTableTypeChange = (event) => {
-    const selectedTypeName = event.target.value;
-    setSelectedTableType(selectedTypeName);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-    const selectedType = tableTypes.find(
-      (type) => type.typeName === selectedTypeName
-    );
-    if (selectedType) {
-      setSelectedTypeDescription(selectedType.description);
-      onTableTypeChange(selectedType.tableTypeId);
-    }
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleTableTypeChange = (tableType) => {
+    setSelectedTableType(tableType.tableTypeId);
+    setSelectedTypeDescription(tableType.description);
+    onTableTypeChange(tableType.tableTypeId);
+    handleClose();
   };
 
   const isDateValid = (date) => {
@@ -151,13 +145,13 @@ const BookingTableInfo = ({
           <h2 className="mt-4 text-lg">Thông tin đặt bàn</h2>
           <hr className="shrink-0 mt-3 w-full h-px border border-amber-400 border-solid" />
 
-          {/* Display table type description */}
-          <div className="flex gap-3 items-center mt-4 text-stone-300">
-            <InfoIcon sx={{ color: "#FFA500" }} />
-            <span>{selectedTypeDescription}</span>
-          </div>
+          {selectedTypeDescription && (
+            <div className="flex gap-3 items-center mt-4 text-stone-300">
+              <InfoIcon sx={{ color: "#FFA500" }} />
+              <span>{selectedTypeDescription}</span>
+            </div>
+          )}
 
-          <h3 className="mt-4 text-md">Chọn Ngày</h3>
           <div className="flex flex-wrap gap-3 mt-3 items-center text-stone-300">
             <div className="flex gap-2 items-center">
               <CustomDatePicker
@@ -186,7 +180,7 @@ const BookingTableInfo = ({
               <CustomTextField
                 select
                 value={selectedTableType}
-                onChange={handleTableTypeChange}
+                onChange={(event) => handleTableTypeChange(tableTypes.find(t => t.tableTypeId === event.target.value))}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
@@ -196,10 +190,13 @@ const BookingTableInfo = ({
                   ),
                 }}
               >
+                <MenuItem value="">
+                  Chọn loại bàn
+                </MenuItem>
                 {tableTypes.map((tableType) => (
                   <CustomMenuItem
                     key={tableType.tableTypeId}
-                    value={tableType.typeName}
+                    value={tableType.tableTypeId}
                   >
                     {tableType.typeName}
                   </CustomMenuItem>
@@ -209,7 +206,8 @@ const BookingTableInfo = ({
 
             <Button
               variant="contained"
-              onClick={onSearchTables}  // Thay đổi này
+              onClick={onSearchTables}
+              disabled={!selectedTableType}
               sx={{
                 backgroundColor: "#FFA500",
                 height: "56px",
@@ -217,6 +215,10 @@ const BookingTableInfo = ({
                 "&:hover": {
                   backgroundColor: "#FF8C00",
                   opacity: 0.8,
+                },
+                "&:disabled": {
+                  backgroundColor: "#A9A9A9",
+                  color: "#D3D3D3",
                 },
               }}
             >
