@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { getBarTableById } from "src/lib/service/customerService";
 import { filterBookingTable } from "src/lib/service/BookingTableService";
@@ -59,12 +59,13 @@ const BookingTable = () => {
     }
   }, [barId]);
 
-  const fetchFilteredTables = async () => {
+  const fetchFilteredTables = useCallback(async () => {
     if (!barId || !selectedDate || !selectedTime || !selectedTableTypeId) {
       setOpenPopup(true);
       return;
     }
 
+    setIsLoading(true);
     try {
       const response = await filterBookingTable({
         barId,
@@ -73,13 +74,10 @@ const BookingTable = () => {
         time: selectedTime
       });
 
-      console.log("Filter response:", response.data);
-
-      if (response.status === 200) {
+      if (response.data.statusCode === 200) {
         const { tableTypeId, typeName, description, bookingTables } = response.data.data;
         setTableTypeInfo({ tableTypeId, typeName, description });
         if (bookingTables && bookingTables.length > 0 && bookingTables[0].tables.length > 0) {
-          console.log("Filtered tables:", bookingTables[0].tables);
           setFilteredTables(bookingTables[0].tables);
         } else {
           setFilteredTables([]);
@@ -89,20 +87,30 @@ const BookingTable = () => {
     } catch (error) {
       console.error("Error fetching filtered tables:", error);
       setOpenPopup(true);
+    } finally {
+      setIsLoading(false);
+      setHasSearched(true);
     }
-    setHasSearched(true);
+  }, [barId, selectedDate, selectedTime, selectedTableTypeId]);
+
+  useEffect(() => {
+    if (hasSearched) {
+      fetchFilteredTables();
+    }
+  }, [selectedDate, selectedTime, fetchFilteredTables, hasSearched]);
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    // Không xóa selectedTables nữa
   };
 
   const handleTimeChange = (time) => {
     setSelectedTime(time);
+    // Không xóa selectedTables nữa
   };
 
   const handleRemoveTable = (tableId) => {
     setSelectedTables((prev) => prev.filter((t) => t.tableId !== tableId));
-  };
-
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
   };
 
   const handleTableTypeChange = (tableTypeId) => {
@@ -124,13 +132,10 @@ const BookingTable = () => {
         time: selectedTime
       });
 
-      console.log("Filter response:", response.data);
-
-      if (response.status === 200) {
+      if (response.data.statusCode === 200) {
         const { tableTypeId, typeName, description, bookingTables } = response.data.data;
         setTableTypeInfo({ tableTypeId, typeName, description });
         if (bookingTables && bookingTables.length > 0 && bookingTables[0].tables.length > 0) {
-          console.log("Filtered tables:", bookingTables[0].tables);
           setFilteredTables(bookingTables[0].tables);
         } else {
           setFilteredTables([]);
@@ -157,7 +162,6 @@ const BookingTable = () => {
           <div className="flex flex-col w-3/4 max-md:w-full">
             <BookingTableInfo 
               barId={barId} 
-              selectedTime={selectedTime}
               selectedDate={selectedDate}
               onDateChange={handleDateChange}
               onTableTypeChange={handleTableTypeChange}

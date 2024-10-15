@@ -26,22 +26,6 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
     );
   }, [setFilteredTables]);
 
-  const handleTableRelease = useCallback(async (tableId) => {
-    try {
-      const data = {
-        barId: barId,
-        tableId: tableId,
-        date: selectedDate,
-        time: selectedTime + ":00"
-      };
-      await releaseTable(token, data);
-      updateTableHeldStatus(tableId, false, null);
-      setSelectedTables(prevTables => prevTables.filter(table => table.tableId !== tableId));
-    } catch (error) {
-      console.error("Error releasing table:", error);
-    }
-  }, [barId, selectedDate, selectedTime, token, updateTableHeldStatus, setSelectedTables]);
-
   useEffect(() => {
     console.log("Setting up SignalR listeners");
     
@@ -80,16 +64,19 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
               tableId: table.tableId,
               tableName: table.tableName,
               isHeld: holdData.isHeld,
-              holdExpiry: new Date(holdData.holdExpiry).getTime()
+              holdExpiry: new Date(holdData.holdExpiry).getTime(),
+              date: holdData.date,
+              time: holdData.time
             }
           ]);
           
           updateTableHeldStatus(table.tableId, true, token);
+          
           await hubConnection.invoke("HoldTable", {
             barId: barId,
             tableId: table.tableId,
-            date: selectedDate,
-            time: selectedTime + ":00"
+            date: holdData.date,
+            time: holdData.time
           });
         } else {
           console.error("Hold table request failed:", response.data);
