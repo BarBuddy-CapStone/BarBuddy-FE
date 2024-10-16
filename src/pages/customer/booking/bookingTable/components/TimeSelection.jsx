@@ -49,31 +49,47 @@ const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate }) => {
     const options = [];
     const currentDate = dayjs(date);
     const now = dayjs();
-    
-    let currentTime = currentDate.hour(parseInt(start.split(':')[0])).minute(parseInt(start.split(':')[1]));
-    let endTimeObj = currentDate.hour(parseInt(end.split(':')[0])).minute(parseInt(end.split(':')[1]));
 
-    // Nếu endTime là trước startTime, giả sử nó là ngày hôm sau
+    // Parse the start and end times
+    let currentTime = currentDate
+      .hour(parseInt(start.split(":")[0]))
+      .minute(parseInt(start.split(":")[1]));
+    let endTimeObj = currentDate
+      .hour(parseInt(end.split(":")[0]))
+      .minute(parseInt(end.split(":")[1]));
+
+    // If the bar's closing time (end) is before the start time, assume it extends to the next day
     if (endTimeObj.isBefore(currentTime)) {
-      endTimeObj = endTimeObj.add(1, 'day');
+      endTimeObj = endTimeObj.add(1, "day");
     }
 
-    // Nếu ngày được chọn là hôm nay, bắt đầu từ giờ hiện tại + 1
-    if (currentDate.isSame(now, 'day')) {
-      currentTime = now.add(1, 'hour').startOf('hour');
+    // Handle the case when the selected date is today
+    if (currentDate.isSame(now, "day")) {
+      const barOpeningTime = dayjs()
+        .hour(parseInt(start.split(":")[0]))
+        .minute(parseInt(start.split(":")[1]));
+      if (now.isAfter(barOpeningTime)) {
+        currentTime = now.add(1, "hour").startOf("hour");
+      }
     }
 
+    // Generate hourly slots between startTime and endTime
     while (currentTime.isBefore(endTimeObj)) {
       options.push(currentTime.format("HH:mm"));
       currentTime = currentTime.add(1, "hour");
     }
 
+    // Ensure that times after midnight are displayed correctly
     return options;
   };
 
   useEffect(() => {
     if (startTime && endTime && selectedDate) {
-      const newTimeOptions = generateTimeOptions(startTime, endTime, selectedDate);
+      const newTimeOptions = generateTimeOptions(
+        startTime,
+        endTime,
+        selectedDate
+      );
       setTimeOptions(newTimeOptions);
 
       if (newTimeOptions.length > 0 && !selectedTime) {
@@ -94,7 +110,9 @@ const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate }) => {
 
   return (
     <div className="mt-4">
-      <h3 className="text-lg leading-none mb-4 text-amber-400">Chọn thời gian</h3>
+      <h3 className="text-lg leading-none mb-4 text-amber-400">
+        Chọn thời gian
+      </h3>
       <CustomTextField
         select
         value={selectedTime}
