@@ -64,6 +64,43 @@ const BookingTable = () => {
     }
   }, [barId]);
 
+  const mergeTables = (apiTables, filteredTables) => {
+    filteredTables.forEach(table => {
+      if (!table.time) {
+        console.warn(`Table ${table.tableId} bi thieu time`);
+        table.time = "00:00:00";
+      }
+    });
+  
+    return apiTables?.tables.map(apiTable => {
+      const apiDate = dayjs(apiTables.reservationDate).format("YYYY-MM-DD");
+      const apiTime = apiTables.reservationTime || "00:00:00";
+  
+      const matchingTable = filteredTables.find(filteredTable => {
+        const filteredDate = dayjs(filteredTable.date).format("YYYY-MM-DD");
+        const filteredTime = filteredTable.time || "00:00:00";
+  
+        return (
+          filteredTable.tableId === apiTable.tableId &&
+          filteredDate === apiDate &&
+          filteredTime === apiTime
+        );
+      });
+  
+      if (matchingTable) {
+        return {
+          ...apiTable,
+          isHeld: matchingTable.isHeld || apiTable.isHeld,
+          date: matchingTable.date || apiTable.date,
+          time: matchingTable.time || apiTable.time,
+          status: matchingTable.status || apiTable.status,
+          holderId: matchingTable.holderId || apiTable.holderId,
+        };
+      }
+  
+      return apiTable;
+    });
+  };
   const fetchFilteredTables = useCallback(async () => {
     if (!barId || !selectedDate || !selectedTime || !selectedTableTypeId) {
       setOpenPopup(true);
@@ -79,17 +116,24 @@ const BookingTable = () => {
         time: selectedTime
       });
 
-      // if (response.data.statusCode === 200) {
-      //   const { tableTypeId, typeName, description, bookingTables } = response.data.data;
-      //   console.log("asd", filteredTables)
-      //   setTableTypeInfo({ tableTypeId, typeName, description });
-      //   if (bookingTables && bookingTables.length > 0 && bookingTables[0].tables.length > 0) {
-      //     setFilteredTables(bookingTables[0].tables);
-      //   } else {
-      //     setFilteredTables([]);
-      //     setOpenPopup(true);
-      //   }
-      // }
+      if (response.data.statusCode === 200) {
+        const { tableTypeId, typeName, description, bookingTables } = response.data.data;
+        console.log("filter", filteredTables);
+        console.log("filterAPI", response.data.data);
+      
+        setTableTypeInfo({ tableTypeId, typeName, description });
+      
+        if (bookingTables && bookingTables.length > 0 && bookingTables[0].tables.length > 0) {
+          const mergedTables = mergeTables(bookingTables[0], filteredTables);
+          console.log("mergedTables", mergedTables);
+      
+          // Cập nhật state với mergedTables
+          setFilteredTables(mergedTables);
+        } else {
+          setFilteredTables([]);
+          setOpenPopup(true);
+        }
+      }
 
     } catch (error) {
       console.error("Error fetching filtered tables:", error);
@@ -139,11 +183,19 @@ const BookingTable = () => {
         time: selectedTime
       });
 
+
+      console.log("filter Response",response)
+
       if (response.data.statusCode === 200) {
         const { tableTypeId, typeName, description, bookingTables } = response.data.data;
+        console.log("filter", filteredTables);
+        console.log("filterAPI", response.data.data);
+      
         setTableTypeInfo({ tableTypeId, typeName, description });
+      
         if (bookingTables && bookingTables.length > 0 && bookingTables[0].tables.length > 0) {
-          setFilteredTables(bookingTables[0].tables);
+          let filteredTables = bookingTables[0].tables;
+          setFilteredTables(filteredTables);
         } else {
           setFilteredTables([]);
           setOpenPopup(true);

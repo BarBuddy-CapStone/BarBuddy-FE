@@ -18,16 +18,12 @@ const TableSelection = (
     barId,
     selectedTableTypeId,
     selectedDate,
-    selectedTime
+    selectedTime,
+    handleTableSelectTest
   }) => {
   const { token, userInfo } = useAuthStore();
   const [heldTables, setHeldTables] = useState({});
 
-  console.log("he", heldTables)
-  console.log("date", selectedDate)
-  console.log("time", selectedTime)
-  
-  console.log("acc", userInfo.accountId)
   const updateTableHeldStatus = useCallback((tableId, isHeld, holderId, date, time) => {
     setHeldTables(prev => ({
       ...prev,
@@ -36,7 +32,7 @@ const TableSelection = (
 
     setFilteredTables(prevTables =>
       prevTables.map(table =>
-        table.tableId === tableId
+        table.tableId === tableId 
           ? { ...table, status: isHeld ? 2 : 1, holderId, date, time, isHeld }
           : table
       )
@@ -167,14 +163,11 @@ const TableSelection = (
         {console.log("fiter", filteredTables)}
           <div className="flex flex-wrap gap-3.5 items-start text-center text-black max-md:max-w-full">
             {filteredTables.map(table => {
-              // const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId &&
-              //   dayjs(table.date).format('YYYY-MM-DD') === dayjs(selectedDate).format('YYYY-MM-DD') &&
-              //   table.time === selectedTime + ":00";
                 const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId &&
                 dayjs(table.date).format('YYYY-MM-DD') === dayjs(selectedDate).format('YYYY-MM-DD') &&
                 table.time === selectedTime + ":00";
-                {console.log("g", table)}
-              console.log("Current", isCurrentUserHolding)
+              //   console.log("currenTable", table)
+              // console.log("Current", isCurrentUserHolding)
               return (
                 <CustomButton
                   key={table.tableId}

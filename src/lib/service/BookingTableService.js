@@ -17,23 +17,44 @@ const filterBookingTable = async (params) => {
       const filteredDate = dayjs(params.date).format("YYYY-MM-DD");
       const filteredTime = params.time;
 
-      response.data.data.bookingTables[0].tables = response.data.data.bookingTables[0].tables.map(table => {
-        const holdInfo = holdTables.find(ht => 
-          ht.tableId === table.tableId && 
-          dayjs(ht.date).format("YYYY-MM-DD") === filteredDate && 
-          ht.time === filteredTime
-        );
+      console.log("Filtered Date:", filteredDate);
+      console.log("Filtered Time:", filteredTime);
 
+      console.log("response.data.data.bookingTables[0].tables", response.data.data.bookingTables[0].tables)
+      console.log("holdTables", holdTables)
+
+      
+      response.data.data.bookingTables[0].tables = response.data.data.bookingTables[0].tables.map(table => {
+        console.log("Processing table:", table.tableId);
+        
+        const holdInfo = holdTables.find(ht => {
+          console.log("Comparing:", {
+            tableIdFromHoldTables: ht.tableId,
+            tableIdFromTables: table.tableId,
+            holdDate: dayjs(ht.date).format("YYYY-MM-DD"),
+            filteredDate: filteredDate,
+            holdTime: ht.time,
+            filteredTime: filteredTime +":00"
+          });
+          return (
+            ht.tableId === table.tableId && 
+            dayjs(ht.date).format("YYYY-MM-DD") === filteredDate && 
+            ht.time === filteredTime + ":00"
+          );
+        });
+        console.log("holdInfo:", holdInfo);
         if (holdInfo && holdInfo.isHeld) {
           return {
             ...table,
             status: 2, // 2 for held
             isHeld: true,
             holdExpiry: holdInfo.holdExpiry,
-            accountId: holdInfo.accountId
+            holderId: holdInfo.accountId,
+            date: holdInfo.date,
+            time: holdInfo.time,
           };
         }
-        // Nếu không tìm thấy thông tin giữ bàn cho thời gian này, hoặc bàn không được giữ, đặt trạng thái là trống
+        console.log("Table khong chon:", table.tableId);
         return { ...table, status: 1, isHeld: false };
       });
     }
