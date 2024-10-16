@@ -56,7 +56,10 @@ const CustomerHeader = () => {
     logout(); // Call the logout function from useAuthStore to clear session
     setAnchorEl(null); // Close the dropdown
     toast.success("Đăng xuất thành công");
-    navigate("/home"); // Redirect to home
+    setTimeout(() => {
+      navigate("/");
+      window.location.reload();
+    }, 1500);
   };
 
   // Handlers to open/close login and register popups

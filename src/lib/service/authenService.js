@@ -12,3 +12,7 @@ export const verifyOtp = async (data) => {
   return await axios.post("api/authen/verify", data);
 };
 
+export const googleLogin = async (idToken) => {
+  return await axios.post("api/authen/google-login", { idToken });
+};
+
