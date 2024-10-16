@@ -7,7 +7,6 @@ import dayjs from 'dayjs';
 const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, selectedDate, selectedTime }) => {
   const [countdowns, setCountdowns] = useState({});
   const { token } = useAuthStore();
-
   const handleExpiredTable = useCallback(async (tableId, date, time) => {
     if (!date || !time) {
       console.error("date or time is missing");
@@ -82,12 +81,12 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
   };
 
   // Lọc bàn theo ngày và giờ hiện tại
-  const filteredTables = selectedTables.filter(table => 
-    dayjs(table.date).isSame(dayjs(selectedDate), 'day') && table.time === selectedTime + ":00"
-  );
+  // const filteredTables = selectedTables.filter(table => 
+  //   dayjs(table.date).isSame(dayjs(selectedDate), 'day') && table.time === selectedTime + ":00"
+  // );
 
   // Sắp xếp bàn theo thời gian
-  const sortedTables = filteredTables.sort((a, b) => {
+  const sortedTables = selectedTables.sort((a, b) => {
     if (a.time < b.time) return -1;
     if (a.time > b.time) return 1;
     return 0;
@@ -99,7 +98,7 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
         Danh sách đã chọn
       </div>
       <div className="shrink-0 self-stretch mt-4 h-px border border-amber-400 border-solid" />
-      {sortedTables.map((table) => (
+      {sortedTables?.map((table) => (
         <div key={table.tableId} className="flex flex-col gap-2 mt-4 ml-7 max-w-full leading-none w-[164px] max-md:ml-2.5">
           <div className="flex justify-between items-center">
             <div className="text-sm font-notoSansSC">

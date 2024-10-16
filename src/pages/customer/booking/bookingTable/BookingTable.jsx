@@ -31,6 +31,11 @@ const BookingTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
+  const uniqueTablesByDateAndTime = selectedTables.filter((seleTable, index, self) =>
+    index === self.findIndex((t) => (
+      t.tableId === seleTable.tableId && t.date === seleTable.date && t.time === seleTable.time
+    ))
+  );
   useEffect(() => {
     const fetchTableData = async () => {
       try {
@@ -74,16 +79,18 @@ const BookingTable = () => {
         time: selectedTime
       });
 
-      if (response.data.statusCode === 200) {
-        const { tableTypeId, typeName, description, bookingTables } = response.data.data;
-        setTableTypeInfo({ tableTypeId, typeName, description });
-        if (bookingTables && bookingTables.length > 0 && bookingTables[0].tables.length > 0) {
-          setFilteredTables(bookingTables[0].tables);
-        } else {
-          setFilteredTables([]);
-          setOpenPopup(true);
-        }
-      }
+      // if (response.data.statusCode === 200) {
+      //   const { tableTypeId, typeName, description, bookingTables } = response.data.data;
+      //   console.log("asd", filteredTables)
+      //   setTableTypeInfo({ tableTypeId, typeName, description });
+      //   if (bookingTables && bookingTables.length > 0 && bookingTables[0].tables.length > 0) {
+      //     setFilteredTables(bookingTables[0].tables);
+      //   } else {
+      //     setFilteredTables([]);
+      //     setOpenPopup(true);
+      //   }
+      // }
+
     } catch (error) {
       console.error("Error fetching filtered tables:", error);
       setOpenPopup(true);
@@ -196,7 +203,7 @@ const BookingTable = () => {
           </div>
           <div className="flex flex-col w-1/4 max-md:w-full">
             <TableSidebar
-              selectedTables={selectedTables}
+              selectedTables={uniqueTablesByDateAndTime}
               setSelectedTables={setSelectedTables}
               onRemove={handleRemoveTable}
               barInfo={barInfo}

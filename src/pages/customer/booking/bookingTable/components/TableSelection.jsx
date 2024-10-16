@@ -8,20 +8,36 @@ import useAuthStore from 'src/lib/hooks/useUserStore';
 import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 import dayjs from 'dayjs';
 
-const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, setFilteredTables, tableTypeInfo, isLoading, hasSearched, barId, selectedTableTypeId, selectedDate, selectedTime }) => {
-  const { token, accountId } = useAuthStore();
+const TableSelection = (
+  { selectedTables,
+    setSelectedTables,
+    filteredTables,
+    setFilteredTables,
+    tableTypeInfo, isLoading,
+    hasSearched,
+    barId,
+    selectedTableTypeId,
+    selectedDate,
+    selectedTime
+  }) => {
+  const { token, userInfo } = useAuthStore();
   const [heldTables, setHeldTables] = useState({});
 
+  console.log("he", heldTables)
+  console.log("date", selectedDate)
+  console.log("time", selectedTime)
+  
+  console.log("acc", userInfo.accountId)
   const updateTableHeldStatus = useCallback((tableId, isHeld, holderId, date, time) => {
     setHeldTables(prev => ({
       ...prev,
       [tableId]: { isHeld, holderId, date, time }
     }));
-    
-    setFilteredTables(prevTables => 
-      prevTables.map(table => 
-        table.tableId === tableId 
-          ? { ...table, status: isHeld ? 2 : 1, holderId, date, time, isHeld } 
+
+    setFilteredTables(prevTables =>
+      prevTables.map(table =>
+        table.tableId === tableId
+          ? { ...table, status: isHeld ? 2 : 1, holderId, date, time, isHeld }
           : table
       )
     );
@@ -29,10 +45,10 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
 
   useEffect(() => {
     console.log("Setting up SignalR listeners");
-    
+
     hubConnection.on("TableHoId", (response) => {
       console.log("Table HoId:", response);
-      updateTableHeldStatus(response.tableId, true, response.holderId, response.date, response.time);
+      updateTableHeldStatus(response.tableId, true, response.accountId, response.date, response.time);
     });
 
     hubConnection.on("TableReleased", (response) => {
@@ -56,7 +72,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
           time: selectedTime + ":00"
         };
         const response = await holdTable(token, data);
-        
+
         if (response.data.statusCode === 200) {
           const holdData = response.data.data;
           const newSelectedTable = {
@@ -68,10 +84,10 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
             time: holdData.time
           };
           setSelectedTables(prevSelectedTables => [...prevSelectedTables, newSelectedTable]);
-          
+
           // Cập nhật trạng thái bàn ngay lập tức
           updateTableHeldStatus(table.tableId, true, accountId, holdData.date, holdData.time);
-          
+
           await hubConnection.invoke("HoldTable", {
             barId: barId,
             tableId: table.tableId,
@@ -115,14 +131,14 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
     backgroundColor: 
       isCurrentUserHolding ? '#D2691E' :  // Nâu xám cho bàn đang được chọn bởi người dùng hiện tại
       isHeld ? '#FFA500' :  // Cam cho bàn đã được đặt bởi người khác
-      status === 0 ? '#FFA500' :  // Cam cho bàn không khả dụng
+      status === 0 || status === 2 ?  '#FFA500' :  // Cam cho bàn không khả dụng
       '#D3D3D3',  // Xám nhạt cho bàn trống
     color: '#fff',
     '&:hover': {
       backgroundColor: 
         isCurrentUserHolding ? '#A0522D' :
         isHeld ? '#FF8C00' :
-        status === 0 ? '#FF8C00' :
+        status === 0 || status === 2 ? '#FF8C00' :
         '#C0C0C0',
     },
     '&:disabled': {
@@ -148,12 +164,17 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
         </div>
       ) : hasSearched && filteredTables.length > 0 ? (
         <>
+        {console.log("fiter", filteredTables)}
           <div className="flex flex-wrap gap-3.5 items-start text-center text-black max-md:max-w-full">
-            {filteredTables.map((table) => {
-              const isCurrentUserHolding = table.isHeld && table.holderId === accountId &&
-                                           table.date === dayjs(selectedDate).format('YYYY-MM-DD') &&
-                                           table.time === selectedTime + ":00";
-
+            {filteredTables.map(table => {
+              // const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId &&
+              //   dayjs(table.date).format('YYYY-MM-DD') === dayjs(selectedDate).format('YYYY-MM-DD') &&
+              //   table.time === selectedTime + ":00";
+                const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId &&
+                dayjs(table.date).format('YYYY-MM-DD') === dayjs(selectedDate).format('YYYY-MM-DD') &&
+                table.time === selectedTime + ":00";
+                {console.log("g", table)}
+              console.log("Current", isCurrentUserHolding)
               return (
                 <CustomButton
                   key={table.tableId}
@@ -168,7 +189,7 @@ const TableSelection = ({ selectedTables, setSelectedTables, filteredTables, set
               );
             })}
           </div>
-          
+
           {/* Legend */}
           <div className="flex gap-6 justify-end items-center mt-8 max-w-full text-sm text-center text-zinc-100">
             <div className="flex gap-2 items-center self-stretch my-auto">
