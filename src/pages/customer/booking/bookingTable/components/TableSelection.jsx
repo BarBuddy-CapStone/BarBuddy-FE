@@ -86,7 +86,7 @@ const TableSelection = (
           setSelectedTables(prevSelectedTables => [...prevSelectedTables, newSelectedTable]);
 
           // Cập nhật trạng thái bàn ngay lập tức
-          updateTableHeldStatus(table.tableId, true, accountId, holdData.date, holdData.time);
+          updateTableHeldStatus(table.tableId, true, userInfo.accountId, holdData.date, holdData.time);
 
           await hubConnection.invoke("HoldTable", {
             barId: barId,
