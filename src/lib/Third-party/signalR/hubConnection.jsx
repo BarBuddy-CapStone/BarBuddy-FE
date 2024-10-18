@@ -1,5 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 import axios from "../../axiosCustomize";
+import {useTableStore} from 'src/lib';
 
 // Lấy base URL từ axios instance, nhưng đảm bảo sử dụng HTTPS
 const BASE_URL = axios.defaults.baseURL;
@@ -68,11 +69,22 @@ export const hubConnection = connection;
 // Thêm các listener cho các sự kiện cụ thể
 connection.on("TableHoId", (response) => {
   console.log("Table held via SignalR:", response);
-  document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId: response.tableId, isHeld: true, holderId: response.holderId } }));
+  // const { addTable } = useTableStore.getState();
+  // addTable({
+  //   tableId: response.tableId,
+  //   isHeld: true,
+  //   holderId: response.accountId,
+  //   holdExpiry: response.holdExpiry,
+  //   date: response.date,
+  //   time: response.time
+  // });
+  document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId: response.tableId, isHeld: true, holderId: response.accountId } }));
 });
 
 connection.on("TableReleased", (response) => {
   console.log("Table released:", response);
+  // const { releaseTable } = useTableStore.getState();
+  // releaseTable(response.tableId, response.date, response.time);
   document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId: response.tableId, isHeld: false, holderId: null } }));
 });
 

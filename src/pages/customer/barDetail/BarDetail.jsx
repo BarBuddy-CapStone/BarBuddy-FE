@@ -62,6 +62,7 @@ const BarDetail = () => {
                 console.error("Error fetching bar details:", error);
             }
         };
+
         if (barId) {
             fetchBarDetails();
         }

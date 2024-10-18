@@ -86,7 +86,7 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
   // );
 
   // Sắp xếp bàn theo thời gian
-  const sortedTables = selectedTables.sort((a, b) => {
+  const sortedTables = [...selectedTables].sort((a, b) => {
     if (a.time < b.time) return -1;
     if (a.time > b.time) return 1;
     return 0;

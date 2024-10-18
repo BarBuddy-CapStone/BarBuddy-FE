@@ -1,28 +1,61 @@
-import React from "react";
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import React, { useState } from "react";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+} from "@mui/material";
+import dayjs from "dayjs"; // Import dayjs for date formatting
 
-const BookingDrinkInfo = () => {
-  const navigate = useNavigate(); // Initialize the navigate function
+const BookingDrinkInfo = ({
+  barInfo,
+  selectedTables,
+  customerInfo,
+  userInfo,
+  onBackClick
+}) => {
+  const navigate = useNavigate();
+  const [openPopup, setOpenPopup] = useState(false);
 
-  // Function to handle navigation to BookingTable
-  const handleBackClick = () => {
-    navigate('/bookingtable'); // Navigate to the BookingTable page
+  const handleShowAllTables = () => {
+    setOpenPopup(true);
+  };
+
+  const handleClosePopup = () => {
+    setOpenPopup(false);
+  };
+
+  // Function to format date and time
+  const formatDateTime = (dateString, timeString) => {
+    const date = dayjs(dateString).format('YYYY-MM-DD');
+    let time = 'Invalid Time';
+    if (timeString) {
+      const [hours, minutes] = timeString.split(':');
+      const decimalHours = parseInt(hours) + (parseInt(minutes) / 60);
+      time = decimalHours.toFixed(1); // This will give you time in format like 17.5
+      time = `${hours}:${minutes}`; // This will give you time in format like 17:30
+    }
+    return { date, time };
   };
 
   return (
     <section className="flex flex-col px-4 py-4 mt-4 lg:mt-8 w-full text-lg bg-neutral-800 rounded-lg">
-      <div className="flex items-center gap-1.5 self-start ml-0 pl-2 cursor-pointer" onClick={handleBackClick}>
+      <div
+        className="flex items-center gap-1.5 self-start ml-0 pl-2 cursor-pointer"
+        onClick={onBackClick}
+      >
         <ChevronLeftIcon className="object-contain w-6 h-6 text-gray-200" />
         <div className="text-gray-200">Quay lại</div>
       </div>
       <div className="shrink-0 mt-4 h-px border border-amber-400 border-solid" />
-      <h2 className="self-start mt-4 text-xl text-amber-400">
+      <h2 className="self-start mt-4 text-xl text-amber-400 font-aBeeZee">
         Thông tin đặt bàn
       </h2>
       <div className="shrink-0 mt-2 w-full border border-amber-400 border-solid " />
 
-      {/* Adjusted the container for the booking information */}
       <div className="grid grid-cols-2 gap-4 mt-4 w-full leading-none text-gray-200">
         <div className="flex items-center">
           <img
@@ -31,7 +64,9 @@ const BookingDrinkInfo = () => {
             alt=""
             className="object-contain shrink-0 w-5 aspect-square"
           />
-          <div className="ml-2">87A Hàm Nghi, Phường Nguyễn Thái Bình, Quận 1</div>
+          <div className="ml-2 font-sans font-thin">
+            {barInfo?.location || "Địa chỉ không có sẵn"}
+          </div>
         </div>
 
         <div className="flex items-center">
@@ -41,7 +76,9 @@ const BookingDrinkInfo = () => {
             alt=""
             className="object-contain shrink-0 w-5 aspect-[1.07]"
           />
-          <div className="ml-2">Bob Smith</div>
+          <div className="ml-2 font-sans font-thin">
+            {customerInfo?.name || userInfo?.fullname || "Tên không có sẵn"}
+          </div>
         </div>
 
         <div className="flex items-center">
@@ -51,7 +88,9 @@ const BookingDrinkInfo = () => {
             alt=""
             className="object-contain shrink-0 w-5 aspect-square"
           />
-          <div className="ml-2">Chi nhánh Bar Buddy1</div>
+          <div className="ml-2 font-sans font-thin">
+            {barInfo?.name || "Tên quán bar không có sẵn"}
+          </div>
         </div>
 
         <div className="flex items-center">
@@ -61,7 +100,11 @@ const BookingDrinkInfo = () => {
             alt=""
             className="object-contain shrink-0 w-5 aspect-[1.12]"
           />
-          <div className="ml-2">0113114115</div>
+          <div className="ml-2 font-sans font-thin">
+            {customerInfo?.phone ||
+              userInfo?.phone ||
+              "Số điện thoại không có sẵn"}
+          </div>
         </div>
 
         <div className="flex items-center">
@@ -71,7 +114,9 @@ const BookingDrinkInfo = () => {
             alt=""
             className="object-contain shrink-0 w-5 aspect-square"
           />
-          <div className="ml-2">23h30' - 17 December, 2024</div>
+          <div className="ml-2 font-sans font-thin">
+            {barInfo?.openingHours || "Thời gian không có sẵn"}
+          </div>
         </div>
 
         <div className="flex items-center">
@@ -81,9 +126,57 @@ const BookingDrinkInfo = () => {
             alt=""
             className="object-contain shrink-0 w-5 aspect-square"
           />
-          <div className="ml-2">Tôi muốn bàn view sài gòn</div>
+          <div className="ml-2 font-sans font-thin">{customerInfo?.note || "Không có ghi chú"}</div>
         </div>
       </div>
+
+      <button
+        onClick={handleShowAllTables}
+        className="mt-4 text-amber-400 hover:text-amber-500"
+      >
+        Xem tất cả bàn đã đặt
+      </button>
+
+      <Dialog
+        open={openPopup}
+        onClose={handleClosePopup}
+        PaperProps={{
+          style: {
+            backgroundColor: "#333",
+            color: "white",
+            borderRadius: "8px",
+          },
+        }}
+      >
+        <DialogTitle style={{ color: "#FFA500", textAlign: "center" }}>
+          Danh sách bàn đã đặt
+        </DialogTitle>
+        <DialogContent>
+          {selectedTables?.map((table, index) => {
+            const { date, time } = formatDateTime(table.date, table.time);
+            return (
+              <div key={table.tableId} className="text-white mb-2">
+                {index + 1}. Bàn {table.tableName}: 
+                <span className="ml-2">Ngày: {date}</span>
+                <span className="ml-2">Giờ: {time}</span>
+              </div>
+            );
+          })}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleClosePopup}
+            style={{
+              color: "black",
+              backgroundColor: "#FFA500",
+              borderRadius: "4px",
+              padding: "6px 16px",
+            }}
+          >
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
     </section>
   );
 };
