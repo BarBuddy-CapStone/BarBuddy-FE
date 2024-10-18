@@ -252,7 +252,7 @@ const BookingTable = () => {
               barId={barId}
               selectedTime={selectedTime}
               selectedDate={selectedDate}
-              barInfo={barInfo}
+              barInfo={barInfo}  // Thêm dòng này
             />
           </div>
           <div className="flex flex-col w-1/4 max-md:w-full">
