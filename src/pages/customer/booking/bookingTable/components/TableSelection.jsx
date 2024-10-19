@@ -19,23 +19,27 @@ const TableSelection = (
     selectedTableTypeId,
     selectedDate,
     selectedTime,
-    handleTableSelectTest
+    onTableSelect
   }) => {
   const { token, userInfo } = useAuthStore();
   const [heldTables, setHeldTables] = useState({});
 
   const updateTableHeldStatus = useCallback((tableId, isHeld, holderId, date, time) => {
+    console.log("Updating table held status:", { tableId, isHeld, holderId, date, time });
     setHeldTables(prev => ({
       ...prev,
       [tableId]: { isHeld, holderId, date, time }
     }));
 
     setFilteredTables(prevTables =>
-      prevTables.map(table =>
-        table.tableId === tableId 
+      prevTables.map(table => {
+        if (table.tableId === tableId) {
+          console.log("Updating table:", { ...table, status: isHeld ? 2 : 1, holderId, date, time, isHeld });
+        }
+        return table.tableId === tableId 
           ? { ...table, status: isHeld ? 2 : 1, holderId, date, time, isHeld }
           : table
-      )
+      })
     );
   }, [setFilteredTables]);
 
@@ -58,44 +62,10 @@ const TableSelection = (
     };
   }, [updateTableHeldStatus]);
 
-  const handleTableSelect = async (table) => {
+  const handleTableSelect = (table) => {
     if (table.status === 1 || table.status === 3) {
-      try {
-        const data = {
-          barId: barId,
-          tableId: table.tableId,
-          date: dayjs(selectedDate).format('YYYY-MM-DD'),
-          time: selectedTime + ":00"
-        };
-        const response = await holdTable(token, data);
-
-        if (response.data.statusCode === 200) {
-          const holdData = response.data.data;
-          const newSelectedTable = {
-            tableId: table.tableId,
-            tableName: table.tableName,
-            isHeld: true,
-            holdExpiry: new Date(holdData.holdExpiry).getTime(),
-            date: holdData.date,
-            time: holdData.time
-          };
-          setSelectedTables(prevSelectedTables => [...prevSelectedTables, newSelectedTable]);
-
-          // Cập nhật trạng thái bàn ngay lập tức
-          updateTableHeldStatus(table.tableId, true, userInfo.accountId, holdData.date, holdData.time);
-
-          await hubConnection.invoke("HoldTable", {
-            barId: barId,
-            tableId: table.tableId,
-            date: holdData.date,
-            time: holdData.time
-          });
-        } else {
-          console.error("Hold table request failed:", response.data);
-        }
-      } catch (error) {
-        console.error("Error holding table:", error);
-      }
+      onTableSelect(table);
+      // Các xử lý khác nếu cần
     }
   };
 
@@ -145,6 +115,12 @@ const TableSelection = (
     padding: '8px 16px',
   }));
 
+  const isTableHeldForCurrentTime = (table) => {
+    return table.isHeld && 
+           dayjs(table.date).format('YYYY-MM-DD') === dayjs(selectedDate).format('YYYY-MM-DD') &&
+           table.time === selectedTime + ":00";
+  };
+
   return (
     <div className="mt-6">
       <h3 className="text-lg leading-none mb-2 text-amber-400">Chọn Bàn</h3>
@@ -160,22 +136,19 @@ const TableSelection = (
         </div>
       ) : hasSearched && filteredTables.length > 0 ? (
         <>
-        {console.log("fiter", filteredTables)}
+        {console.log("Filtered tables in TableSelection:", filteredTables)}
           <div className="flex flex-wrap gap-3.5 items-start text-center text-black max-md:max-w-full">
             {filteredTables.map(table => {
-                const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId &&
-                dayjs(table.date).format('YYYY-MM-DD') === dayjs(selectedDate).format('YYYY-MM-DD') &&
-                table.time === selectedTime + ":00";
-              //   console.log("currenTable", table)
-              // console.log("Current", isCurrentUserHolding)
+              const isCurrentUserHolding = isTableHeldForCurrentTime(table) && table.holderId === userInfo.accountId;
+              console.log("Table in render:", table);
               return (
                 <CustomButton
                   key={table.tableId}
                   onClick={() => isCurrentUserHolding ? handleTableRelease(table.tableId) : handleTableSelect(table)}
                   status={table.status}
-                  isHeld={table.isHeld}
+                  isHeld={isTableHeldForCurrentTime(table)}
                   isCurrentUserHolding={isCurrentUserHolding}
-                  disabled={table.status === 0 || (table.isHeld && !isCurrentUserHolding)}
+                  disabled={table.status === 0 || (isTableHeldForCurrentTime(table) && !isCurrentUserHolding)}
                 >
                   {table.tableName}
                 </CustomButton>
