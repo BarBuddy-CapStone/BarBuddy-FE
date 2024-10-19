@@ -25,23 +25,11 @@ const filterBookingTable = async (params) => {
 
       
       response.data.data.bookingTables[0].tables = response.data.data.bookingTables[0].tables.map(table => {
-        console.log("Processing table:", table.tableId);
-        
-        const holdInfo = holdTables.find(ht => {
-          console.log("Comparing:", {
-            tableIdFromHoldTables: ht.tableId,
-            tableIdFromTables: table.tableId,
-            holdDate: dayjs(ht.date).format("YYYY-MM-DD"),
-            filteredDate: filteredDate,
-            holdTime: ht.time,
-            filteredTime: filteredTime +":00"
-          });
-          return (
-            ht.tableId === table.tableId && 
-            dayjs(ht.date).format("YYYY-MM-DD") === filteredDate && 
-            ht.time === filteredTime + ":00"
-          );
-        });
+        const holdInfo = holdTables.find(ht => 
+          ht.tableId === table.tableId && 
+          dayjs(ht.date).format("YYYY-MM-DD") === filteredDate && 
+          ht.time === filteredTime + ":00"
+        );
         console.log("holdInfo:", holdInfo);
         if (holdInfo && holdInfo.isHeld) {
           return {
@@ -54,6 +42,7 @@ const filterBookingTable = async (params) => {
             time: holdInfo.time,
           };
         }
+        console.log("holdInfo", holdInfo)
         console.log("Table khong chon:", table.tableId);
         return { ...table, status: 1, isHeld: false };
       });
@@ -88,10 +77,17 @@ const releaseTable = async (token, data) => {
   return await axios.post(`api/bookingTable/releaseTable`, data, config);
 };
 
-const getAllHoldTable = async(barId) => {
-  const response = await axios.get(`api/bookingTable/getHoldTable/${barId}`);
-  console.log("getAllHoldTable response:", response.data);
-  return response;
+const getAllHoldTable = async(barId, date, time) => {
+  try {
+    const response = await axios.get(`api/bookingTable/getHoldTable/${barId}`, {
+      params: { date, time }
+    });
+    console.log("getAllHoldTable response:", response.data);
+    return response;
+  } catch (error) {
+    console.error("Error in getAllHoldTable:", error);
+    throw error;
+  }
 }
 
 const boookingtableNow = async (token, data) => {
