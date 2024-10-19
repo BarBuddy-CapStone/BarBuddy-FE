@@ -1,4 +1,4 @@
-import React, { useState, Fragment, useEffect } from "react"; // Thêm useEffect
+import React, { useState, Fragment, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -9,6 +9,7 @@ import {
   Menu,
   Dialog,
   Badge,
+  Popover, // Thêm Popover
 } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -17,44 +18,59 @@ import { useAuthStore } from "src/lib";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Login, Registration } from "src/pages";
 import { toast } from "react-toastify";
+import { getNotificationByAccountId } from "src/lib/service/notificationService"; // Import hàm
 
 const CustomerHeader = () => {
-  const [anchorEl, setAnchorEl] = useState(null); // State for the dropdown menu
-  const [openLogin, setOpenLogin] = useState(false); // State for login popup
-  const [openRegister, setOpenRegister] = useState(false); // State for register popup
-  const { isLoggedIn, userInfo, logout } = useAuthStore(); // Access logout from the store
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [openLogin, setOpenLogin] = useState(false);
+  const [openRegister, setOpenRegister] = useState(false);
+  const { isLoggedIn, userInfo, logout } = useAuthStore();
   const navigate = useNavigate();
 
-  // Thêm biến để lưu accountId
   const [accountId, setAccountId] = useState(null);
 
-  // Lấy userInfo từ sessionStorage khi component được mount
+  // State cho popup thông báo
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
+
+  const [notifications, setNotifications] = useState([]); // State lưu trữ thông báo
+
   useEffect(() => {
     const storedUserInfo = sessionStorage.getItem('userInfo');
     if (storedUserInfo) {
       const userInfoParsed = JSON.parse(storedUserInfo);
-      setAccountId(userInfoParsed.accountId); // Lưu accountId từ userInfo
+      setAccountId(userInfoParsed.accountId);
     }
   }, []);
 
-  // Handle opening/closing the dropdown menu when clicking on the profile icon or name
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await getNotificationByAccountId();
+        
+        setNotifications(response.data.data.notificationResponses); // Lưu trữ dữ liệu thông báo
+      } catch (error) {
+        console.error("Lỗi khi lấy thông báo:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
   const handleMenuClick = (event) => {
     if (anchorEl) {
-      setAnchorEl(null); // Close the dropdown if it's already open
+      setAnchorEl(null);
     } else {
-      setAnchorEl(event.currentTarget); // Open the dropdown
+      setAnchorEl(event.currentTarget);
     }
   };
 
-  // Handle closing the dropdown menu
   const handleMenuClose = () => {
-    setAnchorEl(null); // Close the dropdown
+    setAnchorEl(null);
   };
 
-  // Handle logout and clear session
   const handleLogout = () => {
-    logout(); // Call the logout function from useAuthStore to clear session
-    setAnchorEl(null); // Close the dropdown
+    logout();
+    setAnchorEl(null);
     toast.success("Đăng xuất thành công");
     setTimeout(() => {
       navigate("/");
@@ -62,19 +78,28 @@ const CustomerHeader = () => {
     }, 1500);
   };
 
-  // Handlers to open/close login and register popups
   const handleOpenLogin = () => setOpenLogin(true);
   const handleCloseLogin = () => setOpenLogin(false);
 
   const handleOpenRegister = () => setOpenRegister(true);
   const handleCloseRegister = () => setOpenRegister(false);
 
-  // Update this function to ensure closing login dialog upon successful login
   const handleLoginSuccess = (userData) => {
-    setOpenLogin(false); // Close the login dialog
-    setAnchorEl(null); // Ensure dropdown menu closes after login
-    // Any additional login success behavior can go here
+    setOpenLogin(false);
+    setAnchorEl(null);
   };
+
+  // Mở popup thông báo
+  const handleNotificationClick = (event) => {
+    setNotificationAnchorEl(event.currentTarget);
+  };
+
+  // Đóng popup thông báo
+  const handleNotificationClose = () => {
+    setNotificationAnchorEl(null);
+  };
+
+  const isNotificationOpen = Boolean(notificationAnchorEl);
 
   return (
     <Fragment>
@@ -89,7 +114,6 @@ const CustomerHeader = () => {
             </Link>
           </Typography>
 
-          {/* Box container for alignment */}
           <Box
             sx={{
               display: { xs: "none", md: "flex" },
@@ -98,7 +122,6 @@ const CustomerHeader = () => {
               alignItems: "center",
             }}
           >
-            {/* Link elements with consistent styles */}
             <Link
               to="/"
               style={{
@@ -106,7 +129,7 @@ const CustomerHeader = () => {
                 fontSize: "14px",
                 fontWeight: "400",
                 textDecoration: "none",
-                padding: "0 8px", // Padding for even spacing
+                padding: "0 8px",
               }}
             >
               Trang chủ
@@ -124,23 +147,21 @@ const CustomerHeader = () => {
               Liên hệ
             </Link>
 
-            {/* Show login and register if not logged in */}
             {!isLoggedIn ? (
               <>
-                {/* MenuItem elements with consistent styles */}
                 <MenuItem
                   sx={{
                     color: "white",
                     fontSize: "14px",
                     fontWeight: "400",
-                    padding: "0 8px", // Padding for even spacing
+                    padding: "0 8px",
                     "&:hover": {
                       color: "#FFA500",
                       transform: "translateY(2px)",
                     },
                     transition: "all 0.3s ease",
                   }}
-                  onClick={handleOpenLogin} // Mở popup đăng nhập
+                  onClick={handleOpenLogin}
                 >
                   Đăng nhập
                 </MenuItem>
@@ -156,30 +177,57 @@ const CustomerHeader = () => {
                     },
                     transition: "all 0.3s ease",
                   }}
-                  onClick={handleOpenRegister} // Mở popup đăng ký
+                  onClick={handleOpenRegister}
                 >
                   Đăng ký
                 </MenuItem>
               </>
             ) : (
-              <Box display="flex" alignItems="center" sx={{ gap: 4 }}> {/* Tạo khoảng cách lớn hơn giữa các icon */}
-                {/* Icon chuông thông báo */}
-                <IconButton color="inherit">
+              <Box display="flex" alignItems="center" sx={{ gap: 4 }}>
+                <IconButton color="inherit" onClick={handleNotificationClick}>
                   <Badge color="error">
                     <NotificationsIcon />
                   </Badge>
                 </IconButton>
 
-                {/* Profile and Account Dropdown */}
+                <Popover
+                  open={isNotificationOpen}
+                  anchorEl={notificationAnchorEl}
+                  onClose={handleNotificationClose}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                >
+                  <Box sx={{ p: 2, width: 300, backgroundColor: "#444", color: "#FFF" }}>
+                    <Typography className="text-yellow-400" variant="h6">Thông báo</Typography>
+                    {notifications.length > 0 ? (
+                      notifications.map((notification, index) => (
+                        <Box key={index} sx={{ mb: 1, p: 1, border: '1px solid #FFA500', borderRadius: '8px', backgroundColor: "#555" }}>
+                          <Typography variant="body2">
+                            {notification.message} {/* Giả sử thông báo có thuộc tính message */}
+                          </Typography>
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography variant="body2">Không có thông báo mới!</Typography>
+                    )}
+                  </Box>
+                </Popover>
+
                 <Box
                   display="flex"
                   alignItems="center"
-                  onClick={handleMenuClick} // Single click handler for the entire box (icon + name)
+                  onClick={handleMenuClick}
                   sx={{
                     cursor: "pointer",
-                    padding: "0 8px", // Ensure the padding around the profile area is consistent
+                    padding: "0 8px",
                     "&:hover": {
-                      opacity: 0.7, // Fade the entire profile section on hover
+                      opacity: 0.7,
                     },
                   }}
                 >
@@ -210,7 +258,6 @@ const CustomerHeader = () => {
                   </Typography>
                 </Box>
 
-                {/* Dropdown Menu */}
                 <Menu
                   anchorEl={anchorEl}
                   open={Boolean(anchorEl)}
@@ -224,7 +271,7 @@ const CustomerHeader = () => {
                     horizontal: "left",
                   }}
                   sx={{
-                    zIndex: 1300, // Ensure the dropdown is above other content
+                    zIndex: 1300,
                   }}
                   MenuListProps={{
                     'aria-labelledby': 'basic-button',
@@ -255,7 +302,7 @@ const CustomerHeader = () => {
         onClose={handleCloseLogin}
         PaperProps={{
           sx: {
-            borderRadius: "16px", // Ensure the border radius is applied once
+            borderRadius: "16px",
             backgroundColor: "#333",
           },
         }}
