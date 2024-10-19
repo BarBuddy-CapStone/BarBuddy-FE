@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import {jwtDecode} from 'jwt-decode'; // Import jwt-decode
 // Import icon Google (ví dụ sử dụng Material-UI icons)
 import GoogleIcon from '@mui/icons-material/Google';
+import Registration from "../registration/Registration";
 
 function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const [email, setEmail] = useState(""); // Trạng thái cho email
@@ -17,6 +18,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const navigate = useNavigate();
   const loginStore = useAuthStore(); // Khởi tạo useAuthStore
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [currentPopup, setCurrentPopup] = useState('login');
 
   useEffect(() => {
     const loadGoogleScript = () => {
@@ -173,16 +175,19 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const isLoginDisabled = email === "" || password === "";
 
   const handleSwitchToRegister = () => {
-    if (typeof onSwitchToRegister === 'function') {
-      onSwitchToRegister(); // Gọi hàm để chuyển sang form đăng ký
-    } else {
-      console.error('onSwitchToRegister is not a function');
-    }
-    // Không gọi onClose ở đây nếu bạn chỉ muốn chuyển đổi giữa các pop-up
+    onSwitchToRegister(); // Sử dụng hàm chuyển đổi từ props
   };
 
   return (
-    <div
+    <>
+    {currentPopup === 'registration' && (
+      <Registration 
+        onClose={() => setCurrentPopup('default')} 
+        onSwitchToRegister={handleSwitchToRegister} // Đảm bảo hàm này được truyền vào
+      />
+    )}
+    {currentPopup === 'login' && (
+      <div
       className={`relative flex flex-col px-7 py-6 w-full max-w-md rounded-xl bg-neutral-800 transition-transform duration-500`} // Xóa showLogin
       style={{ borderRadius: "16px" }}
     >
@@ -283,6 +288,8 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
         )}
       </div>
     </div>
+    )}
+    </>
   );
 }
 
