@@ -78,10 +78,18 @@ const CustomerHeader = () => {
     }, 1500);
   };
 
-  const handleOpenLogin = () => setOpenLogin(true);
+  const handleOpenLogin = () => {
+    setOpenLogin(true);
+    setOpenRegister(false); // Đảm bảo chỉ mở một popup
+  };
+
   const handleCloseLogin = () => setOpenLogin(false);
 
-  const handleOpenRegister = () => setOpenRegister(true);
+  const handleOpenRegister = () => {
+    setOpenRegister(true);
+    setOpenLogin(false); // Đảm bảo chỉ mở một popup
+  };
+
   const handleCloseRegister = () => setOpenRegister(false);
 
   const handleLoginSuccess = (userData) => {
@@ -307,7 +315,11 @@ const CustomerHeader = () => {
           },
         }}
       >
-        <Login onClose={handleCloseLogin} onLoginSuccess={handleLoginSuccess} />
+        <Login 
+          onClose={handleCloseLogin} 
+          onLoginSuccess={handleLoginSuccess} 
+          onSwitchToRegister={handleOpenRegister} // Thêm hàm chuyển đổi
+        />
       </Dialog>
 
       <Dialog
@@ -320,7 +332,10 @@ const CustomerHeader = () => {
           },
         }}
       >
-        <Registration onClose={handleCloseRegister} />
+        <Registration 
+          onClose={handleCloseRegister} 
+          onSwitchToLogin={handleOpenLogin} // Thêm hàm chuyển đổi
+        />
       </Dialog>
     </Fragment>
   );

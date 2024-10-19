@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { jwtDecode } from 'jwt-decode';
 
-const Registration = ({ onClose }) => {
+const Registration = ({ onClose, onSwitchToLogin }) => {
   const [email, setEmail] = useState('');
   const [fullname, setFullname] = useState('');
   const [password, setPassword] = useState('');
@@ -114,7 +114,7 @@ const Registration = ({ onClose }) => {
   };
 
   const handleSwitchToLogin = () => {
-    setCurrentPopup('login');
+    onSwitchToLogin(); // Sử dụng hàm chuyển đổi từ props
   };
 
   const validateFields = () => {
@@ -170,7 +170,7 @@ const Registration = ({ onClose }) => {
       {currentPopup === 'otp' && <OtpPopup onClose={() => setCurrentPopup('login')} email={email} onSuccess={handleOtpSuccess} />}
       {currentPopup === 'login' && (
         <Login 
-          onClose={() => setCurrentPopup('registration')} 
+          onClose={() => setCurrentPopup('default')} 
           onSwitchToRegister={handleSwitchToRegister} // Đảm bảo hàm này được truyền vào
         />
       )}
