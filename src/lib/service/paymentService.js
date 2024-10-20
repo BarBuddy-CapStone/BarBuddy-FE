@@ -1,6 +1,6 @@
 import axios from "../axiosCustomize"
 
-const payment = async (data, token) => {
+const paymentWithDrink = async (data, token) => {
   var config = {
     headers: {
       'Content-Type': 'application/json',
@@ -22,6 +22,6 @@ const getPaymentDetail = async (apiId, token) => {
 
 
 export {
-  payment,
+  paymentWithDrink,
   getPaymentDetail
 }

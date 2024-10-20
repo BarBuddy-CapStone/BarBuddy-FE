@@ -1,7 +1,7 @@
 import React from "react";
 import Button from '@mui/material/Button';
 
-const SelectedItems = ({ drinks, onRemove, discount }) => {
+const SelectedItems = ({ drinks, onRemove, discount, onProceedToPayment }) => {
   const selectedItems = drinks.filter((drink) => drink.quantity > 0);
 
   if (selectedItems.length === 0) return null; // Hide if no items are selected
@@ -23,11 +23,16 @@ const SelectedItems = ({ drinks, onRemove, discount }) => {
       <div className="flex flex-col gap-3 mt-3 text-white">
         {selectedItems.map((item) => (
           <div key={item.drinkId} className="flex items-center gap-4">
-            <div className="text-xl font-bold">{item.quantity}x</div>
+            <img
+              src={item.images} // Sử dụng trường images cho hình ảnh
+              alt={item.drinkName}
+              className="w-12 h-12 object-cover rounded-full"
+            />
             <div className="flex-1 text-xs">
               <div>{item.drinkName}</div>
               <div className="text-amber-400">{(parseFloat(item.price) * item.quantity).toLocaleString()} VND</div>
             </div>
+            <div className="text-xl font-bold">{item.quantity}x</div>
             <img
               loading="lazy"
               src="https://cdn.builder.io/api/v1/image/assets/TEMP/f128c4e54418e50e9a3a6c59973a868b3e90328a218d232da7e212dd8732b6d9?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6"
@@ -66,6 +71,7 @@ const SelectedItems = ({ drinks, onRemove, discount }) => {
           width: '150px',
           alignSelf: 'center',
         }}
+        onClick={() => onProceedToPayment(selectedItems, finalAmount)}
       >
         Thanh toán
       </Button>

@@ -105,6 +105,24 @@ const BookingDrink = () => {
     navigate("/bookingtable", { state: { fromBookingDrink: true } });
   };
 
+  const handleProceedToPayment = (selectedDrinks) => {
+    const totalAmount = selectedDrinks.reduce((total, drink) => total + drink.price * drink.quantity, 0);
+    
+    navigate("/payment", {
+      state: {
+        barInfo,
+        selectedTables,
+        customerInfo,
+        selectedDrinks: selectedDrinks.map(drink => ({
+          ...drink,
+          image: drink.images
+        })),
+        totalAmount,
+        discount: barInfo.discount
+      }
+    });
+  };
+
   return (
     <div className="flex flex-col lg:flex-row w-full max-w-screen-xl mx-auto px-4">
       <div className="w-full lg:w-3/4 pr-0 lg:pr-4">
@@ -133,7 +151,8 @@ const BookingDrink = () => {
         <DrinkSidebar 
           drinks={drinks.filter(drink => drink.quantity > 0)} 
           onRemove={handleRemove}
-          discount={barInfo.discount}  // Pass the discount to DrinkSidebar
+          discount={barInfo.discount}
+          onProceedToPayment={handleProceedToPayment}
         />
       </div>
     </div>
