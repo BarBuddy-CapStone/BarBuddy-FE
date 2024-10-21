@@ -6,6 +6,7 @@ import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
 import { toast } from 'react-toastify';
 import { CircularProgress } from '@mui/material';
+import { Search } from '@mui/icons-material';
 
 function TableManagement() {
   const { tableTypeId } = useParams();
@@ -60,13 +61,13 @@ function TableManagement() {
     setCurrentPage(value);
   };
 
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+  };
+
   const filteredTableData = tableData.filter((table) =>
     table.tableName.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
 
   const openModal = () => {
     setCurrentTable({
@@ -110,7 +111,7 @@ function TableManagement() {
     }
     
     if (trimmedTableName.length < 6) {
-      toast.error("Tên bàn phải có ít nhất 5 ký tự");
+      toast.error("Tên bàn phải có ít nhất 6 ký tự");
       return;
     }
     
@@ -184,8 +185,7 @@ function TableManagement() {
           <div className="flex overflow-hidden px-8 flex-col pb-10 w-full bg-white max-md:px-5">
             <TableHeader
               openModal={openModal}
-              searchTerm={searchTerm}
-              onSearchChange={handleSearchChange}
+              onSearch={handleSearch}
               tableTypeName={tableTypeName}
             />
 
@@ -332,8 +332,17 @@ function TableManagement() {
   );
 }
 
-function TableHeader({ openModal, searchTerm, onSearchChange, tableTypeName }) {
+function TableHeader({ openModal, onSearch, tableTypeName }) {
   const navigate = useNavigate();
+  const [searchInput, setSearchInput] = useState('');
+
+  const handleSearchChange = (event) => {
+    setSearchInput(event.target.value);
+  };
+
+  const handleSearchClick = () => {
+    onSearch(searchInput);
+  };
 
   return (
     <div className="flex justify-between items-center mt-8 w-full text-black">
@@ -349,17 +358,23 @@ function TableHeader({ openModal, searchTerm, onSearchChange, tableTypeName }) {
       </div>
 
       <div className="flex-grow flex justify-center">
-        <input
-          type="text"
-          placeholder="Tìm kiếm bàn..."
-          value={searchTerm}
-          onChange={onSearchChange}
-          className="px-4 py-2 border rounded-full w-1/2 max-w-sm"
-        />
+        <div className="relative w-1/2 max-w-sm">
+          <input
+            type="text"
+            placeholder="Tìm kiếm bàn..."
+            value={searchInput}
+            onChange={handleSearchChange}
+            className="px-4 py-2 pr-10 border rounded-full w-full"
+          />
+          <Search 
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" 
+            onClick={handleSearchClick}
+          />
+        </div>
       </div>
 
       <button
-        className="flex items-center gap-2.5 px-3 py-2 my-auto text-base bg-white rounded-md border border-black shadow-lg"
+        className="flex items-center gap-2.5 px-4 py-2 my-auto text-base bg-white rounded-full border border-black shadow-lg"
         onClick={openModal}
       >
         <img
@@ -376,8 +391,8 @@ function TableHeader({ openModal, searchTerm, onSearchChange, tableTypeName }) {
 
 TableHeader.propTypes = {
   openModal: PropTypes.func.isRequired,
-  searchTerm: PropTypes.string.isRequired,
-  onSearchChange: PropTypes.func.isRequired,
+  onSearch: PropTypes.func.isRequired,
+  tableTypeName: PropTypes.string.isRequired,
 };
 
 function TableRow({

@@ -25,7 +25,7 @@ const AdminLayout = () => {
   }, [sidebarOpen]);
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-neutral-100 overflow-hidden">
       <div ref={sidebarRef}>
         <AdminSidebar 
           className={`w-64 shadow-md transition-all duration-300 ease-in-out 
@@ -41,7 +41,7 @@ const AdminLayout = () => {
           onMenuClick={toggleSidebar}
           isSidebarOpen={sidebarOpen}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-neutral-100">
           <div className="container mx-auto px-6 py-8">
             <Outlet />
           </div>

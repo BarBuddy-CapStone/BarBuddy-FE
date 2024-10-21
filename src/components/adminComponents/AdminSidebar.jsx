@@ -2,50 +2,65 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
+import LocalActivityIcon from '@mui/icons-material/LocalActivity';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import StoreIcon from '@mui/icons-material/Store';
+import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
+import PeopleIcon from '@mui/icons-material/People';
+import BadgeIcon from '@mui/icons-material/Badge';
+import MoodIcon from '@mui/icons-material/Mood';
+import LocalBarIcon from '@mui/icons-material/LocalBar';
+import FeedbackIcon from '@mui/icons-material/Feedback';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 
 const sidebarItems = [
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/d447963c0e2878906a2d47debe0689375423a1e6aae06abe9c3bb9c0f7ef8125?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: BarChartIcon,
     label: "Thống Kê",
     path: "/admin/dashboard",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/33db59cd7508c1e0722b7aac5ca349c12026693c3ac33f10f3829b08ddf4f21b?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: StoreIcon,
     label: "Chi Nhánh Bar",
     path: "/admin/barmanager",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/de548ed0752aac144960cdb1b1ffb03ad8c3499e1187d77a7fe1d9549bf32ce0?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: TableRestaurantIcon,
     label: "Loại bàn",
     path: "/admin/table-type-management",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/a2124de1f84debf18515d926b7f3783616150e0e217e5c335c88bc2e4c8a678b?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: LocalActivityIcon,
+    label: "Sự kiện",
+    path: "/admin/event-management",
+  },
+  {
+    icon: PeopleIcon,
     label: "Khách hàng",
     path: "/admin/customers",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/440ee1a0e1ebdac55864998cfca81381313813be443ef5d583612ba25030d8dd?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: BadgeIcon,
     label: "Nhân viên",
     path: "/admin/staff",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/3c65972de928de441937c8a84d149de0421f25b446ce8619d40ebbb8ec92d536?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: MoodIcon,
     label: "Danh mục cảm xúc",
     path: "/admin/emotional",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/04c84a327e6b5f93017f85eaea888eacfcc50195393a5722b5df28954d37c034?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: LocalBarIcon,
     label: "Thức uống",
     path: "/admin/managerDrinkCategory",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/da0eaa428bea85955e87112199b227f3c69d12e8f2859d4d5d91d7ace3f2c300?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: FeedbackIcon,
     label: "Đánh giá",
     path: "/admin/feedback",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/e7eb2ad337036706b7532fd40364b21565d86709be13d4e19a66ba6c3e7636bf?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: ExitToAppIcon,
     label: "Đăng xuất",
     path: "#",
   },
@@ -102,7 +117,7 @@ function AdminSidebar({ className, isOpen, onClose }) {
             <li
               key={index}
               className={`rounded-lg overflow-hidden ${
-                activeItem === item.label ? "bg-blue-100" : ""
+                activeItem === item.label ? "bg-sky-100" : ""
               }`}
             >
               {item.label === "Đăng xuất" ? (
@@ -110,13 +125,8 @@ function AdminSidebar({ className, isOpen, onClose }) {
                   className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
                   onClick={handleLogout}
                 >
-                  <img
-                    loading="lazy"
-                    src={item.icon}
-                    alt=""
-                    className="w-5 h-5 object-contain"
-                  />
-                  <span>{item.label}</span>
+                  <item.icon className="w-5 h-5 text-sky-900" />
+                  <span className="text-sky-900">{item.label}</span>
                 </div>
               ) : (
                 <Link
@@ -124,13 +134,8 @@ function AdminSidebar({ className, isOpen, onClose }) {
                   className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition-colors duration-200"
                   onClick={() => handleItemClick(item.label)}
                 >
-                  <img
-                    loading="lazy"
-                    src={item.icon}
-                    alt=""
-                    className="w-5 h-5 object-contain"
-                  />
-                  <span>{item.label}</span>
+                  <item.icon className="w-5 h-5 text-sky-900" />
+                  <span className="text-sky-900">{item.label}</span>
                 </Link>
               )}
             </li>

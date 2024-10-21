@@ -52,7 +52,8 @@ import Login from "./pages/(auth)/login/Login";
 import Success from "./pages/(auth)/paymentStatus/Success";
 import Failed from "./pages/(auth)/paymentStatus/Failed";
 import Error from "./pages/(auth)/paymentStatus/Error";
-
+import EventManagement from "./pages/admin/event-management/EventManagement";
+import AddEvent from "./pages/admin/event-management/AddEvent";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -81,6 +82,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="admin/managerDrink/DrinkDetail" element={<DrinkDetail />}/> 
             <Route path="admin/managerDrink/addDrink" element={<AddDrink />}/> 
             <Route path="admin/emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}/> 
+            <Route path="admin/event-management" element={<EventManagement />}/>
+            <Route path="admin/event-management/add-event" element={<AddEvent />} />
           </Route>
         </Route>
 
