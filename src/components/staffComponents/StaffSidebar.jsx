@@ -2,25 +2,29 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
+import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import PaymentIcon from '@mui/icons-material/Payment';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 
 const sidebarItems = [
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/5b51421817b621e58b6a1673254f2d5fb679185ca7183802dac1a797802c3426?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: TableRestaurantIcon,
     label: "Bàn",
     path: "/staff/table-management",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/77f49d6df90bd18cb31fd9971dc279e92d749b7bda76bdc20ccec31b24e26688?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: ListAltIcon,
     label: "Danh Sách Đặt Bàn",
     path: "/staff/table-registrations",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/ee61b0e1ffecfeffb4d5eb279f86f81d5f315a19b9ecb59ec68f0a87e5bb6490?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: PaymentIcon,
     label: "Thanh Toán",
     path: "/staff/payment-history",
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/e7eb2ad337036706b7532fd40364b21565d86709be13d4e19a66ba6c3e7636bf?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6",
+    icon: ExitToAppIcon,
     label: "Đăng xuất",
     path: "#",
   },
@@ -77,7 +81,7 @@ function StaffSidebar({ className, isOpen, onClose }) {
             <li
               key={index}
               className={`rounded-lg overflow-hidden ${
-                activeItem === item.label ? "bg-blue-100" : ""
+                activeItem === item.label ? "bg-sky-100" : ""
               }`}
             >
               {item.label === "Đăng xuất" ? (
@@ -85,13 +89,8 @@ function StaffSidebar({ className, isOpen, onClose }) {
                   className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
                   onClick={handleLogout}
                 >
-                  <img
-                    loading="lazy"
-                    src={item.icon}
-                    alt=""
-                    className="w-5 h-5 object-contain"
-                  />
-                  <span>{item.label}</span>
+                  <item.icon className="w-5 h-5 text-sky-900" />
+                  <span className="text-sky-900">{item.label}</span>
                 </div>
               ) : (
                 <Link
@@ -99,13 +98,8 @@ function StaffSidebar({ className, isOpen, onClose }) {
                   className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition-colors duration-200"
                   onClick={() => handleItemClick(item.label)}
                 >
-                  <img
-                    loading="lazy"
-                    src={item.icon}
-                    alt=""
-                    className="w-5 h-5 object-contain"
-                  />
-                  <span>{item.label}</span>
+                  <item.icon className="w-5 h-5 text-sky-900" />
+                  <span className="text-sky-900">{item.label}</span>
                 </Link>
               )}
             </li>
