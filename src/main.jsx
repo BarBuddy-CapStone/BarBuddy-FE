@@ -46,6 +46,10 @@ import PaymentDetail from "./pages/customer/paymentDetail/PaymentDetail";
 import Registration from "./pages/(auth)/registration/Registration";
 import Page404 from "./pages/(auth)/error/Page404";
 import Login from "./pages/(auth)/login/Login";
+import Success from "./pages/(auth)/paymentStatus/Success";
+import Failed from "./pages/(auth)/paymentStatus/Failed";
+import Error from "./pages/(auth)/paymentStatus/Error";
+
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -112,6 +116,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="customer" element={<BookingTable />}/> 
           <Route path="payment" element={<PaymentPage />}/> 
           <Route path="payment-detail" element={<PaymentDetail />}/> 
+
+          {/* Trạng thái trang khi thanh toán */}
+          <Route path="payment-success/:paymentId" element={<Success />}/> 
+          <Route path="payment-failed/:paymentId" element={<Failed />}/> 
+          <Route path="payment-error/:paymentId" element={<Error />}/> 
         </Route>
 
       {/* Route Trang Hệ thống và lỗi */}

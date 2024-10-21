@@ -5,7 +5,7 @@ import { useAuthStore } from "src/lib"; // Import the Auth Store
 import { TextField, Button } from "@mui/material"; // Import MUI TextField and Button
 import { boookingtableNow } from "src/lib/service/BookingTableService"; // Import the API function
 
-const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate }) => {
+const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barInfo }) => {
   const { userInfo, token } = useAuthStore(); // Lấy token từ Auth Store
   const [name, setName] = useState(userInfo.fullname || "");
   const [email, setEmail] = useState(userInfo.email || "");
@@ -27,12 +27,26 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate }) => 
 
   const handleBookingDrinkClick = () => {
     if (selectedTables.length === 0) {
-      toast.error(
-        "Vui lòng chọn ít nhất một bàn trước khi đặt trước thức uống!"
-      );
+      toast.error("Vui lòng chọn ít nhất một bàn trước khi đặt trước thức uống!");
       return;
     }
-    navigate("/bookingdrink"); // Redirect if tables are selected
+    navigate("/bookingdrink", { 
+      state: { 
+        barInfo: {
+          ...barInfo,
+          barId: barId,
+          selectedDate: selectedDate,
+          selectedTime: selectedTime
+        },
+        selectedTables: selectedTables,
+        customerInfo: {
+          name: name,
+          email: email,
+          phone: phone,
+          note: note || "string"
+        }
+      } 
+    });
   };
 
   const handleBookNow = async () => {
@@ -165,17 +179,17 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate }) => 
         <Button
           variant="contained"
           color="warning"
-          sx={{ backgroundColor: "#FFA500" }} // Make button stand out
-          onClick={handleBookingDrinkClick} // Add onClick handler
+          sx={{ backgroundColor: "#FFA500" }}
+          onClick={handleBookingDrinkClick}
         >
-          Đặt trước thức uống với chiết khấu 10%
+          Đặt trước thức uống với chiết khấu {barInfo.discount}%
         </Button>
         <div className="my-auto text-gray-400">Hoặc</div>
         <Button
           variant="contained"
           color="warning"
-          sx={{ backgroundColor: "#FFA500" }} // Make button stand out
-          onClick={handleBookNow} // Add onClick handler for booking
+          sx={{ backgroundColor: "#FFA500" }}
+          onClick={handleBookNow}
         >
           Đặt bàn ngay
         </Button>

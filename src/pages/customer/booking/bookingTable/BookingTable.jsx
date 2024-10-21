@@ -56,6 +56,7 @@ const BookingTable = () => {
             name: response.data.data.barName,
             location: response.data.data.address,
             description: response.data.data.description,
+            discount: response.data.data.discount,
             openingHours: `${response.data.data.startTime.slice(0, 5)} - ${response.data.data.endTime.slice(0, 5)}`,
           });
         } else {
@@ -382,6 +383,7 @@ const BookingTable = () => {
               barId={barId}
               selectedTime={selectedTime}
               selectedDate={selectedDate}
+              barInfo={barInfo}  // Thêm dòng này
             />
           </div>
           <div className="flex flex-col w-1/4 max-md:w-full">
