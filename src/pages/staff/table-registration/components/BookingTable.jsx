@@ -1,19 +1,18 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // Thêm import useNavigate
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'; // Nhập biểu tượng
-import { CircularProgress } from '@mui/material'; // Thêm import này
+import { useNavigate } from "react-router-dom";
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { CircularProgress } from '@mui/material';
 
 function BookingTableRow({ booking, isEven, onViewDetails }) {
   const rowClass = isEven ? "bg-orange-50" : "bg-white shadow-sm hover:bg-gray-100 transition duration-150";
-  const statusClass = getStatusClass(booking.status); // Lấy lớp trạng thái từ hàm getStatusClass
+  const statusClass = getStatusClass(booking.status);
   
-  // Định dạng thời gian check-in
-  const formattedCheckInTime = `${booking.bookingTime.slice(0, 5)} ${new Date(booking.bookingDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/')}`; // Định dạng HHmm dd:MM:yyyy
+  const formattedCheckInTime = `${booking.bookingTime.slice(0, 5)} ${new Date(booking.bookingDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/')}`;
 
   return (
-    <tr className={`${rowClass} text-sm hover:bg-gray-100 transition duration-150`} onClick={() => onViewDetails(booking.bookingId)}> {/* Sử dụng bookingId */}
+    <tr className={`${rowClass} text-sm hover:bg-gray-100 transition duration-150`} onClick={() => onViewDetails(booking.bookingId)}>
       <td className="px-4 py-6 text-center align-middle">
-        {booking.bookingCode} {/* Hiển thị bookingCode thay vì bookingId */}
+        {booking.bookingCode}
       </td>
       <td className="px-4 py-6 text-center align-middle">
         {booking.customerName}
@@ -25,7 +24,7 @@ function BookingTableRow({ booking, isEven, onViewDetails }) {
         {booking.phone}
       </td>
       <td className="px-4 py-6 text-center align-middle">
-        {formattedCheckInTime} {/* Hiển thị thời gian check-in đã định dạng */}
+        {formattedCheckInTime}
       </td>
       <td className="flex justify-center items-center px-4 py-6 align-middle">
         <div className={`flex justify-center items-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
@@ -37,50 +36,45 @@ function BookingTableRow({ booking, isEven, onViewDetails }) {
       </td>
       <td className="px-4 py-6 text-center align-middle">
         <button
-          className="flex items-center justify-center p-0 hover:bg-gray-200 rounded-lg" // Đặt p-0 để không có padding
-          onClick={(e) => { e.stopPropagation(); onViewDetails(booking.bookingId); }} // Ngăn chặn sự kiện click từ hàng
+          className="flex items-center justify-center p-0 hover:bg-gray-200 rounded-lg"
+          onClick={(e) => { e.stopPropagation(); onViewDetails(booking.bookingId); }} 
         >
-          <ArrowForwardIosIcon /> {/* Thay thế nút bằng biểu tượng */}
+          <ArrowForwardIosIcon /> 
         </button>
       </td>
     </tr>
   );
 }
 
-
-// Hàm xử lý check-in
 function handleCheckIn(id) {
   console.log(`Check-in cho booking ID: ${id}`);
-  // Thực hiện logic check-in ở đây
 }
 
-// Hàm xử lý cancel
 function handleCancel(id) {
   console.log(`Hủy booking ID: ${id}`);
-  // Thực hiện logic hủy booking ở đây
 }
 
 function getStatusClass(status) {
   switch (status) {
     case 0:
-      return "bg-gray-500 text-white"; // Màu cho trạng thái "Đang chờ"
+      return "bg-gray-500 text-white"; 
     case 1:
-      return "bg-red-500 text-white"; // Màu cho trạng thái "Đã hủy"
+      return "bg-red-500 text-white"; 
     case 2:
-      return "bg-orange-500 text-white"; // Màu cho trạng thái "Đang phục vụ"
+      return "bg-orange-500 text-white"; 
     case 3:
-      return "bg-green-500 text-white"; // Màu cho trạng thái "Đã hoàn thành"
+      return "bg-green-500 text-white"; 
     default:
-      return "bg-gray-500 text-white"; // Màu mặc định
+      return "bg-gray-500 text-white"; 
   }
 }
 
 
 function BookingTable({ filter, bookings, loading }) {
-  const navigate = useNavigate(); // Khai báo useNavigate
+  const navigate = useNavigate(); 
 
   const handleViewDetails = (bookingId) => {
-    navigate(`/staff/table-registration-detail/${bookingId}`); // Chuyển hướng đến trang chi tiết
+    navigate(`/staff/table-registration-detail/${bookingId}`); 
   };
 
   const filteredBookings = bookings.filter(booking => {

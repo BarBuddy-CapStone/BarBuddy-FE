@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react"; // Thêm useEffect
+import React, { useEffect, useState } from "react"; 
 import { FilterSection, BookingTable } from "src/pages";
-import BookingService from "src/lib/service/bookingService"; // Thêm import BookingService
-import Pagination from '@mui/material/Pagination'; // Thêm import Pagination
+import BookingService from "src/lib/service/bookingService"; 
+import Pagination from '@mui/material/Pagination'; 
 
 function BookingList() {
   const getCurrentDate = () => {
@@ -13,29 +13,29 @@ function BookingList() {
     phone: "",
     email: "",
     status: "All",
-    bookingDate: getCurrentDate(), // Mặc định là ngày hiện tại
+    bookingDate: getCurrentDate(),
     checkInTime: "Cả ngày"
   });
-  const [bookings, setBookings] = useState([]); // Thêm state để lưu trữ bookings
-  const [timeRange, setTimeRange] = useState({ startTime: "", endTime: "" }); // Thêm state để lưu trữ thời gian
-  const [currentPage, setCurrentPage] = useState(1); // Thêm state cho trang hiện tại
-  const [totalPages, setTotalPages] = useState(1); // Thêm state cho tổng số trang
-  const [loading, setLoading] = useState(true); // Thêm state loading
+  const [bookings, setBookings] = useState([]); 
+  const [timeRange, setTimeRange] = useState({ startTime: "", endTime: "" }); 
+  const [currentPage, setCurrentPage] = useState(1); 
+  const [totalPages, setTotalPages] = useState(1); 
+  const [loading, setLoading] = useState(true); 
 
   const handleFilterChange = async (newFilter) => {
     setFilter(newFilter);
-    setLoading(true); // Bắt đầu loading khi filter thay đổi
+    setLoading(true); 
     await fetchBookings(newFilter);
   };
 
   const fetchBookings = async (currentFilter) => {
-    setLoading(true); // Bắt đầu loading
-    const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); // Lấy userInfo từ session storage
-    const barId = userInfo ? userInfo.identityId : null; // Trích xuất identityId
+    setLoading(true);
+    const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); 
+    const barId = userInfo ? userInfo.identityId : null; 
 
     try {
       const response = await BookingService.getAllBookingsByStaff(
-        barId, // Sử dụng identityId thay vì giá trị cứng
+        barId, 
         currentFilter.name || null,
         currentFilter.email || null,
         currentFilter.phone || null,
@@ -50,31 +50,30 @@ function BookingList() {
     } catch (error) {
       console.error("Lỗi khi lấy danh sách đặt chỗ:", error);
     } finally {
-      setLoading(false); // Kết thúc loading
+      setLoading(false); 
     }
   };
 
-  // Gọi hàm để hiển thị tất cả dữ liệu khi component được render
   useEffect(() => {
     fetchBookings(filter);
-  }, [currentPage]); // Thêm currentPage vào dependency array
+  }, [currentPage]); 
 
   const handlePageChange = (event, value) => {
-    setCurrentPage(value); // Cập nhật trang hiện tại khi người dùng thay đổi trang
+    setCurrentPage(value); 
   };
 
   return (
     <main className="flex overflow-hidden flex-col grow px-7 pt-7 pb-8 w-full bg-white max-md:px-5 max-md:pb-24 max-md:max-w-full">
       <section className="flex flex-col px-6 py-6 bg-white rounded-3xl border border-black border-solid max-md:px-5 max-md:mr-1 max-md:max-w-full">
-        <FilterSection onFilterChange={handleFilterChange} timeRange={timeRange} initialDate={getCurrentDate()} /> {/* Truyền timeRange vào FilterSection */}
+        <FilterSection onFilterChange={handleFilterChange} timeRange={timeRange} initialDate={getCurrentDate()} />
       </section>
-      <BookingTable filter={filter} bookings={bookings} loading={loading} /> {/* Truyền bookings vào BookingTable */}
+      <BookingTable filter={filter} bookings={bookings} loading={loading} /> 
       {bookings.length > 0 && (
-        <div className="flex justify-center pt-4"> {/* Căn giữa và thêm padding top */}
+        <div className="flex justify-center pt-4">
           <Pagination
-            count={totalPages} // Sử dụng totalPages để xác định số trang
-            page={currentPage} // Trang hiện tại
-            onChange={handlePageChange} // Hàm xử lý thay đổi trang
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
             color="primary"
           />
         </div>
