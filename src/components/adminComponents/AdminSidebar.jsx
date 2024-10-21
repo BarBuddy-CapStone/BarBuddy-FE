@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom"; // Import Link, useLocation và useNavigate
-import { toast } from "react-toastify"; // Import toast
-import CloseIcon from "@mui/icons-material/Close"; // Thêm import này
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import CloseIcon from "@mui/icons-material/Close";
 
 const sidebarItems = [
   {
@@ -52,11 +52,10 @@ const sidebarItems = [
 ];
 
 function AdminSidebar({ className, isOpen, onClose }) {
-  const location = useLocation(); // Lấy vị trí hiện tại của đường dẫn
-  const navigate = useNavigate(); // Khai báo useNavigate
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeItem, setActiveItem] = useState("");
 
-  // Cập nhật activeItem dựa trên đường dẫn hiện tại khi component được mount
   useEffect(() => {
     const currentPath = location.pathname;
     const currentItem = sidebarItems.find((item) => item.path === currentPath);
@@ -65,14 +64,13 @@ function AdminSidebar({ className, isOpen, onClose }) {
     }
   }, [location]);
 
-  // Hàm xử lý đăng xuất
   const handleLogout = () => {
-    sessionStorage.clear(); // Xóa dữ liệu khỏi session storage
-    toast.success("Đăng xuất thành công"); // Hiển thị thông báo
+    sessionStorage.clear();
+    toast.success("Đăng xuất thành công"); 
     setTimeout(() => {
-      navigate("/"); // Chuyển hướng về trang home
-      window.location.reload(); // Tải lại trang để cập nhật thông tin
-    }, 1500); // Đợi 1 giây trước khi chuyển hướng
+      navigate("/");
+      window.location.reload();
+    }, 1500);
   };
 
   const handleItemClick = (label) => {

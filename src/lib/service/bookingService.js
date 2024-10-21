@@ -3,7 +3,6 @@ import axios from '../axiosCustomize';
 
 class BookingService {
   static async getAllBookings(accountId, status = null, pageIndex = 1, pageSize = 10) {
-    // Construct URL with dynamic Status parameter
     let url = `api/Booking/${accountId}?PageIndex=${pageIndex}&PageSize=${pageSize}`;
     
     if (status !== null) {

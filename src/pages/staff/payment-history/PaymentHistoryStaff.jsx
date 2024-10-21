@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import PaymentHistoryService from "../../../lib/service/paymentHistoryService";
-import { CircularProgress } from "@mui/material"; // Thêm import này
+import { CircularProgress } from "@mui/material";
 
 function PaymentHistory() {
   const [activeTab, setActiveTab] = useState("Hoàn thành");
@@ -16,32 +16,31 @@ function PaymentHistory() {
   const [searchParams, setSearchParams] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // Fetch payment history
   useEffect(() => {
     const fetchPayments = async () => {
-      setLoading(true); // Bắt đầu loading
+      setLoading(true);
       try {
-        const userInfo = JSON.parse(sessionStorage.getItem("userInfo")); // Lấy userInfo từ session storage
-        const barId = userInfo ? userInfo.identityId : null; // Trích xuất identityId
+        const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
+        const barId = userInfo ? userInfo.identityId : null;
 
         const params = {
           Status:
             activeTab === "Hoàn thành" ? 1 : activeTab === "Đang chờ" ? 0 : 2,
           PageIndex: currentPage,
           PageSize: paymentsPerPage,
-          BarId: barId, // Sử dụng identityId thay vì barBranches
+          BarId: barId,
           ...searchParams,
         };
         const response = await PaymentHistoryService.getAllPayments(params);
         const paymentData = response.data.response.map((payment) => ({
-          date: new Date(payment.paymentDate).toLocaleString(), // Includes both date and time
+          date: new Date(payment.paymentDate).toLocaleString(),
           name: payment.customerName,
-          phone: payment.phoneNumber, // Add phone number field
-          branch: payment.barName, // Add branch (Chi nhánh)
+          phone: payment.phoneNumber,
+          branch: payment.barName,
           total: `${payment.totalPrice.toLocaleString()} VND`,
-          status: payment.status, // Đảm bảo rằng status được lấy đúng từ API
+          status: payment.status,
           transactionId: payment.transactionCode,
-          content: payment.note, // Add content (Nội dung)
+          content: payment.note,
         }));
 
         setPayments(paymentData);
@@ -49,7 +48,7 @@ function PaymentHistory() {
       } catch (error) {
         console.error("Error fetching payment history:", error);
       } finally {
-        setLoading(false); // Kết thúc loading
+        setLoading(false);
       }
     };
 
@@ -57,7 +56,7 @@ function PaymentHistory() {
   }, [currentPage, searchParams, activeTab]);
 
   const handleSearch = (params) => {
-    setLoading(true); // Bắt đầu loading khi thực hiện filter
+    setLoading(true);
     setSearchParams(params);
     setCurrentPage(1);
   };
@@ -82,7 +81,6 @@ function PaymentHistory() {
         <main className="flex flex-col w-full max-md:ml-0 max-md:w-full">
           <div className="flex overflow-hidden flex-col py-5 pr-2 pl-5 mx-auto w-full bg-white max-md:max-w-full">
             <SearchForm onSearch={handleSearch} />{" "}
-            {/* Bỏ phần chọn chi nhánh */}
             <div className="flex justify-start gap-10 mt-4 max-w-full text-xl font-bold w-full max-md:w-full">
               <button
                 className={`border-b-2 ${
@@ -198,7 +196,6 @@ function SearchForm({ onSearch }) {
       </p>
 
       <div className="flex flex-wrap gap-4 justify-between w-full mt-3">
-        {/* Full Name */}
         <div className="flex flex-1 flex-wrap items-center">
           <label htmlFor="fullName" className="w-1/3 md:w-auto mr-2">
             Họ tên:
@@ -212,7 +209,6 @@ function SearchForm({ onSearch }) {
           />
         </div>
 
-        {/* Phone Number */}
         <div className="flex flex-1 flex-wrap items-center">
           <label htmlFor="phoneNumber" className="w-1/3 md:w-auto mr-2">
             Số điện thoại:
@@ -226,7 +222,6 @@ function SearchForm({ onSearch }) {
           />
         </div>
 
-        {/* Email */}
         <div className="flex flex-1 flex-wrap items-center">
           <label htmlFor="email" className="w-1/3 md:w-auto mr-2">
             Email:
@@ -242,7 +237,6 @@ function SearchForm({ onSearch }) {
       </div>
 
       <div className="flex flex-wrap gap-4 justify-between items-center w-full mt-3">
-        {/* Transaction Date */}
         <div className="flex gap-2 items-center flex-1">
           <label htmlFor="transactionDate" className="whitespace-nowrap">
             Thời gian giao dịch:
@@ -263,11 +257,8 @@ function SearchForm({ onSearch }) {
           </div>
         </div>
 
-        {/* Buttons */}
         <div className="flex justify-end gap-2 mt-4">
           {" "}
-          {/* Căn giữa và thêm padding top */}
-          {/* Reset Button */}
           <button
             type="button"
             className={`px-6 py-1.5 text-sm font-semibold text-white bg-gray-500 rounded-full hover:bg-gray-300 w-[150px] text-center ${
@@ -278,7 +269,6 @@ function SearchForm({ onSearch }) {
           >
             Xóa bộ lọc
           </button>
-          {/* Submit Button */}
           <button
             type="submit"
             className="px-6 py-1.5 text-sm font-semibold text-white bg-blue-900 rounded-full hover:bg-blue-800 w-[150px] text-center"
@@ -292,10 +282,9 @@ function SearchForm({ onSearch }) {
 }
 
 SearchForm.propTypes = {
-  onSearch: PropTypes.func.isRequired, // Add validation for onSearch
+  onSearch: PropTypes.func.isRequired,
 };
 
-// Payment table
 function PaymentTable({ payments, tabStatus, onRowClick, loading }) {
   PaymentTable.propTypes = {
     payments: PropTypes.array.isRequired,
@@ -306,7 +295,6 @@ function PaymentTable({ payments, tabStatus, onRowClick, loading }) {
 
   return (
     <div className="flex flex-col self-center mt-9 w-full text-sm leading-5 bg-white rounded-xl">
-      {/* Table Header - Luôn hiển thị */}
       <div className="flex bg-white rounded-t-xl font-semibold text-neutral-900 w-full">
         <div className="flex items-center justify-center text-center px-4 py-3 w-1/5">
           Ngày giao dịch
@@ -326,7 +314,6 @@ function PaymentTable({ payments, tabStatus, onRowClick, loading }) {
         <div className="flex items-center justify-center text-center py-3 w-16"></div>
       </div>
 
-      {/* Table Body */}
       {loading ? (
         <div className="flex justify-center items-center py-6">
           <CircularProgress />
@@ -342,7 +329,7 @@ function PaymentTable({ payments, tabStatus, onRowClick, loading }) {
             className={`flex items-center border-t border-gray-300 ${
               index % 2 === 0 ? "bg-orange-50" : "bg-white"
             } ${index === payments.length - 1 ? "rounded-b-xl" : ""}`}
-            onClick={() => onRowClick(payment)} // Open modal on row click
+            onClick={() => onRowClick(payment)}
           >
             <div className="flex items-center justify-center text-center py-3 w-1/5">
               {payment.date}
@@ -370,7 +357,6 @@ function PaymentTable({ payments, tabStatus, onRowClick, loading }) {
                 : payment.status === 2
                 ? "Thất bại"
                 : "Đang chờ"}{" "}
-              {/* Cập nhật trạng thái */}
             </div>
             <div className="flex items-center justify-center text-center py-3 w-16">
               <img
@@ -386,14 +372,13 @@ function PaymentTable({ payments, tabStatus, onRowClick, loading }) {
   );
 }
 
-// Modal component to show transaction details
 function TransactionModal({ payment, onClose }) {
   const statusColor =
     payment.status === 2
       ? "bg-red-500"
       : payment.status === 1
       ? "bg-green-500"
-      : "bg-orange-500"; // Cập nhật màu sắc
+      : "bg-orange-500";
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -412,14 +397,12 @@ function TransactionModal({ payment, onClose }) {
                 ? "Thanh toán thất bại"
                 : "Đang chờ xử lý"}
             </span>{" "}
-            {/* Cập nhật trạng thái */}
           </div>
         </div>
         <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-left">
           <div>
             <p className="font-bold mb-2">Thời gian giao dịch</p>
             <p>{payment.date}</p>{" "}
-            {/* Change from payment.time to payment.date */}
           </div>
           <div>
             <p className="font-bold mb-2">Mã giao dịch</p>
@@ -459,7 +442,6 @@ function TransactionModal({ payment, onClose }) {
   );
 }
 
-// Modal
 TransactionModal.propTypes = {
   payment: PropTypes.object.isRequired,
   onClose: PropTypes.func.isRequired,

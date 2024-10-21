@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
-import successAnimation from "./success-animation.json"; // Bạn cần tạo file JSON này
+import successAnimation from "src/assets/image/failedAnimation.json"; // Bạn cần tạo file JSON này
 
 function Success() {
   const [countdown, setCountdown] = useState(10);

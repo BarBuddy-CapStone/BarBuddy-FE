@@ -1,13 +1,13 @@
-import axios from '../axiosCustomize'; // Import your customized axios instance
+import axios from '../axiosCustomize';
 
 class TableTypeService {
   static async getAllTableTypes() {
-    return await axios.get('api/TableType'); // Base URL is handled by axios instance
+    return await axios.get('api/TableType');
 
   }
 
   static async getAllTableTypesAdmin(params) {
-    return await axios.get('api/TableType/admin', { params }); // Include status in query params
+    return await axios.get('api/TableType/admin', { params });
   }
 
   static async deleteTableType(tableTypeId) {

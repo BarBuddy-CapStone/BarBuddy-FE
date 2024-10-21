@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; // Thêm useEffect
+import React, { useState, useEffect } from "react"; 
 
 function FilterInput({ label, value, onChange }) {
   return (
@@ -22,8 +22,8 @@ function DatePicker({ label, value, onChange }) {
       <input
         type="date"
         className="flex shrink-0 text-center max-w-full bg-white rounded-3xl border border-solid border-stone-300 h-[38px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-        value={value} // Đảm bảo rằng giá trị được truyền vào
-        onChange={onChange} // Gọi onChange khi thay đổi
+        value={value}
+        onChange={onChange}
       />
     </div>
   );
@@ -32,34 +32,33 @@ function DatePicker({ label, value, onChange }) {
 function TimePicker({ label, startTime, endTime, onChange }) {
 
   const generateTimeOptions = () => {
-    const options = ["Cả ngày"]; // Thêm tùy chọn "Cả ngày" vào đầu danh sách
-    const start = new Date(`1970-01-01T${startTime}`); // Không cần thêm ":00" nếu đã có giây
+    const options = ["Cả ngày"]; 
+    const start = new Date(`1970-01-01T${startTime}`); 
     const end = new Date(`1970-01-01T${endTime}`);
 
-    // Nếu startTime lớn hơn endTime, thêm một ngày cho endTime
     if (start > end) {
-      end.setDate(end.getDate() + 1); // Thêm một ngày cho endTime
+      end.setDate(end.getDate() + 1);
     }
 
-    while (start < end) { // Thay đổi điều kiện để không bao gồm endTime
+    while (start < end) { 
       const hours = start.getHours().toString().padStart(2, "0");
       const minutes = start.getMinutes().toString().padStart(2, "0");
       const timeString = `${hours}:${minutes}`;
       options.push(timeString);
-      start.setMinutes(start.getMinutes() + 30); // Tăng thêm 30 phút
+      start.setMinutes(start.getMinutes() + 30); 
     }
 
     return options;
   };
 
-  const timeOptions = generateTimeOptions(); // Gọi hàm để lấy các tùy chọn thời gian
+  const timeOptions = generateTimeOptions(); 
 
   return (
     <div className="flex flex-row self-stretch my-auto rounded-md">
       <label className="leading-loose basis-auto text-zinc-800 mr-2">{label}</label>
       <select
         className="flex shrink-0 max-w-full bg-white rounded-3xl border border-solid border-stone-300 h-[38px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-        onChange={(e) => onChange(e.target.value === "Cả ngày" ? null : e.target.value)} // Gọi onChange khi chọn thời gian
+        onChange={(e) => onChange(e.target.value === "Cả ngày" ? null : e.target.value)} 
       >
         {timeOptions.map((time, index) => (
           <option key={index} value={time}>{time}</option>
@@ -73,15 +72,15 @@ function StatusFilter({ label, selectedStatus, onChange }) {
   const getStatusColor = (status) => {
     switch (status) {
       case 0:
-        return "bg-gray-300"; // Đang chờ
+        return "bg-gray-300";
       case 1:
-        return "bg-red-600"; // Đã hủy
+        return "bg-red-600"; 
       case 2:
-        return "bg-orange-600"; // Đang phục vụ
+        return "bg-orange-600"; 
       case 3:
-        return "bg-green-600"; // Đã hoàn thành
+        return "bg-green-600"; 
       default:
-        return "bg-gray-600"; // Mặc định
+        return "bg-gray-600"; 
     }
   };
 
@@ -91,8 +90,8 @@ function StatusFilter({ label, selectedStatus, onChange }) {
       <div className="relative">
         <select
           className="flex shrink-0 max-w-full bg-white rounded-3xl border border-solid border-stone-300 h-[38px] pl-8 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
-          value={selectedStatus} // Đảm bảo selectedStatus là một chuỗi
-          onChange={(e) => onChange(e.target.value === "All" ? "All" : Number(e.target.value))} // Chuyển đổi giá trị thành số hoặc giữ nguyên "All"
+          value={selectedStatus} 
+          onChange={(e) => onChange(e.target.value === "All" ? "All" : Number(e.target.value))} 
         >
           <option value="All">Tất cả</option>
           <option value={0}>Đang chờ</option>

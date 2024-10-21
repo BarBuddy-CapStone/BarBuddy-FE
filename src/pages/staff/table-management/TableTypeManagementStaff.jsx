@@ -1,35 +1,34 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
-import TableTypeService from '../../../lib/service/tableTypeService'; // Thêm import service
-import { CircularProgress } from '@mui/material'; // Thêm import này
+import TableTypeService from '../../../lib/service/tableTypeService';
+import { CircularProgress } from '@mui/material';
 
 const TableTypeManagementStaff = () => {
-  const [searchTerm, setSearchTerm] = useState(''); // New state for search term
-  const [tableTypes, setTableTypes] = useState([]); // Thêm state cho tableTypes
-  const [loading, setLoading] = useState(true); // Thêm state loading
+  const [searchTerm, setSearchTerm] = useState('');
+  const [tableTypes, setTableTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTableTypes(); // Gọi hàm fetchTableTypes khi component mount
+    fetchTableTypes();
   }, []);
 
   const fetchTableTypes = async () => {
-    setLoading(true); // Bắt đầu loading
+    setLoading(true); 
     try {
-      const response = await TableTypeService.getAllTableTypes(); // Gọi API để lấy dữ liệu
-      setTableTypes(response.data.data); // Cập nhật state với dữ liệu nhận được
+      const response = await TableTypeService.getAllTableTypes();
+      setTableTypes(response.data.data);
     } catch (error) {
-      console.error('Error fetching table types:', error); // Xử lý lỗi
+      console.error('Error fetching table types:', error);
     } finally {
-      setLoading(false); // Kết thúc loading
+      setLoading(false);
     }
   };
 
   const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value); // Update search term state
+    setSearchTerm(event.target.value);
   };
 
-  // Filter table types based on search term
   const filteredTableTypes = tableTypes.filter((tableType) =>
     tableType.typeName && tableType.typeName.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -83,7 +82,7 @@ const TableTypeList = ({ tableTypes }) => {
     <section className="mt-5">
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         {tableTypes.map((tableType, index) => (
-          <TableTypeCard key={index} {...tableType} tableTypeId={tableType.tableTypeId} /> // Truyền tableTypeId
+          <TableTypeCard key={index} {...tableType} tableTypeId={tableType.tableTypeId} /> 
         ))}
       </div>
     </section>
@@ -98,7 +97,7 @@ const TableTypeCard = ({ typeName, minimumPrice, minimumGuest, maximumGuest, des
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    navigate(`/staff/table-management/table/${tableTypeId}`); // Chuyển đến trang TableManagement với tableTypeId
+    navigate(`/staff/table-management/table/${tableTypeId}`);
   };
 
   return (

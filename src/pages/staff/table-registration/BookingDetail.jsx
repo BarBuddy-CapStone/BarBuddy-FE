@@ -96,7 +96,6 @@ const BookingDetail = () => {
       </div>
 
       <div className="flex">
-        {/* Cột bên trái */}
         <div className="flex-1 pr-8">
           <div className="flex justify-end items-center mb-4">
             <div className="relative">
@@ -201,7 +200,6 @@ const BookingDetail = () => {
           </div>
         </div>
 
-        {/* Cột bên phải */}
         <div className="w-1/3">
           <div className="bg-gray-100 p-4 rounded-lg mb-4">
             <h2 className="text-xl font-bold mb-4">Bàn đã đặt trước</h2>
