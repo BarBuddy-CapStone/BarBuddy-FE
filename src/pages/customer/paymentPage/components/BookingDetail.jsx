@@ -96,7 +96,6 @@ function BookingDetail({ barInfo, selectedTables, customerInfo }) {
               <span className="text-amber-400 mr-1">Ghi chú:</span>
               {customerInfo?.note ? (
                 <>
-                  {customerInfo.note.slice(0, 20)}
                   {customerInfo.note.length > 20 && "..."}
                   <button onClick={handleOpenNotePopup} className="ml-2 text-amber-400 underline">
                     Xem chi tiết

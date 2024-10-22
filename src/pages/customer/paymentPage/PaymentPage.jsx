@@ -3,31 +3,38 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import BookingDetail from './components/BookingDetail';
 import DrinksList from './components/DrinkList';
 import { paymentWithDrink } from 'src/lib/service/paymentService';
-import { Button, Typography, Box, CircularProgress } from '@mui/material';
+import { Button, Typography, Box, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import useAuthStore from 'src/lib/hooks/useUserStore';
+import Momologo from 'src/assets/image/Primarylogo3x.png';
 import dayjs from 'dayjs';
 
 const paymentOptions = [
-  {
-    id: 'ZALOPAY',
-    name: 'Zalo Pay',
-    image: 'https://cdn.builder.io/api/v1/image/assets/TEMP/b6de230e30188c5d04875d57ffe11a6e138f664832b7f795d5bdce10f18f60f9?placeholderIfAbsent=true&apiKey=2f0fb41b041549e2a3975f3618160d3b',
-  },
   {
     id: 'VNPAY',
     name: 'VN Pay',
     image: 'https://cdn.builder.io/api/v1/image/assets/TEMP/c3b795cf29370135614c954e43489801f8101bcc1075bab4929eafd629486f12?placeholderIfAbsent=true&apiKey=2f0fb41b041549e2a3975f3618160d3b',
   },
   {
-    id: 'NAPAS247',
-    name: 'Napas 247',
-    image: 'https://www.cukcuk.vn/25472/ma-vietqr-la-gi/napas247-b58ff17b/',
-  }
+    id: 'MOMO',
+    name: 'Ví MOMO',
+    image: Momologo,
+  },
+  // {
+  //   id: 'ZALOPAY',
+  //   name: 'Zalo Pay',
+  //   image: 'https://cdn.builder.io/api/v1/image/assets/TEMP/b6de230e30188c5d04875d57ffe11a6e138f664832b7f795d5bdce10f18f60f9?placeholderIfAbsent=true&apiKey=2f0fb41b041549e2a3975f3618160d3b',
+  // },
+  // {
+  //   id: 'NAPAS247',
+  //   name: 'Napas 247',
+  //   image: 'https://www.cukcuk.vn/25472/ma-vietqr-la-gi/napas247-b58ff17b/',
+  // },
 ];
 
 function PaymentProcessing({ totalAmount, discountAmount, finalAmount, discount, onPaymentSuccess, paymentData }) {
   const [selectedPayment, setSelectedPayment] = useState('VNPAY');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
   const { token } = useAuthStore();
 
   const handlePayment = useCallback(async () => {
@@ -42,16 +49,19 @@ function PaymentProcessing({ totalAmount, discountAmount, finalAmount, discount,
         const paymentUrl = response.data.data.paymentUrl;
         onPaymentSuccess(paymentUrl);
       } else {
-        console.error('Payment failed:', response.data);
-        alert('Thanh toán thất bại. Vui lòng thử lại.');
+        setErrorDialog({ open: true, message: 'Thanh toán thất bại. Vui lòng thử lại.' });
       }
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại.');
+      setErrorDialog({ open: true, message: 'Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại.' });
     } finally {
       setIsLoading(false);
     }
   }, [selectedPayment, paymentData, token, onPaymentSuccess]);
+
+  const handleCloseErrorDialog = () => {
+    setErrorDialog({ ...errorDialog, open: false });
+  };
 
   return (
     <Box className="flex flex-col rounded-md items-start px-4 pt-2 pb-4 w-full bg-neutral-800 max-md:px-2 max-md:max-w-full">
@@ -118,6 +128,13 @@ function PaymentProcessing({ totalAmount, discountAmount, finalAmount, discount,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            whiteSpace: 'nowrap',
+            opacity: isLoading ? 0.7 : 1,
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            '&:disabled': {
+              backgroundColor: '#ffa500',
+              color: 'white',
+            },
           }}
         >
           {isLoading ? (
@@ -130,6 +147,28 @@ function PaymentProcessing({ totalAmount, discountAmount, finalAmount, discount,
           )}
         </Button>
       </Box>
+      
+      <Dialog
+        open={errorDialog.open}
+        onClose={handleCloseErrorDialog}
+        PaperProps={{
+          style: {
+            backgroundColor: '#333',
+            color: 'white',
+            minWidth: '300px',
+          },
+        }}
+      >
+        <DialogTitle style={{ color: '#FFA500' }}>Lỗi Thanh Toán</DialogTitle>
+        <DialogContent>
+          <Typography>{errorDialog.message}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseErrorDialog} style={{ color: '#FFA500' }}>
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

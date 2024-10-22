@@ -52,13 +52,13 @@ const BookingDrinkInfo = ({
 
   return (
     <section className="flex flex-col px-4 py-4 mt-4 lg:mt-8 w-full text-lg bg-neutral-800 rounded-lg">
-      <div
-        className="flex items-center gap-1.5 self-start ml-0 pl-2 cursor-pointer"
+      {/* <button
+        className="flex items-center gap-1.5 self-start ml-0 pl-2 cursor-pointer text-gray-200 hover:text-amber-400 transition-all duration-300 ease-in-out transform hover:translate-x-1"
         onClick={onBackClick}
       >
-        <ChevronLeftIcon className="object-contain w-6 h-6 text-gray-200" />
-        <div className="text-gray-200">Quay lại</div>
-      </div>
+        <ChevronLeftIcon className="object-contain w-6 h-6" />
+        <span>Quay lại</span>
+      </button> */}
       <div className="shrink-0 mt-4 h-px border border-amber-400 border-solid" />
       <h2 className="self-start mt-4 text-xl text-amber-400 font-aBeeZee">
         Thông tin đặt bàn
@@ -125,11 +125,10 @@ const BookingDrinkInfo = ({
           </div>
           <div className="flex items-center">
             <NoteIcon className="text-amber-400 mr-2" />
-            <span className="font-sans font-thin">
+            <span className="font-sans font-thin ">
               <span className="text-amber-400 mr-1">Ghi chú:</span>
               {customerInfo?.note ? (
                 <>
-                  {customerInfo.note.slice(0, 20)}
                   {customerInfo.note.length > 20 && "..."}
                   <button onClick={handleShowNote} className="ml-2 text-amber-400 underline">
                     Xem chi tiết

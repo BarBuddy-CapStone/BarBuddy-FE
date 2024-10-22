@@ -8,7 +8,7 @@ import KeyIcon from "@mui/icons-material/VpnKey";
 import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
-import { Dialog } from "@mui/material"; // Modal for image preview
+import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material"; // Modal for image preview
 import CloseIcon from "@mui/icons-material/Close";
 import TableBarIcon from "@mui/icons-material/TableBar";
 import LiquorIcon from "@mui/icons-material/Liquor";
@@ -53,6 +53,7 @@ function BookingDetailPage() {
   const [openModal, setOpenModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
 
   // Fetch booking details from API
   useEffect(() => {
@@ -119,6 +120,14 @@ function BookingDetailPage() {
     navigate(-1); // Go back to the previous page
   };
 
+  const handleOpenNoteDialog = () => {
+    setIsNoteDialogOpen(true);
+  };
+
+  const handleCloseNoteDialog = () => {
+    setIsNoteDialogOpen(false);
+  };
+
   return (
     <div
       className={`flex flex-col px-8 mx-16 ${
@@ -139,12 +148,11 @@ function BookingDetailPage() {
           <div className="flex justify-between items-center">
             <button
               onClick={handleGoBack}
-              className="text-amber-400 flex items-center space-x-2"
+              className="text-gray-200 flex items-center space-x-2 hover:text-amber-400 transition-all duration-300 ease-in-out transform hover:translate-x-1"
             >
-              <ArrowBackIcon className="text-amber-400 mr-3" />
+              <ArrowBackIcon />
               <span>Quay lại</span>
             </button>
-            {/* Display time ago, aligned to the right */}
             <span className="text-amber-400 text-neutral-400">
               {getTimeAgo(bookingData.createAt)}
             </span>
@@ -153,8 +161,8 @@ function BookingDetailPage() {
 
         <div className="border-t border-amber-500 mb-6"></div>
 
-        {/* Image Carousel with AutoPlay */}
-        <div className="mb-6">
+        {/* Image Carousel with AutoPlay - Adjusted height */}
+        <div className="mb-6 h-64"> {/* Điều chỉnh chiều cao ở đây */}
           <Carousel
             showArrows={true}
             infiniteLoop={true}
@@ -164,19 +172,12 @@ function BookingDetailPage() {
             onClickItem={(index) => handleImageClick(images[index])}
           >
             {images.map((image, index) => (
-              <div key={index} className="cursor-pointer">
-                <div
-                  className="w-full h-0"
-                  style={{
-                    paddingBottom: "56.25%", // 16:9 aspect ratio
-                  }}
-                >
-                  <img
-                    src={image}
-                    alt={`Slide ${index}`}
-                    className="absolute top-0 left-0 w-full h-full object-cover"
-                  />
-                </div>
+              <div key={index} className="cursor-pointer h-64"> {/* Điều chỉnh chiều cao ở đây */}
+                <img
+                  src={image}
+                  alt={`Slide ${index}`}
+                  className="w-full h-full object-cover"
+                />
               </div>
             ))}
           </Carousel>
@@ -217,70 +218,96 @@ function BookingDetailPage() {
         <h2 className="text-2xl text-amber-400 mb-4">Thông tin đặt chỗ</h2>
 
         {/* Booking Details */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-gray-300">
-          {/* Row 1 */}
+        <div className="grid grid-cols-2 gap-6 text-gray-300">
           <div className="flex items-start">
-            <LiquorIcon className="text-amber-400 mr-3" />
-            <span>{barName}</span>
+            <LiquorIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Chi Nhánh:</span>
+              <p>{barName}</p>
+            </div>
           </div>
           <div className="flex items-start">
-            <CalendarTodayIcon className="text-amber-400 mr-3" />
-            <span>{formattedDateTime}</span>
-          </div>
-
-          {/* Row 2 */}
-          <div className="flex items-start">
-            <LocationOnIcon className="text-amber-400 mr-3" />
-            <span>{barAddress}</span>
+            <CalendarTodayIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Thời gian:</span>
+              <p>{formattedDateTime}</p>
+            </div>
           </div>
           <div className="flex items-start">
-            <KeyIcon className="text-amber-400 mr-3" />
-            <span>{bookingCode}</span>
-          </div>
-
-          {/* Row 3 */}
-          <div className="flex items-start">
-            <TableBarIcon className="text-amber-400 mr-3" />
-            <span>{formattedTables}</span>
+            <LocationOnIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Địa chỉ:</span>
+              <p>{barAddress}</p>
+            </div>
           </div>
           <div className="flex items-start">
-            <EditNoteIcon className="text-amber-400 mr-3" />
-            <span>{note}</span>
+            <KeyIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Mã đặt bàn:</span>
+              <p>{bookingCode}</p>
+            </div>
+          </div>
+          <div className="flex items-start">
+            <TableBarIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Bàn đã đặt:</span>
+              <p>{formattedTables}</p>
+            </div>
+          </div>
+          <div className="flex items-start">
+            <EditNoteIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Ghi chú:</span>
+              <button
+                onClick={handleOpenNoteDialog}
+                className="text-amber-400 hover:underline ml-2"
+              >
+                Xem chi tiết
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="border-t border-amber-500 mt-4 mb-4"></div>
+        <div className="border-t border-amber-500 mt-6 mb-4"></div>
 
         {/* Customer Info */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-gray-300">
+        <h2 className="text-2xl text-amber-400 mb-4">Khách Hàng</h2>
+        <div className="grid grid-cols-2 gap-6 text-gray-300">
           <div className="flex items-start">
-            <PersonIcon className="text-amber-400 mr-3" />
-            <span>{customerName}</span>
+            <PersonIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Tên khách hàng:</span>
+              <p>{customerName}</p>
+            </div>
           </div>
           <div className="flex items-start">
-            <PhoneIcon className="text-amber-400 mr-3" />
-            <span>{customerPhone}</span>
+            <PhoneIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Số điện thoại:</span>
+              <p>{customerPhone}</p>
+            </div>
           </div>
-          <div className="flex items-start">
-            <EmailIcon className="text-amber-400 mr-3" />
-            <span>{customerEmail}</span>
+          <div className="flex items-start col-span-2">
+            <EmailIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Email:</span>
+              <p>{customerEmail}</p>
+            </div>
           </div>
         </div>
 
         {/* Notice Section */}
-        <div className="border-t border-amber-500 mt-4 mb-4"></div>
+        <div className="border-t border-amber-500 mt-6 mb-4"></div>
         <div className="text-gray-400 text-sm">
           <h3 className="text-amber-400 mb-2">Lưu ý</h3>
           <ul className="list-disc list-inside">
-            <li>Vui lòng tới trưc 15 phút để có trải nghiệm tốt nhất.</li>
+            <li>Vui lòng tới trước 15 phút để có trải nghiệm tốt nhất.</li>
             <li>Vui lòng mang theo CCCD hoặc giấy tờ tùy thân hợp lệ.</li>
             <li>Đặt bàn sẽ được hoàn thành sau khi khách hàng check-in.</li>
-            <li>
-              Nếu quý khách không thể tới, vui lòng hủy đặt bàn trước 2 tiếng.
-            </li>
+            <li>Nếu quý khách không thể tới, vui lòng hủy đặt bàn trước 2 tiếng.</li>
           </ul>
           <p className="mt-4">
-            Giới hạn độ tuổi: <strong>18+</strong>
+            Giới hạn độ tuổi: <strong className="text-amber-400">18+</strong>
           </p>
         </div>
       </div>
@@ -354,6 +381,55 @@ function BookingDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Note Dialog */}
+      <Dialog
+        open={isNoteDialogOpen}
+        onClose={handleCloseNoteDialog}
+        aria-labelledby="note-dialog-title"
+        PaperProps={{
+          style: {
+            backgroundColor: "#27272a",
+            color: "#FFFFFF",
+            borderRadius: "8px",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          },
+        }}
+      >
+        <DialogTitle 
+          id="note-dialog-title" 
+          style={{ 
+            color: "#FFBF00", 
+            borderBottom: "1px solid #FFBF00",
+            padding: "16px 24px",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <span>Ghi chú</span>
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseNoteDialog}
+            style={{
+              color: '#FFFFFF',
+              padding: '4px',
+            }}
+          >
+            <CloseIcon style={{ fontSize: '20px' }} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent style={{ padding: "24px" }}>
+          <p style={{ 
+            color: "#E5E7EB", 
+            fontSize: "16px", 
+            lineHeight: "1.5",
+            whiteSpace: "pre-wrap",
+          }}>
+            {note || "Không có ghi chú"}
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

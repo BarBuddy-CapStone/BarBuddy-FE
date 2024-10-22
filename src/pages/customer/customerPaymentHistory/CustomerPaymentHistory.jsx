@@ -106,12 +106,34 @@ const PaymentHistory = () => {
     setSelectedPayment(null); // Clear selected payment
   };
 
+  const handleBack = () => {
+    navigate(`/profile/${accountId}`);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 0: return 'bg-yellow-500'; // Đang chờ
+      case 1: return 'bg-green-500'; // Thành công
+      case 2: return 'bg-red-500'; // Thất bại
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 0: return 'Đang chờ';
+      case 1: return 'Thành công';
+      case 2: return 'Thất bại';
+      default: return 'Không xác định';
+    }
+  };
+
   return (
     <section className="flex flex-col px-10 py-8 mx-auto w-full max-w-7xl rounded-md bg-neutral-800 shadow-md max-md:px-5 max-md:mt-10">
       <div className="flex justify-between items-center mb-8 relative">
         <button
-          className="text-amber-400 flex items-center space-x-2 absolute left-0"
-          onClick={() => navigate(`/profile/${accountId}`)}
+          className="text-gray-200 flex items-center space-x-2 absolute left-0 hover:text-amber-400 transition-all duration-300 ease-in-out transform hover:translate-x-1"
+          onClick={handleBack}
         >
           <ArrowBackIcon />
           <span>Quay lại</span>
@@ -148,7 +170,7 @@ const PaymentHistory = () => {
               <TableCell align="center" style={{ color: "#E5E7EB" }}>
                 Tên nhà cung cấp
               </TableCell>
-              <TableCell align="center" style={{ color: "#E5E7EB" }}>
+              <TableCell align="center" style={{ color: "#E5E7EB", width: "120px" }}>
                 Trạng thái
               </TableCell>
               <TableCell
@@ -158,7 +180,7 @@ const PaymentHistory = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {payments.length === 0 ? ( // Kiểm tra nếu không có giao dịch
+            {payments.length === 0 ? (
               <TableRow>
                 <TableCell
                   sx={{ borderBottom: "2px solid #FFBF00" }}
@@ -193,16 +215,15 @@ const PaymentHistory = () => {
                   <TableCell align="center" style={{ color: "#E5E7EB" }}>
                     {payment.providerName}
                   </TableCell>
-                  <TableCell
-                    align="center"
-                    style={{ color: payment.status === 1 ? "#4CAF50" : payment.status === 2 ? "red" : "orange" }} // Cập nhật màu sắc
-                  >
-                    {payment.status === 0 ? "Đang chờ" : payment.status === 1 ? "Thành công" : "Thất bại"}
+                  <TableCell align="center" style={{ color: "#E5E7EB", width: "120px" }}>
+                    <div className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)} text-white whitespace-nowrap w-24 text-center`}>
+                      {getStatusText(payment.status)}
+                    </div>
                   </TableCell>
                   <TableCell align="center">
                     <ArrowForwardIosIcon
                       style={{ color: "#FFBF00", cursor: "pointer" }}
-                      onClick={() => handleOpenDialog(payment)} // Open dialog on icon click
+                      onClick={() => handleOpenDialog(payment)}
                     />
                   </TableCell>
                 </TableRow>

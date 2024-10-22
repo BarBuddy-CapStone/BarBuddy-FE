@@ -21,6 +21,7 @@
     "@nextui-org/react": "^2.4.6",
     "@payos/node": "^1.0.10",
     "@tailwindcss/aspect-ratio": "^0.4.2",
+    "antd": "^5.21.5",
     "axios": "^1.7.3",
     "chart.js": "^4.4.4",
     "clsx": "^2.1.1",

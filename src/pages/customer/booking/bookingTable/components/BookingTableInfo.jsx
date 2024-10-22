@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import TableBarIcon from "@mui/icons-material/TableBar";
@@ -88,6 +89,7 @@ const BookingTableInfo = ({
   selectedTableTypeId,
   selectedTime
 }) => {
+  const navigate = useNavigate();
   const [selectedTableType, setSelectedTableType] = useState("");
   const [selectedTypeDescription, setSelectedTypeDescription] = useState("");
   const [tableTypes, setTableTypes] = useState([]);
@@ -132,14 +134,21 @@ const BookingTableInfo = ({
     return dayjs(date).isAfter(dayjs(), 'day') || dayjs(date).isSame(dayjs(), 'day');
   };
 
+  const handleBack = () => {
+    navigate(`/bar-detail/${barId}`);
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} locale={viLocale}>
       <section className="flex flex-col py-4 px-4 w-full text-base text-amber-400 bg-neutral-800 max-md:mt-4 max-md:max-w-full">
         <div className="flex flex-col items-start w-full max-md:max-w-full">
-          <div className="flex items-center text-xl leading-snug text-gray-200">
-            <ArrowBackIosIcon sx={{ marginRight: "8px" }} />
+          <button 
+            onClick={handleBack}
+            className="flex items-center text-xl leading-snug text-gray-200 hover:text-amber-400 transition-all duration-300 ease-in-out transform hover:translate-x-1"
+          >
+            <ArrowBackIosIcon sx={{ marginRight: "2px" }} />
             Quay lại
-          </div>
+          </button>
           <hr className="shrink-0 mt-3 w-full h-px border border-amber-400 border-solid" />
 
           <h2 className="mt-4 text-lg">Thông tin đặt bàn</h2>

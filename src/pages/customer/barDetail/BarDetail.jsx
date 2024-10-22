@@ -4,6 +4,7 @@ import { getBarById } from '../../../lib/service/customerService'; // Removed ge
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import StarIcon from '@mui/icons-material/Star';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'; // Thêm import này
 
 // Component hiển thị danh sách đánh giá
 const FeedbackList = React.memo(({ feedbacks }) => (
@@ -73,7 +74,12 @@ const BarDetail = () => {
     return (
         <div className="container bg-inherit p-4 flex flex-col items-center">
             <div className="bg-neutral-800 text-white p-4 rounded-lg shadow-lg w-full max-w-4xl">
-                <button className="text-white-500 mb-4" onClick={handleBack}>&lt; Quay Lại</button>
+                <button 
+                    className="text-gray-200 mb-4 flex items-center text-base hover:text-amber-400 transition-colors duration-300" 
+                    onClick={handleBack}
+                >
+                    <ChevronLeftIcon /> Quay Lại
+                </button>
                 <img src={barDetails.images} alt={barDetails.barName} className="w-full h-64 object-cover rounded-lg mb-4" />
                 <h1 className="text-2xl text-yellow-500 font-bold mb-2">{barDetails.barName}</h1>
                 <div className="flex items-center mb-2">

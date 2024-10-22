@@ -3,6 +3,7 @@ import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { Range, getTrackBackground } from 'react-range';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAllDrink } from 'src/lib/service/managerDrinksService';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'; // Thêm import này
 
 const FilterSection = ({
     dataDrinkCate,
@@ -346,22 +347,23 @@ const PriceFilter = ({ dataDrinkPrice, onPriceChange }) => {
     );
 };
 
-const backToBarInfo = () => {
-    const redirect = useNavigate();
-    redirect(`/drinkList}`);
-}
+const BackButton = () => {
+    const navigate = useNavigate();
+    
+    const handleBack = () => {
+        navigate('/home');
+    };
 
-const BackButton = () => (
-    <button onClick={() => backToBarInfo()} className="flex gap-2.5 self-start mt-2.5 text-xl text-gray-200 flex text-center centers-text">
-        <img
-            loading="lazy"
-            src="https://img.icons8.com/?size=100&id=40217&format=png&color=FFFFFF"
-            alt=""
-            className="object-contain shrink-0 my-auto w-5 aspect-square"
-        />
-        <span>Quay lại</span>
-    </button>
-);
+    return (
+        <button 
+            onClick={handleBack} 
+            className="flex items-center gap-2 self-start mt-2.5 text-xl text-gray-200 hover:text-amber-400 transition-colors duration-300"
+        >
+            <ChevronLeftIcon />
+            <span>Quay lại</span>
+        </button>
+    );
+};
 
 const styles = `
 .custom-scrollbar::-webkit-scrollbar {
@@ -407,6 +409,9 @@ const DrinkList = () => {
     const [priceRange, setPriceRange] = useState([0, 100000000]);
 
     useEffect(() => {
+        // Thêm đoạn code này để cuộn lên đầu trang khi component được mount
+        window.scrollTo(0, 0);
+
         const fetchDataDrinkOfBar = async () => {
             try {
                 const response = await getAllDrink();
@@ -433,7 +438,7 @@ const DrinkList = () => {
             }
         };
         fetchDataDrinkOfBar();
-    }, []);
+    }, []); // Dependency array trống để chỉ chạy một lần khi component mount
 
     const applyFilters = () => {
         let filtered = dataDrinksOfBar;

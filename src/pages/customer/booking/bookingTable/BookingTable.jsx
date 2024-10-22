@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useLocation } from "react-router-dom";
-import { getBarTableById } from "src/lib/service/customerService";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getBarById, getBarTableById } from "src/lib/service/customerService";
 import { filterBookingTable } from "src/lib/service/BookingTableService";
 import CustomerForm from './components/CustomerForm';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import dayjs from "dayjs";
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 import {
   BookingTableInfo,
@@ -16,6 +17,7 @@ import {
 const BookingTable = () => {
   const { state } = useLocation();
   const { barId } = state || {};
+  const navigate = useNavigate();
 
   const [allTables, setAllTables] = useState([]);
   const [filteredTables, setFilteredTables] = useState([]);
