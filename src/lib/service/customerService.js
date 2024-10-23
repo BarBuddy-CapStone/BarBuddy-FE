@@ -1,7 +1,13 @@
 import axios from "../axiosCustomize";
 
-export const getAllBar = async () => {
-    return await axios.get(`api/v1/bars`);
+export const getAllBar = async (search = '', pageIndex = 1, pageSize = 6) => {
+    return await axios.get(`api/v1/bars`, {
+        params: {
+            search,
+            pageIndex,
+            pageSize
+        }
+    });
 }
 
 export const getBarById = async (barId) => {

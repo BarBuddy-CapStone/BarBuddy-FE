@@ -52,6 +52,11 @@ const getTitlePath = (pathName) => {
     case "/admin/feedbackdetail":
       return headerConstants.feedback;
 
+    case "/admin/event-management":
+      return headerConstants.eventManagement;
+    case "/admin/event-management/add-event":
+      return headerConstants.eventManagement;
+
     default:
       return "Admin";
   }

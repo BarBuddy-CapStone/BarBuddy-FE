@@ -9,10 +9,11 @@ const headerConstants = {
   emotional: "QUẢN LÝ DANH MỤC CẢM XÚC",
   drink: "QUẢN LÝ THỨC UỐNG",
   feedback: "QUẢN LÝ FEEDBACK",
+  eventManagement: "QUẢN LÝ SỰ KIỆN",
 
   // Header của Staff
   headerStaff: {
-    table: "QUẢN LÍ BÀN",
+    table: "QUẢN LÝ BÀN",
     table_booking_list: "DANH SÁCH ĐẶT BÀN",
     table_booking_detail: "CHI TIẾT ĐẶT BÀN",
     payment_history: "THANH TOÁN"

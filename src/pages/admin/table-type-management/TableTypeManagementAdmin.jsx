@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import TableTypeService from '../../../lib/service/tableTypeService';
 import { toast } from 'react-toastify';
 import { CircularProgress } from "@mui/material"; // Import CircularProgress từ MUI
+import { Search, Add } from "@mui/icons-material"; // Thêm import Search từ MUI
 
 const TableTypeManagementAdmin = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -14,6 +15,7 @@ const TableTypeManagementAdmin = () => {
 
   const [status, setStatus] = useState(0);
   const [loading, setLoading] = useState(false); // Thêm state loading
+  const [searchInput, setSearchInput] = useState(''); // Thêm state mới cho input tìm kiếm
 
   useEffect(() => {
     fetchTableTypes();
@@ -80,7 +82,11 @@ const TableTypeManagementAdmin = () => {
     }
   };
 
-  const handleSearchChange = (event) => setSearchTerm(event.target.value);
+  const handleSearch = () => {
+    setSearchTerm(searchInput);
+  };
+
+  const handleSearchChange = (event) => setSearchInput(event.target.value);
 
   const handleStatusChange = (event) => {
     setStatus(parseInt(event.target.value, 10));
@@ -95,8 +101,9 @@ const TableTypeManagementAdmin = () => {
   <div className="flex flex-col gap-0 max-md:flex-col">
     <BelowHeader 
       onAddTableType={() => handlePopup(true)} 
-      searchTerm={searchTerm} 
+      searchInput={searchInput} 
       onSearchChange={handleSearchChange}
+      onSearch={handleSearch}
       status={status} 
       onStatusChange={handleStatusChange} 
     />
@@ -137,48 +144,49 @@ const TableTypeManagementAdmin = () => {
   );
 };
 
-const BelowHeader = ({ onAddTableType, searchTerm, onSearchChange, status, onStatusChange }) => (
-  <div className="flex flex-col md:flex-row items-center justify-between ml-4 mr-4 mt-6 gap-4">
-    <input
-      type="text"
-      placeholder="Tìm kiếm loại bàn..."
-      value={searchTerm}
-      onChange={onSearchChange}
-      className="px-4 py-2 border border-blue-500 rounded-full w-full md:w-1/3"
-    />
-
-    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-10 w-full md:w-auto">
+const BelowHeader = ({ onAddTableType, searchInput, onSearchChange, onSearch, status, onStatusChange }) => (
+  <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mx-4 mt-6">
+    <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full lg:w-auto">
+      <div className="relative flex-grow">
+        <input
+          type="text"
+          placeholder="Tìm kiếm loại bàn..."
+          value={searchInput}
+          onChange={onSearchChange}
+          className="w-full px-4 py-2 pr-10 border border-sky-900 rounded-full"
+        />
+        <Search 
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" 
+          onClick={onSearch}
+        />
+      </div>
       <select
         value={status}
         onChange={onStatusChange}
-        className="px-4 py-2 border border-blue-500 rounded-full w-full md:w-auto pr-8"
+        className="px-4 py-2 border border-sky-900 rounded-full w-full sm:w-auto"
       >
         <option value={0}>Tất cả</option>
         <option value={1}>Loại bàn đang được sử dụng</option>
         <option value={2}>Loại bàn không được sử dụng</option>
       </select>
-
-      <button
-        onClick={onAddTableType}
-        className="flex items-center gap-2 px-4 py-2 text-base text-black bg-white rounded-md border border-blue-500 shadow hover:bg-gray-300 w-full md:w-auto" // Đặt rộng full khi ở màn hình nhỏ
-      >
-        <img
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/05719b0bc8adf147a0e97f780bea0ba2d2f701cac417ada50303bc5f38458fc4"
-          alt="Add"
-          className="object-contain w-4 h-4 align-middle"
-        />
-        <span>Thêm loại bàn</span>
-      </button>
     </div>
+    <button
+      onClick={onAddTableType}
+      className="flex items-center justify-center gap-2 px-6 py-2 text-base text-black bg-white rounded-full border border-sky-900 shadow hover:bg-gray-100 transition-colors duration-200 w-full sm:w-auto"
+    >
+      <Add className="w-5 h-5" />
+      <span>Thêm loại bàn</span>
+    </button>
   </div>
 );
 
 BelowHeader.propTypes = {
-  onAddTableType: PropTypes.func.isRequired, // Validates that onAddTableType is a required function
-  searchTerm: PropTypes.string.isRequired,   // Validates that searchTerm is a required string
-  onSearchChange: PropTypes.func.isRequired, // Validates that onSearchChange is a required function
-  status: PropTypes.number.isRequired,       // Validates that status is a required number
-  onStatusChange: PropTypes.func.isRequired, // Validates that onStatusChange is a required function
+  onAddTableType: PropTypes.func.isRequired,
+  searchInput: PropTypes.string.isRequired,
+  onSearchChange: PropTypes.func.isRequired,
+  onSearch: PropTypes.func.isRequired, // Thêm prop mới
+  status: PropTypes.number.isRequired,
+  onStatusChange: PropTypes.func.isRequired,
 };
 
 
@@ -270,7 +278,7 @@ const TableTypeCard = ({ typeName, minimumPrice, minimumGuest, maximumGuest, des
   const guestCapacity = minimumGuest === maximumGuest ? `${maximumGuest} khách hàng` : `${minimumGuest} - ${maximumGuest} khách hàng`;
 
   return (
-    <div className="flex flex-col px-4 py-5 w-full rounded-xl bg-zinc-300 bg-opacity-50 shadow-md text-base">
+    <div className="flex flex-col px-4 py-5 w-full rounded-xl bg-neutral-200 bg-opacity-50 shadow-md text-base">
       <div className="flex justify-between items-center w-full mb-4">
         <div className="text-lg font-bold text-black">{typeName}</div>
         <div className="flex gap-2.5">

@@ -1,44 +1,51 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
-import TableTypeService from '../../../lib/service/tableTypeService'; // Thêm import service
-import { CircularProgress } from '@mui/material'; // Thêm import này
+import TableTypeService from '../../../lib/service/tableTypeService';
+import { CircularProgress } from '@mui/material';
+import { Search, Info } from '@mui/icons-material';
 
 const TableTypeManagementStaff = () => {
-  const [searchTerm, setSearchTerm] = useState(''); // New state for search term
-  const [tableTypes, setTableTypes] = useState([]); // Thêm state cho tableTypes
-  const [loading, setLoading] = useState(true); // Thêm state loading
+  const [searchTerm, setSearchTerm] = useState('');
+  const [tableTypes, setTableTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState('');
 
   useEffect(() => {
-    fetchTableTypes(); // Gọi hàm fetchTableTypes khi component mount
+    fetchTableTypes();
   }, []);
 
-  const fetchTableTypes = async () => {
-    setLoading(true); // Bắt đầu loading
+  const fetchTableTypes = useCallback(async () => {
+    setLoading(true);
     try {
-      const response = await TableTypeService.getAllTableTypes(); // Gọi API để lấy dữ liệu
-      setTableTypes(response.data.data); // Cập nhật state với dữ liệu nhận được
+      const response = await TableTypeService.getAllTableTypes();
+      setTableTypes(response.data.data);
     } catch (error) {
-      console.error('Error fetching table types:', error); // Xử lý lỗi
+      console.error('Error fetching table types:', error);
     } finally {
-      setLoading(false); // Kết thúc loading
+      setLoading(false);
     }
+  }, []);
+
+  const handleSearch = () => {
+    setSearchTerm(searchInput);
   };
 
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value); // Update search term state
-  };
+  const handleSearchChange = (event) => setSearchInput(event.target.value);
 
-  // Filter table types based on search term
   const filteredTableTypes = tableTypes.filter((tableType) =>
-    tableType.typeName && tableType.typeName.toLowerCase().includes(searchTerm.toLowerCase())
+    tableType.typeName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <main className="overflow-hidden pt-2 pr-5 pl-5 bg-white max-md:pr-5">
       <div className="flex flex-col gap-6 max-md:flex-col">
         <div className="flex flex-col w-full max-md:ml-0 max-md:w-full">
-          <BelowHeader searchTerm={searchTerm} onSearchChange={handleSearchChange} />
+          <BelowHeader 
+            searchInput={searchInput} 
+            onSearchChange={handleSearchChange}
+            onSearch={handleSearch}
+          />
           <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
             {loading ? (
               <div className="flex justify-center items-center h-32">
@@ -58,24 +65,35 @@ const TableTypeManagementStaff = () => {
   );
 };
 
-const BelowHeader = ({ searchTerm, onSearchChange }) => {
+const BelowHeader = ({ searchInput, onSearchChange, onSearch }) => {
   return (
-    <div className="flex items-center justify-between ml-4 mr-4 mt-6">
-      <h2 className="text-2xl font-bold text-gray-700">Danh sách loại bàn</h2>
-      <input
-        type="text"
-        placeholder="Tìm kiếm loại bàn..."
-        value={searchTerm}
-        onChange={onSearchChange}
-        className="px-4 py-2 border rounded-full w-1/6"
-      />
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-6">
+      <h2 className="text-2xl font-bold text-gray-700 mb-4 sm:mb-0">Danh sách loại bàn</h2>
+      <div className="w-full sm:w-auto flex-grow sm:flex-grow-0 sm:max-w-md">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Tìm kiếm loại bàn..."
+            value={searchInput}
+            onChange={onSearchChange}
+            className="w-full px-4 py-2 pr-10 border rounded-full"
+          />
+          <button
+            onClick={onSearch}
+            className="absolute right-0 top-0 mt-2 mr-3"
+          >
+            <Search className="text-gray-400" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
 
 BelowHeader.propTypes = {
-  searchTerm: PropTypes.string.isRequired,
+  searchInput: PropTypes.string.isRequired,
   onSearchChange: PropTypes.func.isRequired,
+  onSearch: PropTypes.func.isRequired,
 };
 
 const TableTypeList = ({ tableTypes }) => {
@@ -83,7 +101,7 @@ const TableTypeList = ({ tableTypes }) => {
     <section className="mt-5">
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         {tableTypes.map((tableType, index) => (
-          <TableTypeCard key={index} {...tableType} tableTypeId={tableType.tableTypeId} /> // Truyền tableTypeId
+          <TableTypeCard key={index} {...tableType} tableTypeId={tableType.tableTypeId} /> 
         ))}
       </div>
     </section>
@@ -97,17 +115,19 @@ TableTypeList.propTypes = {
 const TableTypeCard = ({ typeName, minimumPrice, minimumGuest, maximumGuest, description, tableTypeId }) => {
   const navigate = useNavigate();
 
-  const handleCardClick = () => {
-    navigate(`/staff/table-management/table/${tableTypeId}`); // Chuyển đến trang TableManagement với tableTypeId
+  const handleInfoClick = (event) => {
+    event.stopPropagation();
+    navigate(`/staff/table-management/table/${tableTypeId}`);
   };
 
   return (
-    <div
-      className="flex flex-col px-4 py-5 w-full rounded-xl bg-zinc-300 bg-opacity-50 shadow-md text-base cursor-pointer"
-      onClick={handleCardClick}
-    >
+    <div className="flex flex-col px-4 py-5 w-full rounded-xl bg-neutral-200 bg-opacity-50 shadow-md text-base">
       <div className="flex justify-between items-center w-full mb-4">
         <div className="text-lg font-bold text-black">{typeName}</div>
+        <Info 
+          className="text-gray-600 cursor-pointer hover:text-gray-800" 
+          onClick={handleInfoClick}
+        />
       </div>
       <div className="flex flex-col gap-2 w-full">
         <div className="flex items-start gap-2">
@@ -133,6 +153,7 @@ TableTypeCard.propTypes = {
   minimumGuest: PropTypes.number.isRequired,
   maximumGuest: PropTypes.number.isRequired,
   description: PropTypes.string,
+  tableTypeId: PropTypes.string.isRequired,
 };
 
 export default TableTypeManagementStaff;

@@ -74,14 +74,27 @@ const BarDetail = () => {
     return (
         <div className="container bg-inherit p-4 flex flex-col items-center">
             <div className="bg-neutral-800 text-white p-4 rounded-lg shadow-lg w-full max-w-4xl">
-                <button 
-                    className="text-gray-200 mb-4 flex items-center text-base hover:text-amber-400 transition-colors duration-300" 
+                <button
+                    className="text-gray-200 mb-4 flex items-center text-base hover:text-amber-400 transition-colors duration-300"
                     onClick={handleBack}
                 >
                     <ChevronLeftIcon /> Quay Lại
                 </button>
                 <img src={barDetails.images} alt={barDetails.barName} className="w-full h-64 object-cover rounded-lg mb-4" />
                 <h1 className="text-2xl text-yellow-500 font-bold mb-2">{barDetails.barName}</h1>
+                <div className="mb-2 ml-1">
+                    <span className="text-gray-400 my-2"><img
+                        src={
+                            barDetails.isAnyTableAvailable
+                                ? "https://img.icons8.com/?size=100&id=60362&format=png&color=40C057"
+                                : "https://img.icons8.com/?size=100&id=60362&format=png&color=FA5252"
+                        }
+                        alt={barDetails.isAnyTableAvailable ? "Còn bàn" : "Hết bàn"}
+                        className="inline-block w-5 h-5 mr-2"
+                    /></span>
+                    <span className="text-base text-white">{barDetails.isAnyTableAvailable ? "Còn bàn" : "Hết bàn"}</span>
+                </div>
+
                 <div className="flex items-center mb-2">
                     <StarIcon className='text-yellow-500 mr-2' />
                     <span className="text-yellow-500 text-base mr-2">Đánh giá:</span>

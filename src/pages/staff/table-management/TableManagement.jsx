@@ -6,6 +6,7 @@ import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
 import { toast } from 'react-toastify';
 import { CircularProgress } from '@mui/material';
+import { Search } from '@mui/icons-material';
 
 function TableManagement() {
   const { tableTypeId } = useParams();
@@ -29,7 +30,7 @@ function TableManagement() {
     status: "Còn trống",
   });
   const [tableToDelete, setTableToDelete] = useState(null);
-  const [tableTypeName, setTableTypeName] = useState(""); // Thêm state cho tableTypeName
+  const [tableTypeName, setTableTypeName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -38,13 +39,13 @@ function TableManagement() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); // Lấy userInfo từ session storage
-        const barId = userInfo ? userInfo.identityId : null; // Trích xuất identityId
+        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        const barId = userInfo ? userInfo.identityId : null;
 
         const response = await TableService.getTables(barId, tableTypeId, null, pageIndex, pageSize);
         setTableData(response.response);
         setTotalPages(response.totalPage);
-        setTableTypeName(response.tableTypeName); // Lưu tableTypeName từ phản hồi
+        setTableTypeName(response.tableTypeName);
       } catch (error) {
         console.error("Lỗi khi lấy danh sách bàn:", error);
         toast.error("Có lỗi xảy ra khi tải dữ liệu");
@@ -53,20 +54,20 @@ function TableManagement() {
       }
     };
     fetchData();
-  }, [pageIndex, tableTypeId]); // Chạy lại khi pageIndex hoặc tableTypeId thay đổi
+  }, [pageIndex, tableTypeId]);
 
   const handlePageChange = (event, value) => {
-    setPageIndex(value); // Cập nhật pageIndex
-    setCurrentPage(value); // Cập nhật currentPage nếu cần
+    setPageIndex(value); 
+    setCurrentPage(value);
+  };
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
   };
 
   const filteredTableData = tableData.filter((table) =>
     table.tableName.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
 
   const openModal = () => {
     setCurrentTable({
@@ -110,7 +111,7 @@ function TableManagement() {
     }
     
     if (trimmedTableName.length < 6) {
-      toast.error("Tên bàn phải có ít nhất 5 ký tự");
+      toast.error("Tên bàn phải có ít nhất 6 ký tự");
       return;
     }
     
@@ -135,7 +136,6 @@ function TableManagement() {
       
       if (response.status === 200) {
         toast.success(isEditing ? "Cập nhật bàn thành công!" : "Thêm bàn mới thành công!");
-        // Cập nhật lại danh sách bàn
         const updatedTables = await TableService.getTables(barId, tableTypeId, null, pageIndex, pageSize);
         setTableData(updatedTables.response);
         setTotalPages(updatedTables.totalPage);
@@ -157,23 +157,20 @@ function TableManagement() {
       const response = await TableService.deleteTable(tableToDelete.tableId);
       
       if (response.status === 200) {
-        // Xóa thành công
         setTableData((prevData) =>
           prevData.filter((table) => table.tableId !== tableToDelete.tableId)
         );
-        toast.success("Xóa bàn thành công!"); // Hiển thị thông báo thành công
+        toast.success("Xóa bàn thành công!");
       } else if (response.status === 202) {
-        // Không thể xóa do ràng buộc
-        const message = response.data || "Không thể xóa bàn do có ràng buộc!"; // Lấy thông điệp từ phản hồi
-        toast.warn(message); // Hiển thị thông báo cảnh báo
+        const message = response.data || "Không thể xóa bàn do có ràng buộc!";
+        toast.warn(message);
       }
       
-      // Đặt lại bàn để xóa và đóng popup
       setTableToDelete(null);
       closeDeletePopup();
     } catch (error) {
       console.error("Error deleting table:", error);
-      toast.error("Đã xảy ra lỗi hệ thống!"); // Hiển thị thông báo lỗi
+      toast.error("Đã xảy ra lỗi hệ thống!");
     } finally {
       setIsDeleting(false);
       setTableToDelete(null);
@@ -188,8 +185,7 @@ function TableManagement() {
           <div className="flex overflow-hidden px-8 flex-col pb-10 w-full bg-white max-md:px-5">
             <TableHeader
               openModal={openModal}
-              searchTerm={searchTerm}
-              onSearchChange={handleSearchChange}
+              onSearch={handleSearch}
               tableTypeName={tableTypeName}
             />
 
@@ -236,7 +232,6 @@ function TableManagement() {
               />
             </Stack>
 
-            {/* Modal thêm/chỉnh sửa bàn */}
             {isModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                 <div className="bg-white rounded-lg p-8 w-[500px]">
@@ -303,7 +298,6 @@ function TableManagement() {
               </div>
             )}
 
-            {/* Popup xác nhận xóa */}
             {isDeletePopupOpen && (
               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                 <div className="bg-white p-6 rounded-lg shadow-lg w-[480px]">
@@ -338,12 +332,20 @@ function TableManagement() {
   );
 }
 
-function TableHeader({ openModal, searchTerm, onSearchChange, tableTypeName }) {
+function TableHeader({ openModal, onSearch, tableTypeName }) {
   const navigate = useNavigate();
+  const [searchInput, setSearchInput] = useState('');
+
+  const handleSearchChange = (event) => {
+    setSearchInput(event.target.value);
+  };
+
+  const handleSearchClick = () => {
+    onSearch(searchInput);
+  };
 
   return (
     <div className="flex justify-between items-center mt-8 w-full text-black">
-      {/* Left section: Back icon and title */}
       <div className="flex items-center gap-4 text-2xl font-bold">
         <img
           loading="lazy"
@@ -352,23 +354,27 @@ function TableHeader({ openModal, searchTerm, onSearchChange, tableTypeName }) {
           alt="icon"
           onClick={() => navigate("/staff/table-management")}
         />
-        <h3 className="basis-auto">{tableTypeName}</h3> {/* Hiển thị tableTypeName từ phản hồi */}
+        <h3 className="basis-auto">{tableTypeName}</h3>
       </div>
 
-      {/* Center section: Search bar */}
       <div className="flex-grow flex justify-center">
-        <input
-          type="text"
-          placeholder="Tìm kiếm bàn..."
-          value={searchTerm}
-          onChange={onSearchChange}
-          className="px-4 py-2 border rounded-full w-1/2 max-w-sm" // Adjusted width and max width
-        />
+        <div className="relative w-1/2 max-w-sm">
+          <input
+            type="text"
+            placeholder="Tìm kiếm bàn..."
+            value={searchInput}
+            onChange={handleSearchChange}
+            className="px-4 py-2 pr-10 border rounded-full w-full"
+          />
+          <Search 
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" 
+            onClick={handleSearchClick}
+          />
+        </div>
       </div>
 
-      {/* Right section: Add button */}
       <button
-        className="flex items-center gap-2.5 px-3 py-2 my-auto text-base bg-white rounded-md border border-black shadow-lg"
+        className="flex items-center gap-2.5 px-4 py-2 my-auto text-base bg-white rounded-full border border-black shadow-lg"
         onClick={openModal}
       >
         <img
@@ -385,8 +391,8 @@ function TableHeader({ openModal, searchTerm, onSearchChange, tableTypeName }) {
 
 TableHeader.propTypes = {
   openModal: PropTypes.func.isRequired,
-  searchTerm: PropTypes.string.isRequired,
-  onSearchChange: PropTypes.func.isRequired,
+  onSearch: PropTypes.func.isRequired,
+  tableTypeName: PropTypes.string.isRequired,
 };
 
 function TableRow({
@@ -400,19 +406,18 @@ function TableRow({
   isEven,
   openEditModal,
   openDeletePopup,
-  index // Thêm index để sử dụng cho ID bàn
+  index
 }) {
   const rowClass = isEven
-    ? "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-orange-50 border-b border-gray-200 text-sm min-h-[60px] break-words items-center" // Thêm items-center
-    : "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-white border-b border-orange-200 text-sm min-h-[60px] break-words items-center"; // Thêm items-center
+    ? "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-orange-50 border-b border-gray-200 text-sm min-h-[60px] break-words items-center"
+    : "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-white border-b border-orange-200 text-sm min-h-[60px] break-words items-center";
 
-  // Chuyển đổi giá trị status thành chuỗi tương ứng
   const statusText = status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : "Đã đặt trước";
   const statusClass = status === 0 ? "bg-green-500" : status === 1 ? "bg-yellow-500" : "bg-red-500";
 
   return (
     <div className={rowClass}>
-      <div className="text-center font-normal">{index + 1}</div> {/* Hiển thị bộ đếm thứ tự */}
+      <div className="text-center font-normal">{index + 1}</div>
       <div className="text-center font-normal">{tableName}</div>
       <div className="text-center font-normal">{tableTypeName}</div>
       <div className="text-center font-normal">{minimumPrice}</div>
@@ -422,7 +427,7 @@ function TableRow({
         <span
           className={`inline-block px-4 py-1 rounded-full text-white ${statusClass} font-semibold`}
         >
-          {statusText} {/* Hiển thị trạng thái */}
+          {statusText}
         </span>
       </div>
       <div className="flex justify-center gap-5">
@@ -446,7 +451,7 @@ function TableRow({
           src="https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e"
           alt="Delete"
           className="cursor-pointer w-5 h-5"
-          onClick={() => openDeletePopup({ tableId, tableName })} // Đảm bảo tableId được truyền đúng
+          onClick={() => openDeletePopup({ tableId, tableName })}
         />
       </div>
     </div>

@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getBarById, getBarTableById } from "src/lib/service/customerService";
-import { filterBookingTable } from "src/lib/service/BookingTableService";
+import { filterBookingTable, holdTable, releaseTable, getAllHoldTable } from "src/lib/service/BookingTableService";
 import CustomerForm from './components/CustomerForm';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import dayjs from "dayjs";
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
+import useAuthStore from 'src/lib/hooks/useUserStore';
 
 import {
   BookingTableInfo,
@@ -31,6 +33,11 @@ const BookingTable = () => {
   const [selectedTableTypeId, setSelectedTableTypeId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [allFilteredTables, setAllFilteredTables] = useState({});
+  const { token, userInfo } = useAuthStore();
+
+  const [selectedTablesMap, setSelectedTablesMap] = useState({});
+  const [allHoldTables, setAllHoldTables] = useState([]);
 
   const uniqueTablesByDateAndTime = selectedTables.filter((seleTable, index, self) =>
     index === self.findIndex((t) => (
@@ -66,44 +73,47 @@ const BookingTable = () => {
     }
   }, [barId]);
 
-  const mergeTables = (apiTables, filteredTables) => {
-    filteredTables.forEach(table => {
-      if (!table.time) {
-        console.warn(`Table ${table.tableId} bi thieu time`);
-        table.time = "00:00:00";
-      }
-    });
-  
-    return apiTables?.tables.map(apiTable => {
-      const apiDate = dayjs(apiTables.reservationDate).format("YYYY-MM-DD");
-      const apiTime = apiTables.reservationTime || "00:00:00";
-  
-      const matchingTable = filteredTables.find(filteredTable => {
-        const filteredDate = dayjs(filteredTable.date).format("YYYY-MM-DD");
-        const filteredTime = filteredTable.time || "00:00:00";
-  
-        return (
-          filteredTable.tableId === apiTable.tableId &&
-          filteredDate === apiDate &&
-          filteredTime === apiTime
-        );
-      });
-  
-      if (matchingTable) {
+  const mergeTables = useCallback((apiTables, holdTables, currentDate, currentTime) => {
+    return apiTables.map(apiTable => {
+      const matchingHoldTable = holdTables.find(holdTable => 
+        holdTable.tableId === apiTable.tableId &&
+        dayjs(holdTable.date).format('YYYY-MM-DD') === currentDate &&
+        holdTable.time === currentTime
+      );
+
+      if (matchingHoldTable) {
         return {
           ...apiTable,
-          isHeld: matchingTable.isHeld || apiTable.isHeld,
-          date: matchingTable.date || apiTable.date,
-          time: matchingTable.time || apiTable.time,
-          status: matchingTable.status || apiTable.status,
-          holderId: matchingTable.holderId || apiTable.holderId,
+          status: 2,
+          isHeld: true,
+          holderId: matchingHoldTable.accountId,
+          holdExpiry: matchingHoldTable.holdExpiry,
+          date: matchingHoldTable.date,
+          time: matchingHoldTable.time
         };
       }
-  
-      return apiTable;
+      return { ...apiTable, status: 1, isHeld: false };
     });
-  };
-  const fetchFilteredTables = useCallback(async () => {
+  }, []);
+
+  const fetchAllHoldTables = useCallback(async () => {
+    try {
+      const response = await getAllHoldTable(barId, dayjs(selectedDate).format("YYYY/MM/DD"), selectedTime);
+      if (response.data.statusCode === 200) {
+        setAllHoldTables(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching all hold tables:", error);
+    }
+  }, [barId, selectedDate, selectedTime]);
+
+  useEffect(() => {
+    if (barId && selectedDate && selectedTime) {
+      fetchAllHoldTables();
+    }
+  }, [barId, selectedDate, selectedTime]);
+
+  const fetchAndMergeTables = useCallback(async () => {
     if (!barId || !selectedDate || !selectedTime || !selectedTableTypeId) {
       setOpenPopup(true);
       return;
@@ -111,6 +121,11 @@ const BookingTable = () => {
 
     setIsLoading(true);
     try {
+      // Fetch hold tables
+      const holdTablesResponse = await getAllHoldTable(barId, dayjs(selectedDate).format("YYYY/MM/DD"), selectedTime);
+      const holdTables = holdTablesResponse.data.data;
+
+      // Fetch filtered tables
       const response = await filterBookingTable({
         barId,
         tableTypeId: selectedTableTypeId,
@@ -120,101 +135,216 @@ const BookingTable = () => {
 
       if (response.data.statusCode === 200) {
         const { tableTypeId, typeName, description, bookingTables } = response.data.data;
-        console.log("filter", filteredTables);
-        console.log("filterAPI", response.data.data);
-      
         setTableTypeInfo({ tableTypeId, typeName, description });
       
-        if (bookingTables && bookingTables.length > 0 && bookingTables[0].tables.length > 0) {
-          const mergedTables = mergeTables(bookingTables[0], filteredTables);
-          console.log("mergedTables", mergedTables);
-      
-          // Cập nhật state với mergedTables
+        if (bookingTables && bookingTables.length > 0) {
+          const currentDate = dayjs(selectedDate).format('YYYY-MM-DD');
+          const currentTime = selectedTime + ":00";
+          
+          const mergedTables = mergeTables(bookingTables[0].tables, holdTables, currentDate, currentTime);
+          
+          setAllFilteredTables(prev => ({
+            ...prev,
+            [`${currentDate}-${currentTime}`]: mergedTables
+          }));
+          
           setFilteredTables(mergedTables);
         } else {
           setFilteredTables([]);
           setOpenPopup(true);
         }
       }
-
     } catch (error) {
-      console.error("Error fetching filtered tables:", error);
+      console.error("Error fetching and merging tables:", error);
       setOpenPopup(true);
     } finally {
       setIsLoading(false);
       setHasSearched(true);
     }
-  }, [barId, selectedDate, selectedTime, selectedTableTypeId]);
+  }, [barId, selectedDate, selectedTime, selectedTableTypeId, mergeTables]);
 
-  useEffect(() => {
-    if (hasSearched) {
-      fetchFilteredTables();
-    }
-  }, [selectedDate, selectedTime, fetchFilteredTables, hasSearched]);
-
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-    // Không xóa selectedTables nữa
+  const handleSearch = () => {
+    fetchAndMergeTables();
   };
 
   const handleTimeChange = (time) => {
     setSelectedTime(time);
-    // Không xóa selectedTables nữa
+    if (hasSearched) {
+      fetchAndMergeTables();
+    }
   };
 
-  const handleRemoveTable = (tableId) => {
-    setSelectedTables((prev) => prev.filter((t) => t.tableId !== tableId));
+  useEffect(() => {
+    if (hasSearched) {
+      fetchAndMergeTables();
+    }
+  }, [selectedDate, selectedTime, selectedTableTypeId, hasSearched, fetchAndMergeTables]);
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+
+  const handleTableSelect = async (table) => {
+    if (table.status === 1 || table.status === 3) {
+      try {
+        const data = {
+          barId: barId,
+          tableId: table.tableId,
+          date: dayjs(selectedDate).format('YYYY-MM-DD'),
+          time: selectedTime + ":00"
+        };
+        const response = await holdTable(token, data);
+
+        if (response.data.statusCode === 200) {
+          const holdData = response.data.data;
+          const newSelectedTable = {
+            tableId: table.tableId,
+            tableName: table.tableName,
+            isHeld: true,
+            holdExpiry: new Date(holdData.holdExpiry).getTime(),
+            date: holdData.date,
+            time: holdData.time,
+            holderId: holdData.accountId || userInfo.accountId
+          };
+          
+          const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
+          setSelectedTablesMap(prev => ({
+            ...prev,
+            [currentDateTimeKey]: [...(prev[currentDateTimeKey] || []), newSelectedTable]
+          }));
+
+          setSelectedTables(prevSelectedTables => [...prevSelectedTables, newSelectedTable]);
+
+          updateTableHeldStatus(table.tableId, true, newSelectedTable.holderId, holdData.date, holdData.time);
+
+          await hubConnection.invoke("HoldTable", {
+            barId: barId,
+            tableId: table.tableId,
+            date: holdData.date,
+            time: holdData.time,
+            accountId: newSelectedTable.holderId
+          });
+        } else {
+          console.error("Hold table request failed:", response.data);
+        }
+      } catch (error) {
+        console.error("Error holding table:", error);
+      }
+    }
+
+    const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
+    setAllFilteredTables(prev => ({
+      ...prev,
+      [currentDateTimeKey]: prev[currentDateTimeKey].map(t => 
+        t.tableId === table.tableId ? { ...t, status: 2, isHeld: true, holderId: userInfo.accountId } : t
+      )
+    }));
+  };
+
+  const handleRemoveTable = async (tableId) => {
+    const table = selectedTables.find(t => t.tableId === tableId);
+    if (table) {
+      try {
+        const data = {
+          barId: barId,
+          tableId: tableId,
+          date: table.date,
+          time: table.time
+        };
+        const response = await releaseTable(token, data);
+        if (response.data.statusCode === 200) {
+          setSelectedTables(prev => prev.filter(t => t.tableId !== tableId));
+          
+          const currentDateTimeKey = `${dayjs(table.date).format('YYYY-MM-DD')}-${table.time}`;
+          setSelectedTablesMap(prev => ({
+            ...prev,
+            [currentDateTimeKey]: prev[currentDateTimeKey].filter(t => t.tableId !== tableId)
+          }));
+
+          updateTableHeldStatus(tableId, false, null, table.date, table.time);
+          await hubConnection.invoke("ReleaseTable", data);
+        } else {
+          console.error("Release table request failed:", response.data);
+        }
+      } catch (error) {
+        console.error("Error releasing table:", error);
+      }
+    }
+
+    const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
+    setAllFilteredTables(prev => ({
+      ...prev,
+      [currentDateTimeKey]: prev[currentDateTimeKey].map(t => 
+        t.tableId === tableId ? { ...t, status: 1, isHeld: false, holderId: null } : t
+      )
+    }));
   };
 
   const handleTableTypeChange = (tableTypeId) => {
     setSelectedTableTypeId(tableTypeId);
   };
 
-  const handleSearch = async () => {
-    if (!barId || !selectedDate || !selectedTime || !selectedTableTypeId) {
-      setOpenPopup(true);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await filterBookingTable({
-        barId,
-        tableTypeId: selectedTableTypeId,
-        date: dayjs(selectedDate).format("YYYY/MM/DD"),
-        time: selectedTime
-      });
-
-
-      console.log("filter Response",response)
-
-      if (response.data.statusCode === 200) {
-        const { tableTypeId, typeName, description, bookingTables } = response.data.data;
-        console.log("filter", filteredTables);
-        console.log("filterAPI", response.data.data);
-      
-        setTableTypeInfo({ tableTypeId, typeName, description });
-      
-        if (bookingTables && bookingTables.length > 0 && bookingTables[0].tables.length > 0) {
-          let filteredTables = bookingTables[0].tables;
-          setFilteredTables(filteredTables);
-        } else {
-          setFilteredTables([]);
-          setOpenPopup(true);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching filtered tables:", error);
-      setOpenPopup(true);
-    } finally {
-      setIsLoading(false);
-      setHasSearched(true);
-    }
-  };
-
   const handleClosePopup = () => {
     setOpenPopup(false);
   };
+
+  useEffect(() => {
+    console.log("Setting up SignalR listeners");
+
+    hubConnection.on("TableHoId", (response) => {
+      console.log("Table HoId:", response);
+      updateTableHeldStatus(response.tableId, true, response.accountId, response.date, response.time);
+    });
+
+    hubConnection.on("TableReleased", (response) => {
+      console.log("Table released:", response);
+      updateTableHeldStatus(response.tableId, false, null, response.date, response.time);
+    });
+
+    return () => {
+      hubConnection.off("TableHoId");
+      hubConnection.off("TableReleased");
+    };
+  }, []);
+
+  const updateTableHeldStatus = useCallback((tableId, isHeld, holderId, date, time) => {
+    setAllFilteredTables(prev => {
+      const key = `${dayjs(date).format('YYYY-MM-DD')}-${time}`;
+      const updatedTables = prev[key] ? prev[key].map(table => 
+        table.tableId === tableId
+          ? { ...table, status: isHeld ? 2 : 1, holderId, date, time, isHeld }
+          : table
+      ) : [];
+
+      return {
+        ...prev,
+        [key]: updatedTables
+      };
+    });
+
+    setFilteredTables(prevTables =>
+      prevTables.map(table =>
+        table.tableId === tableId 
+          ? { ...table, status: isHeld ? 2 : 1, holderId, date, time, isHeld }
+          : table
+      )
+    );
+  }, []);
+
+  useEffect(() => {
+    const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
+    if (allFilteredTables[currentDateTimeKey]) {
+      const updatedTables = allFilteredTables[currentDateTimeKey].map(table => {
+        const isSelected = selectedTablesMap[currentDateTimeKey]?.some(
+          selectedTable => selectedTable.tableId === table.tableId
+        );
+        return isSelected ? { ...table, status: 2, isHeld: true } : table;
+      });
+      setFilteredTables(updatedTables);
+    } else if (hasSearched) {
+      fetchAndMergeTables();
+    }
+  }, [selectedDate, selectedTime, hasSearched, allFilteredTables, selectedTablesMap]);
 
   return (
     <div className="flex overflow-hidden flex-col bg-zinc-900">
@@ -245,6 +375,7 @@ const BookingTable = () => {
               selectedTableTypeId={selectedTableTypeId}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
+              onTableSelect={handleTableSelect}
             />
             <CustomerForm 
               selectedTables={selectedTables} 
