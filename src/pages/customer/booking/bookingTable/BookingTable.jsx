@@ -10,7 +10,6 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import {
   BookingTableInfo,
   TableSelection,
-  TimeSelection,
   TableSidebar,
 } from "src/pages";
 
@@ -229,6 +228,10 @@ const BookingTable = () => {
               onTableTypeChange={handleTableTypeChange}
               onSearchTables={handleSearch}
               selectedTableTypeId={selectedTableTypeId}
+              selectedTime={selectedTime}
+              onTimeChange={handleTimeChange}
+              startTime={startTime}
+              endTime={endTime}
             />
             <TableSelection
               selectedTables={selectedTables}
@@ -243,18 +246,12 @@ const BookingTable = () => {
               selectedDate={selectedDate}
               selectedTime={selectedTime}
             />
-            <TimeSelection 
-              startTime={startTime} 
-              endTime={endTime} 
-              onTimeChange={handleTimeChange}
-              selectedDate={selectedDate}
-            />
             <CustomerForm 
               selectedTables={selectedTables} 
               barId={barId}
               selectedTime={selectedTime}
               selectedDate={selectedDate}
-              barInfo={barInfo}  // Thêm dòng này
+              barInfo={barInfo}
             />
           </div>
           <div className="flex flex-col w-1/4 max-md:w-full">

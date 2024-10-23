@@ -57,7 +57,7 @@ const BranchCard = React.memo(({ branch, onClick }) => {
 const LocationsList = React.memo(({ locations }) => (
   <div className="bg-neutral-700 shadow-lg text-white p-4 rounded-lg w-full max-w-[300px] mx-auto"> {/* Limit width */}
     <h2 className="text-center text-lg font-semibold mb-4 border-b border-yellow-500 pb-2">
-      All Locations
+      Các Chi Nhánh Khác
     </h2>
     <ul className="space-y-2">
       {locations.map((location, index) => (

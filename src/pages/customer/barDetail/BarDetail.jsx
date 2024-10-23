@@ -12,9 +12,9 @@ const FeedbackList = React.memo(({ feedbacks }) => (
         {feedbacks.map((feedback, index) => (
             <div key={index} className="bg-[#3A3B3C] p-4 rounded-lg">
                 <div className="flex items-center mb-2">
-                    <img src="https://via.placeholder.com/40" alt="User" className="w-10 h-10 rounded-full mr-2" />
+                    <img src={feedback.imageAccount} alt="User" className="w-10 h-10 rounded-full mr-2" />
                     <div>
-                        <h3 className="text-lg font-bold">{feedback.userName || "Người dùng"}</h3>
+                        <h3 className="text-lg font-bold">{feedback.accountName || "Người dùng"}</h3>
                         <div className="flex items-center">
                             <span className="text-yellow-500 mr-1">{"★".repeat(feedback.rating)}</span>
                             <span className="text-gray-400">{new Date(feedback.createdTime).toLocaleDateString()}, {new Date(feedback.createdTime).toLocaleTimeString()}</span>

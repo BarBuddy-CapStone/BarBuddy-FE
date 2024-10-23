@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import TableBarIcon from "@mui/icons-material/TableBar";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import InfoIcon from "@mui/icons-material/Info";
-import { TextField, InputAdornment, Button, Menu, MenuItem } from "@mui/material";
+import { TextField, InputAdornment, Button, Menu, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -87,12 +88,16 @@ const BookingTableInfo = ({
   onTableTypeChange, 
   onSearchTables,
   selectedTableTypeId,
-  selectedTime
+  selectedTime,
+  onTimeChange,
+  startTime,
+  endTime
 }) => {
   const navigate = useNavigate();
   const [selectedTableType, setSelectedTableType] = useState("");
   const [selectedTypeDescription, setSelectedTypeDescription] = useState("");
   const [tableTypes, setTableTypes] = useState([]);
+  const [timeOptions, setTimeOptions] = useState([]);
 
   useEffect(() => {
     const fetchTableTypes = async () => {
@@ -111,23 +116,60 @@ const BookingTableInfo = ({
     fetchTableTypes();
   }, []);
 
+  const generateTimeOptions = (start, end, date) => {
+    const options = [];
+    const currentDate = dayjs(date);
+    const now = dayjs();
+
+    let currentTime = currentDate
+      .hour(parseInt(start.split(":")[0]))
+      .minute(parseInt(start.split(":")[1]));
+    let endTimeObj = currentDate
+      .hour(parseInt(end.split(":")[0]))
+      .minute(parseInt(end.split(":")[1]));
+
+    if (endTimeObj.isBefore(currentTime)) {
+      endTimeObj = endTimeObj.add(1, "day");
+    }
+
+    if (currentDate.isSame(now, "day")) {
+      const barOpeningTime = dayjs()
+        .hour(parseInt(start.split(":")[0]))
+        .minute(parseInt(start.split(":")[1]));
+      if (now.isAfter(barOpeningTime)) {
+        currentTime = now.add(1, "hour").startOf("hour");
+      }
+    }
+
+    while (currentTime.isBefore(endTimeObj)) {
+      options.push(currentTime.format("HH:mm"));
+      currentTime = currentTime.add(1, "hour");
+    }
+
+    return options;
+  };
+
+  useEffect(() => {
+    if (startTime && endTime && selectedDate) {
+      const newTimeOptions = generateTimeOptions(startTime, endTime, selectedDate);
+      setTimeOptions(newTimeOptions);
+
+      if (newTimeOptions.length > 0 && !selectedTime) {
+        onTimeChange(newTimeOptions[0]);
+      } else if (newTimeOptions.length === 0) {
+        onTimeChange("");
+      }
+    }
+  }, [startTime, endTime, selectedDate, selectedTime, onTimeChange]);
+
   const handleDateChange = (newDate) => {
     onDateChange(newDate);
-  };
-
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
   };
 
   const handleTableTypeChange = (tableType) => {
     setSelectedTableType(tableType.tableTypeId);
     setSelectedTypeDescription(tableType.description);
     onTableTypeChange(tableType.tableTypeId);
-    handleClose();
   };
 
   const isDateValid = (date) => {
@@ -162,7 +204,8 @@ const BookingTableInfo = ({
           )}
 
           <div className="flex flex-wrap gap-3 mt-3 items-center text-stone-300">
-            <div className="flex gap-2 items-center">
+            <FormControl>
+              <InputLabel shrink htmlFor="date-picker" sx={{ color: 'white' }}>Ngày</InputLabel>
               <CustomDatePicker
                 value={selectedDate}
                 onChange={handleDateChange}
@@ -172,6 +215,7 @@ const BookingTableInfo = ({
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
+                    id="date-picker"
                     variant="outlined"
                     InputProps={{
                       startAdornment: (
@@ -183,10 +227,36 @@ const BookingTableInfo = ({
                   />
                 )}
               />
-            </div>
+            </FormControl>
 
-            <div className="flex gap-2 items-center">
+            <FormControl>
+              <InputLabel shrink htmlFor="time-select" sx={{ color: 'white' }}>Giờ</InputLabel>
               <CustomTextField
+                id="time-select"
+                select
+                value={selectedTime}
+                onChange={(e) => onTimeChange(e.target.value)}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <AccessTimeIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              >
+                {timeOptions.map((time) => (
+                  <CustomMenuItem key={time} value={time}>
+                    {time}
+                  </CustomMenuItem>
+                ))}
+              </CustomTextField>
+            </FormControl>
+
+            <FormControl>
+              <InputLabel shrink htmlFor="table-type-select" sx={{ color: 'white' }}>Loại bàn</InputLabel>
+              <CustomTextField
+                id="table-type-select"
                 select
                 value={selectedTableType}
                 onChange={(event) => handleTableTypeChange(tableTypes.find(t => t.tableTypeId === event.target.value))}
@@ -211,7 +281,7 @@ const BookingTableInfo = ({
                   </CustomMenuItem>
                 ))}
               </CustomTextField>
-            </div>
+            </FormControl>
 
             <Button
               variant="contained"
@@ -241,3 +311,4 @@ const BookingTableInfo = ({
 };
 
 export default BookingTableInfo;
+
