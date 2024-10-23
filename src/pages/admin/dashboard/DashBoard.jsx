@@ -36,14 +36,14 @@ const Dashboard = () => {
     labels: ['09/01', '09/02', '09/03', '09/04', '09/05', '09/06', '09/07'],
     datasets: [
       {
-        label: 'Reservation',
+        label: 'Đặt bàn trước',
         data: [100, 150, 180, 130, 190, 170, 220],
         borderColor: 'rgb(255, 205, 86)',
         backgroundColor: 'rgba(255, 205, 86, 0.2)',
         tension: 0.3,
       },
       {
-        label: 'Customer',
+        label: 'Khách hàng',
         data: [120, 140, 160, 110, 150, 190, 210],
         borderColor: 'rgb(54, 162, 235)',
         backgroundColor: 'rgba(54, 162, 235, 0.2)',
@@ -60,7 +60,7 @@ const Dashboard = () => {
       },
       title: {
         display: true,
-        text: 'Reservation and Customer Statistics',
+        text: 'Thống kê đặt bàn trước và khách hàng',
       },
     },
   };
@@ -100,7 +100,7 @@ const Dashboard = () => {
         <div className="flex justify-between items-center space-x-2">
           <div className="flex flex-col">
             <label htmlFor="start-date" className="text-gray-600 text-sm mb-1 font-bold">
-              From
+              Từ ngày
             </label>
             <input
               id="start-date"
@@ -113,7 +113,7 @@ const Dashboard = () => {
           </div>
           <div className="flex flex-col">
             <label htmlFor="end-date" className="text-gray-600 text-sm mb-1 font-bold">
-              To
+              Đến ngày
             </label>
             <input
               id="end-date"

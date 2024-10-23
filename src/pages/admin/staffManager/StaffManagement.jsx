@@ -6,23 +6,24 @@ import { toast, ToastContainer } from 'react-toastify'; // Import toast
 import 'react-toastify/dist/ReactToastify.css';
 import Pagination from '@mui/material/Pagination'; // Import Pagination từ MUI
 import { CircularProgress } from '@mui/material'; // Thêm import này
+import { getAllBar } from '../../../lib/service/barManagerService'; // Import hàm getAllBar
 
 // Các components
-const StaffTable = ({ staffData }) => (
-    <table className="min-w-full text-sm table-auto border-collapse">
-        <StaffTableHeader />
-        <tbody>
-            {staffData.map((staff, index) => (
-                <StaffTableRow key={index} staff={staff} index={index} />
-            ))}
-        </tbody>
-    </table>
-);
+// const StaffTable = ({ staffData }) => (
+//     <table className="min-w-full text-sm table-auto border-collapse">
+//         <StaffTableHeader />
+//         <tbody>
+//             {staffData.map((staff, index) => (
+//                 <StaffTableRow key={index} staff={staff} index={index} />
+//             ))}
+//         </tbody>
+//     </table>
+// );
 
 const StaffTableHeader = () => (
     <thead className="bg-white">
-        <tr className="font-bold text-neutral-900 border-b-2">
-            {["Họ và tên", "Ngày sinh", "Email", "Số điện thoại", "Bar", "Status", ""].map((header, index) => (
+        <tr className="font-bold text-neutral-900 border-y-2 border-x-2 border-gray-300">
+            {["Họ và tên", "Ngày sinh", "Email", "Số điện thoại", "Bar", "Trạng thái", ""].map((header, index) => (
                 <th key={index} className="px-4 py-6 text-center">{header}</th>
             ))}
         </tr>
@@ -38,15 +39,15 @@ const StaffTableRow = ({ staff, index }) => {
     };
 
     return (
-        <tr className={`text-sm hover:bg-gray-100 transition duration-150 border-b-2 ${rowClass}`}>
+        <tr className={`text-sm hover:bg-gray-100 transition duration-150 border-y-2 border-x-2 border-gray-300 ${rowClass}`}>
             <td className="px-4 py-6 text-center align-middle">{staff.fullname}</td>
             <td className="px-4 py-6 text-center align-middle">{new Date(staff.dob).toLocaleDateString('vi-VN')}</td>
             <td className="px-4 py-6 text-center align-middle">{staff.email}</td>
             <td className="px-4 py-6 text-center align-middle">{staff.phone}</td>
             <td className="px-4 py-6 text-center align-middle">{staff.bar ? staff.bar.barName : 'N/A'}</td> {/* Cập nhật để hiển thị tên bar */}
             <td className="flex justify-center items-center px-4 py-6 align-middle">
-                <div className={`flex justify-center items-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
-                    {staff.status === 1 ? "Active" : "Deactive" === 1 ? "Active" : "Deactive"}
+                <div className={`flex justify-center items-center text-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
+                    {staff.status === 1 ? "Hoạt Động" : "Không Hoạt Động"}
                 </div>
             </td>
             <td className="px-4 py-6 text-center align-middle">
@@ -79,8 +80,8 @@ const SearchStaffName = ({ onSearch }) => {
             <input
                 type="text"
                 className="flex-grow border-none px-1 py-1 text-black"
-                placeholder="Search staff's name"
-                aria-label="Search staff's name"
+                placeholder="Tìm theo tên của nhân viên"
+                aria-label="Tìm theo tên của nhân viên"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -103,10 +104,9 @@ const AddStaffButton = () => {
     );
 };
 
-const FilterDropdown = ({ onFilter }) => {
+const FilterDropdown = ({ onFilter, options }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [selectedOption, setSelectedOption] = useState('Filter by bar');
-    const options = ["Bar Buddy1", "Bar Buddy2", "Bar Buddy3"];
+    const [selectedOption, setSelectedOption] = useState('Lọc theo quán bar');
 
     const handleOptionClick = (option) => {
         setSelectedOption(option);
@@ -118,7 +118,7 @@ const FilterDropdown = ({ onFilter }) => {
         <div className="relative inline-block text-left fixed-height">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex justify-between w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex justify-between w-full min-w-[130px] rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
                 {selectedOption}
                 <svg className="w-5 h-5 ml-2 -mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -126,7 +126,7 @@ const FilterDropdown = ({ onFilter }) => {
                 </svg>
             </button>
             {isOpen && (
-                <div className="absolute mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                <div className="absolute mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 max-h-60 overflow-y-auto">
                     <div className="py-1">
                         {options.map((option, index) => (
                             <button key={index} onClick={() => handleOptionClick(option)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -150,14 +150,15 @@ const StaffManagement = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedBar, setSelectedBar] = useState(null);
     const location = useLocation();
+    const [barOptions, setBarOptions] = useState([]); // Thêm state cho barOptions
 
     useEffect(() => {
         const loadData = async () => {
             setIsLoading(true);
             try {
                 const response = await getStaffAccounts(pageSize, pageIndex);
-                const data = response.data.items;
-                setTotalStaff(response.data.count);
+                const data = response.data.data.items;
+                setTotalStaff(response.data.data.total);
                 setStaffData(data);
                 setFilteredStaff(data);
             } catch (error) {
@@ -175,13 +176,30 @@ const StaffManagement = () => {
             toast.success(location.state.successMessage);
         }
     }, [location.state]);
-    
+
+    useEffect(() => {
+        const fetchBarOptions = async () => {
+            try {
+                const response = await getAllBar();
+                if (response.data.statusCode === 200) {
+                    const bars = response.data.data;
+                    const options = ["All", ...bars.map(bar => bar.barName)]; // Thêm "All" vào đầu mảng
+                    setBarOptions(options);
+                }
+            } catch (error) {
+                console.error('Failed to fetch bar options:', error);
+                toast.error('Không thể tải danh sách bar.');
+            }
+        };
+        fetchBarOptions();
+    }, []); // Chỉ gọi một lần khi component được mount
+
     const handlePageChange = (event, value) => {
         setPageIndex(value);
     };
 
     const handleSearch = (searchTerm) => {
-        const filtered = staffData.filter(staff => 
+        const filtered = staffData.filter(staff =>
             staff.fullname.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredStaff(filtered);
@@ -198,11 +216,11 @@ const StaffManagement = () => {
     };
 
     return (
-        <main className="flex-1 overflow-x-hidden overflow-y-auto mr-100 bg-gray-100">
+        <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
             <div className="container mx-auto px-6 py-8">
                 <div className="flex gap-5 max-w-full text-base text-center text-white w-[800px] max-md:mt-10 mx-4">
                     <SearchStaffName onSearch={handleSearch} />
-                    <FilterDropdown onFilter={handleFilter} />
+                    <FilterDropdown onFilter={handleFilter} options={barOptions} /> {/* Truyền options vào FilterDropdown */}
                     <AddStaffButton />
                 </div>
                 <div className="flex overflow-hidden flex-col mt-14 max-w-full text-sm leading-5 table-container">

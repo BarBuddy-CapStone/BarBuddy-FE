@@ -81,14 +81,14 @@ export default function StaffDetail() {
             try {
                 const response = await getStaffDetail(accountId);
                 if (response.status === 200) {
-                    setStaffDetail(response.data);
+                    setStaffDetail(response.data.data);
                     setFormData({
-                        email: response.data.email,
-                        fullname: response.data.fullname,
-                        phone: response.data.phone,
-                        dob: new Date(response.data.dob).toISOString().split('T')[0],
-                        barId: response.data.barId,
-                        status: response.data.status,
+                        email: response.data.data.email,
+                        fullname: response.data.data.fullname,
+                        phone: response.data.data.phone,
+                        dob: new Date(response.data.data.dob).toISOString().split('T')[0],
+                        barId: response.data.data.barId,
+                        status: response.data.data.status,
                     });
                 }
             } catch (error) {
