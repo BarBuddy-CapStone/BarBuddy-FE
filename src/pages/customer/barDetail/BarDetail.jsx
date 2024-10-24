@@ -5,6 +5,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import StarIcon from '@mui/icons-material/Star';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'; // Thêm import này
+import { LoadingSpinner } from 'src/components'; // Import LoadingSpinner
 
 // Component hiển thị danh sách đánh giá
 const FeedbackList = React.memo(({ feedbacks }) => (
@@ -12,9 +13,9 @@ const FeedbackList = React.memo(({ feedbacks }) => (
         {feedbacks.map((feedback, index) => (
             <div key={index} className="bg-[#3A3B3C] p-4 rounded-lg">
                 <div className="flex items-center mb-2">
-                    <img src="https://via.placeholder.com/40" alt="User" className="w-10 h-10 rounded-full mr-2" />
+                    <img src={feedback.imageAccount} alt="User" className="w-10 h-10 rounded-full mr-2" />
                     <div>
-                        <h3 className="text-lg font-bold">{feedback.userName || "Người dùng"}</h3>
+                        <h3 className="text-lg font-bold">{feedback.accountName || "Người dùng"}</h3>
                         <div className="flex items-center">
                             <span className="text-yellow-500 mr-1">{"★".repeat(feedback.rating)}</span>
                             <span className="text-gray-400">{new Date(feedback.createdTime).toLocaleDateString()}, {new Date(feedback.createdTime).toLocaleTimeString()}</span>
@@ -32,6 +33,7 @@ const BarDetail = () => {
     const [barDetails, setBarDetails] = useState(null);
     const [averageRating, setAverageRating] = useState(0);
     const [totalReviews, setTotalReviews] = useState(0);
+    const [isLoading, setIsLoading] = useState(false); // New state for loading
 
     const navigate = useNavigate();
 
@@ -40,8 +42,12 @@ const BarDetail = () => {
     }, [navigate]);
 
     const handleBooking = () => {
-        // Navigate to the booking table page and pass the barId
-        navigate('/bookingtable', { state: { barId } });
+        setIsLoading(true); // Start loading
+        // Simulate a delay before navigation (you can remove this in production)
+        setTimeout(() => {
+            setIsLoading(false); // Stop loading
+            navigate('/bookingtable', { state: { barId } });
+        }, 1000); // 1 second delay
     };
 
     useEffect(() => {
@@ -113,12 +119,19 @@ const BarDetail = () => {
                 </div>
                 <hr className="border-yellow-500 mb-4" />
                 <p className="mb-4">{barDetails.description}</p>
-                <button className="bg-yellow-500 text-gray-800 px-4 py-2 rounded-lg" onClick={handleBooking}>Đặt bàn</button>
+                <button 
+                    className="bg-yellow-500 text-gray-800 px-4 py-2 rounded-lg" 
+                    onClick={handleBooking}
+                    disabled={isLoading} // Disable button while loading
+                >
+                    {isLoading ? 'Đang xử lý...' : 'Đặt bàn'}
+                </button>
             </div>
             <div className="bg-neutral-800 text-white p-4 rounded-lg shadow-lg mt-4 w-full max-w-4xl">
                 <h2 className="text-2xl text-yellow-500 font-bold mb-4">Đánh giá</h2>
                 <FeedbackList feedbacks={barDetails.feedBacks} />
             </div>
+            <LoadingSpinner open={isLoading} /> {/* Add LoadingSpinner component */}
         </div>
     );
 };
