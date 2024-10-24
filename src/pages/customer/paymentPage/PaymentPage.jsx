@@ -137,14 +137,7 @@ function PaymentProcessing({ totalAmount, discountAmount, finalAmount, discount,
             },
           }}
         >
-          {isLoading ? (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
-              <span>Đang xử lý</span>
-            </Box>
-          ) : (
-            'Thanh toán'
-          )}
+          {isLoading ? 'Đang xử lý' : 'Thanh toán'}
         </Button>
       </Box>
       
@@ -168,6 +161,27 @@ function PaymentProcessing({ totalAmount, discountAmount, finalAmount, discount,
             Đóng
           </Button>
         </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={isLoading}
+        PaperProps={{
+          style: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            boxShadow: 'none',
+            overflow: 'hidden',
+            padding: '20px',
+          },
+        }}
+      >
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'white' }}>
+            <CircularProgress style={{ color: '#FFA500' }} />
+            <Typography variant="h6" style={{ marginTop: '20px' }}>
+              Đang xử lý thanh toán...
+            </Typography>
+          </Box>
+        </DialogContent>
       </Dialog>
     </Box>
   );

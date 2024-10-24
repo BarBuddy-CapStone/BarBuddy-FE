@@ -40,9 +40,12 @@ const CustomTextField = styled(TextField)(({ theme }) => ({
   },
   "& .MuiInputLabel-root": {
     color: "white",
+    backgroundColor: "#1e1e1e",
+    padding: "0 4px",
+    transform: "translate(14px, -9px) scale(0.75)",
   },
-  "& .Mui-focused .MuiInputLabel-root": {
-    color: "white",
+  "& .MuiInputLabel-shrink": {
+    transform: "translate(14px, -9px) scale(0.75)",
   },
 }));
 
@@ -62,6 +65,15 @@ const CustomDatePicker = styled(DatePicker)(({ theme }) => ({
   },
   "& .MuiSvgIcon-root": {
     color: "#FFA500",
+  },
+  "& .MuiInputLabel-root": {
+    color: "white",
+    backgroundColor: "#1e1e1e",
+    padding: "0 4px",
+    transform: "translate(14px, -9px) scale(0.75)",
+  },
+  "& .MuiInputLabel-shrink": {
+    transform: "translate(14px, -9px) scale(0.75)",
   },
 }));
 
@@ -203,10 +215,10 @@ const BookingTableInfo = ({
             </div>
           )}
 
-          <div className="flex flex-wrap gap-3 mt-3 items-center text-stone-300">
-            <FormControl>
-              <InputLabel shrink htmlFor="date-picker" sx={{ color: 'white' }}>Ngày</InputLabel>
+          <div className="flex flex-nowrap gap-3 mt-3 items-center text-stone-300">
+            <FormControl sx={{ flex: '1 1 0', minWidth: '120px', maxWidth: '200px' }}>
               <CustomDatePicker
+                label="Ngày"
                 value={selectedDate}
                 onChange={handleDateChange}
                 inputFormat="dd/MM/yyyy"
@@ -215,9 +227,10 @@ const BookingTableInfo = ({
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    id="date-picker"
                     variant="outlined"
+                    fullWidth
                     InputProps={{
+                      ...params.InputProps,
                       startAdornment: (
                         <InputAdornment position="start">
                           <CalendarTodayIcon />
@@ -229,14 +242,14 @@ const BookingTableInfo = ({
               />
             </FormControl>
 
-            <FormControl>
-              <InputLabel shrink htmlFor="time-select" sx={{ color: 'white' }}>Giờ</InputLabel>
+            <FormControl sx={{ flex: '1 1 0', minWidth: '120px', maxWidth: '200px' }}>
               <CustomTextField
-                id="time-select"
                 select
+                label="Giờ"
                 value={selectedTime}
                 onChange={(e) => onTimeChange(e.target.value)}
                 variant="outlined"
+                fullWidth
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -253,14 +266,14 @@ const BookingTableInfo = ({
               </CustomTextField>
             </FormControl>
 
-            <FormControl>
-              <InputLabel shrink htmlFor="table-type-select" sx={{ color: 'white' }}>Loại bàn</InputLabel>
+            <FormControl sx={{ flex: '1 1 0', minWidth: '120px', maxWidth: '200px' }}>
               <CustomTextField
-                id="table-type-select"
                 select
+                label="Loại bàn"
                 value={selectedTableType}
                 onChange={(event) => handleTableTypeChange(tableTypes.find(t => t.tableTypeId === event.target.value))}
                 variant="outlined"
+                fullWidth
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -288,6 +301,7 @@ const BookingTableInfo = ({
               onClick={onSearchTables}
               disabled={!selectedTableType}
               sx={{
+                flex: '0 0 auto',
                 backgroundColor: "#FFA500",
                 height: "56px",
                 color: "white",
@@ -311,4 +325,3 @@ const BookingTableInfo = ({
 };
 
 export default BookingTableInfo;
-

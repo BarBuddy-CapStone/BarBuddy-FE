@@ -4,6 +4,7 @@ import { getAllBar } from "src/lib/service/customerService";
 import { Add, ArrowForward, Search } from "@mui/icons-material";
 import { getAllDrinkCustomer } from "src/lib/service/managerDrinksService";
 import { Button, Pagination, PaginationItem } from "@mui/material";
+import { LoadingSpinner } from 'src/components';
 
 const BranchCard = React.memo(({ branch, onClick }) => {
   const rating = useMemo(
@@ -123,7 +124,9 @@ const DrinkCard = React.memo(({ images, drinkName, price, drinkId }) => {
 
 const BarBuddyDrinks = React.memo(() => {
   const [drinkData, setDrinkData] = useState([]);
-  const redirect = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
     const dataFetchDrink = async () => {
       const response = await getAllDrinkCustomer();
@@ -142,7 +145,13 @@ const BarBuddyDrinks = React.memo(() => {
   }, [drinkData]);
 
   const viewDrinkHandle = () => {
-    redirect(`/drinkList`);
+    setIsLoading(true);
+    // Sử dụng Promise để đảm bảo loading spinner hiển thị trước khi chuyển trang
+    new Promise(resolve => setTimeout(resolve, 1000))
+      .then(() => {
+        setIsLoading(false);
+        navigate(`/drinkList`);
+      });
   };
 
   return (
@@ -165,11 +174,12 @@ const BarBuddyDrinks = React.memo(() => {
           ))}
         </div>
       </div>
+      <LoadingSpinner open={isLoading} />
     </section>
   );
 });
 
-const BarBuddyBranches = ({ onBranchesLoaded }) => {
+const BarBuddyBranches = ({ onBranchesLoaded, onBarClick }) => {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -201,8 +211,8 @@ const BarBuddyBranches = ({ onBranchesLoaded }) => {
   }, [fetchBranches]);
 
   const handleCardClick = useCallback((barId) => {
-    navigate(`/bar-detail/${barId}`);
-  }, [navigate]);
+    onBarClick(barId);
+  }, [onBarClick]);
 
   const handlePageChange = (event, value) => {
     setPageIndex(value);
@@ -319,18 +329,45 @@ const BarBuddyBranches = ({ onBranchesLoaded }) => {
 
 function HomePage() {
   const [branches, setBranches] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchBars = async () => {
+      try {
+        const response = await getAllBar();
+        if (response.status === 200) {
+          setBranches(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching bars:", error);
+      }
+    };
+    fetchBars();
+  }, []);
+
+  const handleBarClick = useCallback((barId) => {
+    setIsLoading(true);
+    // Sử dụng Promise để đảm bảo loading spinner hiển thị trước khi chuyển trang
+    new Promise(resolve => setTimeout(resolve, 1000))
+      .then(() => {
+        setIsLoading(false);
+        navigate(`/bar-detail/${barId}`);
+      });
+  }, [navigate]);
 
   return (
     <main className="self-center bg-inherit w-full mx-auto overflow-x-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-10 items-start gap-x-10 gap-y-6">
         <div className="col-span-7 w-full">
-          <BarBuddyBranches onBranchesLoaded={setBranches} />
+          <BarBuddyBranches onBranchesLoaded={setBranches} onBarClick={handleBarClick} />
           <BarBuddyDrinks />
         </div>
         <aside className="col-span-3 w-full lg:ml-8 mt-10">
           <LocationsList locations={branches} />
         </aside>
       </div>
+      <LoadingSpinner open={isLoading} />
     </main>
   );
 }

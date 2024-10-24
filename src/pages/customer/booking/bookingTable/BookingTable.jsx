@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 import useAuthStore from 'src/lib/hooks/useUserStore';
+import { LoadingSpinner } from 'src/components';
 
 import {
   BookingTableInfo,
@@ -38,6 +39,7 @@ const BookingTable = () => {
 
   const [selectedTablesMap, setSelectedTablesMap] = useState({});
   const [allHoldTables, setAllHoldTables] = useState([]);
+  const [note, setNote] = useState("");
 
   const uniqueTablesByDateAndTime = selectedTables.filter((seleTable, index, self) =>
     index === self.findIndex((t) => (
@@ -383,6 +385,8 @@ const BookingTable = () => {
               selectedTime={selectedTime}
               selectedDate={selectedDate}
               barInfo={barInfo}
+              note={note}
+              setNote={setNote}
             />
           </div>
           <div className="flex flex-col w-1/4 max-md:w-full">
@@ -411,6 +415,7 @@ const BookingTable = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <LoadingSpinner open={isLoading} />
     </div>
   );
 };
