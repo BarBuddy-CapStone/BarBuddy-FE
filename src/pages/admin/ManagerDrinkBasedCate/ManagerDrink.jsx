@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Pagination } from "@mui/material";
 import { getDrinkBasedCate } from "src/lib/service/managerDrinksService";
 
-function Header({title}) {
+function Header({title, onFilterChange}) {
     const redirect = useNavigate();
     const backCateDrinkHandle = () => {
         redirect("/admin/managerDrinkCategory")
@@ -27,10 +27,13 @@ function Header({title}) {
                 <h3 className="text-lg text-center">{title}</h3>
             </div>
             <div className="relative inline-flex">
-                <select className="px-3 py-1 bg-white rounded-md border border-black shadow-sm text-sm transition-all duration-150 ease-in-out hover:bg-gray-100 active:bg-gray-200 focus:outline-none">
-                    <option>Filter by ALL</option>
-                    <option>Filter by Active</option>
-                    <option>Filter by Inactive</option>
+                <select 
+                    className="px-3 py-1 bg-white rounded-md border border-black shadow-sm text-sm transition-all duration-150 ease-in-out hover:bg-gray-100 active:bg-gray-200 focus:outline-none"
+                    onChange={onFilterChange}
+                >
+                    <option value="ALL">Filter by ALL</option>
+                    <option value="Active">Filter by Active</option>
+                    <option value="Inactive">Filter by Inactive</option>
                 </select>
 
                 <button onClick={AddDrinkBtn} className="flex items-center justify-center w-12 h-[45px] ml-[20px] bg-white rounded-md border border-black shadow-md">
@@ -43,7 +46,6 @@ function Header({title}) {
                 </button>
             </div>
         </header>
-
     );
 }
 
@@ -120,6 +122,7 @@ const Item = ({
 const ManagerDrink = () => {
     const location = useLocation();
     const [dataDrink, setDataDrink] = useState([]);
+    const [filterStatus, setFilterStatus] = useState('ALL'); // Thêm state cho filter
 
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
@@ -137,16 +140,28 @@ const ManagerDrink = () => {
         fetchApiDrink();
     }, [location?.search]);
 
-    const headerTitle = dataDrink?.length > 0 ? dataDrink[0]?.drinksCategoryName : "Loading...";
+    const headerTitle =  "Quay lại";
+
+    const handleFilterChange = (e) => {
+        setFilterStatus(e.target.value);
+    };
+
+    // Hàm để lọc danh sách đồ uống
+    const filteredDrinks = dataDrink.filter(drink => {
+        if (filterStatus === 'ALL') return true;
+        if (filterStatus === 'Active') return drink.status === true;
+        if (filterStatus === 'Inactive') return drink.status === false;
+        return true;
+    });
 
     return (
         <main className="flex overflow-hidden flex-col">
-            <Header title={headerTitle} />
+            <Header title={headerTitle} onFilterChange={handleFilterChange} />
             <div className="pt-[40px]">
                 <table className="w-full text-xl text-black">
                     <TableHeader />
-                    {Array.isArray(dataDrink) && dataDrink?.length > 0 ? (
-                        dataDrink.map((data, index) => (
+                    {Array.isArray(filteredDrinks) && filteredDrinks?.length > 0 ? (
+                        filteredDrinks.map((data, index) => (
                             <Item
                                 key={index}
                                 {...data}

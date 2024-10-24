@@ -91,7 +91,6 @@ function AddDrink() {
     const [dataEmoCate, setDataEmoCate] = useState([]);
     const [showPopup, setShowPopup] = useState(false);
     const [emotionChecked, setEmotionChecked] = useState([]);
-
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
 
@@ -146,7 +145,7 @@ function AddDrink() {
     ];
     const EmotionPopup = ({ onClose, onSave, initialCheckedEmotions }) => {
         const [emotions, setEmotions] = useState(() => {
-            return (Array.isArray(dataEmoCate.result) ? dataEmoCate.result : []).map(emotion => ({
+            return (Array.isArray(dataEmoCate) ? dataEmoCate : []).map(emotion => ({
                 ...emotion,
                 checked: initialCheckedEmotions.some(e => e.emotionalDrinksCategoryId === emotion.emotionalDrinksCategoryId),
             }));
@@ -188,6 +187,7 @@ function AddDrink() {
                             </tr>
                         </thead>
                         <tbody>
+                            {console.log(emotions)}
                             {Array.isArray(emotions) && emotions.length > 0 ? (
                                 emotions.map((emotion, index) => (
                                     <tr
@@ -235,14 +235,11 @@ function AddDrink() {
     useEffect(() => {
         const fetchData = async () => {
             const dataBar = await getAllBar();
-            const dataDrinkCate = await getAllDrinkCate();
-            const dataEmoCate = await getAllEmotionCategory();
+            const dataDrinkCates = await getAllDrinkCate();
             const dataEmosCate = await getAllEmotionCategory();
-
             setDataEmoCate(dataEmosCate.data.data)
             setDataBar(dataBar.data.data);
-            setDataDrinkCate(dataDrinkCate.data.data);
-            setDataEmoCate(dataEmoCate.data.data)
+            setDataDrinkCate(dataDrinkCates.data.data);
         };
         fetchData();
         if (dataDrinkCate?.length > 0) {
@@ -258,6 +255,8 @@ function AddDrink() {
         if (!formData.drinkName) newErrors.drinkName = 'Tên đồ uống không được để trống';
         if (!formData.price) newErrors.price = 'Giá không được để trống';
         if (!formData.description) newErrors.description = 'Mô tả không được để trống';
+        if (formData.drinkCategoryId === "") newErrors.drinkCategoryId = 'Loại đồ uống không được để trống';
+        if (emotionChecked.length === 0) newErrors.emotion = 'Cảm xúc không chưa được thêm';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -305,22 +304,22 @@ function AddDrink() {
             });
         }
         emotionChecked.forEach(emotion => {
-            formDatas.append('drinkBaseEmo', emotion.emotionalDrinksCategoryId)
-        })
+            formDatas.append('drinkBaseEmo', emotion.emotionalDrinksCategoryId);
+        });
 
         try {
-            var response = await addDrink(formDatas);
+            const response = await addDrink(formDatas);
             if (response.status === 200) {
-                setIsLoading(false);
                 toast.success("Tạo đồ uống thành công!");
                 redirect(`/admin/managerDrinkCategory/managerDrink?cateId=${formData.drinkCategoryId}`);
             } else {
-                setIsPopupConfirm(false);
                 toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
             }
         } catch (error) {
             toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+        } finally {
             setIsLoading(false);
+            setIsPopupConfirm(false);
         }
     };
 
@@ -393,11 +392,15 @@ function AddDrink() {
                         <label className="text-base font-bold mb-2">Loại đồ uống</label>
                         <div className="flex justify-between items-center px-3 py-3.5 text-sm rounded border border-solid border-stone-300">
                             <select
+
                                 name="drinkCategoryId"
                                 value={formData.drinkCategoryId}
                                 onChange={handleInputChange}
-                                className="flex-grow border-none outline-none h-5 px-2 w-full"  // Adjust width with w-full
+                                className="flex-grow border-none outline-none h-5 px-2 w-full"
                             >
+                                <option value="" disabled>
+                                    Chọn loại đồ uống
+                                </option>
                                 {Array.isArray(dataDrinkCate) && dataDrinkCate.length > 0 ? (
                                     dataDrinkCate.map((option, index) => (
                                         <option key={index} value={option.drinksCategoryId} className="whitespace-nowrap">
@@ -407,8 +410,10 @@ function AddDrink() {
                                 ) : (
                                     <option>No category drink available</option>
                                 )}
+
                             </select>
                         </div>
+                        {errors.drinkCategoryId && <span className="text-red-500 text-sm mt-1">{errors.drinkCategoryId}</span>}
                     </div>
 
                     <div className="flex flex-col">
@@ -454,10 +459,12 @@ function AddDrink() {
                                 <div className="flex gap-2 items-center">
                                     {emotionChecked.map((emotion, index) => (
                                         <button
+                                            key={index}
+                                            name="emotion"
                                             onClick={handleTestClick}
                                             className={`px-4 py-2.5 text-sm font-bold whitespace-nowrap rounded-md border-2 border-solid border-neutral-200`}
                                         >
-                                            {emotion.categoryName}{index < emotionChecked.length - 1}
+                                            {emotion.categoryName}
                                         </button>
                                     ))}
                                 </div>
@@ -476,11 +483,15 @@ function AddDrink() {
                                     initialCheckedEmotions={emotionChecked}
                                 />
                             )}
-
-
                         </div>
+                        {emotionChecked.length === 0 && <p className="text-red-500 text-sm mt-1">{errors.emotion}</p>}
                     </div>
-                    <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/013784721bbb86b82d66b83d6b3f93365b12b768110ceb6a6a559c5674645320?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f" alt="" className="object-contain self-end mt-4 w-5 aspect-square" />
+                    <img
+                        loading="lazy"
+                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/013784721bbb86b82d66b83d6b3f93365b12b768110ceb6a6a559c5674645320?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f"
+                        alt=""
+                        className="object-contain self-end mt-4 w-5 aspect-square"
+                    />
                 </div>
             </section>
 

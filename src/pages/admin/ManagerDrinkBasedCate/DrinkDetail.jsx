@@ -119,6 +119,7 @@ function DrinkDetail() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        console.log(`Updating ${name} with value:`, value); // Thêm log này
         setFormData((prevData) => ({
             ...prevData,
             [name]: value,
@@ -156,7 +157,7 @@ function DrinkDetail() {
 
                 setFormData({
                     drinkName: drinkData.drinkName,
-                    drinkCategoryId: dataDrinkCate.data.data.find(category => category.drinksCategoryName === drinkData.drinksCategoryName)?.drinksCategoryId || '',
+                    drinkCategoryId: drinkData.drinkCategoryResponse.drinksCategoryId || '',
                     barId: dataBar.data.data.find(bar => bar.barName === drinkData.barName)?.barId || '',
                     description: drinkData.description,
                     price: drinkData.price,
@@ -196,7 +197,7 @@ function DrinkDetail() {
 
     const EmotionPopup = ({ onClose, onSave, initialCheckedEmotions }) => {
         const [emotions, setEmotions] = useState(() => {
-            return (Array.isArray(dataEmoCate.result) ? dataEmoCate.result : []).map(emotion => ({
+            return (Array.isArray(dataEmoCate) ? dataEmoCate : []).map(emotion => ({
                 ...emotion,
                 checked: initialCheckedEmotions.some(e => e.emotionalDrinksCategoryId === emotion.emotionalDrinksCategoryId),
             }));
@@ -221,8 +222,8 @@ function DrinkDetail() {
                     emotionalDrinksCategoryId: emotion.emotionalDrinksCategoryId,
                 }));
 
-            onSave(checkedEmotions); // Truyền danh sách đã chọn ra ngoài
-            onClose(); // Đóng popup
+            onSave(checkedEmotions);
+            onClose();
         };
 
         return (
@@ -292,9 +293,12 @@ function DrinkDetail() {
 
     const validateForm = () => {
         let newErrors = {};
+        console.log("Validating form. drinkCategoryId:", formData.drinkCategoryId); // Thêm log này
         if (!formData.drinkName) newErrors.drinkName = 'Tên đồ uống không được để trống';
         if (!formData.price) newErrors.price = 'Giá không được để trống';
         if (!formData.description) newErrors.description = 'Mô tả không được để trống';
+        if (!formData.drinkCategoryId) newErrors.drinkCategoryId = 'Vui lòng chọn loại đồ uống';
+        if (emotionChecked.length === 0) newErrors.emotion = 'Cảm xúc không chưa được thêm';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -325,6 +329,8 @@ function DrinkDetail() {
         event.preventDefault();
 
         if (!validateForm()) {
+            console.log("Form validation failed"); // Thêm log này
+            setIsPopupConfirm(false);
             return;
         }
 
@@ -445,10 +451,11 @@ function DrinkDetail() {
                         <div className="flex justify-between items-center px-3 py-3.5 text-sm rounded border border-solid border-stone-300">
                             <select
                                 name="drinkCategoryId"
-                                value={formData.drinkCategoryId}
+                                value={formData.drinkCategoryId || ''} // Thêm || '' để đảm bảo giá trị không bao giờ là undefined
                                 onChange={handleInputChange}
                                 className="flex-grow border-none outline-none h-5 px-2 w-[50%]"
                             >
+                                <option value="" disabled>Chọn loại đồ uống</option>
                                 {Array.isArray(dataDrinkCate) && dataDrinkCate.length > 0 ? (
                                     dataDrinkCate.map((option, index) => (
                                         <option key={index} value={option.drinksCategoryId}>
@@ -460,6 +467,7 @@ function DrinkDetail() {
                                 )}
                             </select>
                         </div>
+                        {errors.drinkCategoryId && <span className="text-red-500 text-sm mt-1">{errors.drinkCategoryId}</span>}
                     </div>
 
                     <div className="flex flex-col">
@@ -507,11 +515,9 @@ function DrinkDetail() {
                                     initialCheckedEmotions={emotionChecked}
                                 />
                             )}
-
-
-                        </div>
+                        </div>                        
+                        {emotionChecked.length === 0 && <p className="text-red-500 text-sm mt-1">{errors.emotion}</p>}
                     </div>
-                    <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/013784721bbb86b82d66b83d6b3f93365b12b768110ceb6a6a559c5674645320?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f" alt="" className="object-contain self-end mt-4 w-5 aspect-square" />
                 </div>
                 <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/013784721bbb86b82d66b83d6b3f93365b12b768110ceb6a6a559c5674645320?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f" alt="" className="object-contain self-end mt-4 w-5 aspect-square" />
             </section>
