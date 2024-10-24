@@ -213,7 +213,7 @@ const CustomerHeader = () => {
                 >
                   <Box sx={{ p: 2, width: 300, backgroundColor: "#444", color: "#FFF" }}>
                     <Typography className="text-yellow-400" variant="h6">Thông báo</Typography>
-                    {notifications.length > 0 ? (
+                    {notifications != null  && notifications.length > 0  ? (
                       notifications.map((notification, index) => (
                         <Box key={index} sx={{ mb: 1, p: 1, border: '1px solid #FFA500', borderRadius: '8px', backgroundColor: "#555" }}>
                           <Typography variant="body2">
