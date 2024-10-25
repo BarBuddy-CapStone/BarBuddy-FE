@@ -8,11 +8,11 @@ import dayjs from "dayjs";
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 import useAuthStore from 'src/lib/hooks/useUserStore';
+import { LoadingSpinner } from 'src/components';
 
 import {
   BookingTableInfo,
   TableSelection,
-  TimeSelection,
   TableSidebar,
 } from "src/pages";
 
@@ -39,6 +39,7 @@ const BookingTable = () => {
 
   const [selectedTablesMap, setSelectedTablesMap] = useState({});
   const [allHoldTables, setAllHoldTables] = useState([]);
+  const [note, setNote] = useState("");
 
   const uniqueTablesByDateAndTime = selectedTables.filter((seleTable, index, self) =>
     index === self.findIndex((t) => (
@@ -359,6 +360,10 @@ const BookingTable = () => {
               onTableTypeChange={handleTableTypeChange}
               onSearchTables={handleSearch}
               selectedTableTypeId={selectedTableTypeId}
+              selectedTime={selectedTime}
+              onTimeChange={handleTimeChange}
+              startTime={startTime}
+              endTime={endTime}
             />
             <TableSelection
               selectedTables={selectedTables}
@@ -374,18 +379,14 @@ const BookingTable = () => {
               selectedTime={selectedTime}
               onTableSelect={handleTableSelect}
             />
-            <TimeSelection 
-              startTime={startTime} 
-              endTime={endTime} 
-              onTimeChange={handleTimeChange}
-              selectedDate={selectedDate}
-            />
             <CustomerForm 
               selectedTables={selectedTables} 
               barId={barId}
               selectedTime={selectedTime}
               selectedDate={selectedDate}
-              barInfo={barInfo}  // Thêm dòng này
+              barInfo={barInfo}
+              note={note}
+              setNote={setNote}
             />
           </div>
           <div className="flex flex-col w-1/4 max-md:w-full">
@@ -414,6 +415,7 @@ const BookingTable = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <LoadingSpinner open={isLoading} />
     </div>
   );
 };

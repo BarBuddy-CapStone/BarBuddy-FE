@@ -6,5 +6,7 @@ import CustomerHeader from "./customerComponents/CustomerHeader";
 import CustomerFooter from "./customerComponents/CustomerFooter";
 import Notification from "./commonComponents/Notification";
 import ScrollToTopButton from "./commonComponents/ScrollToTopButton ";
+import LoadingSpinner from "./commonComponents/LoadingSpinner";
 
-export { AdminHeader, StaffHeader, AdminSidebar ,StaffSidebar, CustomerHeader, CustomerFooter, Notification, ScrollToTopButton };
+
+export { AdminHeader, StaffHeader, AdminSidebar ,StaffSidebar, CustomerHeader, CustomerFooter, Notification, ScrollToTopButton, LoadingSpinner };

@@ -3,6 +3,7 @@ import { BookingDrinkInfo, DrinkSelection, DrinkSidebar, Filter } from "src/page
 import { getAllDrink } from 'src/lib/service/managerDrinksService';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from 'src/lib/hooks/useUserStore';
+import { Button, Dialog, CircularProgress, DialogContent, Typography } from '@mui/material';
 
 const BookingDrink = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ const BookingDrink = () => {
   const [dataDrinkCate, setDataDrinkCate] = useState([]);
   const [dataDrinkEmo, setDataDrinkEmo] = useState([]);
   const [dataDrinkPrice, setDataDrinkPrice] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const location = useLocation();
   const { barInfo, selectedTables, customerInfo } = location.state || {};
@@ -123,6 +125,14 @@ const BookingDrink = () => {
     });
   };
 
+  const handleCancelBooking = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate("/");
+    }, 2000);
+  };
+
   return (
     <div className="flex flex-col lg:flex-row w-full max-w-screen-xl mx-auto px-4">
       <div className="w-full lg:w-3/4 pr-0 lg:pr-4">
@@ -134,6 +144,14 @@ const BookingDrink = () => {
             userInfo={userInfo}
             onBackClick={handleBackClick}
           />
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleCancelBooking}
+            sx={{ mt: 2 }}
+          >
+            Hủy đặt bàn
+          </Button>
         </div>
         <DrinkSelection
           drinks={filteredDrinks}
@@ -155,6 +173,27 @@ const BookingDrink = () => {
           onProceedToPayment={handleProceedToPayment}
         />
       </div>
+
+      {/* Loading Popup */}
+      <Dialog 
+        open={isLoading} 
+        PaperProps={{
+          style: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            boxShadow: 'none',
+            overflow: 'hidden'
+          }
+        }}
+      >
+        <DialogContent>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+            <CircularProgress style={{ color: '#FFA500' }} />
+            <Typography variant="h6" style={{ color: 'white', marginTop: '20px' }}>
+              Đang hủy đặt bàn...
+            </Typography>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

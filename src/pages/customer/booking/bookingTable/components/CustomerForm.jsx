@@ -4,13 +4,14 @@ import { toast } from "react-toastify"; // Import toast
 import { useAuthStore } from "src/lib"; // Import the Auth Store
 import { TextField, Button } from "@mui/material"; // Import MUI TextField and Button
 import { boookingtableNow } from "src/lib/service/BookingTableService"; // Import the API function
+import { LoadingSpinner } from 'src/components';
 
-const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barInfo }) => {
+const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barInfo, note, setNote }) => {
   const { userInfo, token } = useAuthStore(); // Lấy token từ Auth Store
   const [name, setName] = useState(userInfo.fullname || "");
   const [email, setEmail] = useState(userInfo.email || "");
   const [phone, setPhone] = useState(userInfo.phone || ""); // Adjust the field name if needed
-  const [note, setNote] = useState(""); // Initially empty for user to type
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,34 +61,33 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barIn
       return;
     }
 
+    setIsLoading(true);
     try {
-      // Thêm ":00" vào cuối chuỗi thời gian
       const formattedTime = selectedTime + ":00";
-
-      // Đảm bảo selectedDate là một chuỗi ngày hợp lệ (YYYY-MM-DD)
       const formattedDate = new Date(selectedDate).toISOString().split('T')[0];
 
       const bookingData = {
         barId: barId,
         bookingDate: formattedDate,
-        bookingTime: formattedTime, // Sử dụng thời gian đã được định dạng
-        note: note || "string", // Giữ nguyên như yêu cầu
+        bookingTime: formattedTime,
+        note: note || "string",
         tableIds: selectedTables.map(table => table.tableId)
       };
-
-      console.log("Booking data:", bookingData); // Log để kiểm tra
 
       const response = await boookingtableNow(token, bookingData);
       if (response.status === 200) {
         toast.success("Đặt bàn thành công!");
-        // Có thể chuyển hướng đến trang xác nhận hoặc làm mới form
-        // navigate("/booking-confirmation");
+        setTimeout(() => {
+          navigate("/home");
+        }, 2000);
       } else {
         toast.error("Đặt bàn thất bại. Vui lòng thử lại!");
       }
     } catch (error) {
       console.error("Error booking table:", error);
       toast.error("Có lỗi xảy ra khi đặt bàn. Vui lòng thử lại!");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -159,19 +159,19 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barIn
       <TextField
         label="Ghi chú"
         value={note}
-        onChange={(e) => setNote(e.target.value)} // Update note as user types
+        onChange={(e) => setNote(e.target.value)}
         variant="outlined"
         fullWidth
         multiline
         rows={4}
-        placeholder="Tôi muốn bàn view sài gòn" // Placeholder text
+        placeholder="Tôi muốn bàn view sài gòn"
         InputProps={{
-          style: { color: note ? "white" : "#888" }, // Show white text if user types, else placeholder color
+          style: { color: note ? "white" : "#888" },
         }}
         InputLabelProps={{
-          style: { color: "white" }, // Ensure label is white
+          style: { color: "white" },
         }}
-        sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
+        sx={{ backgroundColor: "#333333", mt: 2 }}
       />
 
       <hr className="shrink-0 mt-6 w-full h-px border border-amber-400 border-solid" />
@@ -187,13 +187,25 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barIn
         <div className="my-auto text-gray-400">Hoặc</div>
         <Button
           variant="contained"
-          color="warning"
-          sx={{ backgroundColor: "#FFA500" }}
           onClick={handleBookNow}
+          disabled={isLoading}
+          sx={{
+            backgroundColor: isLoading ? '#FFA500' : '#FFA500', // Luôn giữ màu cam
+            color: 'black',
+            '&:hover': {
+              backgroundColor: '#FF8C00',
+            },
+            '&:disabled': {
+              backgroundColor: '#FFA500', // Giữ màu cam khi disabled
+              opacity: 0.7, // Giảm độ đậm khi đang xử lý
+              color: 'black',
+            },
+          }}
         >
-          Đặt bàn ngay
+          {isLoading ? 'Đang xử lý...' : 'Đặt bàn ngay'}
         </Button>
       </div>
+      <LoadingSpinner open={isLoading} />
     </section>
   );
 };
