@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify"; // Import toast
 import { useAuthStore } from "src/lib"; // Import the Auth Store
-import { TextField, Button } from "@mui/material"; // Import MUI TextField and Button
+import { TextField, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material"; // Import MUI TextField and Button
 import { boookingtableNow } from "src/lib/service/BookingTableService"; // Import the API function
 import { LoadingSpinner } from 'src/components';
 
@@ -13,6 +13,10 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barIn
   const [phone, setPhone] = useState(userInfo.phone || ""); // Adjust the field name if needed
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  // New state for dialogs
+  const [openBookNowDialog, setOpenBookNowDialog] = useState(false);
+  const [openBookDrinkDialog, setOpenBookDrinkDialog] = useState(false);
 
   useEffect(() => {
     // If userInfo updates in the Auth Store, update form fields
@@ -31,6 +35,11 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barIn
       toast.error("Vui lòng chọn ít nhất một bàn trước khi đặt trước thức uống!");
       return;
     }
+    setOpenBookDrinkDialog(true);
+  };
+
+  const confirmBookDrink = () => {
+    setOpenBookDrinkDialog(false);
     navigate("/bookingdrink", { 
       state: { 
         barInfo: {
@@ -50,7 +59,7 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barIn
     });
   };
 
-  const handleBookNow = async () => {
+  const handleBookNow = () => {
     if (selectedTables.length === 0) {
       toast.error("Vui lòng chọn ít nhất một bàn trước khi đặt bàn!");
       return;
@@ -61,6 +70,11 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barIn
       return;
     }
 
+    setOpenBookNowDialog(true);
+  };
+
+  const confirmBookNow = async () => {
+    setOpenBookNowDialog(false);
     setIsLoading(true);
     try {
       const formattedTime = selectedTime + ":00";
@@ -205,6 +219,53 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barIn
           {isLoading ? 'Đang xử lý...' : 'Đặt bàn ngay'}
         </Button>
       </div>
+
+      {/* Dialog for Book Now confirmation */}
+      <Dialog
+        open={openBookNowDialog}
+        onClose={() => setOpenBookNowDialog(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Xác nhận đặt bàn"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Bạn có chắc chắn muốn đặt bàn ngay bây giờ?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenBookNowDialog(false)} color="primary">
+            Hủy
+          </Button>
+          <Button onClick={confirmBookNow} color="primary" autoFocus>
+            Xác nhận
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog for Book Drink confirmation */}
+      <Dialog
+        open={openBookDrinkDialog}
+        onClose={() => setOpenBookDrinkDialog(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Xác nhận đặt trước thức uống"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Bạn có chắc chắn muốn đặt trước thức uống với chiết khấu {barInfo.discount}%?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenBookDrinkDialog(false)} color="primary">
+            Hủy
+          </Button>
+          <Button onClick={confirmBookDrink} color="primary" autoFocus>
+            Xác nhận
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <LoadingSpinner open={isLoading} />
     </section>
   );

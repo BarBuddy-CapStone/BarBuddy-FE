@@ -42,12 +42,12 @@ const BarDetail = () => {
     }, [navigate]);
 
     const handleBooking = () => {
-        setIsLoading(true); // Start loading
-        // Simulate a delay before navigation (you can remove this in production)
+        if (!barDetails.isAnyTableAvailable) return; // Prevent booking if no tables available
+        setIsLoading(true);
         setTimeout(() => {
-            setIsLoading(false); // Stop loading
+            setIsLoading(false);
             navigate('/bookingtable', { state: { barId } });
-        }, 1000); // 1 second delay
+        }, 1000);
     };
 
     useEffect(() => {
@@ -120,11 +120,15 @@ const BarDetail = () => {
                 <hr className="border-yellow-500 mb-4" />
                 <p className="mb-4">{barDetails.description}</p>
                 <button 
-                    className="bg-yellow-500 text-gray-800 px-4 py-2 rounded-lg" 
+                    className={`px-4 py-2 rounded-lg ${
+                        barDetails.isAnyTableAvailable 
+                            ? 'bg-yellow-500 text-gray-800 hover:bg-yellow-600' 
+                            : 'bg-gray-500 text-white cursor-not-allowed'
+                    }`}
                     onClick={handleBooking}
-                    disabled={isLoading} // Disable button while loading
+                    disabled={isLoading || !barDetails.isAnyTableAvailable}
                 >
-                    {isLoading ? 'Đang xử lý...' : 'Đặt bàn'}
+                    {isLoading ? 'Đang xử lý...' : (barDetails.isAnyTableAvailable ? 'Đặt bàn' : 'Hết Bàn')}
                 </button>
             </div>
             <div className="bg-neutral-800 text-white p-4 rounded-lg shadow-lg mt-4 w-full max-w-4xl">
