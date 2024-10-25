@@ -29,11 +29,11 @@ const sidebarItems = [
     label: "Loại bàn",
     path: "/admin/table-type-management",
   },
-  {
-    icon: LocalActivityIcon,
-    label: "Sự kiện",
-    path: "/admin/event-management",
-  },
+  // {
+  //   icon: LocalActivityIcon,
+  //   label: "Sự kiện",
+  //   path: "/admin/event-management",
+  // },
   {
     icon: PeopleIcon,
     label: "Khách hàng",

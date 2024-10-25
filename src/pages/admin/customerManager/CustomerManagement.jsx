@@ -15,8 +15,8 @@ const SearchCustomerName = ({ onSearch }) => {
             <input
                 type="text"
                 className="flex-grow border-none px-1 py-1 text-black"
-                placeholder="Search customer's name"
-                aria-label="Search customer's name"
+                placeholder="Tìm theo tên khách hàng"
+                aria-label="Tìm theo tên khách hàng"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -40,9 +40,9 @@ const AddCustomerButton = () => {
 }
 
 const CustomerTableHeader = () => (
-    <thead className="bg-white">
+    <thead className="bg-white border-t-2 border-x-2 border-gray-300">
         <tr className="font-bold text-neutral-900 border-b-2">
-            {["Họ và tên", "Ngày sinh", "Email", "Số điện thoại", "Ngày đăng ký", "Status", ""].map((header, index) => (
+            {["Họ và tên", "Ngày sinh", "Email", "Số điện thoại", "Ngày đăng ký", "Trạng thái", ""].map((header, index) => (
                 <th key={index} className="px-4 py-6 text-center">{header}</th>
             ))}
         </tr>
@@ -54,7 +54,7 @@ const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
     const statusClass = getStatusClass(customer.status); // Lấy lớp trạng thái từ hàm getStatusClass
 
     return (
-        <tr className={`${rowClass} text-sm hover:bg-gray-100 transition duration-150 border-b-2`}>
+        <tr className={`${rowClass} text-sm hover:bg-gray-100 transition duration-150 border-gray-300 border-x-2 border-b-2`}>
             <td className="px-4 py-6 text-center align-middle">
                 {customer.fullname}
             </td>
@@ -71,8 +71,8 @@ const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
                 {new Date(customer.createdAt).toLocaleDateString('vi-VN')}
             </td>
             <td className="flex justify-center items-center px-4 py-6 align-middle">
-                <div className={`flex justify-center items-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
-                    {customer.status === 1 ? "Active" : "Deactive"}
+                <div className={`flex justify-center items-center text-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
+                    {customer.status === 1 ? "Hoạt Động" : "Không Hoạt Động"}
                 </div>
             </td>
             <td className="px-4 py-6 text-center align-middle">
@@ -87,7 +87,7 @@ const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
     );
 };
 
-// Hàm để xác định class của status
+// Hàm để xác ịnh class của status
 function getStatusClass(status) {
     switch (status) {
         case 1:
@@ -99,34 +99,35 @@ function getStatusClass(status) {
     }
 }
 
-const CustomerTable = ({ customerData }) => {
-    const navigate = useNavigate();
-    const handleViewDetail = (id) => {
-        navigate(`/admin/customer-detail?accountId=${id}`) // Điều hướng với tham số
-    };
+// const CustomerTable = ({ customerData }) => {
+//     const navigate = useNavigate();
+//     const handleViewDetail = (id) => {
+//         navigate(`/admin/customer-detail?accountId=${id}`) // Điều hướng với tham số
+//     };
 
-    return (
-        <table className="min-w-full text-sm table-auto border-collapse">
-            <CustomerTableHeader />
-            <tbody>
-                {customerData.map((customer, index) => (
-                    <CustomerTableRow
-                        key={index}
-                        customer={customer}
-                        index={index}
-                        isEven={index % 2 === 0}
-                        onViewDetails={() => handleViewDetail(customer.accountId)} // Điều hướng với tham số
-                    />
-                ))}
-            </tbody>
-        </table>
-    );
-};
+//     return (
+//         <table className="min-w-full text-sm table-auto border-collapse">
+//             <CustomerTableHeader />
+//             <tbody>
+//                 {customerData.map((customer, index) => (
+//                     <CustomerTableRow
+//                         key={index}
+//                         customer={customer}
+//                         index={index}
+//                         isEven={index % 2 === 0}
+//                         onViewDetails={() => handleViewDetail(customer.accountId)} // Điều hướng với tham số
+//                     />
+//                 ))}
+//             </tbody>
+//         </table>
+//     );
+// };
 
 const CustomerManagement = () => {
+    const [customers, setCustomers] = useState([]); // Thêm trạng thái để lưu trữ dữ liệu khách hàng ban đầu
     const [filteredCustomers, setFilteredCustomers] = useState([]);
     const [pageIndex, setPageIndex] = useState(1);
-    const [pageSize, setPageSize] = useState(6);
+    const [pageSize, setPageSize] = useState(5);
     const [totalCustomers, setTotalCustomers] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
@@ -137,8 +138,9 @@ const CustomerManagement = () => {
             setIsLoading(true); // Bắt đầu loading
             try {
                 const response = await getCustomerAccounts(pageSize, pageIndex);
-                setFilteredCustomers(response.data.items);
-                setTotalCustomers(response.data.count);
+                setCustomers(response.data.data.items); // Lưu dữ liệu khách hàng vào trạng thái mới
+                setFilteredCustomers(response.data.data.items);
+                setTotalCustomers(response.data.data.total);
             } catch (error) {
                 console.error("Error fetching customers:", error);
                 toast.error("Không thể tải danh sách khách hàng.");
@@ -151,8 +153,8 @@ const CustomerManagement = () => {
     }, [pageIndex, pageSize]);
 
     const handleSearch = (searchTerm) => {
-        const filtered = customerData.filter(customer =>
-            customer.name.toLowerCase().includes(searchTerm.toLowerCase())
+        const filtered = customers.filter(customer => // Sử dụng trạng thái customers
+            customer.fullname.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredCustomers(filtered); // Cập nhật danh sách khách hàng đã lọc
     };
@@ -168,9 +170,13 @@ const CustomerManagement = () => {
         setPageIndex(value);
     };
 
+    const handleViewDetail = (id) => {
+        navigate(`/admin/customer-detail?accountId=${id}`) // Điều hướng với tham số
+    };
+
     return (
-        <main className="flex-1 overflow-x-hidden overflow-y-auto mr-100 bg-gray-100">
-            <div className="container mx-auto px-6 py-8">
+        <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
+            <div className="container mx-auto px-6 py-6">
                 <div className="flex gap-5 max-w-full text-base text-center text-white w-[800px] max-md:mt-10 mx-4">
                     <SearchCustomerName onSearch={handleSearch} />
                     <AddCustomerButton />

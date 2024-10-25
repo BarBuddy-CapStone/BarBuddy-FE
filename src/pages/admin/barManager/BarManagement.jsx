@@ -118,9 +118,9 @@ function BarManagement() {
                     <div>{bar.endTime}</div>
                     <div className="flex justify-center">
                       <span
-                        className={`inline-flex justify-center items-center w-20 px-2 py-1 rounded-full text-white ${bar.status === true ? "bg-green-500" : "bg-red-500"}`}
+                        className={`inline-flex justify-center items-center w-full px-2 py-2 rounded-full text-white ${bar.status === true ? "bg-green-500" : "bg-red-500"}`}
                       >
-                        {bar.status ? "Active" : "Inactive"}
+                        {bar.status ? "Hoạt động" : "Không hoạt động"}
                       </span>
                     </div>
                     <div

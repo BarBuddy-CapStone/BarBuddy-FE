@@ -65,13 +65,13 @@ export default function CustomerDetail() {
     useEffect(() => {
         const fetchCustomerDetail = async () => {
             const response = await getCustomerDetail(accountId); // Gọi hàm lấy chi tiết khách hàng
-            setCustomerData(response.data); // Cập nhật dữ liệu khách hàng
+            setCustomerData(response.data.data); // Cập nhật dữ liệu khách hàng
             setFormData({
-                email: response.data.email,
-                fullname: response.data.fullname,
-                phone: response.data.phone,
-                dob: new Date(response.data.dob).toISOString().split('T')[0], // Chuyển đổi định dạng ngày
-                status: response.data.status
+                email: response.data.data.email,
+                fullname: response.data.data.fullname,
+                phone: response.data.data.phone,
+                dob: new Date(response.data.data.dob).toISOString().split('T')[0], // Chuyển đổi định dạng ngày
+                status: response.data.data.status
             });
         };
 
