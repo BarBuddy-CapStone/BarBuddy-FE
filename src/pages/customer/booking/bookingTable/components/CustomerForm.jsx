@@ -53,7 +53,7 @@ const CustomerForm = ({ selectedTables, barId, selectedTime, selectedDate, barIn
           name: name,
           email: email,
           phone: phone,
-          note: note || "string"
+          note: note
         }
       } 
     });
