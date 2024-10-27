@@ -60,7 +60,7 @@ const BookingTable = () => {
             location: response.data.data.address,
             description: response.data.data.description,
             discount: response.data.data.discount,
-            openingHours: `${response.data.data.startTime.slice(0, 5)} - ${response.data.data.endTime.slice(0, 5)}`,
+            openingHours: `${response.data.data?.startTime.slice(0, 5)} - ${response.data.data?.endTime.slice(0, 5)}`,
           });
         } else {
           console.error("Failed to fetch table data");

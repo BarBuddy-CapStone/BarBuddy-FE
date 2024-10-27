@@ -1,6 +1,6 @@
 import axios from "../axiosCustomize";
 
-const getDrinkBasedCate = async (cateId) => {
+const getDrinkBasedCateByID = async (cateId) => {
   return await axios.get(`api/v1/Drink/getDrinkBaedCate/${cateId}`)
 }
 
@@ -37,7 +37,7 @@ const getAllDrinkByBarId = async (barId) => {
 }
 
 export {
-  getDrinkBasedCate,
+  getDrinkBasedCateByID,
   getAllDrink,
   getOneDrink,
   addDrink,

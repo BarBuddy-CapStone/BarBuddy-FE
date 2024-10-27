@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { Link, useLocation } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
 import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import PaymentIcon from '@mui/icons-material/Payment';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 
 const sidebarItems = [
   {
@@ -23,16 +21,10 @@ const sidebarItems = [
     label: "Thanh Toán",
     path: "/staff/payment-history",
   },
-  {
-    icon: ExitToAppIcon,
-    label: "Đăng xuất",
-    path: "#",
-  },
 ];
 
 function StaffSidebar({ className, isOpen, onClose }) {
   const location = useLocation();
-  const navigate = useNavigate();
   const [activeItem, setActiveItem] = useState("");
 
   useEffect(() => {
@@ -42,15 +34,6 @@ function StaffSidebar({ className, isOpen, onClose }) {
       setActiveItem(currentItem.label);
     }
   }, [location]);
-
-  const handleLogout = () => {
-    sessionStorage.clear();
-    toast.success("Đăng xuất thành công");
-    setTimeout(() => {
-      navigate("/");
-      window.location.reload();
-    }, 1500);
-  };
 
   const handleItemClick = (label) => {
     setActiveItem(label);
@@ -84,24 +67,14 @@ function StaffSidebar({ className, isOpen, onClose }) {
                 activeItem === item.label ? "bg-sky-100" : ""
               }`}
             >
-              {item.label === "Đăng xuất" ? (
-                <div
-                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                  onClick={handleLogout}
-                >
-                  <item.icon className="w-5 h-5 text-sky-900" />
-                  <span className="text-sky-900">{item.label}</span>
-                </div>
-              ) : (
-                <Link
-                  to={item.path}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition-colors duration-200"
-                  onClick={() => handleItemClick(item.label)}
-                >
-                  <item.icon className="w-5 h-5 text-sky-900" />
-                  <span className="text-sky-900">{item.label}</span>
-                </Link>
-              )}
+              <Link
+                to={item.path}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition-colors duration-200"
+                onClick={() => handleItemClick(item.label)}
+              >
+                <item.icon className="w-5 h-5 text-sky-900" />
+                <span className="text-sky-900">{item.label}</span>
+              </Link>
             </li>
           ))}
         </ul>

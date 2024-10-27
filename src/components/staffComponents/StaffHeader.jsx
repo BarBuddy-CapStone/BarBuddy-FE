@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { headerConstants } from "src/lib";
+import { IconButton, Menu, MenuItem, Badge, Avatar, CircularProgress, Backdrop } from "@mui/material";
+import useAuthStore from "src/lib/hooks/useUserStore";
 
 const getTitlePath = (pathName, params) => {
   // Tách đường dẫn thành các phần
@@ -28,40 +30,84 @@ const getTitlePath = (pathName, params) => {
       return headerConstants.headerStaff.table_booking_list;
 
     default:
-      return "Staff";
+      return "Nhân Viên";
   }
 };
 
 const StaffHeader = ({ className, onMenuClick, isSidebarOpen }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const params = useParams();
   const title = getTitlePath(location.pathname, params);
+  const { userInfo, logout } = useAuthStore();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    setIsLoggingOut(true);
+    logout();
+    handleMenuClose();
+    
+    setTimeout(() => {
+      navigate("/home");
+    }, 1500);
+  };
 
   return (
-    <header className={`flex justify-between items-center p-4 ${className}`}>
-      <div className="flex items-center">
-        <button 
-          className="mr-4 md:hidden" 
-          onClick={onMenuClick}
-          aria-label="Toggle menu"
-        >
-          <MenuIcon />
-        </button>
-        <h1 className="text-2xl font-bold text-sky-900 px-2">{title}</h1>
-      </div>
-      <div className="flex items-center space-x-4">
-        <button aria-label="Notifications" className="p-1">
-          <NotificationsNoneIcon fontSize="large" />
-        </button>
-        <button aria-label="User Profile" className="p-3">
-          <img
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/ee42c39217971cc8672566b2d83730278f98f741e79a31ff46c5a171ac28ebac?placeholderIfAbsent=true&apiKey=4feecec204b34295838b9ecac0a1a4f6"
-            alt=""
-            className="w-8 h-8 rounded-full"
-          />
-        </button>
-      </div>
-    </header>
+    <>
+      <header className={`flex justify-between items-center p-4 ${className}`}>
+        <div className="flex items-center">
+          <button 
+            className="mr-4 md:hidden" 
+            onClick={onMenuClick}
+            aria-label="Toggle menu"
+          >
+            <MenuIcon />
+          </button>
+          <h1 className="text-2xl font-bold text-sky-900 px-2">{title}</h1>
+        </div>
+        <div className="flex items-center space-x-4">
+          <IconButton aria-label="Notifications">
+            <Badge color="error">
+              <NotificationsNoneIcon />
+            </Badge>
+          </IconButton>
+          <IconButton onClick={handleMenuClick}>
+            <Avatar src={userInfo?.image} alt={userInfo?.fullname}>
+              {userInfo?.fullname?.charAt(0)}
+            </Avatar>
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={handleMenuClose}>Hồ sơ</MenuItem>
+            <MenuItem onClick={handleLogout} disabled={isLoggingOut}>
+              {isLoggingOut ? (
+                <CircularProgress size={24} />
+              ) : (
+                "Đăng xuất"
+              )}
+            </MenuItem>
+          </Menu>
+        </div>
+      </header>
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={isLoggingOut}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    </>
   );
 };
 

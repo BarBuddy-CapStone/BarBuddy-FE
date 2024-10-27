@@ -116,11 +116,12 @@ function EmotionalCategory() {
             onClick={() => setIsAdding(true)}
           >
             <Add className="w-5 h-5" />
-            <span>Thêm danh mục cảm xúc</span>
+            <span>Thêm Cảm Xúc</span>
           </button>
         </div>
 
         <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
+          <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">Danh Sách Danh Mục Cảm Xúc</h2>
           {isLoading ? (
             <div className="flex justify-center items-center h-32">
               <CircularProgress />

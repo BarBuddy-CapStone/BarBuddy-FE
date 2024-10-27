@@ -117,3 +117,12 @@ export const releaseTableSignalR = async (data) => {
     console.error("Error releasing table via SignalR:", error);
   }
 };
+
+export const releaseTableListSignalR = async (data) => {
+  try {
+    await hubConnection.invoke("ReleaseTableList", data);
+    console.log(`Tables released via SignalR for bar ${data.barId}`);
+  } catch (error) {
+    console.error("Error releasing tables via SignalR:", error);
+  }
+};

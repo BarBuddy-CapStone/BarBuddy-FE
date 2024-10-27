@@ -423,9 +423,9 @@ function TableRow({
       <div className="text-center font-normal">{minimumPrice}</div>
       <div className="text-center font-normal">{minimumGuest}</div>
       <div className="text-center font-normal">{maximumGuest}</div>
-      <div className="text-center">
+      <div className="text-center flex justify-center items-center">
         <span
-          className={`inline-block px-4 py-1 rounded-full text-white ${statusClass} font-semibold`}
+          className={`inline-block px-2 py-1 rounded-full text-white ${statusClass} font-semibold text-xs w-24`}
         >
           {statusText}
         </span>

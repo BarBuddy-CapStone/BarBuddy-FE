@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { releaseTable } from 'src/lib/service/BookingTableService';
+import { releaseTable, releaseTableList } from 'src/lib/service/BookingTableService';
 import useAuthStore from 'src/lib/hooks/useUserStore';
-import { hubConnection, releaseTableSignalR } from 'src/lib/Third-party/signalR/hubConnection';
+import { hubConnection, releaseTableSignalR, releaseTableListSignalR } from 'src/lib/Third-party/signalR/hubConnection';
 import dayjs from 'dayjs';
+import { Button } from '@mui/material';
 
 const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, selectedDate, selectedTime }) => {
   const [countdowns, setCountdowns] = useState({});
@@ -92,6 +93,32 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
     return 0;
   });
 
+  const handleReleaseAll = async () => {
+    if (selectedTables.length === 0) return;
+
+    try {
+      const data = {
+        barId: barId,
+        date: dayjs(selectedDate).format('YYYY-MM-DD'),
+        time: selectedTime + ":00",
+        table: selectedTables.map(table => ({
+          tableId: table.tableId,
+          time: table.time // Sử dụng trực tiếp giá trị time của bàn
+        }))
+      };
+
+      const response = await releaseTableList(token, data);
+      if (response.data.statusCode === 200) {
+        setSelectedTables([]);
+        await releaseTableListSignalR(data);
+        // Thông báo cho người dùng
+        console.log("Đã xóa tất cả bàn đã chọn");
+      }
+    } catch (error) {
+      console.error("Error releasing all tables:", error);
+    }
+  };
+
   return (
     <div className={`flex flex-col px-8 pt-4 pb-10 mt-4 w-full text-xs text-white rounded-md bg-neutral-800 shadow-[0px_0px_16px_rgba(0,0,0,0.07)] ${sortedTables.length === 0 ? 'hidden' : ''}`}>
       <div className="self-center text-xl font-bold text-center text-amber-400 text-opacity-90">
@@ -122,6 +149,14 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
           )}
         </div>
       ))}
+      <Button 
+        onClick={handleReleaseAll}
+        variant="contained"
+        color="secondary"
+        style={{ marginTop: '10px' }}
+      >
+        Xóa hết
+      </Button>
     </div>
   );
 };

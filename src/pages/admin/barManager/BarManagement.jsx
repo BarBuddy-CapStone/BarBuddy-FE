@@ -1,28 +1,22 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronRight, Search, Add } from '@mui/icons-material';
-import { Button, Box, CircularProgress } from '@mui/material'; // Import MUI components
+import { Button, Box, CircularProgress, Pagination } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getAllBar } from 'src/lib/service/barManagerService';
 
 function BarManagement() {
-  const redirect = useNavigate();
+  const navigate = useNavigate();
+  const [barData, setBarData] = useState([]);
+  const [search, setSearch] = useState('');
+  const [listSearchBar, setListSearchBar] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('ALL');
 
-  const handleChevronClick = (barId) => {
-    redirect(`/admin/barProfile?barId=${barId}`);
-  };
-
-  const [barData, setBarData] = useState([]);  // Initial state for all bar data
-  const [search, setSearch] = useState('');  // State for search input
-  const [listSearchBar, setListSearchBar] = useState([]);  // State for filtered search results
-  const [loading, setLoading] = useState(false);  // Loading state
-
-  // Fetch bar data on component mount
   useEffect(() => {
     const fetchBarData = async () => {
       try {
-        setLoading(true);  // Start loading indicator
+        setLoading(true);
         const response = await getAllBar();
-        
         const bars = response?.data?.data || [];
         setBarData(bars);
         setListSearchBar(bars);
@@ -35,6 +29,10 @@ function BarManagement() {
     fetchBarData();
   }, []);
 
+  const handleChevronClick = (barId) => {
+    navigate(`/admin/barProfile/${barId}`);
+  };
+
   const SearchBarHandler = () => {
     const result = barData?.filter((bar) =>
       bar?.barName?.toLowerCase().includes(search?.toLowerCase())
@@ -42,9 +40,20 @@ function BarManagement() {
     setListSearchBar(result);
   };
 
-  const AddBarHandle = () => {
-    redirect("/admin/addbar");
+  const handleFilterChange = (e) => {
+    setFilterStatus(e.target.value);
   };
+
+  const AddBarHandle = () => {
+    navigate("/admin/addbar");
+  };
+
+  const filteredBars = listSearchBar.filter(bar => {
+    if (filterStatus === 'ALL') return true;
+    if (filterStatus === 'Active') return bar.status === true;
+    if (filterStatus === 'Inactive') return bar.status === false;
+    return true;
+  });
 
   return (
     <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
@@ -67,6 +76,14 @@ function BarManagement() {
           </div>
 
           <div className="flex items-center gap-4 w-full md:w-auto">
+            <select 
+              className="px-3 py-2 bg-white rounded-md border border-sky-900 shadow-sm text-sm transition-all duration-150 ease-in-out hover:bg-gray-100 active:bg-gray-200 focus:outline-none"
+              onChange={handleFilterChange}
+            >
+              <option value="ALL">Tất Cả</option>
+              <option value="Active">Hoạt Động</option>
+              <option value="Inactive">Không Hoạt Động</option>
+            </select>
             <Button
               variant="contained"
               color="primary"
@@ -77,10 +94,10 @@ function BarManagement() {
                 padding: '8px 16px',
                 backgroundColor: 'white',
                 color: 'black',
-                border: '1px solid rgb(12 74 110)', // sky-900
+                border: '1px solid rgb(12 74 110)',
                 boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
                 '&:hover': {
-                  backgroundColor: 'rgb(243 244 246)', // gray-100
+                  backgroundColor: 'rgb(243 244 246)',
                 },
               }}
             >
@@ -90,53 +107,59 @@ function BarManagement() {
         </div>
 
         <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
+          <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">Danh Sách Chi Nhánh</h2>
           {loading ? (
             <Box display="flex" justifyContent="center" mt={4}>
               <CircularProgress />
             </Box>
           ) : (
-            <div className="flex flex-col overflow-hidden mt-4 w-full text-small bg-white rounded-lg shadow-lg">
-              <div className="grid grid-cols-8 gap-3 items-center py-4 px-5 font-bold font-notoSansSC bg-gray-200 text-center">
-                <div>Tên Quán</div>
-                <div className="col-span-2">Địa chỉ</div>
-                <div>Số điện thoại</div>
-                <div>Giờ mở cửa</div>
-                <div>Giờ đóng cửa</div>
-                <div>Trạng thái</div>
-                <div></div>
-              </div>
-              {Array.isArray(listSearchBar) && listSearchBar.length > 0 ? (
-                listSearchBar.map((bar) => (
-                  <div
-                    key={bar.barId}
-                    className="grid grid-cols-8 gap-3 py-3 px-5 items-center text-sm font-aBeeZee text-center"
-                  >
-                    <div>{bar.barName}</div>
-                    <div className="col-span-2">{bar.address}</div>
-                    <div>{bar.phoneNumber}</div>
-                    <div>{bar.startTime}</div>
-                    <div>{bar.endTime}</div>
-                    <div className="flex justify-center">
-                      <span
-                        className={`inline-flex justify-center items-center w-full px-2 py-2 rounded-full text-white ${bar.status === true ? "bg-green-500" : "bg-red-500"}`}
-                      >
-                        {bar.status ? "Hoạt động" : "Không hoạt động"}
-                      </span>
-                    </div>
-                    <div
-                      className="flex justify-center cursor-pointer"
-                      onClick={() => handleChevronClick(bar.barId)}
-                    >
-                      <ChevronRight />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <Box className="p-4 text-center">No bars found.</Box>
-              )}
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-sm text-black">
+                <thead>
+                  <tr className="grid grid-cols-12 gap-3 items-center py-4 px-5 font-bold bg-neutral-200">
+                    <th className="col-span-2 text-left">Tên Quán</th>
+                    <th className="col-span-3 text-left">Địa chỉ</th>
+                    <th className="col-span-2 text-center">Số điện thoại</th>
+                    <th className="col-span-1 text-center">Giờ mở cửa</th>
+                    <th className="col-span-1 text-center">Giờ đóng cửa</th>
+                    <th className="col-span-2 text-center">Trạng thái</th>
+                    <th className="col-span-1"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredBars.length > 0 ? (
+                    filteredBars.map((bar, index) => (
+                      <tr key={bar.barId} className={`grid grid-cols-12 gap-3 py-3 px-5 items-center ${index % 2 === 0 ? 'bg-white' : 'bg-stone-50'}`}>
+                        <td className="col-span-2 truncate">{bar.barName}</td>
+                        <td className="col-span-3 truncate">{bar.address}</td>
+                        <td className="col-span-2 text-center">{bar.phoneNumber}</td>
+                        <td className="col-span-1 text-center whitespace-nowrap">{bar.startTime}</td>
+                        <td className="col-span-1 text-center whitespace-nowrap">{bar.endTime}</td>
+                        <td className="col-span-2 flex justify-center">
+                          <span className={`inline-flex justify-center items-center px-2 py-1 rounded-full text-white text-xs ${bar.status ? "bg-green-500" : "bg-red-500"}`}>
+                            {bar.status ? "Hoạt động" : "Không hoạt động"}
+                          </span>
+                        </td>
+                        <td className="col-span-1 flex justify-center">
+                          <button onClick={() => handleChevronClick(bar.barId)} className="p-1 hover:bg-gray-200 rounded-full transition-colors duration-200">
+                            <ChevronRight />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="12" className="text-center py-4">Không có dữ liệu</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
+      </div>
+      <div className="flex justify-end mt-6">
+        <Pagination count={5} size="small" shape="rounded" />
       </div>
     </main>
   );

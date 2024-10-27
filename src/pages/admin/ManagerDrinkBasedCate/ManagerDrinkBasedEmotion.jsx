@@ -97,7 +97,7 @@ function DrinkItems({
                     className={`flex justify-center items-center w-20 px-2 py-1 rounded-full text-white text-sm font-notoSansSC ${status === true ? "bg-green-500" : "bg-red-500"
                         }`}
                 >
-                    {status === true ? "Active" : "Inactive"}
+                    {status === true ? "Hoạt Động" : "Không Hoạt Động"}
                 </span>
             </div>
             <div

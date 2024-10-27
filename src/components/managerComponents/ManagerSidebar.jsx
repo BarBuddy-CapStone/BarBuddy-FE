@@ -60,7 +60,7 @@ const sidebarItems = [
   },
 ];
 
-function AdminSidebar({ className, isOpen, onClose }) {
+function ManagerSidebar({ className, isOpen, onClose }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeItem, setActiveItem] = useState("");
@@ -131,4 +131,4 @@ function AdminSidebar({ className, isOpen, onClose }) {
   );
 }
 
-export default AdminSidebar;
+export default ManagerSidebar;

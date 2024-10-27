@@ -4,10 +4,11 @@ import {
   getAllFeedbackByBookingID,
   createFeedBack
 } from "../../../lib/service/FeedbackService";
-import { addHours, addDays, isBefore } from "date-fns";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import CircularProgress from '@mui/material/CircularProgress';
+import { addHours, isBefore, parseISO } from "date-fns";
+import LoadingSpinner from "../../../components/commonComponents/LoadingSpinner"; // Import LoadingSpinner
 
 function BookingHistory({ accountId }) {
   const [bookings, setBookings] = useState([]);
@@ -24,6 +25,7 @@ function BookingHistory({ accountId }) {
   const [loadingFeedback, setLoadingFeedback] = useState(false);
   const [loadingRating, setLoadingRating] = useState(false);
   const [loadingCancel, setLoadingCancel] = useState(false);
+  const [isLoadingCancel, setIsLoadingCancel] = useState(false); // Thêm state cho LoadingSpinner
 
   const navigate = useNavigate();
 
@@ -45,7 +47,7 @@ function BookingHistory({ accountId }) {
   }, [accountId]);
 
   const handleCancelBooking = async (bookingId) => {
-    setLoadingCancel(true);
+    setIsLoadingCancel(true); // Bắt đầu hiển thị LoadingSpinner
     try {
       await BookingService.cancelBooking(bookingId);
       setBookings((prevBookings) =>
@@ -59,7 +61,7 @@ function BookingHistory({ accountId }) {
       toast.error("Hủy đặt bàn thất bại");
       console.error("Error while canceling:", error);
     } finally {
-      setLoadingCancel(false);
+      setIsLoadingCancel(false); // Kết thúc hiển thị LoadingSpinner
     }
   };
 
@@ -128,7 +130,7 @@ function BookingHistory({ accountId }) {
           booking.bookingId === selectedBookingId ? { ...booking, isRated: true } : booking
         )
       );
-      toast.success("Đánh giá đã được gửi thành công!");
+      toast.success("ánh giá đã được gửi thành công!");
       setShowRatingPopup(false);
       setRating(0);
       setComment("");
@@ -158,7 +160,7 @@ function BookingHistory({ accountId }) {
     return `${hours}:${minutes}`;
   };
 
-  // Hàm định dạng thời gian cho createdTime
+  // Hàm định dng thời gian cho createdTime
   const formatCreatedTime = (timeString) => {
     const createdDate = new Date(timeString);
     const hours = String(createdDate.getHours()).padStart(2, '0');
@@ -169,6 +171,25 @@ function BookingHistory({ accountId }) {
     
     return `${hours}:${minutes} ${day}/${month}/${year}`;
   };
+
+  // Check if the booking can be canceled (before 1 hour)
+  function canCancelBooking(bookingDate, bookingTime) {
+    const now = new Date();
+
+    // Combine bookingDate and bookingTime
+    const bookingDateTimeStr = `${bookingDate}T${bookingTime}`;
+    const bookingDateTime = parseISO(bookingDateTimeStr);
+
+    if (isNaN(bookingDateTime.getTime())) {
+      console.error("Invalid booking date and time:", bookingDateTimeStr);
+      return false; // Fail gracefully if the date is invalid
+    }
+
+    // Calculate the deadline to cancel (1 hour before booking time)
+    const cancelDeadline = addHours(bookingDateTime, -1);
+
+    return isBefore(now, cancelDeadline);
+  }
 
   return (
     <section className="flex flex-col px-8 py-8 mx-auto w-full rounded-md bg-neutral-800 shadow-md max-md:px-5 max-md:mt-10 max-md:max-w-full min-h-[500px]">
@@ -242,21 +263,17 @@ function BookingHistory({ accountId }) {
                   <p className="text-gray-400 text-sm mb-2">
                     {getTimeAgo(booking.createAt)}
                   </p>
-                  {booking.status === 0 &&
-                    canCancelBooking(
-                      booking.bookingDate,
-                      booking.bookingTime
-                    ) && (
-                      <button
-                        className={`px-4 py-2 w-[120px] bg-amber-400 text-black rounded-full text-sm hover:bg-amber-500 transition duration-200`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          confirmCancelBooking(booking.bookingId);
-                        }}
-                      >
-                        Hủy đặt bàn
-                      </button>
-                    )}
+                  {booking.status === 0 && (
+                    <button
+                      className={`px-4 py-2 w-[120px] bg-amber-400 text-black rounded-full text-sm hover:bg-amber-500 transition duration-200`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        confirmCancelBooking(booking.bookingId);
+                      }}
+                    >
+                      Hủy đặt bàn
+                    </button>
+                  )}
                   {booking.status === 3 && (
                     booking.isRated ? (
                       <button
@@ -328,13 +345,9 @@ function BookingHistory({ accountId }) {
               <button
                 className="px-6 py-3 w-full bg-amber-400 text-neutral-800 rounded-full hover:bg-amber-300 transition duration-200"
                 onClick={() => handleCancelBooking(selectedBookingId)}
-                disabled={loadingCancel}
+                disabled={isLoadingCancel}
               >
-                {loadingCancel ? (
-                  <CircularProgress size={20} style={{ color: 'white' }} />
-                ) : (
-                  "Xác nhận hủy"
-                )}
+                {isLoadingCancel ? "Đang hủy..." : "Xác nhận hủy"}
               </button>
             </div>
           </div>
@@ -435,7 +448,7 @@ function BookingHistory({ accountId }) {
               </button>
               <button
                 className="px-6 py-2 bg-amber-400 w-[140px] text-black rounded-full hover:bg-amber-500 ml-6"
-                onClick={handleSubmitRating} // Gửi đánh giá
+                onClick={handleSubmitRating} // Gửi ánh giá
                 disabled={loadingRating}
               >
                 {loadingRating ? (
@@ -448,6 +461,9 @@ function BookingHistory({ accountId }) {
           </div>
         </div>
       )}
+
+      {/* Thêm LoadingSpinner component */}
+      <LoadingSpinner open={isLoadingCancel} />
     </section>
   );
 }
@@ -521,36 +537,11 @@ function getTimeAgo(createAt) {
   }
 }
 
-// Check if the booking can be canceled (before 2 hours)
-function canCancelBooking(bookingDate, bookingTime) {
-  const now = new Date(); // Current time in local time zone
-
-  // Extract the date part of bookingDate (ignoring the time and timezone)
-  const datePart = bookingDate.split("T")[0]; // YYYY-MM-DD
-
-  // Combine the date part with bookingTime in a valid format
-  const bookingDateTimeStr = `${datePart}T${bookingTime}`; // Combine date and time
-
-  // Parse the combined string into a valid Date object
-  const bookingDateTime = new Date(bookingDateTimeStr);
-
-  if (isNaN(bookingDateTime.getTime())) {
-    console.error("Invalid booking date and time:", bookingDateTimeStr);
-    return false; // Fail gracefully if the date is invalid
-  }
-
-  // Calculate the deadline to cancel (2 hours before booking time)
-  const cancelDeadline = addHours(bookingDateTime, -2); // 2 hours before booking
-
-  return isBefore(now, cancelDeadline);
-}
-
-
 // Check if the booking can be reviewed (within 14 days after the booking date)
 function canReviewBooking(bookingDate) {
   const now = new Date();
   const bookingDateTime = new Date(bookingDate);
-  const reviewDeadline = addDays(bookingDateTime, 14); // 14 days after the booking date
+  const reviewDeadline = addHours(bookingDateTime, 14); // 14 days after the booking date
   return isBefore(now, reviewDeadline);
 }
 

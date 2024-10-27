@@ -5,12 +5,11 @@ import PopupConfirmDelete from 'src/components/popupConfirm/popupCfDelete';
 import { useNavigate } from 'react-router-dom';
 import { getAllDrinkCate, getOneDrinkCate } from 'src/lib/service/drinkCateService';
 import { CircularProgress } from '@mui/material';
-import { Add } from '@mui/icons-material';
-import { Info, Edit, Delete } from '@mui/icons-material';
+import { Add, Info, Edit, Delete } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 
 const CategoryCard = ({ id, type, description, setLoading, refreshList }) => {
-    const redirect = useNavigate();
+    const navigate = useNavigate();
     const [isPopupUpdate, setIsPopupUpdate] = useState(false);
     const [isPopupDelete, setIsPopupDelete] = useState(false);
 
@@ -28,6 +27,14 @@ const CategoryCard = ({ id, type, description, setLoading, refreshList }) => {
         refreshList();
     };
 
+    const handleInfoClick = () => {
+        navigate(`/admin/managerDrinkCategory/managerDrink/${id}`);
+    };
+
+    const handleAddDrinkClick = () => {
+        navigate(`/admin/managerDrink/addDrink?cateId=${id}`);
+    };
+
     return (
         <div className="flex flex-col p-4 w-full rounded-xl bg-neutral-200 bg-opacity-50 transition-all duration-300 hover:shadow-lg">
             <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
@@ -36,14 +43,17 @@ const CategoryCard = ({ id, type, description, setLoading, refreshList }) => {
                     <span className="text-lg break-words">{type}</span>
                 </div>
 
-                <div className="flex gap-2 flex-shrink-0">
-                    <button onClick={() => redirect(`/admin/managerDrinkCategory/managerDrink?cateId=${id}`)} className="p-1 hover:bg-gray-200 rounded-full transition-colors duration-200">
+                <div className="flex gap-2 flex-shrink-0 items-center">
+                    <button onClick={handleInfoClick} className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 flex items-center justify-center">
                         <Info className="w-5 h-5 text-gray-600" />
                     </button>
-                    <button onClick={handleEditClick} className="p-1 hover:bg-gray-200 rounded-full transition-colors duration-200">
+                    <button onClick={handleAddDrinkClick} className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 flex items-center justify-center">
+                        <Add className="w-5 h-5 text-gray-600" />
+                    </button>
+                    <button onClick={handleEditClick} className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 flex items-center justify-center">
                         <Edit className="w-5 h-5 text-gray-600" />
                     </button>
-                    <button onClick={() => setIsPopupDelete(true)} className="p-1 hover:bg-gray-200 rounded-full transition-colors duration-200">
+                    <button onClick={() => setIsPopupDelete(true)} className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 flex items-center justify-center">
                         <Delete className="w-5 h-5 text-gray-600" />
                     </button>
                 </div>

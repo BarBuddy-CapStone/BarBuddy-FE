@@ -1,29 +1,30 @@
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, TextField, Select, MenuItem, FormControl, InputLabel, FormHelperText, Chip, Button, InputAdornment, Checkbox } from "@mui/material";
 import React, { Fragment, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Notification } from "src/components";
 import { getAllBar } from "src/lib/service/barManagerService";
 import { getAllDrinkCate } from "src/lib/service/drinkCateService";
 import { getAllEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
 import { getOneDrink, updateDrink } from "src/lib/service/managerDrinksService";
+import { ChevronLeft } from '@mui/icons-material';
 
-const InputField = ({ label, value, onChange, name, type, errorMessage }) => (
-    <div className="flex flex-col">
-        <label className="text-base font-bold mb-2">{label}</label>
-        <div className="flex justify-between items-center px-3 py-3.5 text-sm rounded border border-solid border-stone-300">
-            <input
-                required
-                type={type}
-                value={value}
-                name={name}
-                onChange={onChange}
-                className="flex-grow border-none outline-none h-5 px-2"
-            />
-        </div>
-        {errorMessage && <span className="text-red-500 text-sm mt-1">{errorMessage}</span>}
-    </div>
+const InputField = ({ label, value, onChange, name, type, errorMessage, multiline, rows }) => (
+    <TextField
+        fullWidth
+        label={label}
+        variant="outlined"
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        error={!!errorMessage}
+        helperText={errorMessage}
+        margin="normal"
+        multiline={multiline}
+        rows={rows}
+    />
 );
 
 const ImageGallery = ({ images, onDelete }) => {
@@ -80,7 +81,40 @@ const DropzoneComponent = ({ onDrop }) => {
     );
 };
 
+const PriceInput = ({ value, onChange, error }) => {
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price);
+    };
+
+    const handleChange = (e) => {
+        const input = e.target.value.replace(/[^\d]/g, '');
+        onChange(input);
+    };
+
+    return (
+        <TextField
+            fullWidth
+            label="Giá tiền"
+            variant="outlined"
+            value={formatPrice(value)}
+            onChange={handleChange}
+            error={!!error}
+            helperText={error}
+            InputProps={{
+                inputMode: 'numeric',
+                pattern: '[0-9]*',
+            }}
+            margin="normal"
+        />
+    );
+};
+
 function DrinkDetail() {
+    const { drinkId } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const [cateId, setCateId] = useState(null);
 
     const [isOpen, setIsOpen] = useState(false);
     const [isPopupConfirm, setIsPopupConfirm] = useState(false)
@@ -93,6 +127,9 @@ function DrinkDetail() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
     const [emotionChecked, setEmotionChecked] = useState([]);
+    const [emotions, setEmotions] = useState([]);
+    const [selectedEmotion, setSelectedEmotion] = useState('');
+    const [showEmotionSelect, setShowEmotionSelect] = useState(false);
 
     const [formData, setFormData] = useState({
         drinkName: '',
@@ -105,9 +142,11 @@ function DrinkDetail() {
         images: []
     });
 
-    const redirect = useNavigate()
-    const searchParams = new URLSearchParams(location.search);
-    const drinkId = searchParams.get('drinkId');
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const id = searchParams.get('cateId');
+        setCateId(id);
+    }, [location]);
 
     const handleStatusChange = (value) => {
         setFormData((prevData) => ({
@@ -119,7 +158,6 @@ function DrinkDetail() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        console.log(`Updating ${name} with value:`, value); // Thêm log này
         setFormData((prevData) => ({
             ...prevData,
             [name]: value,
@@ -129,18 +167,20 @@ function DrinkDetail() {
     const handleSaveEmotions = (checkedEmotions) => {
         setEmotionChecked(checkedEmotions);
     };
+
     const options = [
         {
             value: true,
-            label: "Active",
+            label: "Hoạt Động",
             icon: "https://img.icons8.com/?size=100&id=60362&format=png&color=4ECB71"
         },
         {
             value: false,
-            label: "Inactive",
+            label: "Không Hoạt Động",
             icon: "https://img.icons8.com/?size=100&id=60362&format=png&color=FF0000"
         }
     ];
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -154,13 +194,14 @@ function DrinkDetail() {
                 setDataBar(dataBar.data.data);
                 setDataDrinkCate(dataDrinkCate.data.data);
                 setDataDrink(drinkData);
+                setEmotions(dataEmosCate.data.data);
 
                 setFormData({
                     drinkName: drinkData.drinkName,
                     drinkCategoryId: drinkData.drinkCategoryResponse.drinksCategoryId || '',
                     barId: dataBar.data.data.find(bar => bar.barName === drinkData.barName)?.barId || '',
                     description: drinkData.description,
-                    price: drinkData.price,
+                    price: drinkData.price.toString(),
                     status: drinkData.status,
                 });
                 if (drinkData.images) {
@@ -175,7 +216,9 @@ function DrinkDetail() {
                     })));
                 }
 
-                console.log("drinkData", drinkData)
+                // Lấy cateId từ drinkData
+                const categoryId = drinkData.drinkCategoryResponse.drinksCategoryId;
+                setCateId(categoryId);
 
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -184,124 +227,6 @@ function DrinkDetail() {
 
         fetchData();
     }, [drinkId]);
-
-
-    useEffect(() => {
-        if (uploadedImages.length > 0) {
-            setFormData((prevData) => ({
-                ...prevData,
-                images: uploadedImages.map(image => image.file)
-            }));
-        }
-    }, [uploadedImages]);
-
-    const EmotionPopup = ({ onClose, onSave, initialCheckedEmotions }) => {
-        const [emotions, setEmotions] = useState(() => {
-            return (Array.isArray(dataEmoCate) ? dataEmoCate : []).map(emotion => ({
-                ...emotion,
-                checked: initialCheckedEmotions.some(e => e.emotionalDrinksCategoryId === emotion.emotionalDrinksCategoryId),
-            }));
-        });
-
-        const handleCheckboxChange = (index) => {
-            setEmotions((prevEmotions) =>
-                prevEmotions.map((emotion, i) => {
-                    if (i === index) {
-                        return { ...emotion, checked: !emotion.checked };
-                    }
-                    return emotion;
-                })
-            );
-        };
-
-        const handleSave = () => {
-            const checkedEmotions = emotions
-                .filter((emotion) => emotion.checked)
-                .map((emotion) => ({
-                    categoryName: emotion.categoryName,
-                    emotionalDrinksCategoryId: emotion.emotionalDrinksCategoryId,
-                }));
-
-            onSave(checkedEmotions);
-            onClose();
-        };
-
-        return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
-                    <h2 className="text-lg text-center font-semibold mb-4 border-b border-yellow-500 pb-2">Danh sách cảm xúc</h2>
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="border-b">
-                                <th className="px-2 py-1"></th>
-                                <th className="px-2 py-1">STT</th>
-                                <th className="px-2 py-1">Cảm xúc</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Array.isArray(emotions) && emotions.length > 0 ? (
-                                emotions.map((emotion, index) => (
-                                    <tr
-                                        key={index}
-                                        className={`border-b ${emotion.checked ? 'bg-orange-100' : 'hover:bg-orange-100'} `}
-                                    >
-                                        <td className="px-2 py-2">
-                                            <input
-                                                type="checkbox"
-                                                className="form-checkbox"
-                                                checked={emotion.checked}
-                                                onChange={() => handleCheckboxChange(index)}
-                                            />
-                                        </td>
-                                        <td className="px-2 py-2">{index + 1}</td>
-                                        <td className="px-2 py-2">{emotion.categoryName}</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={3} className="text-center text-gray-500">No emotions available</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                    <div className="mt-4 flex justify-evenly">
-                        <button
-                            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-blue-700"
-                            onClick={onClose}
-                        >
-                            Hủy
-                        </button>
-                        <button
-                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                            onClick={handleSave}
-                        >
-                            Lưu
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    const handleTestClick = () => {
-        setShowPopup(true);
-    };
-
-    const handleClosePopup = () => {
-        setShowPopup(false);
-    };
-
-    const validateForm = () => {
-        let newErrors = {};
-        console.log("Validating form. drinkCategoryId:", formData.drinkCategoryId); // Thêm log này
-        if (!formData.drinkName) newErrors.drinkName = 'Tên đồ uống không được để trống';
-        if (!formData.price) newErrors.price = 'Giá không được để trống';
-        if (!formData.description) newErrors.description = 'Mô tả không được để trống';
-        if (!formData.drinkCategoryId) newErrors.drinkCategoryId = 'Vui lòng chọn loại đồ uống';
-        if (emotionChecked.length === 0) newErrors.emotion = 'Cảm xúc không chưa được thêm';
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
 
     const onDrop = (acceptedFiles) => {
         const newImages = acceptedFiles.map(file => ({
@@ -324,12 +249,11 @@ function DrinkDetail() {
         setIsPopupConfirm(false);
     };
 
-
     const handleUpdateConfirm = async (event) => {
         event.preventDefault();
 
         if (!validateForm()) {
-            console.log("Form validation failed"); // Thêm log này
+            console.log("Form validation failed");
             setIsPopupConfirm(false);
             return;
         }
@@ -381,59 +305,113 @@ function DrinkDetail() {
         }
     }
 
+    const handleGoBack = () => {
+        if (cateId) {
+            navigate(`/admin/managerDrinkCategory/managerDrink/${cateId}`);
+        } else {
+            // Fallback nếu không có cateId
+            navigate('/admin/managerDrinkCategory');
+        }
+    };
+
+    const validateForm = () => {
+        let newErrors = {};
+        if (!formData.drinkName) newErrors.drinkName = 'Tên đồ uống không được để trống';
+        if (!formData.price) newErrors.price = 'Giá không được để trống';
+        if (!formData.description) newErrors.description = 'Mô tả không được để trống';
+        if (!formData.drinkCategoryId) newErrors.drinkCategoryId = 'Vui lòng chọn loại đồ uống';
+        if (emotionChecked.length === 0) newErrors.emotion = 'Cảm xúc chưa được thêm';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleShowEmotionSelect = () => {
+        setShowEmotionSelect(true);
+    };
+
+    const handleHideEmotionSelect = () => {
+        setShowEmotionSelect(false);
+        setSelectedEmotion('');
+    };
+
+    const handleEmotionChange = (event) => {
+        const selectedEmotionId = event.target.value;
+        const selectedEmotion = emotions.find(emotion => emotion.emotionalDrinksCategoryId === selectedEmotionId);
+        if (selectedEmotion && !emotionChecked.some(e => e.emotionalDrinksCategoryId === selectedEmotionId)) {
+            setEmotionChecked(prev => [...prev, selectedEmotion]);
+            setSelectedEmotion('');
+        }
+    };
+
+    const handleDeleteEmotion = (emotionToDelete) => {
+        setEmotionChecked(prev => prev.filter(emotion => emotion.emotionalDrinksCategoryId !== emotionToDelete.emotionalDrinksCategoryId));
+    };
+
+    // Lọc ra các cảm xúc chưa được chọn để hiển thị trong dropdown
+    const availableEmotions = emotions.filter(emotion => 
+        !emotionChecked.some(checked => checked.emotionalDrinksCategoryId === emotion.emotionalDrinksCategoryId)
+    );
+
     return (
-        <main className="flex flex-col items-start p-8 bg-white">
+        <main className="flex flex-col items-start p-8 bg-white w-full">
             {isLoading && (
                 <div className="absolute inset-0 flex justify-center items-center bg-gray-500 bg-opacity-50 backdrop-blur-sm z-50">
                     <CircularProgress />
                     <p className="text-xl font-semibold ml-4">Đang xử lý...</p>
                 </div>
             )}
-            <header className="flex justify-between items-center w-full">
-                <h1 className="self-start text-xl font-bold leading-snug text-zinc-600">Thông tin đồ uống</h1>
+            <header className="flex justify-between items-center w-full mb-6">
                 <div className="flex items-center">
-                    <div className="items-center px-4 py-1 rounded-md border-2 border-solid border-neutral-200 relative">
-                        <div className="w-[100%] inline-flex">
+                    <button
+                        onClick={handleGoBack}
+                        className="mr-4 p-2 rounded-full hover:bg-gray-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    >
+                        <ChevronLeft className="text-gray-600 hover:text-gray-800 transition-colors duration-300" />
+                    </button>
+                    <h1 className="text-2xl font-bold text-zinc-600">Cập Nhật Đồ Uống</h1>
+                </div>
+                <div className="flex items-center">
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                        >
                             <img
-                                loading="lazy"
                                 src={options.find(option => option.value === formData.status)?.icon || 'default-icon-url-here'}
                                 alt=""
-                                className="object-contain aspect-square w-[25px] mr-2"
+                                className="w-5 h-5 mr-2"
                             />
-                            <button
-                                onClick={() => setIsOpen(!isOpen)}
-                                className="px-2 py-1 border border-none rounded-md outline-none bg-white flex items-center w-full"
-                            >
-                                {options.find(option => option.value === formData.status)?.label}
-                                <img
-                                    className='w-[18px] h-[20px] ml-2 mt-[4px]'
-                                    src={isOpen
-                                        ? 'https://img.icons8.com/?size=100&id=p4GKpK6kR11d&format=png&color=000000'
-                                        : 'https://img.icons8.com/?size=100&id=wWIe68VyU6Qt&format=png&color=000000'}
-                                    alt=""
-                                />
-                            </button>
-                            {isOpen && (
-                                <div className="absolute left-0 mt-12 bg-white border border-gray-300 rounded-md shadow-lg z-10 w-full">
+                            <span className="mr-2">{options.find(option => option.value === formData.status)?.label}</span>
+                            <svg className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                        {isOpen && (
+                            <div className="absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 transition-all duration-200 ease-in-out overflow-hidden">
+                                <div className="py-1 max-h-60 overflow-y-auto" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
                                     {options
                                         .filter(option => option.value !== formData.status)
                                         .map(option => (
-                                            <div
+                                            <button
                                                 key={option.value}
-                                                onClick={() => handleStatusChange(option.value)}
-                                                className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                                onClick={() => {
+                                                    handleStatusChange(option.value);
+                                                    setIsOpen(false);
+                                                }}
+                                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition duration-150 ease-in-out"
+                                                role="menuitem"
                                             >
                                                 <img
-                                                    src={option?.icon}
-                                                    alt={option?.label}
-                                                    className="object-contain aspect-square w-[20px] mr-2"
+                                                    src={option.icon}
+                                                    alt={option.label}
+                                                    className="w-5 h-5 mr-2"
                                                 />
-                                                <span>{option.label}</span>
-                                            </div>
+                                                {option.label}
+                                            </button>
                                         ))}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>
@@ -441,100 +419,148 @@ function DrinkDetail() {
             <section className="flex flex-col items-start self-stretch mt-3 w-full text-zinc-600">
                 <div className="shrink-0 max-w-full h-px bg-orange-400 border border-orange-400 border-solid w-full" />
 
-                <div className="grid grid-cols-2 gap-6 mt-8 w-full max-w-[960px]">
+                <h2 className="text-xl font-bold mt-6 mb-4">Thông tin thức uống</h2>
 
-                    <InputField errorMessage={errors.drinkName} name="drinkName" label="Tên nước" type="text" value={formData.drinkName} onChange={handleInputChange} />
-                    <InputField errorMessage={errors.price} name="price" label="Giá tiền" type="number" value={formData.price} onChange={handleInputChange} />
+                <div className="grid grid-cols-2 gap-6 mt-2 w-full max-w-[960px]">
+                    <InputField 
+                        errorMessage={errors.drinkName} 
+                        name="drinkName" 
+                        label="Tên nước" 
+                        type="text" 
+                        value={formData.drinkName} 
+                        onChange={handleInputChange} 
+                    />
+                    <PriceInput
+                        value={formData.price}
+                        onChange={(value) => setFormData(prev => ({ ...prev, price: value }))}
+                        error={errors.price}
+                    />
 
-                    <div className="flex flex-col">
-                        <label className="text-base font-bold mb-2 ">Loại đồ uống</label>
-                        <div className="flex justify-between items-center px-3 py-3.5 text-sm rounded border border-solid border-stone-300">
-                            <select
-                                name="drinkCategoryId"
-                                value={formData.drinkCategoryId || ''} // Thêm || '' để đảm bảo giá trị không bao giờ là undefined
-                                onChange={handleInputChange}
-                                className="flex-grow border-none outline-none h-5 px-2 w-[50%]"
-                            >
-                                <option value="" disabled>Chọn loại đồ uống</option>
-                                {Array.isArray(dataDrinkCate) && dataDrinkCate.length > 0 ? (
-                                    dataDrinkCate.map((option, index) => (
-                                        <option key={index} value={option.drinksCategoryId}>
-                                            {option.description}
-                                        </option>
-                                    ))
-                                ) : (
-                                    <option>No category drink available</option>
-                                )}
-                            </select>
-                        </div>
-                        {errors.drinkCategoryId && <span className="text-red-500 text-sm mt-1">{errors.drinkCategoryId}</span>}
-                    </div>
-
-                    <div className="flex flex-col">
-                        <label className="text-base font-bold">Mô tả</label>
-                        <InputField
-                            errorMessage={errors.description}
-                            name="description"
-                            id="description"
-                            value={formData.description}
+                    <FormControl fullWidth error={!!errors.drinkCategoryId} margin="normal">
+                        <InputLabel id="drink-category-label">Loại đồ uống</InputLabel>
+                        <Select
+                            labelId="drink-category-label"
+                            id="drink-category-select"
+                            name="drinkCategoryId"
+                            value={formData.drinkCategoryId}
                             onChange={handleInputChange}
-                            className="p-4 text-sm rounded border border-solid border-stone-300 h-40 overflow-y-auto w-[85%]"
-                        />
-                    </div>
+                            label="Loại đồ uống"
+                        >
+                            <MenuItem value="" disabled>Chọn loại đồ uống</MenuItem>
+                            {Array.isArray(dataDrinkCate) && dataDrinkCate.length > 0 ? (
+                                dataDrinkCate.map((option) => (
+                                    <MenuItem key={option.drinksCategoryId} value={option.drinksCategoryId}>
+                                        {option.drinksCategoryName}
+                                    </MenuItem>
+                                ))
+                            ) : (
+                                <MenuItem value="">No category drink available</MenuItem>
+                            )}
+                        </Select>
+                        {errors.drinkCategoryId && <FormHelperText>{errors.drinkCategoryId}</FormHelperText>}
+                    </FormControl>
+
+                    <InputField
+                        errorMessage={errors.description}
+                        name="description"
+                        label="Mô tả"
+                        type="text"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        multiline
+                        rows={4}
+                    />
                 </div>
 
-                <div className="mt-8">
-                    <label htmlFor="description" className="block text-base font-bold mb-2">
-                        Cảm xúc
-                    </label>
-                    <div className="flex flex-col gap-4 mt-4">
-                        <div className="flex gap-4">
-                            {emotionChecked.length > 0 && (
-                                <div className="flex gap-2 items-center">
-                                    {emotionChecked.map((emotion, index) => (
-                                        <button
-                                            onClick={handleTestClick}
-                                            className={`px-4 py-2.5 text-sm font-bold whitespace-nowrap rounded-md border-2 border-solid border-neutral-200`}
-                                        >
-                                            {emotion.categoryName}{index < emotionChecked.length - 1}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                            <button
-                                onClick={handleTestClick}
-                                className={`px-4 py-2.5 text-sm font-bold whitespace-nowrap rounded-md border-2 border-solid border-neutral-200 text-orange-600`}
+                <hr className="w-full border-t border-gray-300 my-6" />
+
+                <h2 className="text-xl font-bold mb-4">Cảm xúc</h2>
+
+                <div className="w-full max-w-[960px]">
+                    {availableEmotions.length > 0 ? (
+                        !showEmotionSelect ? (
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={handleShowEmotionSelect}
+                                className="mt-2"
                             >
-                                {emotionChecked.length > 0 ? "Chỉnh sửa" : "Thêm"}
-                            </button>
+                                Thêm cảm xúc
+                            </Button>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <FormControl style={{ minWidth: 200 }}>
+                                    <InputLabel id="emotion-select-label">Chọn cảm xúc</InputLabel>
+                                    <Select
+                                        labelId="emotion-select-label"
+                                        id="emotion-select"
+                                        value={selectedEmotion}
+                                        onChange={handleEmotionChange}
+                                        label="Chọn cảm xúc"
+                                    >
+                                        {availableEmotions.map((emotion) => (
+                                            <MenuItem key={emotion.emotionalDrinksCategoryId} value={emotion.emotionalDrinksCategoryId}>
+                                                {emotion.categoryName}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                                <Button
+                                    variant="outlined"
+                                    style={{ 
+                                        color: '#d32f2f', 
+                                        borderColor: '#d32f2f',
+                                        height: '56px',
+                                    }}
+                                    onClick={handleHideEmotionSelect}
+                                >
+                                    Hủy
+                                </Button>
+                            </div>
+                        )
+                    ) : (
+                        <p className="text-green-600 font-semibold">Tất cả cảm xúc đã được chọn</p>
+                    )}
 
-                            {showPopup && (
-                                <EmotionPopup
-                                    onClose={handleClosePopup}
-                                    onSave={handleSaveEmotions}
-                                    initialCheckedEmotions={emotionChecked}
-                                />
-                            )}
-                        </div>                        
-                        {emotionChecked.length === 0 && <p className="text-red-500 text-sm mt-1">{errors.emotion}</p>}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        {emotionChecked.map((emotion) => (
+                            <Chip
+                                key={emotion.emotionalDrinksCategoryId}
+                                label={emotion.categoryName}
+                                onDelete={() => handleDeleteEmotion(emotion)}
+                                color="primary"
+                                variant="outlined"
+                            />
+                        ))}
                     </div>
+                    {emotionChecked.length === 0 && <p className="text-red-500 text-sm mt-1">{errors.emotion}</p>}
                 </div>
-                <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/013784721bbb86b82d66b83d6b3f93365b12b768110ceb6a6a559c5674645320?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f" alt="" className="object-contain self-end mt-4 w-5 aspect-square" />
+
+                <hr className="w-full border-t border-gray-300 my-6" />
+
+                <h2 className="text-xl font-bold mb-4">Hình ảnh</h2>
+
+                <div className="w-full max-w-[960px]">
+                    <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-full">
+                        <DropzoneComponent onDrop={onDrop} />
+                    </div>
+                    <ImageGallery images={uploadedImages} onDelete={handleDelete} />
+                </div>
             </section>
 
-            <section className="flex flex-col items-start w-full max-w-[913px]">
-                <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-[105%]">
-                    <DropzoneComponent onDrop={onDrop} />
-                </div>
-                <ImageGallery images={uploadedImages} onDelete={handleDelete} />
-                <button onClick={PopupConfirmUpdate} className="px-16 py-2.5 mt-5 text-base font-bold text-center text-white whitespace-nowrap bg-orange-600 rounded w-[105%]">
+            <div className="w-full mt-5">
+                <button 
+                    onClick={PopupConfirmUpdate} 
+                    className="w-full px-16 py-2.5 text-base font-bold text-center text-white whitespace-nowrap bg-orange-600 rounded hover:bg-orange-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50"
+                >
                     Lưu
                 </button>
-                {isPopupConfirm &&
-                    <Notification
-                        onCancel={PopupConfirmCancel} onConfirm={handleUpdateConfirm} />
-                }
-            </section>
+            </div>
+
+            {isPopupConfirm &&
+                <Notification
+                    onCancel={PopupConfirmCancel} onConfirm={handleUpdateConfirm} />
+            }
         </main>
     );
 }

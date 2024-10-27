@@ -23,8 +23,8 @@ import CustomerCreation from "./pages/admin/customerManager/CustomerCreation";
 import CustomerDetail from "./pages/admin/customerManager/CustomerDetail";
 import BookingList from "./pages/staff/table-registration/BookingList";
 import BarManagement from "./pages/admin/barManager/BarManagement";
-import BarBuddyProfile from "./pages/admin/barManager/BarProfile";
-import DrinkCategories from "./pages/admin/managerDrinkCate/ManagerDrink";
+import BarProfile from "./pages/admin/barManager/BarProfile";
+import DrinkCategories from "./pages/admin/managerDrinkCate/DrinkCategories";
 import ManagerDrink from "./pages/admin/ManagerDrinkBasedCate/ManagerDrink";
 import DrinkDetail from "./pages/admin/ManagerDrinkBasedCate/DrinkDetail";
 import ManagerDrinkBasedEmotional from "./pages/admin/ManagerDrinkBasedCate/ManagerDrinkBasedEmotion";
@@ -55,6 +55,7 @@ import Error from "./pages/(auth)/paymentStatus/Error";
 import EventManagement from "./pages/admin/event-management/EventManagement";
 import AddEvent from "./pages/admin/event-management/AddEvent";
 
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -69,18 +70,18 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="admin/table-type-management" element={<TableTypeManagement />}/> 
             <Route path="admin/payment-history" element={<PaymentHistoryAdmin />}/> 
             <Route path="admin/customers" element={<CustomerManagement />}/> 
-            <Route path="admin/customer-creation" element={<CustomerCreation />}/> 
+            <Route path="admin/customer-creation/:id" element={<CustomerCreation />}/> 
             <Route path="admin/customer-detail" element={<CustomerDetail />}/> 
             <Route path="admin/staff" element={<StaffManagement />}/> 
             <Route path="admin/staff-creation" element={<StaffCreation />}/> 
-            <Route path="admin/staff-detail" element={<StaffDetail />}/> 
+            <Route path="admin/staff-detail/:id" element={<StaffDetail />}/> 
             <Route path="admin/barmanager" element={<BarManagement />}/> 
-            <Route path="admin/barProfile" element={<BarBuddyProfile />}/> 
+            <Route path="admin/barProfile/:barId" element={<BarProfile />}/> 
             <Route path="admin/addBar" element={<AddBar />}/> 
-            <Route path="admin/managerDrinkCategory" element={<DrinkCategories />}/> 
-            <Route path="admin/managerDrinkCategory/managerDrink" element={<ManagerDrink />}/> 
-            <Route path="admin/managerDrink/DrinkDetail" element={<DrinkDetail />}/> 
-            <Route path="admin/managerDrink/addDrink" element={<AddDrink />}/> 
+            <Route path="admin/managerDrinkCategory" element={<DrinkCategories />}/>
+            <Route path="admin/managerDrinkCategory/managerDrink/:cateId" element={<ManagerDrink />}/>
+            <Route path="admin/managerDrink/DrinkDetail/:drinkId" element={<DrinkDetail />}/>
+            <Route path="admin/managerDrink/addDrink" element={<AddDrink />}/>
             <Route path="admin/emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}/> 
             <Route path="admin/event-management" element={<EventManagement />}/>
             <Route path="admin/event-management/add-event" element={<AddEvent />} />

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import TableTypeService from '../../../lib/service/tableTypeService';
 import { toast } from 'react-toastify';
-import { CircularProgress } from "@mui/material"; // Import CircularProgress từ MUI
+import { CircularProgress, TextField, Button, InputAdornment } from "@mui/material"; // Import CircularProgress từ MUI
 import { Search, Add } from "@mui/icons-material"; // Thêm import Search từ MUI
 
 const TableTypeManagementAdmin = () => {
@@ -22,7 +22,7 @@ const TableTypeManagementAdmin = () => {
   }, [status]); 
 
   const fetchTableTypes = useCallback(async () => {
-    setLoading(true); // Bắt đầu loading
+    setLoading(true); // Bt đầu loading
     try {
       const response = await TableTypeService.getAllTableTypesAdmin({ Status: status });
       setTableTypes(response.data.data.map((tableType) => ({
@@ -58,7 +58,7 @@ const TableTypeManagementAdmin = () => {
         notify('Đã xóa loại bàn thành công');
         fetchTableTypes();
       } else if (response.status === 202) {
-        notify(response.data.message || 'Vẫn còn bàn đang hoạt động thuộc loại bàn này, vui lòng cập nhật lại trước khi xóa.', 'warning');
+        notify(response.data.message || 'Vn còn bàn đang hoạt động thuộc loại bàn này, vui lòng cập nhật lại trước khi xóa.', 'warning');
       } else {
         notify('Có lỗi xảy ra trong quá trình xóa loại bàn', 'error');
       }
@@ -108,6 +108,7 @@ const TableTypeManagementAdmin = () => {
       onStatusChange={handleStatusChange} 
     />
     <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
+      <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">Danh Sách Loại Bàn</h2>
       {loading ? ( // Kiểm tra nếu đang loading
         <div className="flex justify-center items-center h-32">
           <CircularProgress /> {/* Hiển thị spinner */}
@@ -282,8 +283,18 @@ const TableTypeCard = ({ typeName, minimumPrice, minimumGuest, maximumGuest, des
       <div className="flex justify-between items-center w-full mb-4">
         <div className="text-lg font-bold text-black">{typeName}</div>
         <div className="flex gap-2.5">
-          <img loading="lazy" src={editIcon} alt="Edit" className="object-contain w-5 aspect-square cursor-pointer mt-1" onClick={onEdit} />
-          <img loading="lazy" src={deleteIcon} alt="Delete" className="object-contain w-5 aspect-square cursor-pointer mt-1" onClick={onDelete} />
+          <button 
+            onClick={onEdit}
+            className="p-1 rounded-full hover:bg-gray-300 transition-colors duration-200"
+          >
+            <img loading="lazy" src={editIcon} alt="Edit" className="object-contain w-5 aspect-square cursor-pointer" />
+          </button>
+          <button 
+            onClick={onDelete}
+            className="p-1 rounded-full hover:bg-gray-300 transition-colors duration-200"
+          >
+            <img loading="lazy" src={deleteIcon} alt="Delete" className="object-contain w-5 aspect-square cursor-pointer" />
+          </button>
         </div>
       </div>
       <div className="flex flex-col gap-2 w-full">
@@ -353,13 +364,19 @@ DeleteTableTypePopup.propTypes = {
   tableType: PropTypes.object,
 };
 
-// AddTableTypePopup component  
+const formatCurrency = (value) => {
+  const number = parseFloat(value);
+  if (isNaN(number)) return '';
+  return number.toLocaleString('vi-VN');
+};
+
 const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigger, setResetFormTrigger }) => {
   const [typeName, setTypeName] = useState('');
   const [description, setDescription] = useState('');
   const [minimumGuest, setMinimumGuest] = useState('');
   const [maximumGuest, setMaximumGuest] = useState('');
   const [minimumPrice, setMinimumPrice] = useState('');
+  const [minimumPriceDisplay, setMinimumPriceDisplay] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -370,10 +387,17 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
       setMinimumGuest('');
       setMaximumGuest('');
       setMinimumPrice('');
+      setMinimumPriceDisplay('');
       setErrors({});
       setResetFormTrigger(false);
     }
   }, [isOpen, resetFormTrigger]);
+
+  const handleMinimumPriceChange = (e) => {
+    const value = e.target.value.replace(/[^\d]/g, '');
+    setMinimumPrice(value);
+    setMinimumPriceDisplay(formatCurrency(value));
+  };
 
   const validateForm = () => {
     let formErrors = {};
@@ -417,71 +441,97 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
         <h2 className="text-2xl font-bold mb-4">Thêm loại bàn</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-700">Tên loại bàn</label>
-            <input
-              type="text"
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tên loại bàn</label>
+            <TextField
+              fullWidth
+              variant="outlined"
               value={typeName}
               onChange={(e) => setTypeName(e.target.value)}
-              className={`w-full px-3 py-2 border rounded ${errors.typeName ? 'border-red-500' : ''}`}
-              required
+              error={!!errors.typeName}
+              helperText={errors.typeName}
+              placeholder="Nhập tên loại bàn"
             />
-            {errors.typeName && <p className="text-red-500 text-xs mt-1">{errors.typeName}</p>}
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Mô tả loại bàn</label>
-            <textarea
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả loại bàn</label>
+            <TextField
+              fullWidth
+              variant="outlined"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className={`w-full px-3 py-2 border rounded ${errors.description ? 'border-red-500' : ''}`}
-              required
-            ></textarea>
-            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
+              error={!!errors.description}
+              helperText={errors.description}
+              multiline
+              rows={4}
+              placeholder="Nhập mô tả loại bàn"
+            />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Số lượng khách hàng tối thiểu</label>
-            <input
+            <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng khách hàng tối thiểu</label>
+            <TextField
+              fullWidth
+              variant="outlined"
               type="number"
               value={minimumGuest}
               onChange={(e) => setMinimumGuest(e.target.value)}
-              className={`w-full px-3 py-2 border rounded ${errors.guests ? 'border-red-500' : ''}`}
-              min="1"
-              max="99"
-              required
+              error={!!errors.guests}
+              helperText={errors.guests}
+              InputProps={{
+                inputProps: { min: 1, max: 99 },
+                endAdornment: <InputAdornment position="end">khách</InputAdornment>,
+              }}
+              placeholder="Nhập số lượng tối thiểu"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Số lượng khách hàng tối đa</label>
-            <input
+            <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng khách hàng tối đa</label>
+            <TextField
+              fullWidth
+              variant="outlined"
               type="number"
               value={maximumGuest}
               onChange={(e) => setMaximumGuest(e.target.value)}
-              className={`w-full px-3 py-2 border rounded ${errors.guests ? 'border-red-500' : ''}`}
-              min="1"
-              max="99"
-              required
+              error={!!errors.guests}
+              helperText={errors.guests}
+              InputProps={{
+                inputProps: { min: 1, max: 99 },
+                endAdornment: <InputAdornment position="end">khách</InputAdornment>,
+              }}
+              placeholder="Nhập số lượng tối đa"
             />
-            {errors.guests && <p className="text-red-500 text-xs mt-1">{errors.guests}</p>}
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Mức giá tối thiểu</label>
-            <input
-              type="number"
-              value={minimumPrice}
-              onChange={(e) => setMinimumPrice(e.target.value)}
-              className={`w-full px-3 py-2 border rounded ${errors.minimumPrice ? 'border-red-500' : ''}`}
-              min="0"
-              max="1000000000"
-              required
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mức giá tối thiểu</label>
+            <TextField
+              fullWidth
+              variant="outlined"
+              value={minimumPriceDisplay}
+              onChange={handleMinimumPriceChange}
+              error={!!errors.minimumPrice}
+              helperText={errors.minimumPrice}
+              InputProps={{
+                inputProps: { min: 0, max: 100000000 },
+                endAdornment: <InputAdornment position="end">VND</InputAdornment>,
+              }}
+              placeholder="Nhập mức giá tối thiểu"
             />
-            {errors.minimumPrice && <p className="text-red-500 text-xs mt-1">{errors.minimumPrice}</p>}
           </div>
           <div className="flex justify-between mt-6">
-            <button type="button" className="bg-gray-400 text-white py-3 w-64 rounded-full" onClick={onClose}>
-              Hủy bỏ
-            </button>
-            <button type="submit" className="bg-blue-600 text-white py-3 w-64 rounded-full flex items-center justify-center" disabled={isLoading}>
-              {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Thêm'}
-            </button>
+            <Button 
+              variant="contained" 
+              onClick={onClose}
+              style={{ backgroundColor: '#9e9e9e', color: 'white' }} // Màu xám cơ bản
+            >
+              Đóng
+            </Button>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? <CircularProgress size={24} /> : 'Thêm'}
+            </Button>
           </div>
         </form>
       </div>
@@ -504,6 +554,7 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
   const [minimumGuest, setMinimumGuest] = useState('');
   const [maximumGuest, setMaximumGuest] = useState('');
   const [minimumPrice, setMinimumPrice] = useState('');
+  const [minimumPriceDisplay, setMinimumPriceDisplay] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -513,10 +564,17 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
       setDescription(tableType.description);
       setMinimumGuest(tableType.minimumGuest);
       setMaximumGuest(tableType.maximumGuest);
-      setMinimumPrice(tableType.minimumPrice);
+      setMinimumPrice(tableType.minimumPrice.toString());
+      setMinimumPriceDisplay(formatCurrency(tableType.minimumPrice));
       setErrors({});
     }
   }, [tableType]);
+
+  const handleMinimumPriceChange = (e) => {
+    const value = e.target.value.replace(/[^\d]/g, '');
+    setMinimumPrice(value);
+    setMinimumPriceDisplay(formatCurrency(value));
+  };
 
   const validateForm = () => {
     let formErrors = {};
@@ -577,79 +635,97 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
         <h2 className="text-2xl font-bold mb-4">Chỉnh sửa loại bàn</h2>
         <form onSubmit={handleEditTableType}>
           <div className="mb-4">
-            <label className="block text-gray-700">Tên loại bàn</label>
-            <input
-              type="text"
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tên loại bàn</label>
+            <TextField
+              fullWidth
+              variant="outlined"
               value={typeName}
               onChange={(e) => setTypeName(e.target.value)}
-              className={`w-full px-3 py-2 border rounded ${errors.typeName ? 'border-red-500' : ''}`}
-              required
+              error={!!errors.typeName}
+              helperText={errors.typeName}
+              placeholder="Nhập tên loại bàn"
             />
-            {errors.typeName && <p className="text-red-500 text-xs mt-1">{errors.typeName}</p>}
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Mô tả loại bàn</label>
-            <textarea
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả loại bàn</label>
+            <TextField
+              fullWidth
+              variant="outlined"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className={`w-full px-3 py-2 border rounded ${errors.description ? 'border-red-500' : ''}`}
-              required
-            ></textarea>
-            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
+              error={!!errors.description}
+              helperText={errors.description}
+              multiline
+              rows={4}
+              placeholder="Nhập mô tả loại bàn"
+            />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Số lượng khách hàng tối thiểu</label>
-            <input
+            <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng khách hàng tối thiểu</label>
+            <TextField
+              fullWidth
+              variant="outlined"
               type="number"
               value={minimumGuest}
               onChange={(e) => setMinimumGuest(e.target.value)}
-              className={`w-full px-3 py-2 border rounded ${errors.guests ? 'border-red-500' : ''}`}
-              min="1"
-              max="99"
-              required
+              error={!!errors.guests}
+              helperText={errors.guests}
+              InputProps={{
+                inputProps: { min: 1, max: 99 },
+                endAdornment: <InputAdornment position="end">khách</InputAdornment>,
+              }}
+              placeholder="Nhập số lượng tối thiểu"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Số lượng khách hàng tối đa</label>
-            <input
+            <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng khách hàng tối đa</label>
+            <TextField
+              fullWidth
+              variant="outlined"
               type="number"
               value={maximumGuest}
               onChange={(e) => setMaximumGuest(e.target.value)}
-              className={`w-full px-3 py-2 border rounded ${errors.guests ? 'border-red-500' : ''}`}
-              min="1"
-              max="99"
-              required
+              error={!!errors.guests}
+              helperText={errors.guests}
+              InputProps={{
+                inputProps: { min: 1, max: 99 },
+                endAdornment: <InputAdornment position="end">khách</InputAdornment>,
+              }}
+              placeholder="Nhập số lượng tối đa"
             />
-            {errors.guests && <p className="text-red-500 text-xs mt-1">{errors.guests}</p>}
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Mức giá tối thiểu</label>
-            <input
-              type="number"
-              value={minimumPrice}
-              onChange={(e) => setMinimumPrice(e.target.value)}
-              className={`w-full px-3 py-2 border rounded ${errors.minimumPrice ? 'border-red-500' : ''}`}
-              min="0"
-              max="1000000000"
-              required
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mức giá tối thiểu</label>
+            <TextField
+              fullWidth
+              variant="outlined"
+              value={minimumPriceDisplay}
+              onChange={handleMinimumPriceChange}
+              error={!!errors.minimumPrice}
+              helperText={errors.minimumPrice}
+              InputProps={{
+                inputProps: { min: 0, max: 100000000 },
+                endAdornment: <InputAdornment position="end">VND</InputAdornment>,
+              }}
+              placeholder="Nhập mức giá tối thiểu"
             />
-            {errors.minimumPrice && <p className="text-red-500 text-xs mt-1">{errors.minimumPrice}</p>}
           </div>
           <div className="flex justify-between mt-6">
-            <button
-              type="button"
-              className="bg-gray-400 text-white py-3 w-64 rounded-full"
+            <Button 
+              variant="contained" 
               onClick={onClose}
+              style={{ backgroundColor: '#9e9e9e', color: 'white' }} // Màu xám cơ bản
             >
-              Hủy bỏ
-            </button>
-            <button
+              Đóng
+            </Button>
+            <Button 
+              variant="contained" 
+              color="primary" 
               type="submit"
-              className="bg-blue-600 text-white py-3 w-64 rounded-full flex items-center justify-center"
               disabled={isLoading}
             >
-              {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Lưu'}
-            </button>
+              {isLoading ? <CircularProgress size={24} /> : 'Lưu'}
+            </Button>
           </div>
         </form>
       </div>

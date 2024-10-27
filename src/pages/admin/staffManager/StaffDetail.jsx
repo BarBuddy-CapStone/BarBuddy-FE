@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom'; // Thay đổi useLocation thành useParams
 import { getStaffDetail, getBars, updateStaffDetail } from 'src/lib/service/adminService'; // Import API calls
 import { ToastContainer, toast } from 'react-toastify'; // Import Toastify
 import 'react-toastify/dist/ReactToastify.css'; // Import Toastify CSS
@@ -66,8 +66,7 @@ const Popup = ({ message, onConfirm, onCancel }) => (
 
 export default function StaffDetail() {
     const navigate = useNavigate();
-    const location = useLocation();
-    const accountId = new URLSearchParams(location.search).get('accountId');
+    const { id } = useParams(); // Sử dụng useParams để lấy id từ URL
     const [staffDetail, setStaffDetail] = useState(null);
     const [formData, setFormData] = useState({});
     const [bars, setBars] = useState([]);
@@ -75,12 +74,14 @@ export default function StaffDetail() {
     const [popupMessage, setPopupMessage] = useState("Bạn có chắc chắn muốn cập nhật thông tin?");
     const [errors, setErrors] = useState({}); // Thêm state để lưu trữ lỗi
     const { validateForm } = useValidateAccountForm();
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchStaffDetail = async () => {
+            setIsLoading(true);
             try {
-                const response = await getStaffDetail(accountId);
-                if (response.status === 200) {
+                const response = await getStaffDetail(id);
+                if (response.data.statusCode === 200) { // Kiểm tra statusCode
                     setStaffDetail(response.data.data);
                     setFormData({
                         email: response.data.data.email,
@@ -90,28 +91,39 @@ export default function StaffDetail() {
                         barId: response.data.data.barId,
                         status: response.data.data.status,
                     });
+                } else {
+                    toast.error("Không thể tải thông tin nhân viên");
                 }
             } catch (error) {
                 console.error("Failed to fetch staff detail:", error);
+                toast.error("Đã xảy ra lỗi khi tải thông tin nhân viên");
+            } finally {
+                setIsLoading(false);
             }
         };
 
         const fetchBars = async () => {
             try {
-                const response = await getBars(); // Gọi API lấy danh sách quán bar
-                if (response.status === 200) { // Cập nhật điều kiện kiểm tra
-                    setBars(response.data.data); // Cập nhật cách truy cập dữ liệu
+                const response = await getBars();
+                if (response.data.statusCode === 200) {
+                    setBars(response.data.data);
+                } else {
+                    toast.error("Không thể tải danh sách quán bar");
                 }
             } catch (error) {
                 console.error("Failed to fetch bars:", error);
+                toast.error("Đã xảy ra lỗi khi tải danh sách quán bar");
             }
         };
 
-        if (accountId) {
+        if (id) {
             fetchStaffDetail();
             fetchBars();
+        } else {
+            toast.error("Không tìm thấy ID nhân viên");
+            navigate("/admin/staff");
         }
-    }, [accountId]);
+    }, [id, navigate]);
 
     const handleBack = () => {
         navigate("/admin/staff");
@@ -136,8 +148,8 @@ export default function StaffDetail() {
                 barId: formData.barId,
                 status: formData.status === 1 ? 1 : 0
             };
-            const response = await updateStaffDetail(accountId, updatedData);
-            if (response.status === 200) {
+            const response = await updateStaffDetail(id, updatedData);
+            if (response.data.statusCode === 200) {
                 navigate("/admin/staff", { state: { successMessage: "Thông tin đã được cập nhật thành công!" } }); // Chuyển hướng về trang StaffManagement
             }
         } catch (error) {
@@ -154,7 +166,8 @@ export default function StaffDetail() {
         setFormData({ ...formData, status: formData.status === 1 ? 0 : 1 });
     };
 
-    if (!staffDetail) return <div>Loading...</div>;
+    if (isLoading) return <div>Đang tải...</div>;
+    if (!staffDetail) return <div>Không tìm thấy thông tin nhân viên</div>;
 
     return (
         <main className="flex flex-col px-4 md:px-8 lg:px-16 py-8 w-full max-w-7xl mx-auto">

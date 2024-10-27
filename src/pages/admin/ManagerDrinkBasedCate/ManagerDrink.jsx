@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { ChevronRight } from "@mui/icons-material";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Pagination } from "@mui/material";
-import { getDrinkBasedCate } from "src/lib/service/managerDrinksService";
+import { getDrinkBasedCateByID } from "src/lib/service/managerDrinksService";
 
 function Header({title, onFilterChange}) {
     const redirect = useNavigate();
@@ -10,9 +10,6 @@ function Header({title, onFilterChange}) {
         redirect("/admin/managerDrinkCategory")
     }
 
-    const AddDrinkBtn = () => {
-        redirect("/admin/managerDrink/addDrink")
-    }
     return (
         <header className="m-[0px] flex flex-wrap gap-5 justify-between items-center w-full text-black max-w-[1485px] mx-auto p-4 bg-gray-50 shadow-md">
             <div className="flex items-center justify-center gap-4 text-lg font-bold">
@@ -31,19 +28,10 @@ function Header({title, onFilterChange}) {
                     className="px-3 py-1 bg-white rounded-md border border-black shadow-sm text-sm transition-all duration-150 ease-in-out hover:bg-gray-100 active:bg-gray-200 focus:outline-none"
                     onChange={onFilterChange}
                 >
-                    <option value="ALL">Filter by ALL</option>
-                    <option value="Active">Filter by Active</option>
-                    <option value="Inactive">Filter by Inactive</option>
+                    <option value="ALL">Tất Cả</option>
+                    <option value="Active">Hoạt Động</option>
+                    <option value="Inactive">Không Hoạt Động</option>
                 </select>
-
-                <button onClick={AddDrinkBtn} className="flex items-center justify-center w-12 h-[45px] ml-[20px] bg-white rounded-md border border-black shadow-md">
-                    <img
-                        loading="lazy"
-                        src="https://img.icons8.com/?size=100&id=24717&format=png&color=000000"
-                        alt="Filter icon"
-                        className="object-contain w-[27px]"
-                    />
-                </button>
             </div>
         </header>
     );
@@ -51,18 +39,19 @@ function Header({title, onFilterChange}) {
 
 const TableHeader = () => {
     return (
-        <div className="grid grid-cols-8 gap-3 items-center py-4 px-10 text-sm font-bold text-black bg-neutral-200">
-            <div>Tên</div>
-            <div>Mô tả</div>
-            <div>Giá</div>
-            <div>Thời gian tạo</div>
-            <div>Thời gian cập nhật</div>
-            <div>Danh mục</div>
-            <div>Trạng thái</div>
-            <div></div>
+        <div className="grid grid-cols-9 gap-3 items-center py-4 px-10 text-sm font-bold text-black bg-neutral-200">
+            <div className="col-span-1">Tên</div>
+            <div className="col-span-2">Mô tả</div>
+            <div className="col-span-1">Giá</div>
+            <div className="col-span-1">Thời gian tạo</div>
+            <div className="col-span-1">Thời gian cập nhật</div>
+            <div className="col-span-1">Danh mục</div>
+            <div className="col-span-1 text-center">Trạng thái</div>
+            <div className="col-span-1"></div>
         </div>
     );
 }
+
 const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -70,6 +59,11 @@ const formatDate = (dateString) => {
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
 };
+
+const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+};
+
 const Item = ({
     drinkId,
     drinkName,
@@ -81,66 +75,66 @@ const Item = ({
     status,
     bgColor,
 }) => {
-
-    const redirect = useNavigate()
+    const navigate = useNavigate()
     const handleChevronClick = (drinkId) => {
-        redirect(`/admin/managerDrink/DrinkDetail?drinkId=${drinkId}`);
+        navigate(`/admin/managerDrink/DrinkDetail/${drinkId}`);
     }
     return (
         <div
-            className={`grid grid-cols-8 gap-3 py-3 px-10 items-center text-sm text-black ${bgColor}`}
+            className={`grid grid-cols-9 gap-3 py-3 px-10 items-center text-sm text-black ${bgColor}`}
         >
-            <div className="flex items-center">
-                {drinkName}
-            </div>
-            <div>{description}</div>
-            <div>
-                <span>{price}</span>
-            </div>
-            <div>{formatDate(createdDate)}</div>
-            <div>{formatDate(updatedDate)}</div>
-            <div>{drinksCategoryName}</div>
-            <div>
+            <div className="col-span-1 truncate">{drinkName}</div>
+            <div className="col-span-2 truncate">{description}</div>
+            <div className="col-span-1">{formatPrice(price)}</div>
+            <div className="col-span-1 whitespace-nowrap">{formatDate(createdDate)}</div>
+            <div className="col-span-1 whitespace-nowrap">{formatDate(updatedDate)}</div>
+            <div className="col-span-1 truncate">{drinksCategoryName}</div>
+            <div className="col-span-1 flex justify-center">
                 <span
-                    className={`flex justify-center items-center w-20 px-2 py-1 rounded-full text-white text-sm font-notoSansSC ${status === true ? "bg-green-500" : "bg-red-500"
-                        }`}
+                    className={`inline-block text-center px-2 py-1 rounded-full text-white text-xs ${
+                        status === true ? "bg-green-500" : "bg-red-500"
+                    }`}
                 >
-                    {status === true ? "Active" : "Inactive"}
+                    {status === true ? "Hoạt Động" : "Không Hoạt Động"}
                 </span>
             </div>
-            <div
-                className="justify-self-end cursor-pointer"
-                onClick={() => handleChevronClick(drinkId)}
-            >
-                <ChevronRight />
+            <div className="col-span-1 flex justify-end">
+                <button
+                    onClick={() => handleChevronClick(drinkId)}
+                    className="p-1 hover:bg-gray-200 rounded-full transition-colors duration-200"
+                >
+                    <ChevronRight />
+                </button>
             </div>
         </div>
     );
 }
 
-
 const ManagerDrink = () => {
-    const location = useLocation();
+    const { cateId } = useParams();
     const [dataDrink, setDataDrink] = useState([]);
-    const [filterStatus, setFilterStatus] = useState('ALL'); // Thêm state cho filter
+    const [filterStatus, setFilterStatus] = useState('ALL');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const searchParams = new URLSearchParams(location.search);
-        const cateId = searchParams.get('cateId');
-        
         const fetchApiDrink = async () => {
             try {
-                const response = await getDrinkBasedCate(cateId);
-                setDataDrink(response?.data?.data);
+                setLoading(true);
+                const response = await getDrinkBasedCateByID(cateId);
+                setDataDrink(response?.data?.data || []);
             } catch (error) {
                 console.error("Error fetching drinks:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchApiDrink();
-    }, [location?.search]);
+        if (cateId) {
+            fetchApiDrink();
+        }
+    }, [cateId]);
 
-    const headerTitle =  "Quay lại";
+    const headerTitle = "Quay lại";
 
     const handleFilterChange = (e) => {
         setFilterStatus(e.target.value);
@@ -157,24 +151,31 @@ const ManagerDrink = () => {
     return (
         <main className="flex overflow-hidden flex-col">
             <Header title={headerTitle} onFilterChange={handleFilterChange} />
-            <div className="pt-[40px]">
-                <table className="w-full text-xl text-black">
-                    <TableHeader />
-                    {Array.isArray(filteredDrinks) && filteredDrinks?.length > 0 ? (
-                        filteredDrinks.map((data, index) => (
-                            <Item
-                                key={index}
-                                {...data}
-                                drinksCategoryName={data?.drinkCategoryResponse?.drinksCategoryName}
-                                bgColor={index % 2 === 0 ? "bg-white" : "bg-stone-50"}
-                            />
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="5" className="text-center">Không có dữ liệu</td>
-                        </tr>
-                    )}
-                </table>
+            <div className="pt-[40px] flex flex-col items-center">
+                <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4">Danh Sách Thức Uống</h2>
+                {loading ? (
+                    <div className="text-center">Loading...</div>
+                ) : (
+                    <div className="w-full">
+                        <table className="w-full text-xl text-black">
+                            <TableHeader />
+                            {filteredDrinks.length > 0 ? (
+                                filteredDrinks.map((data, index) => (
+                                    <Item
+                                        key={index}
+                                        {...data}
+                                        drinksCategoryName={data?.drinkCategoryResponse?.drinksCategoryName}
+                                        bgColor={index % 2 === 0 ? "bg-white" : "bg-stone-50"}
+                                    />
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="9" className="text-center py-4">Không có dữ liệu</td>
+                                </tr>
+                            )}
+                        </table>
+                    </div>
+                )}
             </div>
             <div className="flex justify-end mt-6">
                 <Pagination count={5} size="small" shape="rounded" />

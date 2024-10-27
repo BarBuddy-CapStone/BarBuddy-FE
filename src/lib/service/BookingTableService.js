@@ -77,6 +77,16 @@ const releaseTable = async (token, data) => {
   return await axios.post(`api/bookingTable/releaseTable`, data, config);
 };
 
+const releaseTableList = async (token, data) => {
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  };
+  return await axios.post(`api/bookingTable/releaseListTable`, data, config);
+};
+
 const getAllHoldTable = async(barId, date, time) => {
   try {
     const response = await axios.get(`api/bookingTable/getHoldTable/${barId}`, {
@@ -100,4 +110,5 @@ const boookingtableNow = async (token, data) => {
   return await axios.post(`api/Booking/booking-table`, JSON.stringify(data), config);
 };
 
-export { filterBookingTable, boookingtableNow, holdTable, releaseTable, getAllHoldTable };
+
+export { filterBookingTable, boookingtableNow, holdTable, releaseTable, getAllHoldTable, releaseTableList };

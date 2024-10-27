@@ -9,20 +9,23 @@ import { CircularProgress } from '@mui/material';
 
 const SearchCustomerName = ({ onSearch }) => {
     const [searchTerm, setSearchTerm] = useState('');
-
     return (
-        <div className="flex items-center gap-3 bg-white rounded-md border border-gray-300 max-w-md">
-            <input
-                type="text"
-                className="flex-grow border-none px-1 py-1 text-black"
-                placeholder="Tìm theo tên khách hàng"
-                aria-label="Tìm theo tên khách hàng"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button className="w-10 h-10 bg-blue-600 flex items-center justify-center rounded-md" onClick={() => onSearch(searchTerm)}>
-                <SearchIcon />
-            </button>
+        <div className="flex items-center flex-1 min-w-0">
+            <div className="relative flex-1">
+                <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-l-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Tìm theo tên khách hàng"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button 
+                    className="absolute right-0 top-0 h-full px-4 bg-blue-600 text-white rounded-r-md transition duration-300 ease-in-out hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                    onClick={() => onSearch(searchTerm)}
+                >
+                    <SearchIcon />
+                </button>
+            </div>
         </div>
     );
 }
@@ -31,7 +34,7 @@ const AddCustomerButton = () => {
     const navigate = useNavigate();
     return (
         <button
-            className="overflow-hidden gap-2 self-stretch pr-6 pl-6 w-auto italic bg-blue-600 max-h-[60px] rounded-[50px] whitespace-nowrap"
+            className="px-6 py-2 bg-blue-600 text-white rounded-full font-medium transition duration-300 ease-in-out hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 whitespace-nowrap"
             onClick={() => navigate('/admin/customer-creation')}
         >
             Thêm khách hàng
@@ -40,8 +43,8 @@ const AddCustomerButton = () => {
 }
 
 const CustomerTableHeader = () => (
-    <thead className="bg-white border-t-2 border-x-2 border-gray-300">
-        <tr className="font-bold text-neutral-900 border-b-2">
+    <thead className="bg-white">
+        <tr className="font-bold text-neutral-900 border-y-2 border-x-2 border-gray-300">
             {["Họ và tên", "Ngày sinh", "Email", "Số điện thoại", "Ngày đăng ký", "Trạng thái", ""].map((header, index) => (
                 <th key={index} className="px-4 py-6 text-center">{header}</th>
             ))}
@@ -51,25 +54,15 @@ const CustomerTableHeader = () => (
 
 const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
     const rowClass = isEven ? "bg-white" : "bg-orange-50";
-    const statusClass = getStatusClass(customer.status); // Lấy lớp trạng thái từ hàm getStatusClass
+    const statusClass = getStatusClass(customer.status);
 
     return (
-        <tr className={`${rowClass} text-sm hover:bg-gray-100 transition duration-150 border-gray-300 border-x-2 border-b-2`}>
-            <td className="px-4 py-6 text-center align-middle">
-                {customer.fullname}
-            </td>
-            <td className="px-4 py-6 text-center align-middle">
-                {new Date(customer.dob).toLocaleDateString('vi-VN')}
-            </td>
-            <td className="px-4 py-6 text-center align-middle">
-                {customer.email}
-            </td>
-            <td className="px-4 py-6 text-center align-middle">
-                {customer.phone}
-            </td>
-            <td className="px-4 py-6 text-center align-middle">
-                {new Date(customer.createdAt).toLocaleDateString('vi-VN')}
-            </td>
+        <tr className={`text-sm hover:bg-gray-100 transition duration-150 border-y-2 border-x-2 border-gray-300 ${rowClass}`}>
+            <td className="px-4 py-6 text-center align-middle">{customer.fullname}</td>
+            <td className="px-4 py-6 text-center align-middle">{new Date(customer.dob).toLocaleDateString('vi-VN')}</td>
+            <td className="px-4 py-6 text-center align-middle">{customer.email}</td>
+            <td className="px-4 py-6 text-center align-middle">{customer.phone}</td>
+            <td className="px-4 py-6 text-center align-middle">{new Date(customer.createdAt).toLocaleDateString('vi-VN')}</td>
             <td className="flex justify-center items-center px-4 py-6 align-middle">
                 <div className={`flex justify-center items-center text-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
                     {customer.status === 1 ? "Hoạt Động" : "Không Hoạt Động"}
@@ -77,8 +70,8 @@ const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
             </td>
             <td className="px-4 py-6 text-center align-middle">
                 <button
-                    className="px-2 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
-                    onClick={() => onViewDetails(customer.accountId)} // Sử dụng accountId
+                    className="px-4 py-2 bg-slate-600 text-white rounded-lg transition duration-300 ease-in-out hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 transform hover:scale-105"
+                    onClick={() => onViewDetails(customer.accountId)}
                 >
                     Xem chi tiết
                 </button>
@@ -87,7 +80,6 @@ const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
     );
 };
 
-// Hàm để xác ịnh class của status
 function getStatusClass(status) {
     switch (status) {
         case 1:
@@ -99,32 +91,8 @@ function getStatusClass(status) {
     }
 }
 
-// const CustomerTable = ({ customerData }) => {
-//     const navigate = useNavigate();
-//     const handleViewDetail = (id) => {
-//         navigate(`/admin/customer-detail?accountId=${id}`) // Điều hướng với tham số
-//     };
-
-//     return (
-//         <table className="min-w-full text-sm table-auto border-collapse">
-//             <CustomerTableHeader />
-//             <tbody>
-//                 {customerData.map((customer, index) => (
-//                     <CustomerTableRow
-//                         key={index}
-//                         customer={customer}
-//                         index={index}
-//                         isEven={index % 2 === 0}
-//                         onViewDetails={() => handleViewDetail(customer.accountId)} // Điều hướng với tham số
-//                     />
-//                 ))}
-//             </tbody>
-//         </table>
-//     );
-// };
-
 const CustomerManagement = () => {
-    const [customers, setCustomers] = useState([]); // Thêm trạng thái để lưu trữ dữ liệu khách hàng ban đầu
+    const [customers, setCustomers] = useState([]);
     const [filteredCustomers, setFilteredCustomers] = useState([]);
     const [pageIndex, setPageIndex] = useState(1);
     const [pageSize, setPageSize] = useState(5);
@@ -135,53 +103,59 @@ const CustomerManagement = () => {
 
     useEffect(() => {
         const fetchCustomers = async () => {
-            setIsLoading(true); // Bắt đầu loading
+            setIsLoading(true);
             try {
                 const response = await getCustomerAccounts(pageSize, pageIndex);
-                setCustomers(response.data.data.items); // Lưu dữ liệu khách hàng vào trạng thái mới
+                setCustomers(response.data.data.items);
                 setFilteredCustomers(response.data.data.items);
                 setTotalCustomers(response.data.data.total);
             } catch (error) {
                 console.error("Error fetching customers:", error);
                 toast.error("Không thể tải danh sách khách hàng.");
             } finally {
-                setIsLoading(false); // Kết thúc loading
+                setIsLoading(false);
             }
         };
 
         fetchCustomers();
     }, [pageIndex, pageSize]);
 
-    const handleSearch = (searchTerm) => {
-        const filtered = customers.filter(customer => // Sử dụng trạng thái customers
-            customer.fullname.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setFilteredCustomers(filtered); // Cập nhật danh sách khách hàng đã lọc
-    };
-
-    // Hiển thị thông báo nếu có
     useEffect(() => {
         if (location.state && location.state.successMessage) {
             toast.success(location.state.successMessage);
         }
     }, [location.state]);
 
+    const handleSearch = (searchTerm) => {
+        const filtered = customers.filter(customer =>
+            customer.fullname.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredCustomers(filtered);
+    };
+
     const handlePageChange = (event, value) => {
         setPageIndex(value);
     };
 
     const handleViewDetail = (id) => {
-        navigate(`/admin/customer-detail?accountId=${id}`) // Điều hướng với tham số
+        navigate(`/admin/customer-detail?accountId=${id}`);
     };
 
     return (
-        <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
-            <div className="container mx-auto px-6 py-6">
-                <div className="flex gap-5 max-w-full text-base text-center text-white w-[800px] max-md:mt-10 mx-4">
-                    <SearchCustomerName onSearch={handleSearch} />
+        <main className="overflow-hidden bg-white">
+            <div className="container mx-auto px-6 py-8">
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div className="flex flex-1 items-center gap-4 min-w-0">
+                        <SearchCustomerName onSearch={handleSearch} />
+                    </div>
                     <AddCustomerButton />
                 </div>
-                <div className="flex overflow-hidden flex-col mt-14 max-w-full text-sm leading-5 table-container">
+                
+                <div className="flex justify-center mb-6">
+                    <h2 className="text-2xl font-notoSansSC font-bold text-blue-600">Danh Sách Khách Hàng</h2>
+                </div>
+                
+                <div className="overflow-x-auto">
                     <table className="min-w-full text-sm table-auto border-collapse">
                         <CustomerTableHeader />
                         <tbody>
@@ -202,7 +176,6 @@ const CustomerManagement = () => {
                                     <CustomerTableRow
                                         key={index}
                                         customer={customer}
-                                        index={index}
                                         isEven={index % 2 === 0}
                                         onViewDetails={() => handleViewDetail(customer.accountId)}
                                     />
@@ -212,7 +185,7 @@ const CustomerManagement = () => {
                     </table>
                 </div>
                 {!isLoading && filteredCustomers.length > 0 && (
-                    <div className="flex justify-center mt-4">
+                    <div className="flex justify-center mt-6">
                         <Pagination
                             count={Math.ceil(totalCustomers / pageSize)}
                             page={pageIndex}

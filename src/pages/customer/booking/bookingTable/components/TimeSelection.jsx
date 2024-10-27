@@ -3,6 +3,7 @@ import { TextField, MenuItem, InputAdornment } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs"; // Import dayjs for date manipulation
+import { filterBookingTable, getAllHoldTable } from 'src/lib/service/BookingTableService';
 
 const CustomTextField = styled(TextField)(({ theme }) => ({
   "& .MuiOutlinedInput-root": {
@@ -41,7 +42,7 @@ const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
   },
 }));
 
-const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate }) => {
+const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate, barId, setFilteredTables, setSelectedTables }) => {
   const [selectedTime, setSelectedTime] = useState("");
   const [timeOptions, setTimeOptions] = useState([]);
 
@@ -102,10 +103,58 @@ const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate }) => {
     }
   }, [startTime, endTime, selectedDate]);
 
-  const handleTimeChange = (event) => {
+  const handleTimeChange = async (event) => {
     const newTime = event.target.value;
     setSelectedTime(newTime);
     onTimeChange(newTime);
+
+    // Refresh the table list
+    await refreshTableList(newTime);
+  };
+
+  const refreshTableList = async (time) => {
+    try {
+      const holdTablesResponse = await getAllHoldTable(barId, dayjs(selectedDate).format("YYYY/MM/DD"), time);
+      const holdTables = holdTablesResponse.data.data;
+
+      const response = await filterBookingTable({
+        barId,
+        date: dayjs(selectedDate).format("YYYY/MM/DD"),
+        time: time
+      });
+
+      if (response.data.statusCode === 200 && response.data.data.bookingTables.length > 0) {
+        const updatedTables = response.data.data.bookingTables[0].tables.map(table => {
+          const holdInfo = holdTables.find(ht => 
+            ht.tableId === table.tableId && 
+            dayjs(ht.date).format("YYYY-MM-DD") === dayjs(selectedDate).format("YYYY-MM-DD") && 
+            ht.time === time + ":00"
+          );
+
+          if (holdInfo && holdInfo.isHeld) {
+            return {
+              ...table,
+              status: 2,
+              isHeld: true,
+              holdExpiry: holdInfo.holdExpiry,
+              holderId: holdInfo.accountId,
+              date: holdInfo.date,
+              time: holdInfo.time,
+            };
+          }
+          return { ...table, status: 1, isHeld: false };
+        });
+
+        setFilteredTables(updatedTables);
+        // Clear selected tables as they are no longer valid for the new time
+        setSelectedTables([]);
+      } else {
+        setFilteredTables([]);
+        setSelectedTables([]);
+      }
+    } catch (error) {
+      console.error("Error refreshing table list:", error);
+    }
   };
 
   return (

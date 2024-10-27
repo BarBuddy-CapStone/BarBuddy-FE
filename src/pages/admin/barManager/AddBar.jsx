@@ -2,37 +2,28 @@ import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useNavigate } from 'react-router-dom';
 import { Notification } from 'src/components';
-import { addBar } from 'src/lib/service/barManagerService'; // API thêm mới
-import CircularProgress from '@mui/material/CircularProgress';
-import Box from '@mui/material/Box';
+import { addBar } from 'src/lib/service/barManagerService';
+import { CircularProgress, TextField, Button, Select, MenuItem, FormControl, InputLabel, InputAdornment } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-const CircularIndeterminate = () => {
-    return (
-        <Box sx={{ display: 'flex' }}>
-            <CircularProgress />
-        </Box>
-    );
-}
+import { ChevronLeft } from '@mui/icons-material';
 
 const InputField = ({ label, value, onChange, name, type, errorMessage }) => (
-    <div className="flex flex-col">
-        <label className="text-base font-bold mb-2">{label}</label>
-        <div className="flex justify-between items-center px-3 py-3.5 text-sm rounded border border-solid border-stone-300">
-            <input
-                required
-                type={type}
-                value={value}
-                name={name}
-                onChange={onChange}
-                className="flex-grow border-none outline-none h-5 px-2"
-            />
-        </div>
-        {errorMessage && <span className="text-red-500 text-sm mt-1">{errorMessage}</span>}
+    <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <TextField
+            fullWidth
+            variant="outlined"
+            type={type}
+            name={name}
+            value={value}
+            onChange={onChange}
+            error={!!errorMessage}
+            helperText={errorMessage}
+            placeholder={`Nhập ${label.toLowerCase()}`}
+        />
     </div>
 );
-
 
 const TimeSelector = ({ label, value, onChange, errorMessage }) => {
     const [isPickerVisible, setPickerVisible] = useState(false);
@@ -55,83 +46,42 @@ const TimeSelector = ({ label, value, onChange, errorMessage }) => {
     };
 
     return (
-        <Fragment>
-            <div>
-                <div className="flex flex-1 gap-5 items-center">
-                    <div
-                        className={`flex gap-3 items-center px-2 py-3 rounded-lg border-2 border-neutral-300 cursor-pointer hover:shadow-lg transition-all w-56`}
-                        onClick={togglePicker}
-                    >
-                        <img
-                            loading="lazy"
-                            src="https://cdn.builder.io/api/v1/image/assets/TEMP/8edff9b0fe2423f1fa6d271f3dca823bf43f90fa53d5166a49db967a79a8e404?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f"
-                            alt=""
-                            className="w-6 h-6 object-contain"
-                        />
-                        <div className="text-base font-semibold text-zinc-800 text-sm">
-                            {label}: <span className="text-gray-500">{selectedTime}</span>
-                        </div>
-                        <img
-                            loading="lazy"
-                            src="https://cdn.builder.io/api/v1/image/assets/TEMP/fd51fce0e88f2b1a79d30b8bce530411e7cff32f3c94e50c97e9c7724d9ada82?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f"
-                            alt=""
-                            className="w-6 h-5 object-contain"
-                        />
-
-                    </div>
-                    {isPickerVisible && (
-                        <input
-                            type="time"
-                            value={selectedTime}
-                            onChange={handleTimeChange}
-                            className="mt-2 p-2 border border-neutral-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition"
-                        />
-                    )}
-                </div>
-
-                {errorMessage && <span className="text-red-500 text-sm mt-1 font-normal">{errorMessage}</span>}
-
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+            <div className="flex items-center">
+                <input
+                    type="time"
+                    value={selectedTime}
+                    onChange={handleTimeChange}
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
             </div>
-        </Fragment>
+            {errorMessage && <p className="mt-1 text-sm text-red-600">{errorMessage}</p>}
+        </div>
     );
 };
 
-
 const DiscountField = ({ value, onChange, type, name, errorMessage }) => (
-    <Fragment>
-        <div className="flex flex-wrap gap-5 justify-between mt-8 w-full max-w-[947px] text-zinc-600 max-md:max-w-full">
-            <div className="flex gap-9 align-middle">
-                <label htmlFor="discount" className="my-auto text-base font-bold">
-                    Chiết khấu
-                </label>
-                <input
-                    id="discount"
-                    type={type}
-                    name={name}
-                    value={value}
-                    className="px-2.5 py-2 text-sm whitespace-nowrap rounded border-solid border-[0.7px] border-stone-300"
-                    onChange={onChange}
-                />
-                <label htmlFor="percent" className="my-auto text-base font-bold text-sm">
-                    %
-                </label>
-            </div>
-
-            <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/013784721bbb86b82d66b83d6b3f93365b12b768110ceb6a6a559c5674645320?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f"
-                alt=""
-                className="object-contain shrink-0 my-auto w-5 aspect-square"
+    <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Chiết khấu</label>
+        <div className="flex items-center">
+            <TextField
+                type={type}
+                name={name}
+                value={value}
+                onChange={onChange}
+                error={!!errorMessage}
+                helperText={errorMessage}
+                InputProps={{
+                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                }}
+                placeholder="Nhập chiết khấu"
             />
         </div>
-        <div>
-            {errorMessage && <span className="text-red-500 text-sm mt-1 font-normal">{errorMessage}</span>}
-        </div>
-
-        <label htmlFor="percent" className="my-auto text-base font-bold text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-500">
             Note: Chiết khấu này sẽ áp dụng thanh toán online trên tổng số tiền của bill
-        </label>
-    </Fragment>
+        </p>
+    </div>
 );
 
 const ImageGallery = ({ images, onDelete }) => {
@@ -188,10 +138,8 @@ const DropzoneComponent = ({ onDrop }) => {
     );
 };
 
-
 const AddBar = () => {
-
-    const redirect = useNavigate();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         address: '',
         phoneNumber: '',
@@ -204,7 +152,6 @@ const AddBar = () => {
         status: true,
         images: []
     });
-
     const [isPopupConfirm, setIsPopupConfirm] = useState(false);
     const [uploadedImages, setUploadedImages] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -254,7 +201,6 @@ const AddBar = () => {
         setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index));
     };
 
-
     const PopupConfirmAdd = () => {
         setIsPopupConfirm(true);
     };
@@ -295,7 +241,7 @@ const AddBar = () => {
             if (response.data.status === 200) {
                 setIsLoading(false);
                 toast.success("Cập nhật thành công!");
-                redirect('/admin/barmanager')
+                navigate('/admin/barmanager')
             } else {
                 toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
             }
@@ -306,21 +252,25 @@ const AddBar = () => {
         }
     };
 
+    const handleGoBack = () => {
+        navigate('/admin/barmanager');
+    };
+
     const options = [
         {
             value: true,
-            label: 'Đang hoạt động',
-            icon: 'https://img.icons8.com/?size=100&id=60362&format=png&color=4ECB71'
+            label: "Đang hoạt động",
+            icon: "https://img.icons8.com/?size=100&id=60362&format=png&color=4ECB71"
         },
         {
             value: false,
-            label: 'Đang đóng cửa',
-            icon: 'https://img.icons8.com/?size=100&id=60362&format=png&color=FF0000'
+            label: "Đang đóng cửa",
+            icon: "https://img.icons8.com/?size=100&id=60362&format=png&color=FF0000"
         }
     ];
 
     return (
-        <main className="flex flex-col items-start p-8 bg-white">
+        <main className="flex flex-col items-start p-8 bg-white w-full">
             {isLoading && (
                 <div className="absolute inset-0 flex justify-center items-center bg-gray-500 bg-opacity-50 backdrop-blur-sm z-50">
                     <CircularProgress />
@@ -329,102 +279,106 @@ const AddBar = () => {
             )}
 
             <ToastContainer />
-            <Fragment>
-                <header className="flex justify-between items-center w-full">
-                    <h1 className="self-start text-xl font-bold leading-snug text-zinc-600 flex">
-                        Thêm quán Bar
-                    </h1>
-                    <div className="flex items-center">
-                        <div className="items-center px-4 py-1 rounded-md border-2 border-solid border-neutral-200 relative">
-                            <div className="w-[100%] inline-flex">
-                                <img
-                                    loading="lazy"
-                                    src={options.find(option => option.value === formData.status)?.icon || 'default-icon-url-here'}
-                                    alt=""
-                                    className="object-contain aspect-square w-[25px] mr-2"
-                                />
-                                <button
-                                    onClick={() => setIsOpen(!isOpen)}
-                                    className="px-2 py-1 border border-none rounded-md outline-none bg-white flex items-center w-full"
-                                >
-                                    {options.find(option => option.value === formData.status)?.label}
-                                    <img
-                                        className='w-[18px] h-[20px] ml-2 mt-[4px]'
-                                        src={isOpen
-                                            ? 'https://img.icons8.com/?size=100&id=p4GKpK6kR11d&format=png&color=000000'
-                                            : 'https://img.icons8.com/?size=100&id=wWIe68VyU6Qt&format=png&color=000000'}
-                                        alt=""
-                                    />
-                                </button>
-                                {isOpen && (
-                                    <div className="absolute left-0 mt-12 bg-white border border-gray-300 rounded-md shadow-lg z-10 w-full">
-                                        {options
-                                            .filter(option => option.value !== formData.status)
-                                            .map(option => (
-                                                <div
-                                                    key={option.value}
-                                                    onClick={() => handleStatusChange(option.value)}
-                                                    className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                                >
-                                                    <img
-                                                        src={option.icon}
-                                                        alt={option.label}
-                                                        className="object-contain aspect-square w-[20px] mr-2"
-                                                    />
-                                                    <span>{option.label}</span>
-                                                </div>
-                                            ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </header>
 
-                <section className="flex flex-col items-start self-stretch mt-3 w-full text-zinc-600">
-                    <div className="shrink-0 max-w-full h-px bg-orange-400 border border-orange-400 border-solid w-full" />
-
-                    <div className="grid grid-cols-2 gap-6 mt-8 w-full max-w-[960px]">
-                        <InputField errorMessage={errors.barName} name="barName" label="Tên quán" type="text" value={formData.barName} onChange={handleInputChange} />
-                        <InputField errorMessage={errors.email} name="email" label="Email" type="text" value={formData.email} onChange={handleInputChange} />
-                        <InputField errorMessage={errors.address} name="address" label="Địa chỉ" type="text" value={formData.address} onChange={handleInputChange} />
-                        <InputField errorMessage={errors.phoneNumber} name="phoneNumber" label="Số điện thoại" type="number" value={formData.phoneNumber} onChange={handleInputChange} />
-                    </div>
-
-                    <div className="mt-8 w-[68%]">
-                        <InputField errorMessage={errors.description} name="description" label="Mô tả" type="text" value={formData.description} onChange={handleInputChange} />
-                    </div>
-
-                    <label htmlFor="time" className="block text-base font-bold mt-8 ">
-                        Chọn thời gian
-                    </label>
-                    <div className="flex gap-10 mt-3 max-w-full text-sm font-bold leading-6 text-zinc-600 w-[430px]">
-                        <TimeSelector errorMessage={errors.startTime} label="Giờ mở cửa" value={formData.startTime} onChange={(newTime) => setFormData({ ...formData, startTime: newTime })} />
-                        <TimeSelector errorMessage={errors.endTime} label="Giờ đóng cửa" value={formData.endTime} onChange={(newTime) => setFormData({ ...formData, endTime: newTime })} />
-                    </div>
-
-                    <div>
-                        <DiscountField errorMessage={errors.discount} name="discount" type="number" value={formData.discount} onChange={handleInputChange} />
-                    </div>
-                </section>
-
-                <label htmlFor="addImages" className="block text-base font-bold text-gray-700 mt-8 mb-4">
-                    Thêm hình ảnh
-                </label>
-
-                <section className="flex flex-col items-start w-full max-w-[913px]">
-                    <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-[105%]">
-                        <DropzoneComponent onDrop={onDrop} />
-                    </div>
-                    <ImageGallery images={uploadedImages} onDelete={handleDelete} />
-                    <button onClick={PopupConfirmAdd} className="px-16 py-2.5 mt-5 text-base font-bold text-center text-white whitespace-nowrap bg-orange-600 rounded w-[105%]">
-                        Thêm
+            <header className="flex justify-between items-center w-full mb-6">
+                <div className="flex items-center">
+                    <button
+                        onClick={handleGoBack}
+                        className="mr-4 p-2 rounded-full hover:bg-gray-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    >
+                        <ChevronLeft className="text-gray-600 hover:text-gray-800 transition-colors duration-300" />
                     </button>
-                    {isPopupConfirm && (
-                        <Notification onCancel={PopupConfirmCancel} onConfirm={handleAddConfirm} />
-                    )}
-                </section>
-            </Fragment>
+                    <h1 className="text-2xl font-bold text-zinc-600">Thêm Quán Bar</h1>
+                </div>
+                <div className="flex items-center">
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                        >
+                            <img
+                                src={options.find(option => option.value === formData.status)?.icon || 'default-icon-url-here'}
+                                alt=""
+                                className="w-5 h-5 mr-2"
+                            />
+                            <span className="mr-2">{options.find(option => option.value === formData.status)?.label}</span>
+                            <svg className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                        {isOpen && (
+                            <div className="absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 transition-all duration-200 ease-in-out overflow-hidden">
+                                <div className="py-1 max-h-60 overflow-y-auto" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                                    {options
+                                        .filter(option => option.value !== formData.status)
+                                        .map(option => (
+                                            <button
+                                                key={option.value}
+                                                onClick={() => {
+                                                    handleStatusChange(option.value);
+                                                    setIsOpen(false);
+                                                }}
+                                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition duration-150 ease-in-out"
+                                                role="menuitem"
+                                            >
+                                                <img
+                                                    src={option.icon}
+                                                    alt={option.label}
+                                                    className="w-5 h-5 mr-2"
+                                                />
+                                                {option.label}
+                                            </button>
+                                        ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </header>
+
+            <section className="flex flex-col items-start self-stretch mt-3 w-full text-zinc-600">
+                <div className="shrink-0 max-w-full h-px bg-orange-400 border border-orange-400 border-solid w-full" />
+
+                <h2 className="text-xl font-bold mt-6 mb-4">Thông tin quán bar</h2>
+
+                <div className="grid grid-cols-2 gap-6 mt-2 w-full max-w-[960px]">
+                    <InputField errorMessage={errors.barName} name="barName" label="Tên quán" type="text" value={formData.barName} onChange={handleInputChange} />
+                    <InputField errorMessage={errors.email} name="email" label="Email" type="email" value={formData.email} onChange={handleInputChange} />
+                    <InputField errorMessage={errors.address} name="address" label="Địa chỉ" type="text" value={formData.address} onChange={handleInputChange} />
+                    <InputField errorMessage={errors.phoneNumber} name="phoneNumber" label="Số điện thoại" type="tel" value={formData.phoneNumber} onChange={handleInputChange} />
+                </div>
+
+                <div className="mt-8 w-full">
+                    <InputField errorMessage={errors.description} name="description" label="Mô tả" type="text" value={formData.description} onChange={handleInputChange} multiline rows={4} />
+                </div>
+
+                <div className="flex gap-10 mt-8 w-full">
+                    <TimeSelector errorMessage={errors.startTime} label="Giờ mở cửa" value={formData.startTime} onChange={(newTime) => setFormData({ ...formData, startTime: newTime })} />
+                    <TimeSelector errorMessage={errors.endTime} label="Giờ đóng cửa" value={formData.endTime} onChange={(newTime) => setFormData({ ...formData, endTime: newTime })} />
+                </div>
+
+                <DiscountField errorMessage={errors.discount} name="discount" type="number" value={formData.discount} onChange={handleInputChange} />
+            </section>
+
+            <section className="flex flex-col items-start w-full max-w-[913px] mt-8">
+                <h2 className="text-xl font-bold mb-4">Thêm hình ảnh</h2>
+                <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-full">
+                    <DropzoneComponent onDrop={onDrop} />
+                </div>
+                <ImageGallery images={uploadedImages} onDelete={handleDelete} />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={PopupConfirmAdd}
+                    className="mt-5 w-full"
+                    style={{ backgroundColor: '#f97316', color: 'white' }}
+                >
+                    Thêm
+                </Button>
+                {isPopupConfirm && (
+                    <Notification onCancel={PopupConfirmCancel} onConfirm={handleAddConfirm} />
+                )}
+            </section>
         </main>
     );
 };

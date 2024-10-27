@@ -1,12 +1,12 @@
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Notification } from 'src/components';
 import { getBarProfile, updateBar } from 'src/lib/service/barManagerService';
-import CircularProgress from '@mui/material/CircularProgress';
-import Box from '@mui/material/Box';
+import { CircularProgress, TextField, Button, Select, MenuItem, FormControl, InputLabel, InputAdornment } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ChevronLeft } from '@mui/icons-material';
 
 const CircularIndeterminate = () => {
     return (
@@ -15,22 +15,50 @@ const CircularIndeterminate = () => {
         </Box>
     );
 }
-const InputField = ({ label, value, onChange, name, type, errorMessage }) => (
-    <div className="flex flex-col">
-        <label className="text-base font-bold mb-2">{label}</label>
-        <div className="flex justify-between items-center px-3 py-3.5 text-sm rounded border border-solid border-stone-300">
-            <input
-                required
-                type={type}
-                value={value}
+const InputField = ({ label, value, onChange, name, type, errorMessage }) => {
+    const handlePhoneChange = (e) => {
+        let onlyNums = e.target.value.replace(/[^\d]/g, '');
+        onChange({ target: { name, value: onlyNums } });
+    };
+
+    if (type === 'tel') {
+        return (
+            <TextField
+                fullWidth
+                label={label}
+                variant="outlined"
+                type="text"
                 name={name}
-                onChange={onChange}
-                className="flex-grow border-none outline-none h-5 px-2"
+                value={value || ''}
+                onChange={handlePhoneChange}
+                error={!!errorMessage}
+                helperText={errorMessage}
+                margin="normal"
+                InputLabelProps={{
+                    shrink: true,
+                }}
             />
-        </div>
-        {errorMessage && <span className="text-red-500 text-sm mt-1">{errorMessage}</span>}
-    </div>
-);
+        );
+    }
+
+    return (
+        <TextField
+            fullWidth
+            label={label}
+            variant="outlined"
+            type={type}
+            name={name}
+            value={value || ''}
+            onChange={onChange}
+            error={!!errorMessage}
+            helperText={errorMessage}
+            margin="normal"
+            InputLabelProps={{
+                shrink: true,
+            }}
+        />
+    );
+};
 
 
 const TimeSelector = ({ label, value, onChange, errorMessage }) => {
@@ -186,7 +214,9 @@ const DropzoneComponent = ({ onDrop }) => {
         </div>
     );
 };
-const BarBuddyProfile = () => {
+const BarProfile = () => {
+    const { barId } = useParams();
+    const navigate = useNavigate();
     const location = useLocation();
     const [formData, setFormData] = useState({
         address: '',
@@ -211,12 +241,12 @@ const BarBuddyProfile = () => {
         if (!formData.barName) newErrors.barName = 'Tên quán không được để trống';
         if (!formData.email) newErrors.email = 'Email không được để trống';
         if (!formData.address) newErrors.address = 'Địa chỉ không được để trống';
-        if (!formData.phoneNumber) newErrors.phoneNumber = 'Số điện thoại không được để trống';
+        if (!formData.phoneNumber) newErrors.phoneNumber = 'S��� điện thoại không được để trống';
         if (!formData.description) newErrors.description = 'Mô tả không được để trống';
         if (!formData.startTime) newErrors.startTime = 'Giờ mở cửa không được để trống';
         if (!formData.endTime) newErrors.endTime = 'Giờ đóng cửa không được để trống';
         if (!formData.discount) newErrors.discount = 'Chiết khấu không được để trống';
-        if (!formData.images) newErrors.images = 'Ảnh không được để trống';
+        if (!formData.images) newErrors.images = 'Ảnh không đưc để trống';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -253,7 +283,7 @@ const BarBuddyProfile = () => {
             setFormData({
                 barId: barId,
                 barName: data?.barName || '',
-                email: data?.email || '',
+                email: data?.email || '', // Đảm bảo đây là 'email', không phải 'emailBar'
                 address: data?.address || '',
                 phoneNumber: data?.phoneNumber || '',
                 description: data?.description || '',
@@ -275,12 +305,10 @@ const BarBuddyProfile = () => {
     };
 
     useEffect(() => {
-        const searchParams = new URLSearchParams(location.search);
-        const barId = searchParams.get('barId');
         if (barId) {
             fetchBarProfile(barId);
         }
-    }, [location]);
+    }, [barId]);
 
     const onDrop = (acceptedFiles) => {
         const newImages = acceptedFiles.map(file => ({
@@ -366,8 +394,12 @@ const BarBuddyProfile = () => {
         }
     }
 
+    const handleGoBack = () => {
+        navigate('/admin/barmanager');
+    };
+
     return (
-        <main className="flex flex-col items-start p-8 bg-white">
+        <main className="flex flex-col items-start p-8 bg-white w-full">
             {isLoading && (
                 <div className="absolute inset-0 flex justify-center items-center bg-gray-500 bg-opacity-50 backdrop-blur-sm z-50">
                     <CircularProgress />
@@ -377,53 +409,58 @@ const BarBuddyProfile = () => {
 
             <ToastContainer />
 
-            <header className="flex justify-between items-center w-full">
-                <h1 className="self-start text-xl font-bold leading-snug text-zinc-600 flex">
-                    Thông tin quán bar
-                </h1>
+            <header className="flex justify-between items-center w-full mb-6">
                 <div className="flex items-center">
-                    <div className="items-center px-4 py-1 rounded-md border-2 border-solid border-neutral-200 relative">
-                        <div className="w-[100%] inline-flex">
+                    <button
+                        onClick={handleGoBack}
+                        className="mr-4 p-2 rounded-full hover:bg-gray-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    >
+                        <ChevronLeft className="text-gray-600 hover:text-gray-800 transition-colors duration-300" />
+                    </button>
+                    <h1 className="text-2xl font-bold text-zinc-600">Cập Nhật Quán Bar</h1>
+                </div>
+                <div className="flex items-center">
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                        >
                             <img
-                                loading="lazy"
                                 src={options.find(option => option.value === formData.status)?.icon || 'default-icon-url-here'}
                                 alt=""
-                                className="object-contain aspect-square w-[25px] mr-2"
+                                className="w-5 h-5 mr-2"
                             />
-                            <button
-                                onClick={() => setIsOpen(!isOpen)}
-                                className="px-2 py-1 border border-none rounded-md outline-none bg-white flex items-center w-full"
-                            >
-                                {options.find(option => option.value === formData.status)?.label}
-                                <img
-                                    className='w-[18px] h-[20px] ml-2 mt-[4px]'
-                                    src={isOpen
-                                        ? 'https://img.icons8.com/?size=100&id=p4GKpK6kR11d&format=png&color=000000'
-                                        : 'https://img.icons8.com/?size=100&id=wWIe68VyU6Qt&format=png&color=000000'}
-                                    alt=""
-                                />
-                            </button>
-                            {isOpen && (
-                                <div className="absolute left-0 mt-12 bg-white border border-gray-300 rounded-md shadow-lg z-10 w-full">
+                            <span className="mr-2">{options.find(option => option.value === formData.status)?.label}</span>
+                            <svg className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                        {isOpen && (
+                            <div className="absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 transition-all duration-200 ease-in-out overflow-hidden">
+                                <div className="py-1 max-h-60 overflow-y-auto" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
                                     {options
                                         .filter(option => option.value !== formData.status)
                                         .map(option => (
-                                            <div
+                                            <button
                                                 key={option.value}
-                                                onClick={() => handleStatusChange(option.value)}
-                                                className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                                onClick={() => {
+                                                    handleStatusChange(option.value);
+                                                    setIsOpen(false);
+                                                }}
+                                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition duration-150 ease-in-out"
+                                                role="menuitem"
                                             >
                                                 <img
                                                     src={option.icon}
                                                     alt={option.label}
-                                                    className="object-contain aspect-square w-[20px] mr-2"
+                                                    className="w-5 h-5 mr-2"
                                                 />
-                                                <span>{option.label}</span>
-                                            </div>
+                                                {option.label}
+                                            </button>
                                         ))}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>
@@ -431,18 +468,30 @@ const BarBuddyProfile = () => {
             <section className="flex flex-col items-start self-stretch mt-3 w-full text-zinc-600">
                 <div className="shrink-0 max-w-full h-px bg-orange-400 border border-orange-400 border-solid w-full" />
 
-                <div className="grid grid-cols-2 gap-6 mt-8 w-full max-w-[960px]">
+                <h2 className="text-xl font-bold mt-6 mb-4">Thông tin quán bar</h2>
+
+                <div className="grid grid-cols-2 gap-6 mt-2 w-full max-w-[960px]">
                     <InputField errorMessage={errors.barName} name="barName" label="Tên quán" type="text" value={formData.barName} onChange={handleInputChange} />
                     <InputField errorMessage={errors.email} name="email" label="Email" type="text" value={formData.email} onChange={handleInputChange} />
                     <InputField errorMessage={errors.address} name="address" label="Địa chỉ" type="text" value={formData.address} onChange={handleInputChange} />
-                    <InputField errorMessage={errors.phoneNumber} name="phoneNumber" label="Số điện thoại" type="number" value={formData.phoneNumber} onChange={handleInputChange} />
+                    <InputField 
+                        errorMessage={errors.phoneNumber} 
+                        name="phoneNumber" 
+                        label="Số điện thoại" 
+                        type="tel" 
+                        value={formData.phoneNumber} 
+                        onChange={handleInputChange} 
+                    />
                 </div>
 
-                <div className="mt-8 w-[68%]">
-                    <InputField errorMessage={errors.description} name="description" label="Mô tả" type="text" value={formData.description} onChange={handleInputChange} />
+                <div className="mt-8 w-full">
+                    <InputField errorMessage={errors.description} name="description" label="Mô tả" type="text" value={formData.description} onChange={handleInputChange} multiline rows={4} />
                 </div>
 
-                <label htmlFor="time" className="block text-base font-bold mt-8 ">
+                {/* Thêm đường kẻ ngăn cách */}
+                <div className="w-full h-px bg-gray-300 my-8" />
+
+                <label htmlFor="time" className="block text-base font-bold mt-4 mb-2">
                     Chọn thời gian
                 </label>
                 <div className="flex gap-10 mt-3 max-w-full text-sm font-bold leading-6 text-zinc-600 w-[430px]">
@@ -450,29 +499,41 @@ const BarBuddyProfile = () => {
                     <TimeSelector errorMessage={errors.endTime} label="Giờ đóng cửa" value={formData.endTime} onChange={(newTime) => setFormData({ ...formData, endTime: newTime })} />
                 </div>
 
+                {/* Thêm đường kẻ ngăn cách */}
+                <div className="w-full h-px bg-gray-300 my-8" />
+
                 <div>
                     <DiscountField errorMessage={errors.discount} name="discount" type="number" value={formData.discount} onChange={handleInputChange} />
                 </div>
             </section>
 
-            <label htmlFor="addImages" className="block text-base font-bold text-gray-700 mt-8 mb-4">
-                Thêm hình ảnh
-            </label>
+            {/* Thêm đường kẻ ngăn cách */}
+            <div className="w-full h-px bg-gray-300 my-8" />
 
-            <section className="flex flex-col items-start w-full max-w-[913px]">
-                <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-[105%]">
-                    <DropzoneComponent onDrop={onDrop} />
+            <section className="flex flex-col items-start w-full max-w-[913px] mt-4">
+                <h2 className="text-xl font-bold mb-4">Thêm hình ảnh</h2>
+                <div className="w-full max-w-[960px]">
+                    <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-full">
+                        <DropzoneComponent onDrop={onDrop} />
+                    </div>
+                    <ImageGallery images={uploadedImages} onDelete={handleDelete} />
                 </div>
-                <ImageGallery images={uploadedImages} onDelete={handleDelete} />
-                <button onClick={PopupConfirmAdd} className="px-16 py-2.5 mt-5 text-base font-bold text-center text-white whitespace-nowrap bg-orange-600 rounded w-[105%]">
-                    Thêm
-                </button>
-                {isPopupConfirm && (
-                    <Notification onCancel={PopupConfirmCancel} onConfirm={handleAddConfirm} />
-                )}
             </section>
+
+            <div className="w-full mt-8">
+                <button 
+                    onClick={PopupConfirmAdd} 
+                    className="w-full px-16 py-2.5 text-base font-bold text-center text-white whitespace-nowrap bg-orange-600 rounded hover:bg-orange-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50"
+                >
+                    Cập nhật
+                </button>
+            </div>
+
+            {isPopupConfirm && (
+                <Notification onCancel={PopupConfirmCancel} onConfirm={handleAddConfirm} />
+            )}
         </main>
     );
 };
 
-export default BarBuddyProfile;
+export default BarProfile;

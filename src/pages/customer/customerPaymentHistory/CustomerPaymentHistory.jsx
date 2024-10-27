@@ -20,6 +20,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CloseIcon from "@mui/icons-material/Close"; // Close icon for the dialog
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"; // Success icon
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined"; // Failure icon
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty"; // Hourglass icon for "Đang chờ xử lý"
 import { paymentHistoryService } from "src/lib";
 import dayjs from "dayjs";
 
@@ -273,22 +274,18 @@ const PaymentHistory = () => {
           <DialogContent>
             {/* Status Section */}
             <div className="flex flex-col items-center">
-              {selectedPayment.status ? (
-                <CheckCircleOutlineIcon
-                  style={{ color: "#4CAF50", fontSize: "48px" }}
-                />
+              {selectedPayment.status === 0 ? (
+                <HourglassEmptyIcon style={{ color: "#FFA500", fontSize: "48px" }} />
+              ) : selectedPayment.status === 1 ? (
+                <CheckCircleOutlineIcon style={{ color: "#4CAF50", fontSize: "48px" }} />
               ) : (
-                <CancelOutlinedIcon
-                  style={{ color: "red", fontSize: "48px" }}
-                />
+                <CancelOutlinedIcon style={{ color: "red", fontSize: "48px" }} />
               )}
               <div
                 className="text-lg mt-2"
-                style={{ color: selectedPayment.status ? "#4CAF50" : "red" }}
+                style={{ color: selectedPayment.status === 0 ? "#FFA500" : selectedPayment.status === 1 ? "#4CAF50" : "red" }}
               >
-                {selectedPayment.status
-                  ? "Thanh toán thành công"
-                  : "Thanh toán thất bại"}
+                {getStatusText(selectedPayment.status)}
               </div>
             </div>
             <div className="border-t border-amber-400 mt-4 mb-4" />{" "}

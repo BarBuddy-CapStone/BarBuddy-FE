@@ -1,14 +1,14 @@
 const headerConstants = {
   // Header của Admin
-  dasboard: "DASHBOARD",
+  dasboard: "Thống Kê",
   managerBarBranch: "QUẢN LÝ CHI NHÁNH BAR",
   payment: "QUẢN LÝ GIAO DỊCH",
   tableType: "QUẢN LÝ BÀN",
-  customer: "QUẢN LÝ TÀI KHOẢN CUSTOMER",
-  staff: "QUẢN LÝ TÀI KHOẢN STAFF",
+  customer: "QUẢN LÝ TÀI KHOẢN KHÁCH HÀNG",
+  staff: "QUẢN LÝ TÀI KHOẢN NHÂN VIÊN",
   emotional: "QUẢN LÝ DANH MỤC CẢM XÚC",
   drink: "QUẢN LÝ THỨC UỐNG",
-  feedback: "QUẢN LÝ FEEDBACK",
+  feedback: "QUẢN LÝ ĐÁNH GIÁ",
   eventManagement: "QUẢN LÝ SỰ KIỆN",
 
   // Header của Staff
@@ -19,7 +19,7 @@ const headerConstants = {
     payment_history: "THANH TOÁN"
   },
   headerCustomer: {
-    homepage: "HOME"
+    homepage: "Trang Chủ"
   }
 };
 

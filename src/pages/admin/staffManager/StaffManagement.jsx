@@ -35,7 +35,8 @@ const StaffTableRow = ({ staff, index }) => {
     const rowClass = index % 2 === 0 ? "bg-white" : "bg-orange-50";
     const statusClass = getStatusClass(staff.status);
     const handleViewDetail = (id) => {
-        navigate(`/admin/staff-detail?accountId=${id}`); // Chuyển hướng đến trang StaffDetail với accountId
+        // Cập nhật đường dẫn này
+        navigate(`/admin/staff-detail/${id}`);
     };
 
     return (
@@ -52,7 +53,7 @@ const StaffTableRow = ({ staff, index }) => {
             </td>
             <td className="px-4 py-6 text-center align-middle">
                 <button
-                    className="px-2 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
+                    className="px-4 py-2 bg-slate-600 text-white rounded-lg transition duration-300 ease-in-out hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 transform hover:scale-105"
                     onClick={() => handleViewDetail(staff.accountId)}
                 >
                     Xem chi tiết
@@ -76,18 +77,22 @@ function getStatusClass(status) {
 const SearchStaffName = ({ onSearch }) => {
     const [searchTerm, setSearchTerm] = useState('');
     return (
-        <div className="flex items-center gap-3 bg-white rounded-md border border-gray-300 max-w-md">
-            <input
-                type="text"
-                className="flex-grow border-none px-1 py-1 text-black"
-                placeholder="Tìm theo tên của nhân viên"
-                aria-label="Tìm theo tên của nhân viên"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button className="w-10 h-10 bg-blue-600 flex items-center justify-center rounded-md" onClick={() => onSearch(searchTerm)}>
-                <SearchIcon />
-            </button>
+        <div className="flex items-center flex-1 min-w-0">
+            <div className="relative flex-1">
+                <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-l-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Tìm theo tên của nhân viên"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button 
+                    className="absolute right-0 top-0 h-full px-4 bg-blue-600 text-white rounded-r-md transition duration-300 ease-in-out hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                    onClick={() => onSearch(searchTerm)}
+                >
+                    <SearchIcon />
+                </button>
+            </div>
         </div>
     );
 };
@@ -96,10 +101,10 @@ const AddStaffButton = () => {
     const navigate = useNavigate();
     return (
         <button
-            className="overflow-hidden gap-2 self-stretch pr-6 pl-6 w-auto italic bg-blue-600 max-h-[60px] rounded-[50px] whitespace-nowrap fixed-height"
+            className="px-6 py-2 bg-blue-600 text-white rounded-full font-medium transition duration-300 ease-in-out hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 whitespace-nowrap"
             onClick={() => navigate('/admin/staff-creation')}
         >
-            Thêm staff
+            Thêm Nhân Viên
         </button>
     );
 };
@@ -115,7 +120,7 @@ const FilterDropdown = ({ onFilter, options }) => {
     };
 
     return (
-        <div className="relative inline-block text-left fixed-height">
+        <div className="relative inline-block text-left w-48">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="inline-flex justify-between w-full min-w-[130px] rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -216,14 +221,22 @@ const StaffManagement = () => {
     };
 
     return (
-        <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
+        <main className="overflow-hidden bg-white">
             <div className="container mx-auto px-6 py-8">
-                <div className="flex gap-5 max-w-full text-base text-center text-white w-[800px] max-md:mt-10 mx-4">
-                    <SearchStaffName onSearch={handleSearch} />
-                    <FilterDropdown onFilter={handleFilter} options={barOptions} /> {/* Truyền options vào FilterDropdown */}
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div className="flex flex-1 items-center gap-4 min-w-0">
+                        <SearchStaffName onSearch={handleSearch} />
+                        <FilterDropdown onFilter={handleFilter} options={barOptions} />
+                    </div>
                     <AddStaffButton />
                 </div>
-                <div className="flex overflow-hidden flex-col mt-14 max-w-full text-sm leading-5 table-container">
+                
+                {/* Điều chỉnh tiêu đề "Danh Sách Nhân Viên" ở đây */}
+                <div className="flex justify-center mb-6">
+                    <h2 className="text-2xl font-notoSansSC font-bold text-blue-600">Danh Sách Nhân Viên</h2>
+                </div>
+                
+                <div className="overflow-x-auto">
                     <table className="min-w-full text-sm table-auto border-collapse">
                         <StaffTableHeader />
                         <tbody>
@@ -248,7 +261,7 @@ const StaffManagement = () => {
                     </table>
                 </div>
                 {!isLoading && filteredStaff.length > 0 && (
-                    <div className="flex justify-center mt-4">
+                    <div className="flex justify-center mt-6">
                         <Pagination
                             count={Math.ceil(totalStaff / pageSize)}
                             page={pageIndex}

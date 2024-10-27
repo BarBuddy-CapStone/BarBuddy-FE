@@ -1,28 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { Pagination, Stack, Button, CircularProgress, Switch } from "@mui/material"; // Import CircularProgress và Switch từ MUI
-import ChevronRight from "@mui/icons-material/ChevronRight"; // Correct import
-import { useNavigate } from "react-router-dom"; // For navigation
-import Star from "@mui/icons-material/Star"; // Import filled star icon
-import StarOutline from "@mui/icons-material/StarOutline"; // Import empty star icon
-import { getAllFeedbackByAdmin, UpdateStatusFeedBack } from "../../../lib/service/FeedbackService"; // Import service
-import { getAllBar } from "../../../lib/service/barManagerService"; // Import service
-import { toast } from 'react-toastify'; // Thêm import cho toast
+import { Pagination, Stack, Button, CircularProgress, Switch } from "@mui/material";
+import ChevronRight from "@mui/icons-material/ChevronRight";
+import { useNavigate } from "react-router-dom";
+import Star from "@mui/icons-material/Star";
+import StarOutline from "@mui/icons-material/StarOutline";
+import { getAllFeedbackByAdmin, UpdateStatusFeedBack } from "../../../lib/service/FeedbackService";
+import { getAllBar } from "../../../lib/service/barManagerService";
+import { toast } from 'react-toastify';
 
 const Feedback = () => {
   const navigate = useNavigate();
-  const [feedbackData, setFeedbackData] = useState([]); // State to hold feedback data
-  const [totalPages, setTotalPages] = useState(1); // State to hold total pages
-  const [currentPage, setCurrentPage] = useState(1); // State for current page
-  const itemsPerPage = 10; // Number of items per page
+  const [feedbackData, setFeedbackData] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // State for filter
-  const [selectedBranch, setSelectedBranch] = useState(null); // State for selected branch (null for all)
-  const [selectedStatus, setSelectedStatus] = useState(null); // State for selected status (null for all)
-  const [branches, setBranches] = useState([]); // State to hold branches
-  const [loading, setLoading] = useState(false); // State to manage loading status
-  const [selectedFeedback, setSelectedFeedback] = useState(null); // State to hold selected feedback for popup
-  const [showPopup, setShowPopup] = useState(false); // State to manage popup visibility
-  const [updating, setUpdating] = useState(false); // State để theo dõi trạng thái cập nhật
+  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [branches, setBranches] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   // Fetch branches
   useEffect(() => {
@@ -39,8 +39,8 @@ const Feedback = () => {
   }, []);
 
   const handleChevronClick = (feedback) => {
-    setSelectedFeedback(feedback); // Set selected feedback
-    setShowPopup(true); // Show the popup
+    setSelectedFeedback(feedback);
+    setShowPopup(true);
   };
 
   // Function to render star rating
@@ -50,9 +50,9 @@ const Feedback = () => {
 
     for (let i = 1; i <= totalStars; i++) {
       if (i <= rating) {
-        stars.push(<Star key={i} className="text-yellow-500" />); // Filled star
+        stars.push(<Star key={i} className="text-yellow-500" />);
       } else {
-        stars.push(<StarOutline key={i} className="text-yellow-500" />); // Empty star
+        stars.push(<StarOutline key={i} className="text-yellow-500" />);
       }
     }
 
@@ -67,63 +67,62 @@ const Feedback = () => {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-      hour12: false, // 24-hour format
+      hour12: false,
     });
   };
 
   const fetchFeedback = async () => {
-    setLoading(true); // Bắt đầu loading
+    setLoading(true);
     try {
-      const response = await getAllFeedbackByAdmin(selectedBranch, selectedStatus, currentPage, itemsPerPage); // Thêm tham số lọc vào API
-      setFeedbackData(response.data.response); // Set feedback data
-      setTotalPages(response.data.totalPage); // Set total pages
+      const response = await getAllFeedbackByAdmin(selectedBranch, selectedStatus, currentPage, itemsPerPage);
+      setFeedbackData(response.data.response);
+      setTotalPages(response.data.totalPage);
     } catch (error) {
       console.error("Error fetching feedback data:", error);
     } finally {
-      setLoading(false); // Kết thúc loading
+      setLoading(false);
     }
   };
 
   // Gọi fetchFeedback khi component được mount lần đầu hoặc khi currentPage thay đổi
   useEffect(() => {
-    fetchFeedback(); // Gọi hàm fetchFeedback với barId và status mặc định là null
-  }, [currentPage]); // Chạy lại khi currentPage thay đổi
+    fetchFeedback();
+  }, [currentPage]);
 
   // Hàm để cập nhật trạng thái feedback
   const handleUpdateStatus = async () => {
     if (selectedFeedback) {
-      setUpdating(true); // Bắt đầu loading
+      setUpdating(true);
       try {
-        const currentStatus = !selectedFeedback.isDeleted; 
-        await UpdateStatusFeedBack(selectedFeedback.feedbackId, !currentStatus); 
+        const currentStatus = !selectedFeedback.isDeleted;
+        await UpdateStatusFeedBack(selectedFeedback.feedbackId, !currentStatus);
         setSelectedFeedback((prev) => ({
           ...prev,
-          isDeleted: !currentStatus, 
+          isDeleted: !currentStatus,
         }));
-        toast.success("Trạng thái đã được cập nhật thành công!"); 
+        toast.success("Trạng thái đã được cập nhật thành công!");
 
-        fetchFeedback(); 
+        fetchFeedback();
       } catch (error) {
         console.error("Error updating feedback status:", error);
-        toast.error("Cập nhật trạng thái thất bại!"); 
+        toast.error("Cập nhật trạng thái thất bại!");
       } finally {
-        setUpdating(false); // Kết thúc loading
+        setUpdating(false);
       }
     }
   };
 
   return (
-    <div className="bg-white flex justify-center px-4">
-      <div className="w-full max-w-6xl mb-8">
+    <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
+      <div className="flex flex-col gap-0 max-md:flex-col">
         {/* Filter Section */}
-        <div className="flex justify-end gap-4 mt-8 mb-6 text-base text-black">
+        <div className="flex justify-end gap-4 mb-6 text-base text-black">
           <div className="relative mt-1">
             <select
-              value={selectedBranch === null ? "all" : selectedBranch} // Hiển thị "Tất cả chi nhánh" nếu selectedBranch là null
+              value={selectedBranch === null ? "all" : selectedBranch}
               onChange={(e) => {
                 const value = e.target.value;
-                setSelectedBranch(value === "all" ? null : value); // Cập nhật giá trị cho selectedBranch
-                // Không gọi fetchFeedback ở đây
+                setSelectedBranch(value === "all" ? null : value);
               }}
               className="px-3 py-1 bg-white rounded-md border border-black shadow-sm text-sm transition-all duration-150 ease-in-out hover:bg-gray-100 active:bg-gray-200 focus:outline-none"
             >
@@ -167,8 +166,10 @@ const Feedback = () => {
           </Button>
         </div>
 
+        <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">Danh Sách Đánh Giá</h2>
+
         {/* Table Headers */}
-        <div className="grid grid-cols-8 gap-3 items-center py-4 px-5 text-sm font-bold text-black bg-white">
+        <div className="grid grid-cols-8 gap-3 items-center py-4 px-5 text-sm font-bold text-black bg-gray-100 rounded-t-lg">
           <div className="text-center">Điểm</div>
           <div className="text-center">Nội dung</div>
           <div className="text-center">Ngày tạo</div>
@@ -176,35 +177,35 @@ const Feedback = () => {
           <div className="text-center">Bởi</div>
           <div className="text-center">Chi nhánh</div>
           <div className="text-center">Trạng thái</div>
-          <div></div> {/* Placeholder for ChevronRight Icon */}
+          <div></div>
         </div>
 
         {/* Table Data */}
         {loading ? (
           <div className="flex justify-center items-center h-32">
-            <CircularProgress /> {/* Hiển thị spinner */}
+            <CircularProgress />
           </div>
         ) : feedbackData.length === 0 ? (
           <div className="text-red-500 text-center py-4">Không có đánh giá</div>
         ) : (
           feedbackData.map((row, index) => (
             <div
-              key={row.feedbackId} // Use feedbackId as key
-              className={`grid grid-cols-8 gap-3 py-3 px-5 items-center text-sm text-black ${index % 2 === 1 ? "bg-white" : "bg-orange-50"}`} // Màu xen kẽ
+              key={row.feedbackId}
+              className={`grid grid-cols-8 gap-3 py-3 px-5 items-center text-sm text-black ${index % 2 === 1 ? "bg-white" : "bg-orange-50"}`}
             >
-              <div className="flex items-center justify-center"> {/* Căn giữa nội dung */}
-                {renderStars(row.rating)} {/* Render star rating */}
+              <div className="flex items-center justify-center">
+                {renderStars(row.rating)}
               </div>
-              <div className="text-center truncate max-w-xs">{row.comment}</div> {/* Căn giữa nội dung và thêm class truncate */}
+              <div className="text-center truncate max-w-xs">{row.comment}</div>
               <div className="text-center">
-                <span>{formatDate(row.createdTime)}</span> {/* Định dạng thời gian */}
+                <span>{formatDate(row.createdTime)}</span>
               </div>
               <div className="text-center">
-                <span>{formatDate(row.lastUpdatedTime)}</span> {/* Định dạng thời gian */}
+                <span>{formatDate(row.lastUpdatedTime)}</span>
               </div>
-              <div className="text-center truncate max-w-xs">{row.customerName}</div> {/* Căn giữa nội dung */}
-              <div className="text-center truncate max-w-xs">{row.barName}</div> {/* Căn giữa nội dung */}
-              <div className="flex justify-center"> {/* Căn giữa hình viên thuốc */}
+              <div className="text-center truncate max-w-xs">{row.customerName}</div>
+              <div className="text-center truncate max-w-xs">{row.barName}</div>
+              <div className="flex justify-center">
                 <span
                   className={`flex justify-center items-center w-32 px-2 py-1 rounded-full text-white text-sm font-notoSansSC ${
                     row.isDeleted ? "bg-red-500" : "bg-green-500"
@@ -213,10 +214,9 @@ const Feedback = () => {
                   {row.isDeleted ? "Đang ẩn" : "Đang hiển thị"}
                 </span>
               </div>
-              {/* ChevronRight Icon for navigating */}
               <div
                 className="justify-self-end cursor-pointer"
-                onClick={() => handleChevronClick(row)} // Gọi hàm với đối tượng feedback
+                onClick={() => handleChevronClick(row)}
               >
                 <ChevronRight />
               </div>
@@ -229,7 +229,7 @@ const Feedback = () => {
           <Pagination
             count={totalPages}
             page={currentPage}
-            onChange={(event, value) => setCurrentPage(value)} // Update current page
+            onChange={(event, value) => setCurrentPage(value)}
             color="primary"
           />
         </Stack>
@@ -242,15 +242,15 @@ const Feedback = () => {
             <h2 className="text-xl font-semibold mb-4 text-center">Chi tiết Đánh Giá</h2>
             <div className="mb-2">
               <strong>Điểm:</strong>
-              <div className="flex mt-1">{renderStars(selectedFeedback.rating)}</div> {/* Hiển thị sao */}
+              <div className="flex mt-1">{renderStars(selectedFeedback.rating)}</div>
             </div>
             <div className="mb-2">
               <strong>Nội dung:</strong>
               <textarea
                 value={selectedFeedback.comment}
                 readOnly
-                className="w-full px-2 py-1 border border-gray-300 rounded-md resize-none mt-1" // Thêm class resize-none để không cho phép thay đổi kích thước
-                rows={4} // Số hàng mặc định
+                className="w-full px-2 py-1 border border-gray-300 rounded-md resize-none mt-1"
+                rows={4}
               />
             </div>
             <div className="mb-2">
@@ -289,12 +289,11 @@ const Feedback = () => {
                 className="w-full px-2 py-1 border border-gray-300 rounded-md mt-1"
               />
             </div>
-            <div className="mb-2 flex items-center space-x-2"> {/* Sử dụng space-x-2 để tạo khoảng cách đồng đều */}
+            <div className="mb-2 flex items-center space-x-2">
               <strong>Trạng thái:</strong>
               <Switch
-                checked={!selectedFeedback.isDeleted} // Nếu isDeleted là true, switch sẽ không được bật
+                checked={!selectedFeedback.isDeleted}
                 onChange={() => {
-                  // Cập nhật trạng thái khi toggle
                   setSelectedFeedback((prev) => ({
                     ...prev,
                     isDeleted: !prev.isDeleted,
@@ -302,12 +301,12 @@ const Feedback = () => {
                 }}
                 color="primary"
               />
-              <span className="text-center">{selectedFeedback.isDeleted ? "Đang ẩn" : "Đang hiển thị"}</span> {/* Căn giữa chữ */}
+              <span className="text-center">{selectedFeedback.isDeleted ? "Đang ẩn" : "Đang hiển thị"}</span>
             </div>
             <div className="flex justify-between mt-6">
               <button
                 className="bg-gray-400 text-white py-3 w-48 rounded-full"
-                onClick={() => setShowPopup(false)} // Đóng pop-up
+                onClick={() => setShowPopup(false)}
               >
                 Đóng
               </button>
@@ -322,7 +321,7 @@ const Feedback = () => {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 };
 
