@@ -1,12 +1,12 @@
 import PropTypes from "prop-types";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import TableService from "../../../lib/service/tableService";
 import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
 import { toast } from 'react-toastify';
 import { CircularProgress } from '@mui/material';
 import { Search } from '@mui/icons-material';
+import { getAllTableTypes } from "src/lib/service/tableTypeService";
 
 function TableManagementStaff() {
   const { tableTypeId } = useParams();
@@ -42,7 +42,7 @@ function TableManagementStaff() {
         const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
         const barId = userInfo ? userInfo.identityId : null;
 
-        const response = await TableService.getTables(barId, tableTypeId, null, pageIndex, pageSize);
+        const response = await getAllTableTypes();
         setTableData(response.response);
         setTotalPages(response.totalPage);
         setTableTypeName(response.tableTypeName);

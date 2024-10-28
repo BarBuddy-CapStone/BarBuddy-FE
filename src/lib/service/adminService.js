@@ -8,15 +8,20 @@ export const getCustomerDetail = async (accountId) => {
     return await axios.get(`api/v1/customer-account/detail?accountId=${accountId}`);
 };
 
-export const updateCustomerDetail = async (accountId, customerData) => {
-    const config = {
-        headers: {
-            'Content-Type': 'application/json',
-            'accept': '*/*',
-            // 'Authorization': `Bearer ${token}`
-        }
-    };
-    return await axios.patch(`api/v1/customer-account?accountId=${accountId}`, customerData, config);
+export const updateCustomerDetail = async (accountId, data) => {
+    return await axios.patch(`api/v1/customer-account?accountId=${accountId}`, data);
+};
+
+export const getManagerAccounts = async (pageSize = 100, pageIndex = 1) => {
+    return await axios.get(`api/v1/manager-accounts?pageSize=${pageSize}&pageIndex=${pageIndex}`);
+};
+
+export const getManagerDetail = async (accountId) => {
+    return await axios.get(`api/v1/manager-account/detail?accountId=${accountId}`);
+};
+
+export const updateManagerDetail = async (accountId, data) => {
+    return await axios.patch(`api/v1/manager-account?accountId=${accountId}`, data);
 };
 
 export const updateStaffDetail = async (accountId, staffData) => {
@@ -81,4 +86,14 @@ export const createStaff = async (staffData) => {
         }
     };
     return await axios.post("api/v1/staff-account", staffData, config);
+};
+
+export const createManager = async (managerData) => {
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+        }
+    };
+    return await axios.post("api/v1/manager-account", managerData, config);
 };

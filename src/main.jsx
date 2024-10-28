@@ -18,9 +18,9 @@ import TableManagementStaff from "./pages/staff/table-management/TableManagement
 import StaffManagement from "./pages/manager/staffManager/StaffManagement";
 import StaffCreation from "./pages/manager/staffManager/StaffCreation";
 import StaffDetail from "./pages/manager/staffManager/StaffDetail";
-import CustomerManagement from "./pages/admin/customerManager/CustomerManagement";
-import CustomerCreation from "./pages/admin/customerManager/CustomerCreation";
-import CustomerDetail from "./pages/admin/customerManager/CustomerDetail";
+import CustomerManagement from "./pages/admin/customerManagerment/CustomerManagement";
+import CustomerCreation from "./pages/admin/customerManagerment/CustomerCreation";
+import CustomerDetail from "./pages/admin/customerManagerment/CustomerDetail";
 import BookingListStaff from "./pages/staff/table-registration/BookingListStaff";
 import BarManagement from "./pages/admin/barManager/BarManagement";
 import BarProfile from "./pages/admin/barManager/BarProfile";
@@ -62,6 +62,9 @@ import TableTypeManagementManager from "./pages/manager/table-management/TableTy
 import PaymentHistoryManager from "./pages/manager/payment-history/PaymentHistoryManager";
 import BookingDetailManager from "./pages/manager/table-registration/BookingDetailManager";
 import BookingListManager from "./pages/manager/table-registration/BookingListManager";
+import ManagerDetail from "./pages/admin/managerManagement/ManagerDetail";
+import ManagerCreation from "./pages/admin/managerManagement/ManagerCreation";
+import ManagerManagement from "./pages/admin/managerManagement/ManagerManagement";
 
 
 
@@ -76,8 +79,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="admin/feedback" element={<FeedbackAdmin />}/> 
             <Route path="admin/feedback/detail/:feedbackId" element={<FeedbackDetailAdmin />}/> 
             <Route path="admin/customers" element={<CustomerManagement />}/> 
-            <Route path="admin/customer-creation/:id" element={<CustomerCreation />}/> 
+            <Route path="admin/customer-creation" element={<CustomerCreation />}/> 
             <Route path="admin/customer-detail" element={<CustomerDetail />}/> 
+            <Route path="admin/managers" element={<ManagerManagement />}/> 
+            <Route path="admin/manager-creation" element={<ManagerCreation />}/> 
+            <Route path="admin/manager-detail/:accountId" element={<ManagerDetail />}/> 
             <Route path="admin/payment-history" element={<PaymentHistoryAdmin />}/> 
             <Route path="admin/barmanager" element={<BarManagement />}/> 
             <Route path="admin/barProfile/:barId" element={<BarProfile />}/> 

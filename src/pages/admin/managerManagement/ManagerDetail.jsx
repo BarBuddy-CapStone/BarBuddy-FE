@@ -1,29 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getStaffById, updateStaff } from 'src/lib/service/staffService';
+import { getManagerDetail, updateManagerDetail, getBars } from 'src/lib/service/adminService';
 import { message } from 'antd';
 import useValidateAccountForm from 'src/lib/hooks/useValidateAccountForm';
+import dayjs from 'dayjs';
 
-const ProfileField = ({ label, value, onChange, isDropdown, options }) => (
+const ProfileField = ({ label, value, onChange, type = "text", readOnly = false, options = [] }) => (
     <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
-        <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full">
+        <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full flex-shrink-0">
             {label}
         </div>
-        <div className="w-[742px] max-w-full max-md:w-full">
-            {isDropdown ? (
+        <div className="w-[742px] max-w-full max-md:w-full flex-grow">
+            {type === 'select' ? (
                 <select
                     className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
                     value={value}
                     onChange={onChange}
+                    disabled={readOnly}
                 >
-                    <option value={options.barId}>{options.barName}</option>
+                    {options.map((option) => (
+                        <option key={option.barId} value={option.barId}>
+                            {option.barName}
+                        </option>
+                    ))}
                 </select>
             ) : (
                 <input
-                    type={label === "Ngày sinh" ? "date" : "text"}
+                    type={type}
                     className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
                     value={value}
                     onChange={onChange}
+                    disabled={readOnly}
                 />
             )}
         </div>
@@ -46,104 +53,79 @@ const StatusToggle = ({ status, onToggle }) => (
     </div>
 );
 
-const Popup = ({ message, onConfirm, onCancel }) => (
+const Popup = ({ message, onClose, onConfirm }) => (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
         <div className="bg-white p-6 rounded shadow-lg">
             <h2 className="font-bold text-lg">Xác nhận</h2>
             <p>{message}</p>
             <div className="mt-4 flex justify-end">
                 <button onClick={onConfirm} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Đồng ý</button>
-                <button onClick={onCancel} className="ml-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Hủy</button>
+                <button onClick={onClose} className="ml-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Hủy</button>
             </div>
         </div>
     </div>
 );
 
-export default function StaffDetail() {
+export default function ManagerDetail() {
     const navigate = useNavigate();
-    const { id } = useParams();
-    const [staffDetail, setStaffDetail] = useState(null);
-    const [formData, setFormData] = useState({});
+    const { accountId } = useParams();
+    const [managerData, setManagerData] = useState(null);
     const [showPopup, setShowPopup] = useState(false);
-    const [popupMessage, setPopupMessage] = useState("Bạn có chắc chắn muốn cập nhật thông tin?");
-    const [errors, setErrors] = useState({});
+    const [formData, setFormData] = useState({});
+    const [popupMessage, setPopupMessage] = useState(null);
     const { validateForm } = useValidateAccountForm();
-    const [isLoading, setIsLoading] = useState(true);
-    const [staffImage, setStaffImage] = useState("");
+    const [errors, setErrors] = useState({});
     const [imageUrl, setImageUrl] = useState("");
+    const [bars, setBars] = useState([]);
 
     useEffect(() => {
-        const fetchStaffDetail = async () => {
-            setIsLoading(true);
+        const fetchData = async () => {
             try {
-                const response = await getStaffById(id);
-                console.log("Staff Detail Response:", response); // Debug log
+                const barsResponse = await getBars();
+                if (barsResponse.data.statusCode === 200) {
+                    setBars(barsResponse.data.data);
+                }
+
+                const response = await getManagerDetail(accountId);
                 if (response.data.statusCode === 200) {
-                    const staffData = response.data.data;
-                    setStaffDetail(staffData);
+                    const data = response.data.data;
+                    setManagerData(data);
                     setFormData({
-                        email: staffData.email,
-                        fullname: staffData.fullname,
-                        phone: staffData.phone,
-                        dob: new Date(staffData.dob).toISOString().split('T')[0],
-                        barId: staffData.barId,
-                        status: staffData.status,
-                        bar: staffData.bar,
-                        image: staffData.image // Lấy image từ staffData
+                        email: data.email,
+                        fullname: data.fullname,
+                        phone: data.phone,
+                        dob: new Date(data.dob).toISOString().split('T')[0],
+                        status: data.status,
+                        image: data.image,
+                        barId: data.barId
                     });
-                    setImageUrl(staffData.image); // Set image URL từ API response
+                    setImageUrl(data.image);
                 } else {
-                    message.error("Không thể tải thông tin nhân viên");
+                    message.error("Không thể tải thông tin quản lý");
                 }
             } catch (error) {
-                console.error("Failed to fetch staff detail:", error);
-                message.error("Đã xảy ra lỗi khi tải thông tin nhân viên");
-            } finally {
-                setIsLoading(false);
+                console.error("Failed to fetch data:", error);
+                message.error("Đã xảy ra lỗi khi tải thông tin");
             }
         };
 
-        if (id) {
-            fetchStaffDetail();
-        } else {
-            message.error("Không tìm thấy ID nhân viên");
-            navigate("/manager/staff");
+        if (accountId) {
+            fetchData();
         }
-    }, [id, navigate]);
+    }, [accountId]);
 
     const handleBack = () => {
-        navigate("/manager/staff");
+        navigate("/admin/managers");
     };
 
-    const handleUpdate = async () => {
+    const handleUpdate = () => {
         const validationErrors = validateForm(formData);
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
+        setPopupMessage("Bạn có chắc chắn muốn cập nhật thông tin?");
         setShowPopup(true);
-    };
-
-    const handleConfirmUpdate = async () => {
-        try {
-            const updatedData = {
-                email: formData.email,
-                fullname: formData.fullname,
-                phone: formData.phone,
-                dob: new Date(formData.dob).toISOString(),
-                barId: formData.barId,
-                status: formData.status === 1 ? 1 : 0,
-                image: formData.image // Thêm image vào data update
-            };
-            const response = await updateStaff(id, updatedData);
-            if (response.data.statusCode === 200) {
-                message.success("Thông tin đã được cập nhật thành công!");
-                navigate("/manager/staff");
-            }
-        } catch (error) {
-            console.error("Failed to update staff detail:", error);
-            message.error("Cập nhật thông tin thất bại!");
-        }
     };
 
     const handleClosePopup = () => {
@@ -159,40 +141,69 @@ export default function StaffDetail() {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImageUrl(reader.result);
+                const imageDataUrl = reader.result;
+                setImageUrl(imageDataUrl);
                 setFormData(prev => ({
                     ...prev,
-                    image: reader.result // Cập nhật image trong formData
+                    image: imageDataUrl
                 }));
             };
             reader.readAsDataURL(file);
         }
     };
 
-    if (isLoading) return <div>Đang tải...</div>;
-    if (!staffDetail) return <div>Không tìm thấy thông tin nhân viên</div>;
+    const onConfirm = async () => {
+        try {
+            const updatedData = {
+                email: formData.email,
+                fullname: formData.fullname,
+                phone: formData.phone,
+                dob: formData.dob,
+                status: formData.status === 1 ? 1 : 0,
+                image: formData.image,
+                barId: formData.barId
+            };
+
+            const response = await updateManagerDetail(accountId, updatedData);
+            if (response.data.statusCode === 200) {
+                message.success("Thông tin đã được cập nhật thành công!");
+                navigate("/admin/managers");
+            } else {
+                message.error(response.data.message || "Cập nhật thông tin thất bại!");
+            }
+        } catch (error) {
+            console.error("Error updating manager detail:", error);
+            if (error.response?.status === 400) {
+                message.error(error.response.data.message || "Dữ liệu không hợp lệ");
+            } else {
+                message.error("Có lỗi xảy ra khi cập nhật thông tin!");
+            }
+        }
+        setShowPopup(false);
+    };
+
+    if (!managerData) return <div>Loading...</div>;
 
     return (
         <main className="flex flex-col px-4 md:px-8 lg:px-16 py-8 w-full max-w-7xl mx-auto">
             <header className="flex items-center justify-between mb-8">
-                <button
+                <button 
                     onClick={handleBack}
                     className="text-3xl font-bold hover:text-gray-700 transition-colors"
                 >
                     &#8592;
                 </button>
-                <h1 className="font-bold text-center flex-grow">THÔNG TIN TÀI KHOẢN STAFF</h1>
+                <h1 className="font-bold text-center flex-grow">THÔNG TIN TÀI KHOẢN QUẢN LÝ</h1>
                 <div className="w-8"></div>
             </header>
             <div className="flex gap-5 max-md:flex-col">
                 <aside className="flex flex-col w-[30%] max-md:ml-0 max-md:w-full">
                     <div className="relative">
                         <img
-                            src={imageUrl || "https://via.placeholder.com/200"} // Sử dụng imageUrl từ API
-                            alt={formData.fullname}
+                            src={imageUrl || "https://cdn.builder.io/api/v1/image/assets/TEMP/d61fbfce841ecc9d25137354a868eca4d9a5b3f3a4e622afcda63d7cca503674"}
+                            alt="User profile"
                             className="object-cover w-48 h-48 rounded-full"
                         />
-                        {/* Thêm nút upload ảnh */}
                         <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
                             <input
                                 type="file"
@@ -218,19 +229,14 @@ export default function StaffDetail() {
                         <ProfileField label="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                         
                         {errors.dob && <span className="text-center my-2 text-red-500">{errors.dob}</span>}
-                        <ProfileField
-                            label="Ngày sinh"
-                            value={formData.dob}
-                            onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                            isDropdown={false}
-                        />
-                        
-                        <ProfileField
-                            label="Chi nhánh"
+                        <ProfileField label="Ngày sinh" value={formData.dob} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} type="date" />
+
+                        <ProfileField 
+                            label="Bar" 
                             value={formData.barId}
                             onChange={(e) => setFormData({ ...formData, barId: e.target.value })}
-                            isDropdown={true}
-                            options={formData.bar}
+                            type="select"
+                            options={bars}
                         />
                         
                         <StatusToggle status={formData.status} onToggle={handleToggleStatus} />
@@ -238,11 +244,14 @@ export default function StaffDetail() {
                 </section>
             </div>
             <div className="mt-8 flex justify-end">
-                <button onClick={handleUpdate} className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
+                <button
+                    onClick={handleUpdate}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                >
                     Cập nhật
                 </button>
             </div>
-            {showPopup && <Popup message={popupMessage} onConfirm={handleConfirmUpdate} onCancel={handleClosePopup} />}
+            {showPopup && <Popup message={popupMessage} onClose={handleClosePopup} onConfirm={onConfirm} />}
         </main>
     );
 }

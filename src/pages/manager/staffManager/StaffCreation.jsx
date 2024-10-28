@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react'; // Thêm useEffect
 import { useNavigate } from 'react-router-dom';
 import { getBars, createStaff } from '../../../lib/service/adminService'; // Import hàm createStaff
-import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer và toast
-import 'react-toastify/dist/ReactToastify.css'; // Import CSS cho toast
-import useValidateAccountForm from '../../../lib/hooks/useValidateAccountForm'; // Import hook validate
+import { message } from 'antd'; // Import message từ antd
 
 const formFields = [
     { label: "Họ và tên", name: "fullname", type: "text" },
@@ -60,14 +58,13 @@ const AccountForm = () => {
         setShowPopup(false);
         try {
             const response = await createStaff(formData);
-            if(response.status === 200) {
-                navigate("/manager/staff", { state: { successMessage: "Tài khoản đã được thêm thành công!" } });
-            } else {
-                navigate("/manager/staff", { state: { errorMessage: "Có lỗi xảy ra khi tạo tài khoản!" } });
+            if(response.data.statusCode === 200) {
+                message.success("Tài khoản đã được thêm thành công!"); // Thay đổi toast thành message
+                navigate("/manager/staff");
             }
         } catch (error) {
             console.error('Có lỗi xảy ra khi tạo tài khoản:', error);
-            toast.error('Có lỗi xảy ra khi tạo tài khoản!');
+            message.error('Có lỗi xảy ra khi tạo tài khoản!'); // Thay đổi toast thành message
         }
     };
 
@@ -116,7 +113,6 @@ const AccountForm = () => {
             {showPopup && (
                 <Popup message={confirmMessage} onClose={handleClose} onConfirm={handleConfirm} />
             )}
-            <ToastContainer />
         </>
     );
 }

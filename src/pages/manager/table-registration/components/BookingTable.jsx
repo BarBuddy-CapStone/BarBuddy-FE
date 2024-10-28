@@ -74,7 +74,7 @@ function BookingTable({ filter, bookings, loading }) {
   const navigate = useNavigate(); 
 
   const handleViewDetails = (bookingId) => {
-    navigate(`/staff/table-registration-detail/${bookingId}`); 
+    navigate(`/manager/table-registration-detail/${bookingId}`); 
   };
 
   const filteredBookings = bookings.filter(booking => {

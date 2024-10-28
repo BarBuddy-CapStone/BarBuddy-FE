@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getCustomerDetail, updateCustomerDetail } from 'src/lib/service/adminService'; // Import hàm gọi API
-import { ToastContainer, toast } from 'react-toastify'; // Nhập ToastContainer và toast
-import 'react-toastify/dist/ReactToastify.css'; // Nhập CSS cho toast
+import { message } from 'antd'; // Thêm import message từ antd
 import useValidateAccountForm from 'src/lib/hooks/useValidateAccountForm'; // Nhập hook xác thực
 
 const ProfileField = ({ label, value, onChange, type = "text" }) => ( // Thêm type với giá trị mặc định là "text"
@@ -61,18 +60,21 @@ export default function CustomerDetail() {
     const { validateForm } = useValidateAccountForm(); // Khởi tạo hook xác thực
     const [errors, setErrors] = useState({}); // Thêm state để lưu trữ lỗi
     const [updateSuccess, setUpdateSuccess] = useState(false); // Thêm state để theo dõi việc cập nhật thành công
+    const [imageUrl, setImageUrl] = useState("");
 
     useEffect(() => {
         const fetchCustomerDetail = async () => {
-            const response = await getCustomerDetail(accountId); // Gọi hàm lấy chi tiết khách hàng
-            setCustomerData(response.data.data); // Cập nhật dữ liệu khách hàng
+            const response = await getCustomerDetail(accountId);
+            setCustomerData(response.data.data);
             setFormData({
                 email: response.data.data.email,
                 fullname: response.data.data.fullname,
                 phone: response.data.data.phone,
-                dob: new Date(response.data.data.dob).toISOString().split('T')[0], // Chuyển đổi định dạng ngày
-                status: response.data.data.status
+                dob: new Date(response.data.data.dob).toISOString().split('T')[0],
+                status: response.data.data.status,
+                image: response.data.data.image // Thêm image vào formData
             });
+            setImageUrl(response.data.data.image); // Set image URL
         };
 
         fetchCustomerDetail();
@@ -100,26 +102,49 @@ export default function CustomerDetail() {
         setFormData({ ...formData, status: formData.status === 1 ? 0 : 1 }); // Chuyển đổi trạng thái
     };
 
-    const onConfirm = async () => { // Tạo hàm onConfirm
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const imageDataUrl = reader.result;
+                setImageUrl(imageDataUrl);
+                setFormData(prev => ({
+                    ...prev,
+                    image: imageDataUrl // Cập nhật image trong formData
+                }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const onConfirm = async () => {
         try {
-            // Đảm bảo rằng dob được định dạng đúng
             const updatedData = {
                 email: formData.email,
                 fullname: formData.fullname,
                 phone: formData.phone,
-                dob: formData.dob, // Đảm bảo định dạng YYYY-MM-DD
-                status: formData.status === 1 ? 1 : 0
+                dob: formData.dob,
+                status: formData.status === 1 ? 1 : 0,
+                image: formData.image
             };
-            const response = await updateCustomerDetail(accountId, updatedData); // Gọi hàm cập nhật thông tin khách hàng
-            if (response.status === 200) {
-                navigate("/manager/customers", { state: { successMessage: "Thông tin đã được cập nhật thành công!" } });
+
+            const response = await updateCustomerDetail(accountId, updatedData);
+            if (response.data.statusCode === 200) {
+                message.success("Thông tin đã được cập nhật thành công!");
+                navigate("/admin/customers");
             } else {
-                toast.error("Cập nhật thông tin thất bại!"); // Hiển thị thông báo lỗi
+                message.error(response.data.message || "Cập nhật thông tin thất bại!");
             }
         } catch (error) {
             console.error("Error updating customer detail:", error);
-            toast.error("Cập nhật thông tin thất bại!"); // Hiển thị thông báo lỗi
+            if (error.response?.status === 400) {
+                message.error(error.response.data.message || "Dữ liệu không hợp lệ");
+            } else {
+                message.error("Có lỗi xảy ra khi cập nhật thông tin!");
+            }
         }
+        setShowPopup(false);
     };
 
     if (!customerData) return <div>Loading...</div>; // Hiển thị loading khi chưa có dữ liệu
@@ -138,12 +163,25 @@ export default function CustomerDetail() {
             </header>
             <div className="flex gap-5 max-md:flex-col">
                 <aside className="flex flex-col w-[30%] max-md:ml-0 max-md:w-full">
-                    <img
-                        loading="lazy"
-                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/d61fbfce841ecc9d25137354a868eca4d9a5b3f3a4e622afcda63d7cca503674?placeholderIfAbsent=true&apiKey=2f0fb41b041549e2a3975f3618160d3b"
-                        alt="User profile"
-                        className="object-contain shrink-0 mt-3 -mr-8 max-w-full aspect-square w-full"
-                    />
+                    <div className="relative">
+                        <img
+                            src={imageUrl || "https://cdn.builder.io/api/v1/image/assets/TEMP/d61fbfce841ecc9d25137354a868eca4d9a5b3f3a4e622afcda63d7cca503674"}
+                            alt="User profile"
+                            className="object-cover w-48 h-48 rounded-full"
+                        />
+                        {/* Thêm nút upload ảnh */}
+                        <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleImageChange}
+                            />
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                        </label>
+                    </div>
                 </aside>
                 <section className="flex flex-col ml-5 w-[82%] max-md:ml-0 max-md:w-full">
                     <div className="flex flex-col w-full text-sm min-h-[454px] max-md:max-w-full">
@@ -169,7 +207,6 @@ export default function CustomerDetail() {
                 </button>
             </div>
             {showPopup && <Popup message={popupMessage} onClose={handleClosePopup} onConfirm={onConfirm} />}
-            <ToastContainer /> {/* Thêm ToastContainer vào trong JSX */}
         </main>
     );
 }

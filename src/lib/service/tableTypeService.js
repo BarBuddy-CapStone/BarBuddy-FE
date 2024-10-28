@@ -1,26 +1,34 @@
 import axios from '../axiosCustomize';
+import useAuthStore from "../hooks/useUserStore";
 
-class TableTypeService {
-  static async getAllTableTypes() {
-    return await axios.get('api/TableType');
+const getAllTableTypesManager = async () => {
+  return await axios.get(`api/TableType`);
+};
 
-  }
+const getAllTableTypes = async () => {
+  return await axios.get(`api/TableType`);
+};
 
-  static async getAllTableTypesAdmin(params) {
-    return await axios.get('api/TableType/admin', { params });
-  }
+const addTableType = async (data) => {
+  const barId = useAuthStore.getState().userInfo?.identityId;
+  return await axios.post(`api/TableType`, { ...data, barId });
+};
 
-  static async deleteTableType(tableTypeId) {
-    return await axios.delete(`api/TableType/${tableTypeId}`);
-  }
+const updateTableType = async (id, data) => {
+  const barId = useAuthStore.getState().userInfo?.identityId;
+  // Sửa lại endpoint để match với API
+  return await axios.patch(`api/TableType/${id}`, { ...data, barId });
+};
 
-  static async addTableType(tableTypeData) {
-    return await axios.post('api/TableType', tableTypeData);
-  }
+const deleteTableType = async (id) => {
+  // Sửa lại endpoint để match với API
+  return await axios.delete(`api/TableType/${id}`);
+};
 
-  static async updateTableType(tableTypeId, tableTypeData) {
-    return await axios.patch(`api/TableType/${tableTypeId}`, tableTypeData);
-  }
-}
-
-export default TableTypeService;
+export {
+  getAllTableTypes,
+  getAllTableTypesManager,
+  addTableType,
+  updateTableType,
+  deleteTableType,
+};

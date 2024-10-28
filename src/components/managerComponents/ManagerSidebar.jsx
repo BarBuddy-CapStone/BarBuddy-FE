@@ -20,16 +20,16 @@ const sidebarItems = [
     label: "Danh Sách Đặt Bàn",
     path: "/manager/table-registrations",
   },
-  // {
-  //   icon: TableRestaurantIcon,
-  //   label: "Loại bàn",
-  //   path: "/manager/table-type-management",
-  // },
   {
     icon: TableRestaurantIcon,
-    label: "Bàn",
-    path: "/manager/table-management",
+    label: "Loại bàn",
+    path: "/manager/table-type-management",
   },
+  // {
+  //   icon: TableRestaurantIcon,
+  //   label: "Bàn",
+  //   path: "/manager/table-management",
+  // },
   // {
   //   icon: LocalActivityIcon,
   //   label: "Sự kiện",

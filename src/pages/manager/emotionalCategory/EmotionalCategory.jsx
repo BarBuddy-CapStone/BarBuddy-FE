@@ -1,24 +1,39 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Search, Add, Delete, Edit } from "@mui/icons-material";
-import { AddEmotionCategory, EditEmotionCategory, DeleteEmotionCategory } from "src/pages";
 import { getAllEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
-import { toast, ToastContainer } from "react-toastify";
-import { useNavigate } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
+import { message } from "antd";
+import AddEmotionCategory from "./components/AddEmotionCategory";
+import EditEmotionCategory from "./components/EditEmotionCategory";
+import DeleteEmotionCategory from "./components/DeleteEmotionCategory";
+import useAuthStore from "src/lib/hooks/useUserStore";
 
 function EmotionCategoryCard({ category, onEdit, onDelete }) {
   return (
-    <div className="flex flex-col w-full rounded-xl bg-neutral-200 bg-opacity-50 shadow-md text-base overflow-hidden">
-      <div className="px-4 py-5">
-        <div className="flex justify-between items-center w-full">
-          <div className="text-lg font-bold text-black truncate overflow-hidden pr-2 flex-1" title={category.categoryName}>
-            {category.categoryName}
-          </div>
-          <div className="flex items-center gap-2">
-            <Edit className="cursor-pointer text-black hover:text-gray-700" onClick={() => onEdit(category)} />
-            <Delete className="cursor-pointer text-black hover:text-gray-700" onClick={() => onDelete(category)} />
-          </div>
+    <div className="flex flex-col p-4 w-full rounded-xl bg-neutral-200 bg-opacity-50 transition-all duration-300 hover:shadow-lg">
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
+        <div className="flex items-center gap-1 flex-grow">
+          <span className='text-lg font-bold whitespace-nowrap'>Cảm Xúc:</span>
+          <span className="text-lg break-words">{category.categoryName}</span>
         </div>
+
+        <div className="flex gap-2 flex-shrink-0 items-center">
+          <button onClick={() => onEdit(category)} className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 flex items-center justify-center">
+            <Edit className="w-5 h-5 text-gray-600" />
+          </button>
+          <button onClick={() => onDelete(category)} className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 flex items-center justify-center">
+            <Delete className="w-5 h-5 text-gray-600" />
+          </button>
+        </div>
+      </div>
+      <div className="flex gap-3 w-full text-base text-black">
+        <img 
+          loading="lazy" 
+          src="https://cdn.builder.io/api/v1/image/assets/TEMP/1e2a568ee4fc18b3ebd3b96ec24c6285c3f03c41f2b949ffc5bc1e20431c5b66" 
+          className="object-contain shrink-0 self-start mt-1 w-6 aspect-square" 
+          alt="" 
+        />
+        <p className="flex-1 min-h-[60px] break-words">{category.description}</p>
       </div>
     </div>
   );
@@ -29,13 +44,14 @@ function EmotionalCategory() {
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [currentEditCategory, setCurrentEditCategory] = useState({ id: '', name: '' });
-  const [currentDeleteCategory, setCurrentDeleteCategory] = useState({ id: '', name: '' });
+  const [currentEditCategory, setCurrentEditCategory] = useState(null);
+  const [currentDeleteCategory, setCurrentDeleteCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredCategories, setFilteredCategories] = useState([]);
 
-  const navigate = useNavigate();
+  const { userInfo } = useAuthStore();
+  const barId = userInfo?.identityId;
 
   const fetchEmotionCategories = useCallback(async () => {
     setIsLoading(true);
@@ -46,7 +62,7 @@ function EmotionalCategory() {
       setFilteredCategories(categories);
     } catch (error) {
       console.error("Error fetching emotion categories:", error);
-      toast.error("Không thể tải danh sách danh mục cảm xúc.");
+      message.error("Không thể tải danh sách danh mục cảm xúc.");
     } finally {
       setIsLoading(false);
     }
@@ -63,34 +79,29 @@ function EmotionalCategory() {
     setFilteredCategories(filtered);
   };
 
-  const handleAddSuccess = useCallback(async (success, message) => {
+  const handleAddSuccess = useCallback(async () => {
     setIsAdding(false);
-    if (success) {
-      toast.success(message);
-    } else {
-      toast.error(message);
-    }
-    fetchEmotionCategories();
+    await fetchEmotionCategories();
   }, [fetchEmotionCategories]);
 
   const handleEdit = (category) => {
-    setCurrentEditCategory({ id: category.emotionalDrinksCategoryId, name: category.categoryName });
+    setCurrentEditCategory(category);
     setIsEditing(true);
   };
 
-  const handleEditSuccess = () => {
+  const handleEditSuccess = async () => {
     setIsEditing(false);
-    fetchEmotionCategories();
+    await fetchEmotionCategories();
   };
 
   const handleDelete = (category) => {
-    setCurrentDeleteCategory({ id: category.emotionalDrinksCategoryId, name: category.categoryName });
+    setCurrentDeleteCategory(category);
     setIsDeleting(true);
   };
 
-  const handleDeleteSuccess = () => {
+  const handleDeleteSuccess = async () => {
     setIsDeleting(false);
-    fetchEmotionCategories();
+    await fetchEmotionCategories();
   };
 
   return (
@@ -121,7 +132,10 @@ function EmotionalCategory() {
         </div>
 
         <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
-          <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">Danh Sách Danh Mục Cảm Xúc</h2>
+          <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">
+            Danh Sách Danh Mục Cảm Xúc
+          </h2>
+          
           {isLoading ? (
             <div className="flex justify-center items-center h-32">
               <CircularProgress />
@@ -151,29 +165,29 @@ function EmotionalCategory() {
         </div>
       )}
 
-      {isEditing && (
+      {isEditing && currentEditCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <EditEmotionCategory
-            emotionId={currentEditCategory.id}
-            emotionName={currentEditCategory.name}
+            emotionId={currentEditCategory.emotionalDrinksCategoryId}
+            emotionName={currentEditCategory.categoryName}
+            emotionDescription={currentEditCategory.description}
             onClose={() => setIsEditing(false)}
             onEditSuccess={handleEditSuccess}
           />
         </div>
       )}
 
-      {isDeleting && (
+      {isDeleting && currentDeleteCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <DeleteEmotionCategory
-            emotionId={currentDeleteCategory.id}
-            emotionName={currentDeleteCategory.name}
+            emotionId={currentDeleteCategory.emotionalDrinksCategoryId}
+            emotionName={currentDeleteCategory.categoryName}
+            emotionDescription={currentDeleteCategory.description}
             onConfirm={handleDeleteSuccess}
             onCancel={() => setIsDeleting(false)}
           />
         </div>
       )}
-
-      <ToastContainer />
     </main>
   );
 }

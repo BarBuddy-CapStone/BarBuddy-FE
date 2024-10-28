@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import TableTypeService from '../../../lib/service/tableTypeService';
-import { toast } from 'react-toastify';
-import { CircularProgress, TextField, Button, InputAdornment } from "@mui/material"; // Import CircularProgress từ MUI
-import { Search, Add } from "@mui/icons-material"; // Thêm import Search từ MUI
+import { message } from 'antd';
+import { CircularProgress, TextField, Button, InputAdornment } from "@mui/material";
+import { Search, Add } from "@mui/icons-material";
+import { getAllTableTypesManager, addTableType, updateTableType, deleteTableType } from 'src/lib/service/tableTypeService';
 
 const TableTypeManagement = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -12,32 +12,30 @@ const TableTypeManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [tableTypes, setTableTypes] = useState([]);
   const [resetFormTrigger, setResetFormTrigger] = useState(false);
-
-  const [status, setStatus] = useState(0);
-  const [loading, setLoading] = useState(false); // Thêm state loading
-  const [searchInput, setSearchInput] = useState(''); // Thêm state mới cho input tìm kiếm
+  const [loading, setLoading] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
 
   useEffect(() => {
     fetchTableTypes();
-  }, [status]); 
+  }, []); 
 
   const fetchTableTypes = useCallback(async () => {
-    setLoading(true); // Bt đầu loading
+    setLoading(true);
     try {
-      const response = await TableTypeService.getAllTableTypesAdmin({ Status: status });
-      setTableTypes(response.data.data.map((tableType) => ({
+      const response = await getAllTableTypesManager();
+      const tableTypesData = response.data.data.map((tableType) => ({
         ...tableType,
         editIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb',
         deleteIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e',
-      })));
-    } catch {
-      notify('Error fetching table types', 'error');
+      }));
+      setTableTypes(tableTypesData);
+    } catch (error) {
+      console.error('Error fetching table types:', error);
+      message.error('Lỗi khi tải danh sách loại bàn');
     } finally {
-      setLoading(false); // Kết thúc loading
+      setLoading(false);
     }
-  }, [status]);
-
-  const notify = (message, type = 'success') => toast[type](message);
+  }, []);
 
   const handlePopup = (isOpen, type = null) => {
     setIsPopupOpen(isOpen);
@@ -53,17 +51,16 @@ const TableTypeManagement = () => {
     if (!selectedTableType) return;
 
     try {
-      const response = await TableTypeService.deleteTableType(selectedTableType.tableTypeId);
-      if (response.status === 200) {
-        notify('Đã xóa loại bàn thành công');
-        fetchTableTypes();
-      } else if (response.status === 202) {
-        notify(response.data.message || 'Vn còn bàn đang hoạt động thuộc loại bàn này, vui lòng cập nhật lại trước khi xóa.', 'warning');
-      } else {
-        notify('Có lỗi xảy ra trong quá trình xóa loại bàn', 'error');
-      }
+      await deleteTableType(selectedTableType.tableTypeId);
+      message.success('Đã xóa loại bàn thành công');
+      await fetchTableTypes();
     } catch (error) {
-      notify(error.response?.data || 'Error deleting table type', 'error');
+      console.error('Error deleting table type:', error);
+      if (error.response?.status === 400) {
+        message.warning('Không thể xóa loại bàn này vì đang có bàn thuộc loại này');
+      } else {
+        message.error('Có lỗi xảy ra trong quá trình xóa loại bàn');
+      }
     } finally {
       handleDeletePopup(false);
     }
@@ -72,13 +69,14 @@ const TableTypeManagement = () => {
   const handleAddTableType = async (event, tableTypeData) => {
     event.preventDefault();
     try {
-      await TableTypeService.addTableType(tableTypeData);
-      notify('Đã thêm loại bàn thành công');
-      fetchTableTypes();
+      await addTableType(tableTypeData);
+      message.success('Đã thêm loại bàn thành công');
+      await fetchTableTypes(); // Fetch lại data sau khi thêm
       setResetFormTrigger(true);
       handlePopup(false);
     } catch (error) {
-      notify(error.response?.data || 'Error adding table type', 'error');
+      console.error('Error adding table type:', error);
+      message.error('Có lỗi xảy ra khi thêm loại bàn');
     }
   };
 
@@ -88,64 +86,63 @@ const TableTypeManagement = () => {
 
   const handleSearchChange = (event) => setSearchInput(event.target.value);
 
-  const handleStatusChange = (event) => {
-    setStatus(parseInt(event.target.value, 10));
-  };
-
   const filteredTableTypes = tableTypes.filter((tableType) =>
     tableType.typeName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
-  <div className="flex flex-col gap-0 max-md:flex-col">
-    <BelowHeader 
-      onAddTableType={() => handlePopup(true)} 
-      searchInput={searchInput} 
-      onSearchChange={handleSearchChange}
-      onSearch={handleSearch}
-      status={status} 
-      onStatusChange={handleStatusChange} 
-    />
-    <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
-      <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">Danh Sách Loại Bàn</h2>
-      {loading ? ( // Kiểm tra nếu đang loading
-        <div className="flex justify-center items-center h-32">
-          <CircularProgress /> {/* Hiển thị spinner */}
+      <div className="flex flex-col gap-0 max-md:flex-col">
+        <BelowHeader 
+          onAddTableType={() => handlePopup(true)} 
+          searchInput={searchInput} 
+          onSearchChange={handleSearchChange}
+          onSearch={handleSearch}
+        />
+        <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
+          <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">Danh Sách Loại Bàn</h2>
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <CircularProgress />
+            </div>
+          ) : filteredTableTypes.length === 0 ? (
+            <div className="flex justify-center items-center h-32">
+              <p className="text-red-500 text-lg font-semibold">Không có loại bàn</p>
+            </div>
+          ) : (
+            <TableTypeList
+              tableTypes={filteredTableTypes}
+              onOpenDeletePopup={(tableType) => handleDeletePopup(true, tableType)}
+              onTableTypeUpdated={fetchTableTypes}
+              notify={message}
+            />
+          )}
         </div>
-      ) : filteredTableTypes.length === 0 ? ( // Kiểm tra nếu không có dữ liệu
-        <div className="flex justify-center items-center h-32">
-          <p className="text-red-500 text-lg font-semibold">Không có loại bàn</p>
-        </div>
-      ) : (
-        <TableTypeList
-          tableTypes={filteredTableTypes}
-          onOpenDeletePopup={(tableType) => handleDeletePopup(true, tableType)}
-          onTableTypeUpdated={fetchTableTypes}
-          notify={notify}
+      </div>
+
+      {isPopupOpen && (
+        <AddTableTypePopup
+          isOpen={isPopupOpen}
+          onClose={() => handlePopup(false)}
+          handleAddTableType={handleAddTableType}
+          resetFormTrigger={resetFormTrigger}
+          setResetFormTrigger={setResetFormTrigger}
         />
       )}
-    </div>
-  </div>
-  <AddTableTypePopup
-    isOpen={isPopupOpen}
-    onClose={() => handlePopup(false)}
-    handleAddTableType={handleAddTableType}
-    resetFormTrigger={resetFormTrigger}
-    setResetFormTrigger={setResetFormTrigger}
-  />
-  <DeleteTableTypePopup
-    isOpen={isDeletePopupOpen}
-    onClose={() => handleDeletePopup(false)}
-    onDelete={handleDelete}
-    tableType={selectedTableType}
-  />
-</main>
 
+      {isDeletePopupOpen && (
+        <DeleteTableTypePopup
+          isOpen={isDeletePopupOpen}
+          onClose={() => handleDeletePopup(false)}
+          onDelete={handleDelete}
+          tableType={selectedTableType}
+        />
+      )}
+    </main>
   );
 };
 
-const BelowHeader = ({ onAddTableType, searchInput, onSearchChange, onSearch, status, onStatusChange }) => (
+const BelowHeader = ({ onAddTableType, searchInput, onSearchChange, onSearch }) => (
   <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mx-4 mt-6">
     <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full lg:w-auto">
       <div className="relative flex-grow">
@@ -161,15 +158,6 @@ const BelowHeader = ({ onAddTableType, searchInput, onSearchChange, onSearch, st
           onClick={onSearch}
         />
       </div>
-      <select
-        value={status}
-        onChange={onStatusChange}
-        className="px-4 py-2 border border-sky-900 rounded-full w-full sm:w-auto"
-      >
-        <option value={0}>Tất cả</option>
-        <option value={1}>Loại bàn đang được sử dụng</option>
-        <option value={2}>Loại bàn không được sử dụng</option>
-      </select>
     </div>
     <button
       onClick={onAddTableType}
@@ -185,47 +173,8 @@ BelowHeader.propTypes = {
   onAddTableType: PropTypes.func.isRequired,
   searchInput: PropTypes.string.isRequired,
   onSearchChange: PropTypes.func.isRequired,
-  onSearch: PropTypes.func.isRequired, // Thêm prop mới
-  status: PropTypes.number.isRequired,
-  onStatusChange: PropTypes.func.isRequired,
+  onSearch: PropTypes.func.isRequired,
 };
-
-
-// TableTypeList component
-// const tableTypes = [
-//   {
-//     title: "Bàn SVIP",
-//     price: "Từ 10.000.000 VND",
-//     capacity: "1 - 20 Khách hàng",
-//     description: "Bàn SVIP phù hợp cho khách hàng muốn trải nghiệm dịch vụ chất lượng cao nhất tại quán, phù hợp cho nhóm khách hàng từ 1-20 người, mức giá tối thiểu chỉ từ 20.000.000 VND.",
-//     editIcon: "https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e",
-//     deleteIcon: "https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e"
-//   },
-//   {
-//     title: "Bàn VIP",
-//     price: "Từ 5.000.000 VND",
-//     capacity: "1 - 15 Khách hàng",
-//     description: "Bàn VIP phù hợp cho khách hàng muốn trải nghiệm dịch vụ chất lượng cao tại quán, phù hợp cho nhóm khách hàng từ 1-15 người, mức giá tối thiểu chỉ từ 10.000.000 VND.",
-//     editIcon: "https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e",
-//     deleteIcon: "https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e"
-//   },
-//   {
-//     title: "Bàn Tiêu chuẩn 1",
-//     price: "Từ 600.000 VND",
-//     capacity: "2 - 4 Khách hàng",
-//     description: "Bàn Tiêu chuẩn 1 phù hợp cho khách hàng muốn trải nghiệm dịch vụ tiêu chuẩn tại quán, phù hợp cho nhóm khách hàng từ 1-4 người, mức giá tối thiểu chỉ từ 600.000 VND.",
-//     editIcon: "https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e",
-//     deleteIcon: "https://cdn.builder.io/api/v1/image/assets/TEMP/3051512a340f35676686c616a2fbdbd5e87b25a04103e57f5ada2f119f872569?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e"
-//   },
-//   {
-//     title: "Bàn Quầy Bar",
-//     price: "Từ 150.000 VND",
-//     capacity: "1 Khách hàng",
-//     description: "Bàn Quầy Bar phù hợp cho khách hàng muốn trải nghiệm dịch vụ tiêu chuẩn tại quán và được phụ vụ trực tiếp bởi các Bartender, mức giá tối thiểu chỉ từ 300.000 VND.",
-//     editIcon: "https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e",
-//     deleteIcon: "https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e?placeholderIfAbsent=true&apiKey=51ebf0c031414fe7a365d6657293527e"
-//   }
-// ];
 
 const TableTypeList = ({ tableTypes, onOpenDeletePopup, onTableTypeUpdated, notify }) => {
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
@@ -273,7 +222,6 @@ TableTypeList.propTypes = {
   notify: PropTypes.func.isRequired,
 };
 
-// TableTypeCard component
 const TableTypeCard = ({ typeName, minimumPrice, minimumGuest, maximumGuest, description, editIcon, deleteIcon, onEdit, onDelete }) => {
   const formattedPrice = minimumPrice.toLocaleString('vi-VN');
   const guestCapacity = minimumGuest === maximumGuest ? `${maximumGuest} khách hàng` : `${minimumGuest} - ${maximumGuest} khách hàng`;
@@ -327,7 +275,6 @@ TableTypeCard.propTypes = {
   onDelete: PropTypes.func.isRequired,
 };
 
-// DeleteTableTypePopup component
 const DeleteTableTypePopup = ({ isOpen, onClose, onDelete, tableType }) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -520,7 +467,7 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
             <Button 
               variant="contained" 
               onClick={onClose}
-              style={{ backgroundColor: '#9e9e9e', color: 'white' }} // Màu xám cơ bản
+              style={{ backgroundColor: '#9e9e9e', color: 'white' }}
             >
               Đóng
             </Button>
@@ -547,7 +494,6 @@ AddTableTypePopup.propTypes = {
   setResetFormTrigger: PropTypes.func.isRequired,
 };
 
-// EditTableTypePopup component 
 const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, handleNotification }) => {
   const [typeName, setTypeName] = useState('');
   const [description, setDescription] = useState('');
@@ -607,23 +553,24 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
     const minPrice = parseFloat(minimumPrice);
 
     try {
-      const response = await TableTypeService.updateTableType(tableType.tableTypeId, {
+      await updateTableType(tableType.tableTypeId, {
         typeName,
         description,
         minimumGuest: minGuest,
         maximumGuest: maxGuest,
-        minimumPrice: minPrice,
+        minimumPrice: minPrice
       });
 
-      if (response.status === 200) {
-        await onTableTypeUpdated();
-        handleNotification('Thông tin loại bàn đã được cập nhật thành công', 'success');
-        onClose();
-      } else {
-        handleNotification('Failed to update table type.', 'error');
-      }
+      message.success('Thông tin loại bàn đã được cập nhật thành công');
+      await onTableTypeUpdated();
+      onClose();
     } catch (error) {
-      handleNotification('Error updating table type.', 'error');
+      console.error('Error updating table type:', error);
+      if (error.response?.status === 400) {
+        message.error(error.response.data.message || 'Dữ liệu không hợp lệ');
+      } else {
+        message.error('Có lỗi xảy ra khi cập nhật loại bàn');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -714,7 +661,7 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
             <Button 
               variant="contained" 
               onClick={onClose}
-              style={{ backgroundColor: '#9e9e9e', color: 'white' }} // Màu xám cơ bản
+              style={{ backgroundColor: '#9e9e9e', color: 'white' }}
             >
               Đóng
             </Button>

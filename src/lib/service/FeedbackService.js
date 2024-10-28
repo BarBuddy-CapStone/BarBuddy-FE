@@ -12,6 +12,23 @@ const getAllFeedbackByID = async (id) => {
   return await axios.get(`api/feedback/${id}`);
 };
 
+const getAllFeedBackForManager = async (barId = null, pageIndex = 1, pageSize = 10) => {
+  // const config = {
+  //   headers: {
+  //     Authorization: `Bearer ${token}`,
+  //   },
+  // };
+  let url = `api/feedback/manager`;
+  
+  if (barId) {
+    url += `?BarId=${barId}&PageIndex=${pageIndex}&PageSize=${pageSize}`;
+  } else {
+    url += `?PageIndex=${pageIndex}&PageSize=${pageSize}`;
+  }
+
+  return await axios.get(url);
+};
+
 const getAllFeedbackByBookingID = async (bookingId) => {
   return await axios.get(`api/feedback/booking/${bookingId}`);
 };
@@ -78,5 +95,6 @@ export {
   UpdateFeedBack,
   DeleteUpdateFeedBack,
   getAllFeedbackByAdmin,
-  UpdateStatusFeedBack
+  UpdateStatusFeedBack,
+  getAllFeedBackForManager
 };

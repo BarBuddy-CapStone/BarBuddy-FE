@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
-import TableTypeService from '../../../lib/service/tableTypeService';
 import { CircularProgress } from '@mui/material';
 import { Search, Info } from '@mui/icons-material';
+import { getAllTableTypes } from 'src/lib/service/tableTypeService';
 
 const TableTypeManagementStaff = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,7 +18,7 @@ const TableTypeManagementStaff = () => {
   const fetchTableTypes = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await TableTypeService.getAllTableTypes();
+      const response = await getAllTableTypes();
       setTableTypes(response.data.data);
     } catch (error) {
       console.error('Error fetching table types:', error);

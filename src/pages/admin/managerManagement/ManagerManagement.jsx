@@ -1,13 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
-import { getCustomerAccounts } from 'src/lib/service/adminService';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { getManagerAccounts } from 'src/lib/service/adminService';
+import { message } from 'antd';
 import Pagination from '@mui/material/Pagination';
 import { CircularProgress } from '@mui/material';
 
-const SearchCustomerName = ({ onSearch }) => {
+function getStatusClass(status) {
+    switch (status) {
+        case 1:
+            return "bg-green-500 hover:bg-green-600";
+        case 0:
+            return "bg-red-500 hover:bg-red-600";
+        default:
+            return "bg-gray-500 hover:bg-gray-600";
+    }
+}
+
+const SearchManagerName = ({ onSearch }) => {
     const [searchTerm, setSearchTerm] = useState('');
     return (
         <div className="flex items-center flex-1 min-w-0">
@@ -15,7 +25,7 @@ const SearchCustomerName = ({ onSearch }) => {
                 <input
                     type="text"
                     className="w-full border border-gray-300 rounded-l-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Tìm theo tên khách hàng"
+                    placeholder="Tìm theo tên quản lý"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -30,48 +40,54 @@ const SearchCustomerName = ({ onSearch }) => {
     );
 }
 
-const AddCustomerButton = () => {
+const AddManagerButton = () => {
     const navigate = useNavigate();
     return (
         <button
             className="px-6 py-2 bg-blue-600 text-white rounded-full font-medium transition duration-300 ease-in-out hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 whitespace-nowrap"
-            onClick={() => navigate('/admin/customer-creation')}
+            onClick={() => navigate('/admin/manager-creation')}
         >
-            Thêm khách hàng
+            Thêm quản lý
         </button>
     );
 }
 
-const CustomerTableHeader = () => (
+const ManagerTableHeader = () => (
     <thead className="bg-white">
         <tr className="font-bold text-neutral-900 border-y-2 border-x-2 border-gray-300">
-            {["Họ và tên", "Ngày sinh", "Email", "Số điện thoại", "Ngày đăng ký", "Trạng thái", ""].map((header, index) => (
-                <th key={index} className="px-4 py-6 text-center">{header}</th>
-            ))}
+            <th className="px-4 py-6 text-center w-[15%]">Họ và tên</th>
+            <th className="px-4 py-6 text-center w-[12%]">Ngày sinh</th>
+            <th className="px-4 py-6 text-center w-[15%]">Email</th>
+            <th className="px-4 py-6 text-center w-[12%]">Số điện thoại</th>
+            <th className="px-4 py-6 text-center w-[15%]">Bar</th>
+            <th className="px-4 py-6 text-center w-[15%]">Trạng thái</th>
+            <th className="px-4 py-6 text-center w-[14%]"></th>
         </tr>
     </thead>
 );
 
-const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
+const ManagerTableRow = ({ manager, isEven, onViewDetails }) => {
     const rowClass = isEven ? "bg-white" : "bg-orange-50";
-    const statusClass = getStatusClass(customer.status);
+    const statusClass = getStatusClass(manager.status);
 
     return (
         <tr className={`text-sm hover:bg-gray-100 transition duration-150 border-y-2 border-x-2 border-gray-300 ${rowClass}`}>
-            <td className="px-4 py-6 text-center align-middle">{customer.fullname}</td>
-            <td className="px-4 py-6 text-center align-middle">{new Date(customer.dob).toLocaleDateString('vi-VN')}</td>
-            <td className="px-4 py-6 text-center align-middle">{customer.email}</td>
-            <td className="px-4 py-6 text-center align-middle">{customer.phone}</td>
-            <td className="px-4 py-6 text-center align-middle">{new Date(customer.createdAt).toLocaleDateString('vi-VN')}</td>
-            <td className="flex justify-center items-center px-4 py-6 align-middle">
-                <div className={`flex justify-center items-center text-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
-                    {customer.status === 1 ? "Hoạt Động" : "Không Hoạt Động"}
+            <td className="px-4 py-6 text-center align-middle">{manager.fullname}</td>
+            <td className="px-4 py-6 text-center align-middle">{new Date(manager.dob).toLocaleDateString('vi-VN')}</td>
+            <td className="px-4 py-6 text-center align-middle">{manager.email}</td>
+            <td className="px-4 py-6 text-center align-middle">{manager.phone}</td>
+            <td className="px-4 py-6 text-center align-middle">{manager.bar?.barName || 'N/A'}</td>
+            <td className="px-4 py-6 text-center align-middle">
+                <div className="flex justify-center">
+                    <span className={`inline-flex items-center justify-center min-w-[120px] px-4 py-2 rounded-full text-white font-medium ${statusClass}`}>
+                        {manager.status === 1 ? "Hoạt Động" : "Không Hoạt Động"}
+                    </span>
                 </div>
             </td>
             <td className="px-4 py-6 text-center align-middle">
                 <button
                     className="px-4 py-2 bg-slate-600 text-white rounded-lg transition duration-300 ease-in-out hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 transform hover:scale-105"
-                    onClick={() => onViewDetails(customer.accountId)}
+                    onClick={() => onViewDetails(manager.accountId)}
                 >
                     Xem chi tiết
                 </button>
@@ -80,57 +96,46 @@ const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
     );
 };
 
-function getStatusClass(status) {
-    switch (status) {
-        case 1:
-            return "bg-green-500 text-white";
-        case 0:
-            return "bg-red-500 text-white";
-        default:
-            return "bg-gray-500 text-white";
-    }
-}
-
-const CustomerManagement = () => {
-    const [customers, setCustomers] = useState([]);
-    const [filteredCustomers, setFilteredCustomers] = useState([]);
+const ManagerManagement = () => {
     const [pageIndex, setPageIndex] = useState(1);
     const [pageSize, setPageSize] = useState(5);
-    const [totalCustomers, setTotalCustomers] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
+    const [managers, setManagers] = useState([]);
+    const [filteredManagers, setFilteredManagers] = useState([]);
+    const [totalManagers, setTotalManagers] = useState(0);
     const location = useLocation();
 
     useEffect(() => {
-        const fetchCustomers = async () => {
+        const fetchManagers = async () => {
             setIsLoading(true);
             try {
-                const response = await getCustomerAccounts(pageSize, pageIndex);
-                setCustomers(response.data.data.items);
-                setFilteredCustomers(response.data.data.items);
-                setTotalCustomers(response.data.data.total);
+                const response = await getManagerAccounts(pageSize, pageIndex);
+                setManagers(response.data.data.items);
+                setFilteredManagers(response.data.data.items);
+                setTotalManagers(response.data.data.total);
             } catch (error) {
-                console.error("Error fetching customers:", error);
-                toast.error("Không thể tải danh sách khách hàng.");
+                console.error("Error fetching managers:", error);
+                message.error("Không thể tải danh sách quản lý.");
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchCustomers();
+        fetchManagers();
     }, [pageIndex, pageSize]);
 
     useEffect(() => {
-        if (location.state && location.state.successMessage) {
-            toast.success(location.state.successMessage);
+        if (location.state?.successMessage) {
+            message.success(location.state.successMessage);
         }
     }, [location.state]);
 
     const handleSearch = (searchTerm) => {
-        const filtered = customers.filter(customer =>
-            customer.fullname.toLowerCase().includes(searchTerm.toLowerCase())
+        const filtered = managers.filter(manager =>
+            manager.fullname.toLowerCase().includes(searchTerm.toLowerCase())
         );
-        setFilteredCustomers(filtered);
+        setFilteredManagers(filtered);
     };
 
     const handlePageChange = (event, value) => {
@@ -138,7 +143,7 @@ const CustomerManagement = () => {
     };
 
     const handleViewDetail = (id) => {
-        navigate(`/admin/customer-detail?accountId=${id}`);
+        navigate(`/admin/manager-detail/${id}`);
     };
 
     return (
@@ -146,18 +151,18 @@ const CustomerManagement = () => {
             <div className="container mx-auto px-6 py-8">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <div className="flex flex-1 items-center gap-4 min-w-0">
-                        <SearchCustomerName onSearch={handleSearch} />
+                        <SearchManagerName onSearch={handleSearch} />
                     </div>
-                    <AddCustomerButton />
+                    <AddManagerButton />
                 </div>
                 
                 <div className="flex justify-center mb-6">
-                    <h2 className="text-2xl font-notoSansSC font-bold text-blue-600">Danh Sách Khách Hàng</h2>
+                    <h2 className="text-2xl font-notoSansSC font-bold text-blue-600">Danh Sách Quản Lý</h2>
                 </div>
                 
                 <div className="overflow-x-auto">
                     <table className="min-w-full text-sm table-auto border-collapse">
-                        <CustomerTableHeader />
+                        <ManagerTableHeader />
                         <tbody>
                             {isLoading ? (
                                 <tr>
@@ -165,29 +170,29 @@ const CustomerManagement = () => {
                                         <CircularProgress />
                                     </td>
                                 </tr>
-                            ) : filteredCustomers.length === 0 ? (
+                            ) : filteredManagers.length === 0 ? (
                                 <tr>
                                     <td colSpan="7" className="text-red-500 text-center py-4 text-lg">
-                                        Không có khách hàng
+                                        Không có quản lý
                                     </td>
                                 </tr>
                             ) : (
-                                filteredCustomers.map((customer, index) => (
-                                    <CustomerTableRow
+                                filteredManagers.map((manager, index) => (
+                                    <ManagerTableRow
                                         key={index}
-                                        customer={customer}
+                                        manager={manager}
                                         isEven={index % 2 === 0}
-                                        onViewDetails={() => handleViewDetail(customer.accountId)}
+                                        onViewDetails={() => handleViewDetail(manager.accountId)}
                                     />
                                 ))
                             )}
                         </tbody>
                     </table>
                 </div>
-                {!isLoading && filteredCustomers.length > 0 && (
+                {!isLoading && filteredManagers.length > 0 && (
                     <div className="flex justify-center mt-6">
                         <Pagination
-                            count={Math.ceil(totalCustomers / pageSize)}
+                            count={Math.ceil(totalManagers / pageSize)}
                             page={pageIndex}
                             onChange={handlePageChange}
                             color="primary"
@@ -195,9 +200,8 @@ const CustomerManagement = () => {
                     </div>
                 )}
             </div>
-            <ToastContainer />
         </main>
     );
 }
 
-export default CustomerManagement;
+export default ManagerManagement;

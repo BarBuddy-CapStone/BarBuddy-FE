@@ -34,9 +34,14 @@ const sidebarItems = [
   //   path: "/admin/event-management",
   // },
   {
-    icon: PeopleIcon,
+    icon: BadgeIcon,
     label: "Quản Lí",
-    path: "/admin/manager",
+    path: "/admin/managers",
+  },
+  {
+    icon: PeopleIcon,
+    label: "Khách Hàng",
+    path: "/admin/customers",
   },
   // {
   //   icon: BadgeIcon,

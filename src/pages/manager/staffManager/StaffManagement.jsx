@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; // Thêm useLocation
 import SearchIcon from '@mui/icons-material/Search';
 import { getStaffAccounts } from '../../../lib/service/adminService'; // Import hàm mới
-import { toast, ToastContainer } from 'react-toastify'; // Import toast
-import 'react-toastify/dist/ReactToastify.css';
+import { message } from 'antd'; // Thêm import message từ antd
 import Pagination from '@mui/material/Pagination'; // Import Pagination từ MUI
 import { CircularProgress } from '@mui/material'; // Thêm import này
-import { getAllBar } from '../../../lib/service/barManagerService'; // Import hàm getAllBar
+import { getAllStaff } from 'src/lib/service/staffService';
 
 // Các components
 // const StaffTable = ({ staffData }) => (
@@ -35,7 +34,6 @@ const StaffTableRow = ({ staff, index }) => {
     const rowClass = index % 2 === 0 ? "bg-white" : "bg-orange-50";
     const statusClass = getStatusClass(staff.status);
     const handleViewDetail = (id) => {
-        // Cập nhật đường dẫn này
         navigate(`/manager/staff-detail/${id}`);
     };
 
@@ -45,7 +43,7 @@ const StaffTableRow = ({ staff, index }) => {
             <td className="px-4 py-6 text-center align-middle">{new Date(staff.dob).toLocaleDateString('vi-VN')}</td>
             <td className="px-4 py-6 text-center align-middle">{staff.email}</td>
             <td className="px-4 py-6 text-center align-middle">{staff.phone}</td>
-            <td className="px-4 py-6 text-center align-middle">{staff.bar ? staff.bar.barName : 'N/A'}</td> {/* Cập nhật để hiển thị tên bar */}
+            <td className="px-4 py-6 text-center align-middle">{staff.bar ? staff.bar.barName : 'N/A'}</td>
             <td className="flex justify-center items-center px-4 py-6 align-middle">
                 <div className={`flex justify-center items-center text-center w-28 px-2 py-1 rounded-full ${statusClass}`}>
                     {staff.status === 1 ? "Hoạt Động" : "Không Hoạt Động"}
@@ -155,20 +153,33 @@ const StaffManagement = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedBar, setSelectedBar] = useState(null);
     const location = useLocation();
-    const [barOptions, setBarOptions] = useState([]); // Thêm state cho barOptions
+    const [barOptions, setBarOptions] = useState(["All"]); // Mặc định có option "All"
 
     useEffect(() => {
         const loadData = async () => {
             setIsLoading(true);
             try {
-                const response = await getStaffAccounts(pageSize, pageIndex);
-                const data = response.data.data.items;
-                setTotalStaff(response.data.data.total);
-                setStaffData(data);
-                setFilteredStaff(data);
+                const response = await getAllStaff(pageSize, pageIndex);
+                if (response.data.statusCode === 200) {
+                    const { items, total, pageIndex: currentPage, pageSize: size } = response.data.data;
+                    setStaffData(items || []); // Đảm bảo items không null
+                    setFilteredStaff(items || []); // Đảm bảo items không null
+                    setTotalStaff(total);
+                    setPageIndex(currentPage);
+                    setPageSize(size);
+
+                    // Lấy danh sách bar từ staff data
+                    const uniqueBars = ["All", ...new Set((items || []).map(staff => staff.bar?.barName).filter(Boolean))];
+                    setBarOptions(uniqueBars);
+                } else if (response.data.statusCode === 404) {
+                    // Xử lý trường hợp danh sách trống
+                    setStaffData([]);
+                    setFilteredStaff([]);
+                    message.warning("Danh sách staff đang trống !");
+                }
             } catch (error) {
                 console.error('Failed to fetch staff data:', error);
-                toast.error('Không thể tải danh sách nhân viên.');
+                message.error('Không thể tải danh sách nhân viên.');
             } finally {
                 setIsLoading(false);
             }
@@ -178,26 +189,9 @@ const StaffManagement = () => {
 
     useEffect(() => {
         if (location.state && location.state.successMessage) {
-            toast.success(location.state.successMessage);
+            message.success(location.state.successMessage);
         }
     }, [location.state]);
-
-    useEffect(() => {
-        const fetchBarOptions = async () => {
-            try {
-                const response = await getAllBar();
-                if (response.data.statusCode === 200) {
-                    const bars = response.data.data;
-                    const options = ["All", ...bars.map(bar => bar.barName)]; // Thêm "All" vào đầu mảng
-                    setBarOptions(options);
-                }
-            } catch (error) {
-                console.error('Failed to fetch bar options:', error);
-                toast.error('Không thể tải danh sách bar.');
-            }
-        };
-        fetchBarOptions();
-    }, []); // Chỉ gọi một lần khi component được mount
 
     const handlePageChange = (event, value) => {
         setPageIndex(value);
@@ -249,7 +243,7 @@ const StaffManagement = () => {
                             ) : filteredStaff.length === 0 ? (
                                 <tr>
                                     <td colSpan="7" className="text-red-500 text-center py-4 text-lg">
-                                        Không có nhân viên
+                                        Danh sách staff đang trống !
                                     </td>
                                 </tr>
                             ) : (
@@ -271,7 +265,6 @@ const StaffManagement = () => {
                     </div>
                 )}
             </div>
-            <ToastContainer />
         </main>
     );
 };
