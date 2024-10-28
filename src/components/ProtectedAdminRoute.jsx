@@ -34,6 +34,8 @@ const ProtectedAdminRoute = () => {
 
   if (userRole === "ADMIN") {
     return <Outlet />;
+  } else if (userRole === "MANAGER" ) {
+    return <Navigate to="/manager/managerDrinkCategory" replace />;
   } else if (userRole === "STAFF" ) {
     return <Navigate to="/staff/table-management" replace />;
   } else {

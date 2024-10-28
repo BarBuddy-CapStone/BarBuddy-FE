@@ -31,33 +31,14 @@ const getTitlePath = (pathName) => {
     case "/admin/customer-detail":
       return headerConstants.customer;
 
-    case "/admin/staff":
-      return headerConstants.staff;
-    case "/admin/staff-creation":
-      return headerConstants.staff;
-    case "/admin/staff-detail":
-      return headerConstants.staff;
-
     case "/admin/emotional":
       return headerConstants.emotional;
-
-    case "/admin/managerDrinkCategory":
-      return headerConstants.drink;
-    case "/admin/managerDrinkCategory/managerDrink":
-      return headerConstants.drink;
-    case "/admin/managerDrink/DrinkDetail":
-      return headerConstants.drink;
 
     case "/admin/feedback":
       return headerConstants.feedback;
 
     case "/admin/feedbackdetail":
       return headerConstants.feedback;
-
-    case "/admin/event-management":
-      return headerConstants.eventManagement;
-    case "/admin/event-management/add-event":
-      return headerConstants.eventManagement;
 
     default:
       return "Admin";

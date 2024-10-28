@@ -11,6 +11,11 @@ const headerConstants = {
   feedback: "QUẢN LÝ ĐÁNH GIÁ",
   eventManagement: "QUẢN LÝ SỰ KIỆN",
 
+  headerManager: {
+    drinkCategory: "QUẢN LÝ DANH MỤC THỨC UỐNG",
+    drink: "QUẢN LÝ THỨC UỐNG"
+  },
+
   // Header của Staff
   headerStaff: {
     table: "QUẢN LÝ BÀN",
@@ -18,6 +23,7 @@ const headerConstants = {
     table_booking_detail: "CHI TIẾT ĐẶT BÀN",
     payment_history: "THANH TOÁN"
   },
+  
   headerCustomer: {
     homepage: "Trang Chủ"
   }

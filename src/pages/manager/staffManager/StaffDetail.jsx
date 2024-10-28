@@ -121,12 +121,12 @@ export default function StaffDetail() {
             fetchBars();
         } else {
             toast.error("Không tìm thấy ID nhân viên");
-            navigate("/admin/staff");
+            navigate("/manager/staff");
         }
     }, [id, navigate]);
 
     const handleBack = () => {
-        navigate("/admin/staff");
+        navigate("/manager/staff");
     };
 
     const handleUpdate = async () => {
@@ -150,7 +150,7 @@ export default function StaffDetail() {
             };
             const response = await updateStaffDetail(id, updatedData);
             if (response.data.statusCode === 200) {
-                navigate("/admin/staff", { state: { successMessage: "Thông tin đã được cập nhật thành công!" } }); // Chuyển hướng về trang StaffManagement
+                navigate("/manager/staff", { state: { successMessage: "Thông tin đã được cập nhật thành công!" } }); // Chuyển hướng về trang StaffManagement
             }
         } catch (error) {
             console.error("Failed to update staff detail:", error);

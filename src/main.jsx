@@ -7,32 +7,31 @@ import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import ProtectedStaffRoute from "./components/ProtectedStaffRoute";
 import ProtectedCustomerRoute from "./components/ProtectedCustomerRoute";
 import Dashboard from "./pages/admin/dashboard/DashBoard";
-import Feedback from "./pages/admin/feedback/Feedback";
-import FeedbackDetail from "./pages/admin/feedback/FeedbackDetail";
-import EmotionalCategory from "./pages/admin/emotionalCategory/EmotionalCategory";
-import TableTypeManagement from "./pages/admin/table-type-management/TableTypeManagementAdmin";
+import FeedbackAdmin from "./pages/admin/feedback/FeedbackAdmin";
+import FeedbackDetailAdmin from "./pages/admin/feedback/FeedbackDetailAdmin";
+import EmotionalCategory from "./pages/manager/emotionalCategory/EmotionalCategory";
+import TableTypeManagement from "./pages/manager/table-type-management/TableTypeManagement";
 import PaymentHistoryAdmin from "./pages/admin/payment-history/PaymentHistoryAdmin";
 import PaymentHistoryStaff from "./pages/staff/payment-history/PaymentHistoryStaff";
-import TableManagement from "./pages/staff/table-management/TableTypeManagementStaff";
-import TableManagementDetail from "./pages/staff/table-management/TableManagement";
-import StaffManagement from "./pages/admin/staffManager/StaffManagement";
-import StaffCreation from "./pages/admin/staffManager/StaffCreation";
-import StaffDetail from "./pages/admin/staffManager/StaffDetail";
+import TableTypeManagementStaff from "./pages/staff/table-management/TableTypeManagementStaff";
+import TableManagementStaff from "./pages/staff/table-management/TableManagementStaff";
+import StaffManagement from "./pages/manager/staffManager/StaffManagement";
+import StaffCreation from "./pages/manager/staffManager/StaffCreation";
+import StaffDetail from "./pages/manager/staffManager/StaffDetail";
 import CustomerManagement from "./pages/admin/customerManager/CustomerManagement";
 import CustomerCreation from "./pages/admin/customerManager/CustomerCreation";
 import CustomerDetail from "./pages/admin/customerManager/CustomerDetail";
-import BookingList from "./pages/staff/table-registration/BookingList";
+import BookingListStaff from "./pages/staff/table-registration/BookingListStaff";
 import BarManagement from "./pages/admin/barManager/BarManagement";
 import BarProfile from "./pages/admin/barManager/BarProfile";
-import DrinkCategories from "./pages/admin/managerDrinkCate/DrinkCategories";
-import ManagerDrink from "./pages/admin/ManagerDrinkBasedCate/ManagerDrink";
-import DrinkDetail from "./pages/admin/ManagerDrinkBasedCate/DrinkDetail";
-import ManagerDrinkBasedEmotional from "./pages/admin/ManagerDrinkBasedCate/ManagerDrinkBasedEmotion";
+import DrinkCategories from "./pages/manager/managerDrinkCate/DrinkCategories";
+import DrinkDetail from "./pages/manager/ManagerDrinkBasedCate/DrinkDetail";
+import ManagerDrinkBasedEmotional from "./pages/manager/ManagerDrinkBasedCate/ManagerDrinkBasedEmotion";
 import AdminLayout from "./components/adminComponents/AdminLayout";
 import StaffLayout from "./components/staffComponents/StaffLayout";
 import AddBar from "./pages/admin/barManager/AddBar";
-import AddDrink from "./pages/admin/ManagerDrinkBasedCate/AddDrink";
-import BookingDetail from "./pages/staff/table-registration/BookingDetail";
+import AddDrink from "./pages/manager/ManagerDrinkBasedCate/AddDrink";
+import BookingDetailStaff from "./pages/staff/table-registration/BookingDetailStaff";
 import BarDetail from "./pages/customer/barDetail/BarDetail";
 import HomePage from "./pages/customer/homePage/HomePage";
 import CustomerLayout from "./components/customerComponents/CustomerLayout";
@@ -54,6 +53,16 @@ import Failed from "./pages/(auth)/paymentStatus/Failed";
 import Error from "./pages/(auth)/paymentStatus/Error";
 import EventManagement from "./pages/admin/event-management/EventManagement";
 import AddEvent from "./pages/admin/event-management/AddEvent";
+import ManagerLayout from "./components/managerComponents/ManagerLayout";
+import ManagerDrink from "./pages/manager/ManagerDrinkBasedCate/ManagerDrink";
+import ProtectedManagerRoute from "./components/ProtectedManagerRoute";
+import FeedbackManager from "./pages/manager/feedback/FeedbackManager";
+import FeedbackDetailManager from "./pages/manager/feedback/FeedbackDetailManager";
+import TableTypeManagementManager from "./pages/manager/table-management/TableTypeManagementManager";
+import PaymentHistoryManager from "./pages/manager/payment-history/PaymentHistoryManager";
+import BookingDetailManager from "./pages/manager/table-registration/BookingDetailManager";
+import BookingListManager from "./pages/manager/table-registration/BookingListManager";
+
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -64,38 +73,64 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route element={<ProtectedAdminRoute />}>
           <Route path="/" element={<AdminLayout />}>
             <Route path="admin/dashboard" element={<Dashboard />} />
-            <Route path="admin/feedback" element={<Feedback />}/> 
-            <Route path="admin/feedback/detail/:feedbackId" element={<FeedbackDetail />}/> 
-            <Route path="admin/emotional" element={<EmotionalCategory />}/> 
-            <Route path="admin/table-type-management" element={<TableTypeManagement />}/> 
-            <Route path="admin/payment-history" element={<PaymentHistoryAdmin />}/> 
+            <Route path="admin/feedback" element={<FeedbackAdmin />}/> 
+            <Route path="admin/feedback/detail/:feedbackId" element={<FeedbackDetailAdmin />}/> 
             <Route path="admin/customers" element={<CustomerManagement />}/> 
             <Route path="admin/customer-creation/:id" element={<CustomerCreation />}/> 
             <Route path="admin/customer-detail" element={<CustomerDetail />}/> 
-            <Route path="admin/staff" element={<StaffManagement />}/> 
-            <Route path="admin/staff-creation" element={<StaffCreation />}/> 
-            <Route path="admin/staff-detail/:id" element={<StaffDetail />}/> 
+            <Route path="admin/payment-history" element={<PaymentHistoryAdmin />}/> 
             <Route path="admin/barmanager" element={<BarManagement />}/> 
             <Route path="admin/barProfile/:barId" element={<BarProfile />}/> 
             <Route path="admin/addBar" element={<AddBar />}/> 
-            <Route path="admin/managerDrinkCategory" element={<DrinkCategories />}/>
-            <Route path="admin/managerDrinkCategory/managerDrink/:cateId" element={<ManagerDrink />}/>
-            <Route path="admin/managerDrink/DrinkDetail/:drinkId" element={<DrinkDetail />}/>
-            <Route path="admin/managerDrink/addDrink" element={<AddDrink />}/>
-            <Route path="admin/emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}/> 
             <Route path="admin/event-management" element={<EventManagement />}/>
             <Route path="admin/event-management/add-event" element={<AddEvent />} />
+          </Route>
+        </Route>
+
+        {/* Route Của Manager */}
+        <Route element={<ProtectedManagerRoute />}>
+          <Route path="/" element={<ManagerLayout />}>
+          {/* Thức uống */}
+          <Route path="manager/managerDrinkCategory" element={<DrinkCategories />}/>  
+          <Route path="manager/managerDrinkCategory/managerDrink/:cateId" element={<ManagerDrink />}/>
+          <Route path="manager/managerDrink/DrinkDetail/:drinkId" element={<DrinkDetail />}/>
+          <Route path="manager/managerDrink/addDrink" element={<AddDrink />}/>
+          <Route path="manager/emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}/> 
+          
+          <Route path="manager/table-type-management" element={<TableTypeManagement />}/> 
+          
+          {/* Emotional */}
+          <Route path="manager/emotional" element={<EmotionalCategory />}/>
+
+          {/* Feedback */}
+          <Route path="manager/feedback" element={<FeedbackManager />}/> 
+          <Route path="manager/feedback/detail/:feedbackId" element={<FeedbackDetailManager />}/> 
+
+          {/* quan li Staff */}
+          <Route path="manager/staff" element={<StaffManagement />}/> 
+          <Route path="manager/staff-creation" element={<StaffCreation />}/> 
+          <Route path="manager/staff-detail/:id" element={<StaffDetail />}/> 
+          
+          {/* quan li bàn */}
+          <Route path="manager/table-management" element={<TableTypeManagementManager />}/> 
+          <Route path="manager/table-management/table/:tableTypeId" element={<TableTypeManagement />}/> 
+
+          <Route path="manager/table-registrations" element={<BookingListManager />}/> 
+          <Route path="manager/table-registration-detail/:bookingId" element={<BookingDetailManager />}/> 
+
+          {/* quan li payment history */}
+          <Route path="manager/payment-history" element={<PaymentHistoryManager />}/> 
           </Route>
         </Route>
 
         {/* Route Của Staff */}
         <Route element={<ProtectedStaffRoute />}>
           <Route path="/" element={<StaffLayout />}>
-            <Route path="staff/table-management" element={<TableManagement />}/> 
-            <Route path="staff/table-management/table/:tableTypeId" element={<TableManagementDetail />}/> 
+            <Route path="staff/table-management" element={<TableManagementStaff />}/> 
+            <Route path="staff/table-management/table/:tableTypeId" element={<TableTypeManagementStaff />}/> 
             <Route path="staff/payment-history" element={<PaymentHistoryStaff />}/> 
-            <Route path="staff/table-registrations" element={<BookingList />}/> 
-            <Route path="staff/table-registration-detail/:bookingId" element={<BookingDetail />}/> 
+            <Route path="staff/table-registrations" element={<BookingListStaff />}/> 
+            <Route path="staff/table-registration-detail/:bookingId" element={<BookingDetailStaff />}/> 
           </Route>
         </Route>
 

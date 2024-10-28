@@ -7,11 +7,6 @@ import PaymentIcon from '@mui/icons-material/Payment';
 
 const sidebarItems = [
   {
-    icon: TableRestaurantIcon,
-    label: "Bàn",
-    path: "/staff/table-management",
-  },
-  {
     icon: ListAltIcon,
     label: "Danh Sách Đặt Bàn",
     path: "/staff/table-registrations",

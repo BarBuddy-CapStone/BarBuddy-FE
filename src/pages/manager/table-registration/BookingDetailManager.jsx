@@ -5,7 +5,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { IconButton, CircularProgress } from '@mui/material';
 import { toast } from 'react-toastify';
 
-const BookingDetail = () => {
+const BookingDetailManager = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
 
@@ -78,7 +78,7 @@ const BookingDetail = () => {
   };
 
   const handleGoBack = () => {
-    navigate('/staff/table-registrations');
+    navigate('/manager/table-registrations');
   };
 
   if (!Booking) {
@@ -245,4 +245,4 @@ const BookingDetail = () => {
   );
 };
 
-export default BookingDetail;
+export default BookingDetailManager;

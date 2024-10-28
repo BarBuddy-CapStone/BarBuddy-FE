@@ -5,12 +5,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import StoreIcon from '@mui/icons-material/Store';
-import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
 import PeopleIcon from '@mui/icons-material/People';
 import BadgeIcon from '@mui/icons-material/Badge';
 import MoodIcon from '@mui/icons-material/Mood';
 import LocalBarIcon from '@mui/icons-material/LocalBar';
 import FeedbackIcon from '@mui/icons-material/Feedback';
+import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
 
 const sidebarItems = [
   {
@@ -23,11 +23,11 @@ const sidebarItems = [
     label: "Chi Nhánh Bar",
     path: "/admin/barmanager",
   },
-  {
-    icon: TableRestaurantIcon,
-    label: "Loại bàn",
-    path: "/admin/table-type-management",
-  },
+  // {
+  //   icon: TableRestaurantIcon,
+  //   label: "Loại bàn",
+  //   path: "/admin/table-type-management",
+  // },
   // {
   //   icon: LocalActivityIcon,
   //   label: "Sự kiện",
@@ -35,24 +35,24 @@ const sidebarItems = [
   // },
   {
     icon: PeopleIcon,
-    label: "Khách hàng",
-    path: "/admin/customers",
+    label: "Quản Lí",
+    path: "/admin/manager",
   },
-  {
-    icon: BadgeIcon,
-    label: "Nhân viên",
-    path: "/admin/staff",
-  },
-  {
-    icon: MoodIcon,
-    label: "Danh mục cảm xúc",
-    path: "/admin/emotional",
-  },
-  {
-    icon: LocalBarIcon,
-    label: "Thức uống",
-    path: "/admin/managerDrinkCategory",
-  },
+  // {
+  //   icon: BadgeIcon,
+  //   label: "Nhân viên",
+  //   path: "/admin/staff",
+  // },
+  // {
+  //   icon: MoodIcon,
+  //   label: "Danh mục cảm xúc",
+  //   path: "/admin/emotional",
+  // },
+  // {
+  //   icon: LocalBarIcon,
+  //   label: "Thức uống",
+  //   path: "/admin/managerDrinkCategory",
+  // },
   {
     icon: FeedbackIcon,
     label: "Đánh giá",

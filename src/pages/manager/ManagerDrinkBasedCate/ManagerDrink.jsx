@@ -7,7 +7,7 @@ import { getDrinkBasedCateByID } from "src/lib/service/managerDrinksService";
 function Header({title, onFilterChange}) {
     const redirect = useNavigate();
     const backCateDrinkHandle = () => {
-        redirect("/admin/managerDrinkCategory")
+        redirect("/manager/managerDrinkCategory")
     }
 
     return (
@@ -77,7 +77,7 @@ const Item = ({
 }) => {
     const navigate = useNavigate()
     const handleChevronClick = (drinkId) => {
-        navigate(`/admin/managerDrink/DrinkDetail/${drinkId}`);
+        navigate(`/manager/managerDrink/DrinkDetail/${drinkId}`);
     }
     return (
         <div

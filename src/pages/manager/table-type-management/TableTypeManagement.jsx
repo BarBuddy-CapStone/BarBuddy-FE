@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { CircularProgress, TextField, Button, InputAdornment } from "@mui/material"; // Import CircularProgress từ MUI
 import { Search, Add } from "@mui/icons-material"; // Thêm import Search từ MUI
 
-const TableTypeManagementAdmin = () => {
+const TableTypeManagement = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [selectedTableType, setSelectedTableType] = useState(null);
@@ -741,4 +741,4 @@ EditTableTypePopup.propTypes = {
   handleNotification: PropTypes.func.isRequired,
 };
 
-export default TableTypeManagementAdmin;
+export default TableTypeManagement;

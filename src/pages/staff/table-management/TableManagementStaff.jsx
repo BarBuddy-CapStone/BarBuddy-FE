@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import { CircularProgress } from '@mui/material';
 import { Search } from '@mui/icons-material';
 
-function TableManagement() {
+function TableManagementStaff() {
   const { tableTypeId } = useParams();
 
   const [tableData, setTableData] = useState([]);
@@ -458,4 +458,4 @@ function TableRow({
   );
 }
 
-export default TableManagement;
+export default TableManagementStaff;

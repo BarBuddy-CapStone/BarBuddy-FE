@@ -8,7 +8,7 @@ import { getAllFeedbackByAdmin, UpdateStatusFeedBack } from "../../../lib/servic
 import { getAllBar } from "../../../lib/service/barManagerService";
 import { toast } from 'react-toastify';
 
-const Feedback = () => {
+const FeedbackManager = () => {
   const navigate = useNavigate();
   const [feedbackData, setFeedbackData] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -325,4 +325,4 @@ const Feedback = () => {
   );
 };
 
-export default Feedback;
+export default FeedbackManager;

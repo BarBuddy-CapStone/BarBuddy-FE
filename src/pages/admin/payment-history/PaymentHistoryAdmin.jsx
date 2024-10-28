@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import PaymentHistoryService from '../../../lib/service/paymentHistoryService';
 import { CircularProgress } from '@mui/material'; // Thêm import này
 
-function PaymentHistory() {
+function PaymentHistoryAdmin() {
   const [activeTab, setActiveTab] = useState('Hoàn thành');
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -441,4 +441,4 @@ TransactionModal.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-export default PaymentHistory;
+export default PaymentHistoryAdmin;

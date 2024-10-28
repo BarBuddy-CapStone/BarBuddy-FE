@@ -61,9 +61,9 @@ const AccountForm = () => {
         try {
             const response = await createStaff(formData);
             if(response.status === 200) {
-                navigate("/admin/staff", { state: { successMessage: "Tài khoản đã được thêm thành công!" } });
+                navigate("/manager/staff", { state: { successMessage: "Tài khoản đã được thêm thành công!" } });
             } else {
-                navigate("/admin/staff", { state: { errorMessage: "Có lỗi xảy ra khi tạo tài khoản!" } });
+                navigate("/manager/staff", { state: { errorMessage: "Có lỗi xảy ra khi tạo tài khoản!" } });
             }
         } catch (error) {
             console.error('Có lỗi xảy ra khi tạo tài khoản:', error);
@@ -158,7 +158,7 @@ export default function StaffCreation() {
     const navigate = useNavigate();
 
     const handleBack = () => {
-        navigate("/admin/staff");
+        navigate("/manager/staff");
     }
 
     return (

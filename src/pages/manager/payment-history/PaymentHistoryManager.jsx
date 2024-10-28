@@ -5,7 +5,7 @@ import Stack from "@mui/material/Stack";
 import PaymentHistoryService from "../../../lib/service/paymentHistoryService";
 import { CircularProgress } from "@mui/material";
 
-function PaymentHistoryStaff() {
+function PaymentHistoryManager() {
   const [activeTab, setActiveTab] = useState("Hoàn thành");
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -447,4 +447,4 @@ TransactionModal.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-export default PaymentHistoryStaff;
+export default PaymentHistoryManager;

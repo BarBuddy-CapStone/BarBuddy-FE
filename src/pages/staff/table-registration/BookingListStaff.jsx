@@ -3,7 +3,7 @@ import { FilterSection, BookingTable } from "src/pages";
 import BookingService from "src/lib/service/bookingService"; 
 import Pagination from '@mui/material/Pagination'; 
 
-function BookingList() {
+function BookingListStaff() {
   const getCurrentDate = () => {
     return new Date().toISOString().split('T')[0];
   };
@@ -82,4 +82,4 @@ function BookingList() {
   );
 }
 
-export default BookingList;
+export default BookingListStaff;

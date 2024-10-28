@@ -1,16 +1,16 @@
-import { CircularProgress, TextField, Select, MenuItem, FormControl, InputLabel, FormHelperText, Chip, Button, Checkbox, InputAdornment } from "@mui/material";
-import React, { Fragment, useCallback, useEffect, useState, useRef } from "react";
+import { CircularProgress, TextField, Select, MenuItem, FormControl, InputLabel, FormHelperText, Chip, Button, InputAdornment, Checkbox } from "@mui/material";
+import React, { Fragment, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Notification } from "src/components";
 import { getAllBar } from "src/lib/service/barManagerService";
 import { getAllDrinkCate } from "src/lib/service/drinkCateService";
 import { getAllEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
-import { addDrink } from "src/lib/service/managerDrinksService";
+import { getOneDrink, updateDrink } from "src/lib/service/managerDrinksService";
 import { ChevronLeft } from '@mui/icons-material';
 
-const InputField = ({ label, value, onChange, name, type, errorMessage }) => (
+const InputField = ({ label, value, onChange, name, type, errorMessage, multiline, rows }) => (
     <TextField
         fullWidth
         label={label}
@@ -22,6 +22,8 @@ const InputField = ({ label, value, onChange, name, type, errorMessage }) => (
         error={!!errorMessage}
         helperText={errorMessage}
         margin="normal"
+        multiline={multiline}
+        rows={rows}
     />
 );
 
@@ -79,29 +81,14 @@ const DropzoneComponent = ({ onDrop }) => {
     );
 };
 
-const PriceInput = ({ value, onChange, error, setError }) => {
+const PriceInput = ({ value, onChange, error }) => {
     const formatPrice = (price) => {
-        return price.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    };
-
-    const unformatPrice = (price) => {
-        return price.replace(/\./g, "");
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price);
     };
 
     const handleChange = (e) => {
-        const input = unformatPrice(e.target.value);
-        const numericInput = input.replace(/[^\d]/g, '');
-
-        if (numericInput === '0') {
-            setError('price', 'Giá tiền không thể là 0');
-            onChange('');
-        } else if (numericInput.startsWith('0')) {
-            setError('price', 'Giá tiền không thể bắt đầu bằng số 0');
-            onChange(numericInput.slice(1));
-        } else {
-            setError('price', '');
-            onChange(numericInput);
-        }
+        const input = e.target.value.replace(/[^\d]/g, '');
+        onChange(input);
     };
 
     return (
@@ -116,50 +103,50 @@ const PriceInput = ({ value, onChange, error, setError }) => {
             InputProps={{
                 inputMode: 'numeric',
                 pattern: '[0-9]*',
-                endAdornment: <InputAdornment position="end">VND</InputAdornment>,
             }}
             margin="normal"
         />
     );
 };
 
-function AddDrink() {
+function DrinkDetail() {
+    const { drinkId } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const [cateId, setCateId] = useState(null);
 
     const [isOpen, setIsOpen] = useState(false);
     const [isPopupConfirm, setIsPopupConfirm] = useState(false)
     const [uploadedImages, setUploadedImages] = useState([]);
     const [dataBars, setDataBar] = useState([]);
     const [dataDrinkCate, setDataDrinkCate] = useState([]);
-    const [dataEmoCate, setDataEmoCate] = useState([]);
-    const [showPopup, setShowPopup] = useState(false);
-    const [emotionChecked, setEmotionChecked] = useState([]);
+    const [dataDrink, setDataDrink] = useState([]);
+    const [dataEmoCate, setDataEmoCate] = useState([])
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
+    const [emotionChecked, setEmotionChecked] = useState([]);
+    const [emotions, setEmotions] = useState([]);
+    const [selectedEmotion, setSelectedEmotion] = useState('');
+    const [showEmotionSelect, setShowEmotionSelect] = useState(false);
 
     const [formData, setFormData] = useState({
         drinkName: '',
         drinkCategoryId: '',
+        barId: '',
         description: '',
         price: '',
+        drinkBaseCate: '',
         status: true,
         images: []
     });
 
-    const navigate = useNavigate()
-    const location = useLocation()
-    const [cateId, setCateId] = useState(null)
-
     useEffect(() => {
-        const searchParams = new URLSearchParams(location.search)
-        const id = searchParams.get('cateId')
-        setCateId(id)
-        if (id) {
-            setFormData(prevData => ({
-                ...prevData,
-                drinkCategoryId: id
-            }));
-        }
-    }, [location])
+        const searchParams = new URLSearchParams(location.search);
+        const id = searchParams.get('cateId');
+        setCateId(id);
+    }, [location]);
 
     const handleStatusChange = (value) => {
         setFormData((prevData) => ({
@@ -169,28 +156,11 @@ function AddDrink() {
         setIsOpen(false);
     };
 
-    const handleClosePopup = () => {
-        setShowPopup(false);
-    };
-    const handleTestClick = () => {
-        setShowPopup(true);
-    };
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({
             ...prevData,
             [name]: value,
-        }));
-    };
-
-    const setError = (field, message) => {
-        setErrors(prev => ({ ...prev, [field]: message }));
-    };
-
-    const handlePriceChange = (value) => {
-        setFormData(prevData => ({
-            ...prevData,
-            price: value
         }));
     };
 
@@ -210,112 +180,68 @@ function AddDrink() {
             icon: "https://img.icons8.com/?size=100&id=60362&format=png&color=FF0000"
         }
     ];
-    const EmotionPopup = ({ onClose, onSave, initialCheckedEmotions }) => {
-        const [emotions, setEmotions] = useState([]);
-
-        useEffect(() => {
-            const fetchEmotions = async () => {
-                try {
-                    const response = await getAllEmotionCategory();
-                    setEmotions(response.data.data.map(emotion => ({
-                        ...emotion,
-                        checked: initialCheckedEmotions.some(e => e.emotionalDrinksCategoryId === emotion.emotionalDrinksCategoryId),
-                    })));
-                } catch (error) {
-                    console.error("Error fetching emotions:", error);
-                }
-            };
-            fetchEmotions();
-        }, [initialCheckedEmotions]);
-
-        const handleCheckboxChange = (index) => {
-            setEmotions(prevEmotions =>
-                prevEmotions.map((emotion, i) => 
-                    i === index ? { ...emotion, checked: !emotion.checked } : emotion
-                )
-            );
-        };
-
-        const handleSave = () => {
-            const checkedEmotions = emotions
-                .filter(emotion => emotion.checked)
-                .map(({ emotionalDrinksCategoryId, categoryName }) => ({ emotionalDrinksCategoryId, categoryName }));
-            onSave(checkedEmotions);
-            onClose();
-        };
-
-        return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                <div className="bg-white rounded-lg p-6 w-[400px] max-h-[80vh] overflow-y-auto">
-                    <h2 className="text-lg font-semibold mb-4 text-center">Danh sách cảm xúc</h2>
-                    <hr className="border-t border-gray-300 mb-4" />
-                    <div className="mb-4">
-                        {emotions.map((emotion, index) => (
-                            <div 
-                                key={emotion.emotionalDrinksCategoryId} 
-                                className={`flex items-center py-2 ${index !== emotions.length - 1 ? 'border-b border-gray-200' : ''}`}
-                            >
-                                <Checkbox
-                                    checked={emotion.checked}
-                                    onChange={() => handleCheckboxChange(index)}
-                                    color="primary"
-                                    size="small"
-                                />
-                                <span className="ml-2">{emotion.categoryName}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex justify-end space-x-2 mt-4">
-                        <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors duration-200">Hủy</button>
-                        <button onClick={handleSave} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200">Lưu</button>
-                    </div>
-                </div>
-            </div>
-        );
-    };
 
     useEffect(() => {
         const fetchData = async () => {
-            const dataBar = await getAllBar();
-            const dataDrinkCates = await getAllDrinkCate();
-            const dataEmosCate = await getAllEmotionCategory();
-            setDataEmoCate(dataEmosCate.data.data)
-            setDataBar(dataBar.data.data);
-            setDataDrinkCate(dataDrinkCates.data.data);
+            try {
+                const dataBar = await getAllBar();
+                const dataDrinkCate = await getAllDrinkCate();
+                const getDrink = await getOneDrink(drinkId);
+                const dataEmosCate = await getAllEmotionCategory();
+                const drinkData = getDrink.data.data;
+
+                setDataEmoCate(dataEmosCate.data.data)
+                setDataBar(dataBar.data.data);
+                setDataDrinkCate(dataDrinkCate.data.data);
+                setDataDrink(drinkData);
+                setEmotions(dataEmosCate.data.data);
+
+                setFormData({
+                    drinkName: drinkData.drinkName,
+                    drinkCategoryId: drinkData.drinkCategoryResponse.drinksCategoryId || '',
+                    barId: dataBar.data.data.find(bar => bar.barName === drinkData.barName)?.barId || '',
+                    description: drinkData.description,
+                    price: drinkData.price.toString(),
+                    status: drinkData.status,
+                });
+                if (drinkData.images) {
+                    setUploadedImages(drinkData?.images.split(',').map((url) => ({
+                        src: url.trim(),
+                    })));
+                }
+                if (drinkData.emotionsDrink) {
+                    setEmotionChecked(drinkData.emotionsDrink.map(emotion => ({
+                        emotionalDrinksCategoryId: emotion.emotionalDrinksCategoryId,
+                        categoryName: emotion.categoryName
+                    })));
+                }
+
+                // Lấy cateId từ drinkData
+                const categoryId = drinkData.drinkCategoryResponse.drinksCategoryId;
+                setCateId(categoryId);
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
         };
+
         fetchData();
-        if (dataDrinkCate?.length > 0) {
-            setFormData((prevData) => ({
-                ...prevData,
-                drinkCategoryId: dataDrinkCate[0].drinksCategoryId
-            }));
-        }
-    }, []);
+    }, [drinkId]);
 
-    const validateForm = () => {
-        let newErrors = {};
-        if (!formData.drinkName) newErrors.drinkName = 'Tên đồ uống không được để trống';
-        if (!formData.price) newErrors.price = 'Giá không được để trống';
-        if (!formData.description) newErrors.description = 'Mô tả không được để trống';
-        if (formData.drinkCategoryId === "") newErrors.drinkCategoryId = 'Loại đồ uống không được để trống';
-        if (emotionChecked.length === 0) newErrors.emotion = 'Cảm xúc không chưa được thêm';
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const onDrop = useCallback(acceptedFiles => {
+    const onDrop = (acceptedFiles) => {
         const newImages = acceptedFiles.map(file => ({
             src: URL.createObjectURL(file),
             file: file,
         }));
-        setUploadedImages(prevImages => [...prevImages, ...newImages]);
-    }, []);
+
+        setUploadedImages((prevImages) => [...prevImages, ...newImages]);
+    };
 
     const handleDelete = (index) => {
         setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index));
     };
 
-    const PopupConfirmAdd = () => {
+    const PopupConfirmUpdate = () => {
         setIsPopupConfirm(true);
     };
 
@@ -323,10 +249,12 @@ function AddDrink() {
         setIsPopupConfirm(false);
     };
 
-    const handleAddConfirm = async (event) => {
+    const handleUpdateConfirm = async (event) => {
         event.preventDefault();
 
         if (!validateForm()) {
+            console.log("Form validation failed");
+            setIsPopupConfirm(false);
             return;
         }
 
@@ -334,64 +262,68 @@ function AddDrink() {
         setIsPopupConfirm(false);
 
         const formDatas = new FormData();
+        formDatas.append('barId', formData.barId);
         formDatas.append('drinkCategoryId', formData.drinkCategoryId);
         formDatas.append('drinkName', formData.drinkName);
         formDatas.append('description', formData.description);
-        formDatas.append('price', formData.price); // Giá trị price đã là chuỗi số không có dấu chấm
+        formDatas.append('price', formData.price);
         formDatas.append('status', formData.status);
 
+        if (emotionChecked.length > 0) {
+            emotionChecked.forEach(emotion => {
+                formDatas.append("drinkBaseEmo", emotion.emotionalDrinksCategoryId)
+            })
+        } else {
+            setIsLoading(false)
+            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+        }
         if (uploadedImages.length > 0) {
             uploadedImages.forEach(image => {
-                formDatas.append('images', image.file);
-            });
-        }
-        emotionChecked.forEach(emotion => {
-            formDatas.append('drinkBaseEmo', emotion.emotionalDrinksCategoryId);
-        });
-
-        try {
-            const response = await addDrink(formDatas);
-            if (response.status === 200) {
-                toast.success("Tạo đồ uống thành công!");
-                if (cateId) {
-                    navigate(`/admin/managerDrinkCategory/managerDrink/${cateId}`);
-                } else {
-                    navigate('/admin/managerDrinkCategory');
+                if (image.file && image.src) {
+                    formDatas.append('images', image.file);
+                    if (image.src.startsWith('http')) {
+                        formDatas.append('oldImages', image.src);
+                    }
+                } else if (!image.file && image.src) {
+                    formDatas.append('oldImages', image.src);
+                } else if (image.file && !image.src) {
+                    formDatas.append('images', image.file);
                 }
-            } else {
-                toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
-            }
-        } catch (error) {
-            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
-        } finally {
+            });
+        } else {
             setIsLoading(false);
-            setIsPopupConfirm(false);
+            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
         }
-    };
+        var response = await updateDrink(drinkId, formDatas)
+        if (response.status === 200) {
+            setIsLoading(false);
+            toast.success("Cập nhật thành công!");
+            setIsPopupConfirm(false);
+        } else {
+            setIsPopupConfirm(false);
+            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+        }
+    }
 
     const handleGoBack = () => {
         if (cateId) {
-            navigate(`/admin/managerDrinkCategory/managerDrink/${cateId}`);
+            navigate(`/manager/managerDrinkCategory/managerDrink/${cateId}`);
         } else {
-            navigate('/admin/managerDrinkCategory');
+            // Fallback nếu không có cateId
+            navigate('/manager/managerDrinkCategory');
         }
     };
 
-    const [emotions, setEmotions] = useState([]);
-    const [selectedEmotion, setSelectedEmotion] = useState('');
-    const [showEmotionSelect, setShowEmotionSelect] = useState(false);
-
-    useEffect(() => {
-        const fetchEmotions = async () => {
-            try {
-                const response = await getAllEmotionCategory();
-                setEmotions(response.data.data);
-            } catch (error) {
-                console.error("Error fetching emotions:", error);
-            }
-        };
-        fetchEmotions();
-    }, []);
+    const validateForm = () => {
+        let newErrors = {};
+        if (!formData.drinkName) newErrors.drinkName = 'Tên đồ uống không được để trống';
+        if (!formData.price) newErrors.price = 'Giá không được để trống';
+        if (!formData.description) newErrors.description = 'Mô tả không được để trống';
+        if (!formData.drinkCategoryId) newErrors.drinkCategoryId = 'Vui lòng chọn loại đồ uống';
+        if (emotionChecked.length === 0) newErrors.emotion = 'Cảm xúc chưa được thêm';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleShowEmotionSelect = () => {
         setShowEmotionSelect(true);
@@ -405,7 +337,7 @@ function AddDrink() {
     const handleEmotionChange = (event) => {
         const selectedEmotionId = event.target.value;
         const selectedEmotion = emotions.find(emotion => emotion.emotionalDrinksCategoryId === selectedEmotionId);
-        if (selectedEmotion) {
+        if (selectedEmotion && !emotionChecked.some(e => e.emotionalDrinksCategoryId === selectedEmotionId)) {
             setEmotionChecked(prev => [...prev, selectedEmotion]);
             setSelectedEmotion('');
         }
@@ -436,7 +368,7 @@ function AddDrink() {
                     >
                         <ChevronLeft className="text-gray-600 hover:text-gray-800 transition-colors duration-300" />
                     </button>
-                    <h1 className="text-2xl font-bold text-zinc-600">Thêm đồ uống</h1>
+                    <h1 className="text-2xl font-bold text-zinc-600">Cập Nhật Đồ Uống</h1>
                 </div>
                 <div className="flex items-center">
                     <div className="relative">
@@ -500,9 +432,8 @@ function AddDrink() {
                     />
                     <PriceInput
                         value={formData.price}
-                        onChange={handlePriceChange}
+                        onChange={(value) => setFormData(prev => ({ ...prev, price: value }))}
                         error={errors.price}
-                        setError={setError}
                     />
 
                     <FormControl fullWidth error={!!errors.drinkCategoryId} margin="normal">
@@ -605,19 +536,11 @@ function AddDrink() {
                     {emotionChecked.length === 0 && <p className="text-red-500 text-sm mt-1">{errors.emotion}</p>}
                 </div>
 
-                {showPopup && (
-                    <EmotionPopup
-                        onClose={handleClosePopup}
-                        onSave={handleSaveEmotions}
-                        initialCheckedEmotions={emotionChecked}
-                    />
-                )}
-
                 <hr className="w-full border-t border-gray-300 my-6" />
 
                 <h2 className="text-xl font-bold mb-4">Hình ảnh</h2>
 
-                <div className="flex flex-col items-start w-full">
+                <div className="w-full max-w-[960px]">
                     <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-full">
                         <DropzoneComponent onDrop={onDrop} />
                     </div>
@@ -627,19 +550,19 @@ function AddDrink() {
 
             <div className="w-full mt-5">
                 <button 
-                    onClick={PopupConfirmAdd} 
+                    onClick={PopupConfirmUpdate} 
                     className="w-full px-16 py-2.5 text-base font-bold text-center text-white whitespace-nowrap bg-orange-600 rounded hover:bg-orange-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50"
                 >
-                    Thêm
+                    Lưu
                 </button>
             </div>
 
             {isPopupConfirm &&
                 <Notification
-                    onCancel={PopupConfirmCancel} onConfirm={handleAddConfirm} />
+                    onCancel={PopupConfirmCancel} onConfirm={handleUpdateConfirm} />
             }
         </main>
     );
 }
 
-export default AddDrink;
+export default DrinkDetail;

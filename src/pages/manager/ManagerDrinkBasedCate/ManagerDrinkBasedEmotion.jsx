@@ -75,7 +75,7 @@ function DrinkItems({
 
     const redirect = useNavigate()
     const handleChevronClick = (drinkId) => {
-        redirect(`/admin/managerDrink/DrinkDetail?drinkId=${drinkId}`);
+        redirect(`/manager/managerDrink/DrinkDetail?drinkId=${drinkId}`);
     }
     return (
         <div

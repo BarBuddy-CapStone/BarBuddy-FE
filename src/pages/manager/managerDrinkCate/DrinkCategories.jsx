@@ -28,11 +28,11 @@ const CategoryCard = ({ id, type, description, setLoading, refreshList }) => {
     };
 
     const handleInfoClick = () => {
-        navigate(`/admin/managerDrinkCategory/managerDrink/${id}`);
+        navigate(`/manager/managerDrinkCategory/managerDrink/${id}`);
     };
 
     const handleAddDrinkClick = () => {
-        navigate(`/admin/managerDrink/addDrink?cateId=${id}`);
+        navigate(`/manager/managerDrink/addDrink?cateId=${id}`);
     };
 
     return (

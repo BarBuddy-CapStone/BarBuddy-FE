@@ -112,7 +112,7 @@ export default function CustomerDetail() {
             };
             const response = await updateCustomerDetail(accountId, updatedData); // Gọi hàm cập nhật thông tin khách hàng
             if (response.status === 200) {
-                navigate("/admin/customers", { state: { successMessage: "Thông tin đã được cập nhật thành công!" } });
+                navigate("/manager/customers", { state: { successMessage: "Thông tin đã được cập nhật thành công!" } });
             } else {
                 toast.error("Cập nhật thông tin thất bại!"); // Hiển thị thông báo lỗi
             }

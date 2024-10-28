@@ -1,67 +1,38 @@
-import React, { useState, Fragment, useEffect } from "react";
-import {
-  AppBar,
-  Toolbar,
-  IconButton,
-  Typography,
-  Box,
-  MenuItem,
-  Menu,
-  Dialog,
-  Badge,
-  Popover, // Thêm Popover
-} from "@mui/material";
-import AccountCircle from "@mui/icons-material/AccountCircle";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "src/lib";
+import React, { useState } from "react";
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuIcon from "@mui/icons-material/Menu";
-import { Login, Registration } from "src/pages";
-import { toast } from "react-toastify";
-import { getNotificationByAccountId } from "src/lib/service/notificationService"; // Import hàm
+import { useLocation, useNavigate } from "react-router-dom";
+import { headerConstants } from "src/lib";
+import { IconButton, Menu, MenuItem, Badge, Avatar, CircularProgress, Backdrop } from "@mui/material";
+import useAuthStore from "src/lib/hooks/useUserStore";
 
-const CustomerHeader = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [openLogin, setOpenLogin] = useState(false);
-  const [openRegister, setOpenRegister] = useState(false);
-  const { isLoggedIn, userInfo, logout } = useAuthStore();
+const getTitlePath = (pathName) => {
+  switch (pathName) {
+    case "/manager/emotional":
+      return headerConstants.emotional;
+
+    case "/manager/managerDrinkCategory":
+      return headerConstants.drink;
+    case "/manager/managerDrinkCategory/managerDrink":
+      return headerConstants.drink;
+    case "/manager/managerDrink/DrinkDetail":
+      return headerConstants.drink;
+
+    default:
+      return "Manager";
+  }
+};
+
+const ManagerHeader = ({ className, onMenuClick, isSidebarOpen }) => {
+  const location = useLocation();
   const navigate = useNavigate();
-
-  const [accountId, setAccountId] = useState(null);
-
-  // State cho popup thông báo
-  const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
-
-  const [notifications, setNotifications] = useState([]); // State lưu trữ thông báo
-
-  useEffect(() => {
-    const storedUserInfo = sessionStorage.getItem('userInfo');
-    if (storedUserInfo) {
-      const userInfoParsed = JSON.parse(storedUserInfo);
-      setAccountId(userInfoParsed.accountId);
-    }
-  }, []);
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await getNotificationByAccountId();
-        
-        setNotifications(response.data.data.notificationResponses); // Lưu trữ dữ liệu thông báo
-      } catch (error) {
-        console.error("Lỗi khi lấy thông báo:", error);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
+  const title = getTitlePath(location.pathname);
+  const { userInfo, logout } = useAuthStore();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleMenuClick = (event) => {
-    if (anchorEl) {
-      setAnchorEl(null);
-    } else {
-      setAnchorEl(event.currentTarget);
-    }
+    setAnchorEl(event.currentTarget);
   };
 
   const handleMenuClose = () => {
@@ -69,276 +40,64 @@ const CustomerHeader = () => {
   };
 
   const handleLogout = () => {
+    setIsLoggingOut(true);
     logout();
-    setAnchorEl(null);
-    toast.success("Đăng xuất thành công");
+    handleMenuClose();
+    
+    // Thêm một độ trễ trước khi chuyển hướng
     setTimeout(() => {
-      navigate("/");
-      window.location.reload();
-    }, 1500);
+      navigate("/home");
+    }, 1500); // Đợi 1.5 giây trước khi chuyển hướng
   };
-
-  const handleOpenLogin = () => {
-    setOpenLogin(true);
-    setOpenRegister(false); // Đảm bảo chỉ mở một popup
-  };
-
-  const handleCloseLogin = () => setOpenLogin(false);
-
-  const handleOpenRegister = () => {
-    setOpenRegister(true);
-    setOpenLogin(false); // Đảm bảo chỉ mở một popup
-  };
-
-  const handleCloseRegister = () => setOpenRegister(false);
-
-  const handleLoginSuccess = (userData) => {
-    setOpenLogin(false);
-    setAnchorEl(null);
-  };
-
-  // Mở popup thông báo
-  const handleNotificationClick = (event) => {
-    setNotificationAnchorEl(event.currentTarget);
-  };
-
-  // Đóng popup thông báo
-  const handleNotificationClose = () => {
-    setNotificationAnchorEl(null);
-  };
-
-  const isNotificationOpen = Boolean(notificationAnchorEl);
 
   return (
-    <Fragment>
-      <AppBar
-        position="sticky"
-        sx={{ backgroundColor: "#333", padding: { xs: 1, sm: 2 }, zIndex: 49 }}
-      >
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1, color: "#FFA500" }}>
-            <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-              BarBuddy
-            </Link>
-          </Typography>
-
-          <Box
-            sx={{
-              display: { xs: "none", md: "flex" },
-              gap: 3,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Link
-              to="/"
-              style={{
-                color: "#FFA500",
-                fontSize: "14px",
-                fontWeight: "400",
-                textDecoration: "none",
-                padding: "0 8px",
-              }}
-            >
-              Trang chủ
-            </Link>
-            <Link
-              to="/contact"
-              style={{
-                color: "#FFF",
-                fontSize: "14px",
-                fontWeight: "400",
-                textDecoration: "none",
-                padding: "0 8px",
-              }}
-            >
-              Liên hệ
-            </Link>
-
-            {!isLoggedIn ? (
-              <>
-                <MenuItem
-                  sx={{
-                    color: "white",
-                    fontSize: "14px",
-                    fontWeight: "400",
-                    padding: "0 8px",
-                    "&:hover": {
-                      color: "#FFA500",
-                      transform: "translateY(2px)",
-                    },
-                    transition: "all 0.3s ease",
-                  }}
-                  onClick={handleOpenLogin}
-                >
-                  Đăng nhập
-                </MenuItem>
-                <MenuItem
-                  sx={{
-                    color: "white",
-                    fontSize: "14px",
-                    fontWeight: "400",
-                    padding: "0 8px",
-                    "&:hover": {
-                      color: "#FFA500",
-                      transform: "translateY(2px)",
-                    },
-                    transition: "all 0.3s ease",
-                  }}
-                  onClick={handleOpenRegister}
-                >
-                  Đăng ký
-                </MenuItem>
-              </>
-            ) : (
-              <Box display="flex" alignItems="center" sx={{ gap: 4 }}>
-                <IconButton color="inherit" onClick={handleNotificationClick}>
-                  <Badge color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
-
-                <Popover
-                  open={isNotificationOpen}
-                  anchorEl={notificationAnchorEl}
-                  onClose={handleNotificationClose}
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right',
-                  }}
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                >
-                  <Box sx={{ p: 2, width: 300, backgroundColor: "#444", color: "#FFF" }}>
-                    <Typography className="text-yellow-400" variant="h6">Thông báo</Typography>
-                    {notifications != null  && notifications.length > 0  ? (
-                      notifications.map((notification, index) => (
-                        <Box key={index} sx={{ mb: 1, p: 1, border: '1px solid #FFA500', borderRadius: '8px', backgroundColor: "#555" }}>
-                          <Typography variant="body2">
-                            {notification.message} {/* Giả sử thông báo có thuộc tính message */}
-                          </Typography>
-                        </Box>
-                      ))
-                    ) : (
-                      <Typography variant="body2">Không có thông báo mới!</Typography>
-                    )}
-                  </Box>
-                </Popover>
-
-                <Box
-                  display="flex"
-                  alignItems="center"
-                  onClick={handleMenuClick}
-                  sx={{
-                    cursor: "pointer",
-                    padding: "0 8px",
-                    "&:hover": {
-                      opacity: 0.7,
-                    },
-                  }}
-                >
-                  <IconButton color="inherit">
-                    {userInfo?.image ? (
-                      <img
-                        src={userInfo.image}
-                        alt="Profile"
-                        style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: "50%",
-                        }}
-                      />
-                    ) : (
-                      <AccountCircle />
-                    )}
-                  </IconButton>
-                  <Typography
-                    sx={{
-                      color: "#FFF",
-                      marginLeft: "8px",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    {userInfo?.fullname}
-                  </Typography>
-                </Box>
-
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={handleMenuClose}
-                  anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "left",
-                  }}
-                  transformOrigin={{
-                    vertical: "top",
-                    horizontal: "left",
-                  }}
-                  sx={{
-                    zIndex: 1300,
-                  }}
-                  MenuListProps={{
-                    'aria-labelledby': 'basic-button',
-                  }}
-                >
-                  <MenuItem onClick={() => { navigate(`/profile/${accountId}`); handleMenuClose(); }}>
-                    Hồ sơ
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
-                </Menu>
-              </Box>
-            )}
-          </Box>
-
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ display: { md: "none" } }}
+    <>
+      <header className={`flex justify-between items-center p-4 ${className}`}>
+        <div className="flex items-center">
+          <button 
+            className="mr-4 md:hidden" 
+            onClick={onMenuClick}
+            aria-label="Toggle menu"
           >
             <MenuIcon />
+          </button>
+          <h1 className="text-2xl font-bold text-sky-900 px-2">{title}</h1>
+        </div>
+        <div className="flex items-center space-x-4">
+          <IconButton aria-label="Notifications">
+            <Badge color="error">
+              <NotificationsNoneIcon />
+            </Badge>
           </IconButton>
-        </Toolbar>
-      </AppBar>
-
-      <Dialog
-        open={openLogin}
-        onClose={handleCloseLogin}
-        PaperProps={{
-          sx: {
-            borderRadius: "16px",
-            backgroundColor: "#333",
-          },
-        }}
+          <IconButton onClick={handleMenuClick}>
+            <Avatar src={userInfo?.image} alt={userInfo?.fullname}>
+              {userInfo?.fullname?.charAt(0)}
+            </Avatar>
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={handleMenuClose}>Hồ sơ</MenuItem>
+            <MenuItem onClick={handleLogout} disabled={isLoggingOut}>
+              {isLoggingOut ? (
+                <CircularProgress size={24} />
+              ) : (
+                "Đăng xuất"
+              )}
+            </MenuItem>
+          </Menu>
+        </div>
+      </header>
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={isLoggingOut}
       >
-        <Login 
-          onClose={handleCloseLogin} 
-          onLoginSuccess={handleLoginSuccess} 
-          onSwitchToRegister={handleOpenRegister} // Thêm hàm chuyển đổi
-        />
-      </Dialog>
-
-      <Dialog
-        open={openRegister}
-        onClose={handleCloseRegister}
-        PaperProps={{
-          sx: {
-            borderRadius: "16px",
-            backgroundColor: "#333",
-          },
-        }}
-      >
-        <Registration 
-          onClose={handleCloseRegister} 
-          onSwitchToLogin={handleOpenLogin} // Thêm hàm chuyển đổi
-        />
-      </Dialog>
-    </Fragment>
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    </>
   );
 };
 
-export default CustomerHeader;
+export default ManagerHeader;

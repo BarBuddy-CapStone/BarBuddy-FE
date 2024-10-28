@@ -1,22 +1,55 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { CustomerHeader, CustomerFooter, ScrollToTopButton } from "src/components";
+import { ManagerHeader, ManagerSidebar } from "src/components";
 
-const CustomerLayout = () => {
+const ManagerLayout = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef(null);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target) && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [sidebarOpen]);
+
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-900 relative">
-      <CustomerHeader />
-
-      <main className="flex-grow py-3 px-3">
-        <Outlet />
-        <ScrollToTopButton />
-      </main>
-
-      <CustomerFooter />
-      <ToastContainer theme="dark" />
+    <div className="flex h-screen bg-neutral-100 overflow-hidden">
+      <div ref={sidebarRef}>
+        <ManagerSidebar 
+          className={`w-64 shadow-md transition-all duration-300 ease-in-out 
+                      md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                      md:static absolute z-30 h-full`} 
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+      </div>
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <ManagerHeader 
+          className="bg-white shadow-sm" 
+          onMenuClick={toggleSidebar}
+          isSidebarOpen={sidebarOpen}
+        />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-neutral-100">
+          <div className="container mx-auto px-6 py-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+      <ToastContainer />
     </div>
   );
 };
 
-export default CustomerLayout;
+export default ManagerLayout;
