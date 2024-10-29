@@ -116,12 +116,10 @@ function BarManagement() {
             <div className="w-full overflow-x-auto">
               <table className="w-full text-sm text-black">
                 <thead>
-                  <tr className="grid grid-cols-12 gap-3 items-center py-4 px-5 font-bold bg-neutral-200">
+                  <tr className="grid grid-cols-10 gap-3 items-center py-4 px-5 font-bold bg-neutral-200">
                     <th className="col-span-2 text-left">Tên Quán</th>
                     <th className="col-span-3 text-left">Địa chỉ</th>
                     <th className="col-span-2 text-center">Số điện thoại</th>
-                    <th className="col-span-1 text-center">Giờ mở cửa</th>
-                    <th className="col-span-1 text-center">Giờ đóng cửa</th>
                     <th className="col-span-2 text-center">Trạng thái</th>
                     <th className="col-span-1"></th>
                   </tr>
@@ -129,12 +127,10 @@ function BarManagement() {
                 <tbody>
                   {filteredBars.length > 0 ? (
                     filteredBars.map((bar, index) => (
-                      <tr key={bar.barId} className={`grid grid-cols-12 gap-3 py-3 px-5 items-center ${index % 2 === 0 ? 'bg-white' : 'bg-stone-50'}`}>
+                      <tr key={bar.barId} className={`grid grid-cols-10 gap-3 py-3 px-5 items-center ${index % 2 === 0 ? 'bg-white' : 'bg-stone-50'}`}>
                         <td className="col-span-2 truncate">{bar.barName}</td>
                         <td className="col-span-3 truncate">{bar.address}</td>
                         <td className="col-span-2 text-center">{bar.phoneNumber}</td>
-                        <td className="col-span-1 text-center whitespace-nowrap">{bar.startTime}</td>
-                        <td className="col-span-1 text-center whitespace-nowrap">{bar.endTime}</td>
                         <td className="col-span-2 flex justify-center">
                           <span className={`inline-flex justify-center items-center px-2 py-1 rounded-full text-white text-xs ${bar.status ? "bg-green-500" : "bg-red-500"}`}>
                             {bar.status ? "Hoạt động" : "Không hoạt động"}

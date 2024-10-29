@@ -7,12 +7,14 @@ import { CircularProgress, TextField, Button, Select, MenuItem, FormControl, Inp
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ChevronLeft } from '@mui/icons-material';
+import { convertFileToBase64 } from 'src/lib/Utils/Utils';
 
 const InputField = ({ label, value, onChange, name, type, errorMessage }) => (
-    <div className="mb-4">
+    <div className="mb-2">
         <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
         <TextField
             fullWidth
+            size="small"
             variant="outlined"
             type={type}
             name={name}
@@ -24,7 +26,23 @@ const InputField = ({ label, value, onChange, name, type, errorMessage }) => (
         />
     </div>
 );
-
+const InputFieldv2 = ({ label, value, onChange, name, type, errorMessage, multiline, rows }) => (
+    <TextField
+        fullWidth
+        size="small"
+        label={label}
+        variant="outlined"
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        error={!!errorMessage}
+        helperText={errorMessage}
+        margin="normal"
+        multiline={multiline}
+        rows={rows}
+    />
+);
 const TimeSelector = ({ label, value, onChange, errorMessage }) => {
     const [isPickerVisible, setPickerVisible] = useState(false);
     const [selectedTime, setSelectedTime] = useState(value ? value.slice(0, 5) : '');
@@ -46,39 +64,29 @@ const TimeSelector = ({ label, value, onChange, errorMessage }) => {
     };
 
     return (
-        <div className="mb-4">
+        <div className="mb-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
             <div className="flex items-center">
                 <input
                     type="time"
                     value={selectedTime}
                     onChange={handleTimeChange}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 />
             </div>
-            {errorMessage && <p className="mt-1 text-sm text-red-600">{errorMessage}</p>}
+            {errorMessage && <p className="mt-1 text-xs text-red-600">{errorMessage}</p>}
         </div>
     );
 };
 
 const DiscountField = ({ value, onChange, type, name, errorMessage }) => (
-    <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Chiết khấu</label>
+    <div className="mb-2">
         <div className="flex items-center">
-            <TextField
-                type={type}
-                name={name}
-                value={value}
-                onChange={onChange}
-                error={!!errorMessage}
-                helperText={errorMessage}
-                InputProps={{
-                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                }}
-                placeholder="Nhập chiết khấu"
+            <InputFieldv2
+                errorMessage={errorMessage} label="Chiết khấu" name={name} type={type} value={value} onChange={onChange}
             />
         </div>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-xs text-gray-500">
             Note: Chiết khấu này sẽ áp dụng thanh toán online trên tổng số tiền của bill
         </p>
     </div>
@@ -138,6 +146,77 @@ const DropzoneComponent = ({ onDrop }) => {
     );
 };
 
+// Thêm constant cho các ngày trong tuần
+const DAYS_OF_WEEK = [
+    { value: 0, label: 'Chủ nhật' },
+    { value: 1, label: 'Thứ 2' },
+    { value: 2, label: 'Thứ 3' },
+    { value: 3, label: 'Thứ 4' },
+    { value: 4, label: 'Thứ 5' },
+    { value: 5, label: 'Thứ 6' },
+    { value: 6, label: 'Thứ 7' },
+];
+
+// Tạo component mới để quản lý thời gian cho từng ngày
+const DayTimeSelector = ({ day, times, onTimeChange, onDayToggle }) => {
+    const [isEnabled, setIsEnabled] = useState(false);
+
+    useEffect(() => {
+        setIsEnabled(times !== null);
+    }, [times]);
+
+    const handleToggle = () => {
+        const newState = !isEnabled;
+        setIsEnabled(newState);
+        onDayToggle(day.value, newState);
+    };
+
+    // Hàm để format thời gian từ HH:mm:ss về HH:mm để hiển thị
+    const formatTimeForDisplay = (time) => {
+        if (!time) return '';
+        return time.substring(0, 5); // Lấy 5 ký tự đầu (HH:mm)
+    };
+
+    return (
+        <div className="flex items-center gap-4 p-2 border-b last:border-b-0">
+            <div className="flex items-center gap-2 min-w-[100px]">
+                <input
+                    type="checkbox"
+                    checked={isEnabled}
+                    onChange={handleToggle}
+                    className="w-4 h-4"
+                />
+                <span className="text-sm font-medium">{day.label}</span>
+            </div>
+            
+            {isEnabled ? (
+                <div className="flex gap-4 flex-1">
+                    <div className="flex items-center gap-2 flex-1">
+                        <span className="text-sm text-gray-600 min-w-[60px]">Mở cửa:</span>
+                        <input
+                            type="time"
+                            value={formatTimeForDisplay(times?.startTime)}
+                            onChange={(e) => onTimeChange(day.value, 'startTime', e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm flex-1"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2 flex-1">
+                        <span className="text-sm text-gray-600 min-w-[60px]">Đóng cửa:</span>
+                        <input
+                            type="time"
+                            value={formatTimeForDisplay(times?.endTime)}
+                            onChange={(e) => onTimeChange(day.value, 'endTime', e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm flex-1"
+                        />
+                    </div>
+                </div>
+            ) : (
+                <div className="flex-1 text-sm text-gray-500 italic">Không hoạt động</div>
+            )}
+        </div>
+    );
+};
+
 const AddBar = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -146,11 +225,11 @@ const AddBar = () => {
         barName: '',
         email: '',
         description: '',
-        startTime: '',
-        endTime: '',
         discount: '',
+        timeSlot: '',
         status: true,
-        images: []
+        images: [],
+        barTimeRequest: {}
     });
     const [isPopupConfirm, setIsPopupConfirm] = useState(false);
     const [uploadedImages, setUploadedImages] = useState([]);
@@ -165,8 +244,6 @@ const AddBar = () => {
         if (!formData.address) newErrors.address = 'Địa chỉ không được để trống';
         if (!formData.phoneNumber) newErrors.phoneNumber = 'Số điện thoại không được để trống';
         if (!formData.description) newErrors.description = 'Mô tả không được để trống';
-        if (!formData.startTime) newErrors.startTime = 'Giờ mở cửa không được để trống';
-        if (!formData.endTime) newErrors.endTime = 'Giờ đóng cửa không được để trống';
         if (!formData.discount) newErrors.discount = 'Chiết khấu không được để trống';
         if (!formData.images) newErrors.images = 'Ảnh không được để trống';
         setErrors(newErrors);
@@ -209,45 +286,85 @@ const AddBar = () => {
         setIsPopupConfirm(false);
     };
 
-    const handleAddConfirm = async (event) => {
-        event.preventDefault();
+    // Thêm hàm xử lý thay đổi thời gian
+    const handleTimeChange = (dayOfWeek, timeType, newTime) => {
+        setFormData(prev => ({
+            ...prev,
+            barTimeRequest: {
+                ...prev.barTimeRequest,
+                [dayOfWeek]: {
+                    ...prev.barTimeRequest[dayOfWeek],
+                    [timeType]: `${newTime}:00`
+                }
+            }
+        }));
+    };
 
-        if (!validateForm()) {
-            return;
-        }
+    // Thêm hàm xử lý toggle ngày
+    const handleDayToggle = (dayOfWeek, enabled) => {
+        setFormData(prev => ({
+            ...prev,
+            barTimeRequest: {
+                ...prev.barTimeRequest,
+                [dayOfWeek]: enabled ? { startTime: '', endTime: '' } : null
+            }
+        }));
+    };
 
+    // Cập nhật hàm handleAddConfirm
+    const handleAddConfirm = async () => {
+        if (!validateForm()) return;
         setIsLoading(true);
         setIsPopupConfirm(false);
 
-        const formDatas = new FormData();
-        formDatas.append('barName', formData.barName);
-        formDatas.append('email', formData.email);
-        formDatas.append('address', formData.address);
-        formDatas.append('phoneNumber', formData.phoneNumber);
-        formDatas.append('description', formData.description);
-        formDatas.append('startTime', formData.startTime);
-        formDatas.append('endTime', formData.endTime);
-        formDatas.append('discount', formData.discount);
-        formDatas.append('status', formData.status);
-
-        if (uploadedImages.length > 0) {
-            uploadedImages.forEach(image => {
-                formDatas.append('images', image.file);
-            });
-        }
-
         try {
-            var response = await addBar(formDatas);
-            if (response.data.status === 200) {
-                setIsLoading(false);
-                toast.success("Cập nhật thành công!");
-                navigate('/admin/barmanager')
+            // Convert tất cả images sang base64
+            const base64Images = await Promise.all(
+                uploadedImages.map(async (image) => {
+                    const base64 = await convertFileToBase64(image.file);
+                    return base64;
+                })
+            );
+
+            // Format barTimeRequest thành mảng theo yêu cầu của BE
+            const barTimes = Object.entries(formData.barTimeRequest)
+                .filter(([_, times]) => times !== null)
+                .map(([dayOfWeek, times]) => ({
+                    dayOfWeek: parseInt(dayOfWeek),
+                    startTime: times.startTime,
+                    endTime: times.endTime
+                }));
+
+            // Tạo payload JSON
+            const payload = {
+                barName: formData.barName,
+                email: formData.email,
+                address: formData.address,
+                phoneNumber: formData.phoneNumber,
+                description: formData.description,
+                discount: formData.discount,
+                status: formData.status,
+                images: base64Images,
+                barTimeRequest: barTimes
+            };
+
+            const response = await addBar(payload);
+            
+            if (response && response.status === 200) {
+                toast.success("Thêm quán bar thành công!", {
+                    type: "success",
+                    autoClose: 1500,
+                    onClose: () => {
+                        navigate('/admin/barmanager');
+                    }
+                });
             } else {
-                toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+                toast.error(response.data?.message || "Có lỗi xảy ra! Vui lòng thử lại.");
             }
         } catch (error) {
-            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
             console.error('Error adding bar:', error);
+            toast.error(error.response?.data?.message || "Có lỗi xảy ra! Vui lòng thử lại.");
+        } finally {
             setIsLoading(false);
         }
     };
@@ -341,26 +458,34 @@ const AddBar = () => {
 
                 <h2 className="text-xl font-bold mt-6 mb-4">Thông tin quán bar</h2>
 
-                <div className="grid grid-cols-2 gap-6 mt-2 w-full max-w-[960px]">
-                    <InputField errorMessage={errors.barName} name="barName" label="Tên quán" type="text" value={formData.barName} onChange={handleInputChange} />
-                    <InputField errorMessage={errors.email} name="email" label="Email" type="email" value={formData.email} onChange={handleInputChange} />
-                    <InputField errorMessage={errors.address} name="address" label="Địa chỉ" type="text" value={formData.address} onChange={handleInputChange} />
-                    <InputField errorMessage={errors.phoneNumber} name="phoneNumber" label="Số điện thoại" type="tel" value={formData.phoneNumber} onChange={handleInputChange} />
+                <div className="grid grid-cols-2 gap-4 mt-2 w-full max-w-[960px]">
+                    <InputFieldv2 errorMessage={errors.barName} name="barName" label="Tên quán" type="text" value={formData.barName} onChange={handleInputChange} />
+                    <InputFieldv2 errorMessage={errors.email} name="email" label="Email" type="email" value={formData.email} onChange={handleInputChange} />
+                    <InputFieldv2 errorMessage={errors.address} name="address" label="Địa chỉ" type="text" value={formData.address} onChange={handleInputChange} />
+                    <InputFieldv2 errorMessage={errors.phoneNumber} name="phoneNumber" label="Số điện thoại" type="tel" value={formData.phoneNumber} onChange={handleInputChange} />
+                    <InputFieldv2 errorMessage={errors.description} name="description" label="Mô tả" type="text" value={formData.description} onChange={handleInputChange}/>
+                    <InputFieldv2 errorMessage={errors.timeSlot} name="timeSlot" label="Time Slot" type="number" value={formData.timeSlot} onChange={handleInputChange}/>
+                    <DiscountField errorMessage={errors.discount} name="discount" type="number" value={formData.discount} onChange={handleInputChange} />
                 </div>
 
-                <div className="mt-8 w-full">
-                    <InputField errorMessage={errors.description} name="description" label="Mô tả" type="text" value={formData.description} onChange={handleInputChange} multiline rows={4} />
+                <div className="mt-6 w-full">
+                    <h2 className="text-lg font-bold mb-3">Thời gian hoạt động</h2>
+                    <div className="border rounded-lg overflow-hidden w-[84%]">
+                        {DAYS_OF_WEEK.map(day => (
+                            <DayTimeSelector
+                                key={day.value}
+                                day={day}
+                                times={formData.barTimeRequest[day.value]}
+                                onTimeChange={handleTimeChange}
+                                onDayToggle={handleDayToggle}
+                            />
+                        ))}
+                    </div>
                 </div>
 
-                <div className="flex gap-10 mt-8 w-full">
-                    <TimeSelector errorMessage={errors.startTime} label="Giờ mở cửa" value={formData.startTime} onChange={(newTime) => setFormData({ ...formData, startTime: newTime })} />
-                    <TimeSelector errorMessage={errors.endTime} label="Giờ đóng cửa" value={formData.endTime} onChange={(newTime) => setFormData({ ...formData, endTime: newTime })} />
-                </div>
-
-                <DiscountField errorMessage={errors.discount} name="discount" type="number" value={formData.discount} onChange={handleInputChange} />
             </section>
 
-            <section className="flex flex-col items-start w-full max-w-[913px] mt-8">
+            <section className="flex flex-col items-start w-full max-w-[84%] mt-8">
                 <h2 className="text-xl font-bold mb-4">Thêm hình ảnh</h2>
                 <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-full">
                     <DropzoneComponent onDrop={onDrop} />

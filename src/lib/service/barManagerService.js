@@ -13,13 +13,11 @@ const getBarDetail = async (barId) => {
 }
 
 const addBar = async (data) => {
-  return await axios.post(`api/v1/Bar/admin/addBar`, data,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }
-  )
+  return await axios.post(`api/v1/Bar/admin/addBar`, data, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 }
 
 const updateBar = async (barId, data) => {
