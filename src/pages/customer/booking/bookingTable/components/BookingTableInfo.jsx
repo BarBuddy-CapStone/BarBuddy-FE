@@ -12,6 +12,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import viLocale from "date-fns/locale/vi";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
+import { getAllTableTypes } from "src/lib/service/tableTypeService";
 
 // CustomTextField for Date and Type
 const CustomTextField = styled(TextField)(({ theme }) => ({
@@ -78,17 +79,51 @@ const CustomDatePicker = styled(DatePicker)(({ theme }) => ({
 
 // CustomMenuItem for Dropdown
 const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
+  backgroundColor: "#2D2D2D",
   color: "#FFA500",
-  backgroundColor: "#000",
+  "&:hover": {
+    backgroundColor: "#3D3D3D",
+  },
   "&.Mui-selected": {
-    backgroundColor: "#333333",
+    backgroundColor: "#3D3D3D",
+    "&:hover": {
+      backgroundColor: "#4D4D4D",
+    },
+  },
+  padding: "10px 16px",
+  borderBottom: "1px solid #404040",
+  "&:last-child": {
+    borderBottom: "none",
+  },
+}));
+
+// Thêm style mới cho dropdown
+const CustomSelect = styled(TextField)(({ theme }) => ({
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "5px",
+    backgroundColor: "transparent",
+    border: "1px solid white",
+    color: "white",
+    "& fieldset": {
+      border: "none",
+    },
+    "&:hover": {
+      border: "1px solid #FFA500",
+    },
+    "&.Mui-focused": {
+      border: "1px solid #FFA500",
+    },
+  },
+  "& .MuiSelect-icon": {
     color: "#FFA500",
   },
-  "&.Mui-selected:hover": {
-    backgroundColor: "#555555",
-  },
-  "&:hover": {
-    backgroundColor: "#222222",
+  "& .MuiInputBase-input": {
+    padding: "10px 14px",
+    color: "white",
+    "&::placeholder": {
+      color: "white",
+      opacity: 1,
+    },
   },
 }));
 
@@ -109,6 +144,7 @@ const BookingTableInfo = ({
   const [selectedTypeDescription, setSelectedTypeDescription] = useState("");
   const [tableTypes, setTableTypes] = useState([]);
   const [timeOptions, setTimeOptions] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
     const fetchTableTypes = async () => {
@@ -265,35 +301,78 @@ const BookingTableInfo = ({
               </CustomTextField>
             </FormControl>
 
-            <FormControl sx={{ flex: '1 1 0', minWidth: '120px', maxWidth: '200px' }}>
-              <CustomTextField
-                select
-                label="Loại bàn"
-                value={selectedTableType}
-                onChange={(event) => handleTableTypeChange(tableTypes.find(t => t.tableTypeId === event.target.value))}
-                variant="outlined"
-                fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <TableBarIcon />
-                    </InputAdornment>
-                  ),
+            <div className="relative" style={{ flex: '1 1 0', minWidth: '120px', maxWidth: '200px' }}>
+              <button
+                className="w-full h-[56px] px-4 py-2 bg-transparent border border-white rounded-lg text-white flex items-center justify-between hover:border-amber-400 focus:border-amber-400"
+                onClick={(e) => {
+                  const target = e.currentTarget;
+                  const rect = target.getBoundingClientRect();
+                  setAnchorEl({ target, rect });
                 }}
               >
-                <MenuItem value="">
-                  Chọn loại bàn
-                </MenuItem>
+                <div className="flex items-center min-w-0">
+                  <TableBarIcon style={{ color: '#FFA500', marginRight: '8px', flexShrink: 0 }} />
+                  <span className="truncate">
+                    {selectedTableType ? tableTypes.find(t => t.tableTypeId === selectedTableType)?.typeName : "Loại bàn"}
+                  </span>
+                </div>
+                <span style={{ 
+                  width: 0, 
+                  height: 0, 
+                  borderLeft: '5px solid transparent',
+                  borderRight: '5px solid transparent',
+                  borderTop: '5px solid #FFA500',
+                  marginLeft: '8px',
+                  flexShrink: 0
+                }} />
+              </button>
+
+              <Menu
+                anchorEl={anchorEl?.target}
+                open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)}
+                PaperProps={{
+                  style: {
+                    backgroundColor: '#2D2D2D',
+                    borderRadius: '8px',
+                    marginTop: '8px',
+                    minWidth: anchorEl?.rect?.width,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                  },
+                }}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'left',
+                }}
+              >
                 {tableTypes.map((tableType) => (
-                  <CustomMenuItem
+                  <MenuItem
                     key={tableType.tableTypeId}
-                    value={tableType.tableTypeId}
+                    onClick={() => {
+                      handleTableTypeChange(tableType);
+                      setAnchorEl(null);
+                    }}
+                    style={{
+                      color: '#FFA500',
+                      padding: '10px 16px',
+                      borderBottom: '1px solid #404040',
+                      '&:last-child': {
+                        borderBottom: 'none',
+                      },
+                      '&:hover': {
+                        backgroundColor: '#3D3D3D',
+                      },
+                    }}
                   >
                     {tableType.typeName}
-                  </CustomMenuItem>
+                  </MenuItem>
                 ))}
-              </CustomTextField>
-            </FormControl>
+              </Menu>
+            </div>
 
             <Button
               variant="contained"
