@@ -22,7 +22,7 @@ function PersonalInfo({ accountId }) {
   useEffect(() => {
     const fetchAccountDetails = async () => {
       try {
-        const data = await AccountService.getCustomerProfile(accountId);
+        const data = (await AccountService.getCustomerProfile(accountId)).data;
         setFormData({
           fullName: data.fullname,
           birthDate: data.dob.split("T")[0],
