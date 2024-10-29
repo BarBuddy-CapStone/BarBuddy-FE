@@ -13,12 +13,32 @@ const getBarDetail = async (barId) => {
 }
 
 const addBar = async (data) => {
-  return await axios.post(`api/v1/Bar/admin/addBar`, data, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-}
+  try {
+    const response = await axios.post(`api/v1/Bar/admin/addBar`, data, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return {
+      status: response.status,
+      data: response.data
+    };
+  } catch (error) {
+    if (error.response) {
+      // Lỗi từ server với status code
+      return {
+        status: error.response.status,
+        data: error.response.data
+      };
+    } else if (error.request) {
+      // Lỗi không nhận được response
+      throw new Error('Không nhận được phản hồi từ server');
+    } else {
+      // Lỗi khi setup request
+      throw new Error('Có lỗi xảy ra khi gửi yêu cầu');
+    }
+  }
+};
 
 export const updateBar = async (data) => {
   try {

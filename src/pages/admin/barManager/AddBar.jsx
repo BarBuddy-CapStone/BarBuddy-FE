@@ -237,18 +237,69 @@ const AddBar = () => {
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
 
+    const validateOperatingHours = (barTimeRequest) => {
+        let errors = [];
+        Object.entries(barTimeRequest).forEach(([dayOfWeek, times]) => {
+            if (times !== null) {
+                const dayLabel = DAYS_OF_WEEK.find(day => day.value === parseInt(dayOfWeek))?.label;
+                if (!times.startTime || !times.endTime) {
+                    errors.push(`${dayLabel} phải chọn cả giờ mở cửa và đóng cửa`);
+                }
+            }
+        });
+        return errors;
+    };
+
     const validateForm = () => {
         let newErrors = {};
+        let isValid = true;
+
+        // Validate các trường input
         if (!formData.barName) newErrors.barName = 'Tên quán không được để trống';
         if (!formData.email) newErrors.email = 'Email không được để trống';
         if (!formData.address) newErrors.address = 'Địa chỉ không được để trống';
         if (!formData.phoneNumber) newErrors.phoneNumber = 'Số điện thoại không được để trống';
         if (!formData.description) newErrors.description = 'Mô tả không được để trống';
         if (!formData.discount) newErrors.discount = 'Chiết khấu không được để trống';
-        if (!formData.images) newErrors.images = 'Ảnh không được để trống';
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        
+        // Validate images
+        if (uploadedImages.length === 0) {
+            toast.error("Vui lòng thêm ít nhất một hình ảnh", {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
+            isValid = false;
+        }
+
+        // Hiển thị lỗi cho các trường input
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            isValid = false;
+        }
+
+        // Kiểm tra thời gian hoạt động
+        const timeErrors = validateOperatingHours(formData.barTimeRequest);
+        if (timeErrors.length > 0) {
+            timeErrors.forEach(error => {
+                toast.error(error, {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            });
+            isValid = false;
+        }
+
+        return isValid;
     };
+
     const handleStatusChange = (value) => {
         setFormData((prevData) => ({
             ...prevData,
@@ -288,37 +339,54 @@ const AddBar = () => {
 
     // Thêm hàm xử lý thay đổi thời gian
     const handleTimeChange = (dayOfWeek, timeType, newTime) => {
-        setFormData(prev => ({
-            ...prev,
-            barTimeRequest: {
+        console.log('handleTimeChange called:', { dayOfWeek, timeType, newTime });
+        setFormData(prev => {
+            const updatedBarTimeRequest = {
                 ...prev.barTimeRequest,
                 [dayOfWeek]: {
                     ...prev.barTimeRequest[dayOfWeek],
-                    [timeType]: `${newTime}:00`
+                    [timeType]: newTime
                 }
-            }
-        }));
+            };
+            console.log('Updated barTimeRequest:', updatedBarTimeRequest);
+            return {
+                ...prev,
+                barTimeRequest: updatedBarTimeRequest
+            };
+        });
     };
 
     // Thêm hàm xử lý toggle ngày
     const handleDayToggle = (dayOfWeek, enabled) => {
-        setFormData(prev => ({
-            ...prev,
-            barTimeRequest: {
+        console.log('handleDayToggle called:', { dayOfWeek, enabled });
+        setFormData(prev => {
+            const updatedBarTimeRequest = {
                 ...prev.barTimeRequest,
                 [dayOfWeek]: enabled ? { startTime: '', endTime: '' } : null
-            }
-        }));
+            };
+            console.log('Updated barTimeRequest:', updatedBarTimeRequest);
+            return {
+                ...prev,
+                barTimeRequest: updatedBarTimeRequest
+            };
+        });
     };
 
     // Cập nhật hàm handleAddConfirm
     const handleAddConfirm = async () => {
-        if (!validateForm()) return;
-        setIsLoading(true);
-        setIsPopupConfirm(false);
+        console.log('Starting handleAddConfirm');
+        console.log('Current formData:', formData);
+        
+        if (!validateForm()) {
+            console.log('Form validation failed');
+            setIsPopupConfirm(false);
+            return;
+        }
 
         try {
-            // Convert tất cả images sang base64
+            setIsLoading(true);
+            setIsPopupConfirm(false);
+
             const base64Images = await Promise.all(
                 uploadedImages.map(async (image) => {
                     const base64 = await convertFileToBase64(image.file);
@@ -326,16 +394,17 @@ const AddBar = () => {
                 })
             );
 
-            // Format barTimeRequest thành mảng theo yêu cầu của BE
+            // Lọc và format thời gian hoạt động
             const barTimes = Object.entries(formData.barTimeRequest)
-                .filter(([_, times]) => times !== null)
+                .filter(([_, times]) => times !== null && times.startTime && times.endTime)
                 .map(([dayOfWeek, times]) => ({
                     dayOfWeek: parseInt(dayOfWeek),
-                    startTime: times.startTime,
-                    endTime: times.endTime
+                    startTime: `${times.startTime}:00`,
+                    endTime: `${times.endTime}:00`
                 }));
 
-            // Tạo payload JSON
+            console.log('Formatted barTimes:', barTimes);
+
             const payload = {
                 barName: formData.barName,
                 email: formData.email,
@@ -343,14 +412,17 @@ const AddBar = () => {
                 phoneNumber: formData.phoneNumber,
                 description: formData.description,
                 discount: formData.discount,
+                timeSlot: formData.timeSlot,
                 status: formData.status,
                 images: base64Images,
                 barTimeRequest: barTimes
             };
 
+            console.log('Sending payload:', payload);
             const response = await addBar(payload);
-            
-            if (response && response.status === 200) {
+            console.log('Response:', response);
+
+            if (response.status === 200) {
                 toast.success("Thêm quán bar thành công!", {
                     type: "success",
                     autoClose: 1500,
@@ -358,12 +430,26 @@ const AddBar = () => {
                         navigate('/admin/barmanager');
                     }
                 });
+            } else if (response.status === 400) {
+                const errors = response.data.errors;
+                if (errors) {
+                    Object.values(errors).forEach(messages => {
+                        messages.forEach(message => {
+                            toast.error(message, {
+                                type: "error",
+                                autoClose: 3000
+                            });
+                        });
+                    });
+                } else {
+                    toast.error(response.data.message || "Dữ liệu không hợp lệ!");
+                }
             } else {
                 toast.error(response.data?.message || "Có lỗi xảy ra! Vui lòng thử lại.");
             }
         } catch (error) {
             console.error('Error adding bar:', error);
-            toast.error(error.response?.data?.message || "Có lỗi xảy ra! Vui lòng thử lại.");
+            toast.error(error.message || "Có lỗi xảy ra! Vui lòng thử lại.");
         } finally {
             setIsLoading(false);
         }
@@ -386,16 +472,41 @@ const AddBar = () => {
         }
     ];
 
+    // Thêm useEffect để khởi tạo barTimeRequest ngay khi component mount
+    useEffect(() => {
+        const initialBarTimeRequest = {};
+        DAYS_OF_WEEK.forEach(day => {
+            initialBarTimeRequest[day.value] = null;
+        });
+
+        setFormData(prev => ({
+            ...prev,
+            barTimeRequest: initialBarTimeRequest
+        }));
+    }, []);
+
     return (
         <main className="flex flex-col items-start p-8 bg-white w-full">
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss={false}
+                draggable
+                pauseOnHover
+                theme="colored"
+                limit={3}
+            />
+
             {isLoading && (
                 <div className="absolute inset-0 flex justify-center items-center bg-gray-500 bg-opacity-50 backdrop-blur-sm z-50">
                     <CircularProgress />
                     <p className="text-xl font-semibold ml-4">Đang xử lý...</p>
                 </div>
             )}
-
-            <ToastContainer />
 
             <header className="flex justify-between items-center w-full mb-6">
                 <div className="flex items-center">

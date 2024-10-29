@@ -218,8 +218,25 @@ const BarProfile = () => {
     const [data, setData] = useState(null);
     const [oldImages, setOldImages] = useState([]);
 
+    const validateOperatingHours = (barTimeRequest) => {
+        let errors = [];
+        Object.entries(barTimeRequest).forEach(([dayOfWeek, times]) => {
+            if (times !== null) {
+                const dayLabel = DAYS_OF_WEEK.find(day => day.value === parseInt(dayOfWeek))?.label;
+                if (!times.startTime || !times.endTime) {
+                    errors.push(`${dayLabel} phải chọn cả giờ mở cửa và đóng cửa`);
+                }
+            }
+        });
+        return errors;
+    };
+
     const validateForm = () => {
         let newErrors = {};
+        let isValid = true;
+        let allErrors = [];
+
+        // Validate các trường input
         if (!formData.barName) newErrors.barName = 'Tên quán không được để trống';
         if (!formData.email) newErrors.email = 'Email không được để trống';
         if (!formData.address) newErrors.address = 'Địa chỉ không được để trống';
@@ -227,12 +244,47 @@ const BarProfile = () => {
         if (!formData.description) newErrors.description = 'Mô tả không được để trống';
         if (!formData.discount) newErrors.discount = 'Chiết khấu không được để trống';
         if (!formData.timeSlot) newErrors.timeSlot = 'Thời gian không được để trống';
-        console.log('Validation errors:', newErrors);
-        console.log('Form data:', formData);
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+        
+        // Validate images
+        if (uploadedImages.length === 0) {
+            allErrors.push("Vui lòng thêm ít nhất một hình ảnh");
+            isValid = false;
+        }
 
+        // Hiển thị lỗi cho các trường input
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            isValid = false;
+        }
+
+        // Kiểm tra thời gian hoạt động
+        const timeErrors = validateOperatingHours(formData.barTimeRequest);
+        if (timeErrors.length > 0) {
+            allErrors = [...allErrors, ...timeErrors];
+            isValid = false;
+        }
+
+        // Hiển thị tất cả lỗi trong toast
+        if (allErrors.length > 0) {
+            allErrors.forEach(error => {
+                toast.error(error, {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            });
+        }
+
+        // Log để debug
+        console.log('Validation errors:', newErrors);
+        console.log('All errors:', allErrors);
+        console.log('Is form valid:', isValid);
+
+        return isValid;
+    };
 
     const handleStatusChange = (value) => {
         setFormData((prevData) => ({
@@ -357,15 +409,17 @@ const BarProfile = () => {
 
     const handleAddConfirm = async () => {
         console.log('Starting handleAddConfirm');
+        
         if (!validateForm()) {
             console.log('Form validation failed');
+            setIsPopupConfirm(false);
             return;
         }
 
-        setIsLoading(true);
-        setIsPopupConfirm(false);
-
         try {
+            setIsLoading(true);
+            setIsPopupConfirm(false);
+
             console.log('Processing images...');
             const newImagesBase64 = await Promise.all(
                 uploadedImages
