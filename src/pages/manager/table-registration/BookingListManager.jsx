@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react"; 
-import { FilterSection, BookingTable } from "src/pages";
+
 import BookingService from "src/lib/service/bookingService"; 
 import Pagination from '@mui/material/Pagination'; 
 import { message } from 'antd';
+import {BookingTableManager, FilterSectionManager } from "src/pages";
 
 function BookingListManager() {
   const getCurrentDate = () => {
@@ -48,25 +49,40 @@ function BookingListManager() {
         pageSize
       );
 
-      if (response.data) {
-        setBookings(response.data.response || []);
-        setTotalPages(response.data.totalPage || 1);
-        setTimeRange({ 
-          startTime: response.data.startTime || "", 
-          endTime: response.data.endTime || "" 
-        });
+      console.log("API Response:", response); // Thêm log để debug
+
+      if (response.data && response.data.data) {
+        setBookings(response.data.data.response || []);
+        setTotalPages(response.data.data.totalPage || 1);
+        if (response.data.data.startTime && response.data.data.endTime) {
+          setTimeRange({ 
+            startTime: response.data.data.startTime, 
+            endTime: response.data.data.endTime 
+          });
+        }
+      } else {
+        setBookings([]);
+        setTotalPages(1);
       }
     } catch (error) {
       console.error("Lỗi khi lấy danh sách đặt chỗ:", error);
       message.error("Có lỗi xảy ra khi tải dữ liệu");
+      setBookings([]);
+      setTotalPages(1);
     } finally {
       setLoading(false); 
     }
   };
 
+  // Gọi API khi component mount và khi trang thay đổi
   useEffect(() => {
     fetchBookings(filter, currentPage);
   }, [currentPage]); 
+
+  // Gọi API khi component mount lần đầu
+  useEffect(() => {
+    fetchBookings(filter, 1);
+  }, []); 
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
@@ -75,14 +91,14 @@ function BookingListManager() {
   return (
     <main className="flex overflow-hidden flex-col grow px-7 pt-7 pb-8 w-full bg-white max-md:px-5 max-md:pb-24 max-md:max-w-full">
       <section className="flex flex-col px-6 py-6 bg-white rounded-3xl border border-black border-solid max-md:px-5 max-md:mr-1 max-md:max-w-full">
-        <FilterSection 
+        <FilterSectionManager 
           onFilterChange={handleFilterChange} 
           timeRange={timeRange} 
           initialDate={getCurrentDate()} 
         />
       </section>
       
-      <BookingTable 
+      <BookingTableManager 
         filter={filter} 
         bookings={bookings} 
         loading={loading} 

@@ -105,7 +105,7 @@ function StatusFilter({ label, selectedStatus, onChange }) {
   );
 }
 
-function FilterSection({ onFilterChange, timeRange, initialDate }) {
+function FilterSectionManager({ onFilterChange, timeRange, initialDate }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -173,4 +173,4 @@ function FilterSection({ onFilterChange, timeRange, initialDate }) {
   );
 }
 
-export default FilterSection;
+export default FilterSectionManager;

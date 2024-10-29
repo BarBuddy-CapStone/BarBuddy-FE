@@ -117,6 +117,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           {/* quan li loaij bàn */}
           <Route path="manager/table-type-management" element={<TableTypeManagement />}/> 
           <Route path="manager/table-management" element={<TableManagementManager />}/> 
+          
           <Route path="manager/table-registrations" element={<BookingListManager />}/> 
           <Route path="manager/table-registration-detail/:bookingId" element={<BookingDetailManager />}/> 
 
