@@ -75,11 +75,25 @@ const BarDetail = () => {
         }
     }, [barId]);
 
+    const dayOfWeekMap = {
+        0: 'Chủ Nhật',
+        1: 'Thứ Hai',
+        2: 'Thứ Ba',
+        3: 'Thứ Tư',
+        4: 'Thứ Năm',
+        5: 'Thứ Sáu',
+        6: 'Thứ Bảy'
+    };
+
+    const sortedBarTimeResponses = barDetails?.barTimeResponses.sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+
+    const isOpenEveryDay = barDetails?.barTimeResponses.length === 7;
+
     if (!barDetails) return <div>Loading...</div>;
 
     return (
         <div className="container bg-inherit p-4 flex flex-col items-center">
-            <div className="bg-neutral-800 text-white p-4 rounded-lg shadow-lg w-full max-w-4xl">
+            <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
                 <button
                     className="text-gray-200 mb-4 flex items-center text-base hover:text-amber-400 transition-colors duration-300"
                     onClick={handleBack}
@@ -87,8 +101,8 @@ const BarDetail = () => {
                     <ChevronLeftIcon /> Quay Lại
                 </button>
                 <img src={barDetails.images} alt={barDetails.barName} className="w-full h-64 object-cover rounded-lg mb-4" />
-                <h1 className="text-2xl text-yellow-500 font-bold mb-2">{barDetails.barName}</h1>
-                <div className="mb-2 ml-1">
+                <h1 className="text-3xl text-yellow-500 font-bold mb-4">{barDetails.barName}</h1>
+                <div className="mb-4 ml-1 flex items-center">
                     <span className="text-gray-400 my-2"><img
                         src={
                             barDetails.isAnyTableAvailable
@@ -98,29 +112,40 @@ const BarDetail = () => {
                         alt={barDetails.isAnyTableAvailable ? "Còn bàn" : "Hết bàn"}
                         className="inline-block w-5 h-5 mr-2"
                     /></span>
-                    <span className="text-base text-white">{barDetails.isAnyTableAvailable ? "Còn bàn" : "Hết bàn"}</span>
+                    <span className="text-lg text-white">{barDetails.isAnyTableAvailable ? "Còn bàn" : "Hết bàn"}</span>
                 </div>
 
-                <div className="flex items-center mb-2">
+                <div className="flex items-center mb-4">
                     <StarIcon className='text-yellow-500 mr-2' />
-                    <span className="text-yellow-500 text-base mr-2">Đánh giá:</span>
-                    <span className="text-yellow-500 text-base mr-2">{averageRating}</span>
+                    <span className="text-yellow-500 text-lg mr-2">Đánh giá:</span>
+                    <span className="text-yellow-500 text-lg mr-2">{averageRating}</span>
                     <span className="text-white text-sm">({totalReviews} đánh giá)</span>
                 </div>
-                <div className="mb-4">
+                <div className="mb-6">
                     <p className="text-white my-2">
                         <LocationOnIcon className='text-yellow-500 mr-2' />
                         <span className="text-yellow-500">Địa chỉ:</span> {barDetails.address}
                     </p>
                     <p className="text-white my-2">
                         <WatchLaterIcon className='text-yellow-500 mr-2' />
-                        <span className="text-yellow-500">Thời gian mở cửa - đóng cửa:</span> {barDetails.startTime.slice(0, 5)} - {barDetails.endTime.slice(0, 5)}
+                        <span className="text-yellow-500">Thời gian hoạt động:</span>
                     </p>
+                    {isOpenEveryDay ? (
+                        <p className="text-green-500 my-2">Mở cửa mỗi ngày</p>
+                    ) : (
+                        <ul className="text-white my-2 pl-4 list-disc">
+                            {sortedBarTimeResponses.map((time) => (
+                                <li key={time.barTimeId}>
+                                    {dayOfWeekMap[time.dayOfWeek]}: {time.startTime.slice(0, 5)} - {time.endTime.slice(0, 5)}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
                 <hr className="border-yellow-500 mb-4" />
-                <p className="mb-4">{barDetails.description}</p>
+                <p className="mb-6">{barDetails.description}</p>
                 <button 
-                    className={`px-4 py-2 rounded-lg ${
+                    className={`px-6 py-3 rounded-lg font-semibold ${
                         barDetails.isAnyTableAvailable 
                             ? 'bg-yellow-500 text-gray-800 hover:bg-yellow-600' 
                             : 'bg-gray-500 text-white cursor-not-allowed'
@@ -131,11 +156,11 @@ const BarDetail = () => {
                     {isLoading ? 'Đang xử lý...' : (barDetails.isAnyTableAvailable ? 'Đặt bàn' : 'Hết Bàn')}
                 </button>
             </div>
-            <div className="bg-neutral-800 text-white p-4 rounded-lg shadow-lg mt-4 w-full max-w-4xl">
+            <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg mt-6 w-full max-w-4xl">
                 <h2 className="text-2xl text-yellow-500 font-bold mb-4">Đánh giá</h2>
                 <FeedbackList feedbacks={barDetails.feedBacks} />
             </div>
-            <LoadingSpinner open={isLoading} /> {/* Add LoadingSpinner component */}
+            <LoadingSpinner open={isLoading} />
         </div>
     );
 };
