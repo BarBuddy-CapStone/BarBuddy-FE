@@ -125,9 +125,14 @@ const BookingTable = () => {
     }
   }, [barId, selectedDate]);
 
-  const mergeTables = useCallback((apiTables, holdTables, currentDate, currentTime) => {
+  const mergeTables = (apiTables, holdTables, currentDate, currentTime) => {
+    if (!apiTables || !Array.isArray(apiTables)) {
+      console.warn("No API tables data or invalid format");
+      return [];
+    }
+
     return apiTables.map(apiTable => {
-      const matchingHoldTable = holdTables.find(holdTable => 
+      const matchingHoldTable = holdTables?.find(holdTable => 
         holdTable.tableId === apiTable.tableId &&
         dayjs(holdTable.date).format('YYYY-MM-DD') === currentDate &&
         holdTable.time === currentTime
@@ -136,7 +141,7 @@ const BookingTable = () => {
       if (matchingHoldTable) {
         return {
           ...apiTable,
-          status: 2,
+          status: 2, // Đã được hold
           isHeld: true,
           holderId: matchingHoldTable.accountId,
           holdExpiry: matchingHoldTable.holdExpiry,
@@ -144,9 +149,13 @@ const BookingTable = () => {
           time: matchingHoldTable.time
         };
       }
-      return { ...apiTable, status: 1, isHeld: false };
+      return { 
+        ...apiTable, 
+        status: apiTable.status || 1,
+        isHeld: false 
+      };
     });
-  }, []);
+  };
 
   const fetchAllHoldTables = useCallback(async () => {
     try {
@@ -213,25 +222,91 @@ const BookingTable = () => {
     }
   }, [barId, selectedDate, selectedTime, selectedTableTypeId, mergeTables]);
 
-  const handleSearch = () => {
-    fetchAndMergeTables();
+  const handleSearch = async () => {
+    if (!barId || !selectedDate || !selectedTime || !selectedTableTypeId) {
+      setOpenPopup(true);
+      return;
+    }
+
+    setIsLoading(true);
+    setHasSearched(true);
+    
+    try {
+      const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
+      const formattedTime = selectedTime + ":00";
+
+      console.log("Searching tables with params:", {
+        barId,
+        date: formattedDate,
+        time: formattedTime,
+        tableTypeId: selectedTableTypeId
+      });
+
+      const response = await filterBookingTable({
+        barId,
+        tableTypeId: selectedTableTypeId,
+        date: formattedDate,
+        time: selectedTime
+      });
+
+      console.log("Filter response:", response.data);
+
+      if (response.data.statusCode === 200 && response.data.data) {
+        const holdTablesResponse = await getAllHoldTable(token, barId, formattedDate, formattedTime);
+        const holdTables = holdTablesResponse.data.data || [];
+
+        const { tableTypeId, typeName, description, bookingTables } = response.data.data;
+        
+        setTableTypeInfo({ tableTypeId, typeName, description });
+
+        if (bookingTables && Array.isArray(bookingTables) && bookingTables.length > 0 && bookingTables[0].tables) {
+          const mergedTables = mergeTables(
+            bookingTables[0].tables,
+            holdTables,
+            formattedDate,
+            formattedTime
+          );
+
+          if (mergedTables.length > 0) {
+            setAllFilteredTables(prev => ({
+              ...prev,
+              [`${formattedDate}-${formattedTime}`]: mergedTables
+            }));
+            setFilteredTables(mergedTables);
+          } else {
+            setFilteredTables([]);
+            setOpenPopup(true);
+          }
+        } else {
+          setFilteredTables([]);
+          setOpenPopup(true);
+        }
+      } else if (response.data.statusCode === 400) {
+        console.error("Bad Request:", response.data.message);
+        setOpenPopup(true);
+      } else {
+        console.error("Filter API returned unexpected response:", response.data);
+        setOpenPopup(true);
+      }
+    } catch (error) {
+      console.error("Error searching tables:", error);
+      if (error.response) {
+        console.error("Server error details:", error.response.data);
+      }
+      setOpenPopup(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleTimeChange = (time) => {
     setSelectedTime(time);
-    if (hasSearched) {
-      fetchAndMergeTables();
-    }
+    setFilteredTables([]);
   };
-
-  useEffect(() => {
-    if (hasSearched) {
-      fetchAndMergeTables();
-    }
-  }, [selectedDate, selectedTime, selectedTableTypeId, hasSearched, fetchAndMergeTables]);
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
+    setFilteredTables([]);
   };
 
   const handleTableSelect = async (table) => {
@@ -454,7 +529,7 @@ const BookingTable = () => {
         <DialogTitle>Thông báo</DialogTitle>
         <DialogContent>
           {!selectedTableTypeId
-            ? "Vui lòng chọn loại bàn trước khi tìm kiếm."
+            ? "Vui lòng chn loại bàn trước khi tìm kiếm."
             : "Không có bàn nào phù hợp với thời gian bạn đã chọn. Vui lòng chọn thời gian khác hoặc loại bàn khác."}
         </DialogContent>
         <DialogActions>

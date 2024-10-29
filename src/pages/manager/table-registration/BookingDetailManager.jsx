@@ -3,49 +3,35 @@ import { useParams, useNavigate } from 'react-router-dom';
 import BookingService from 'src/lib/service/bookingService';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { IconButton, CircularProgress } from '@mui/material';
-import { toast } from 'react-toastify';
+import { message } from 'antd';
 
 const BookingDetailManager = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
 
   const [Booking, setBooking] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        const response = await BookingService.getBookingDetailByStaff(bookingId);
-        const bookingData = response.data;
+        const response = await BookingService.getBookingDetailByManager(bookingId);
+        console.log("API Response:", response);
 
-        setBooking(bookingData);
-        setSelectedStatus(bookingData.status.toString());
+        if (response.data && response.data.data) {
+          const bookingData = response.data.data;
+          setBooking(bookingData);
+        }
       } catch (error) {
         console.error("Lỗi khi lấy thông tin đặt bàn:", error);
-        toast.error("Không thể lấy thông tin đặt bàn. Vui lòng thử lại sau.");
+        message.error("Không thể lấy thông tin đặt bàn. Vui lòng thử lại sau.");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchBookingDetails();
   }, [bookingId]);
-
-  const handleSave = async () => {
-    setIsUpdating(true);
-    try {
-      await BookingService.updateStatusBooking(bookingId, parseInt(selectedStatus));
-      setBooking(prevBooking => ({
-        ...prevBooking,
-        status: parseInt(selectedStatus)
-      }));
-      toast.success("Cập nhật trạng thái thành công!");
-    } catch (error) {
-      console.error("Lỗi khi cập nhật trạng thái:", error);
-      toast.error("Không thể cập nhật trạng thái. Vui lòng thử lại sau.");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
 
   const getStatusColor = (status) => {
     switch (parseInt(status)) {
@@ -81,8 +67,16 @@ const BookingDetailManager = () => {
     navigate('/manager/table-registrations');
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <CircularProgress />
+      </div>
+    );
+  }
+
   if (!Booking) {
-    return <div>Loading...</div>;
+    return <div>Không tìm thấy thông tin đặt bàn</div>;
   }
 
   return (
@@ -98,18 +92,8 @@ const BookingDetailManager = () => {
       <div className="flex">
         <div className="flex-1 pr-8">
           <div className="flex justify-end items-center mb-4">
-            <div className="relative">
-              <select
-                className="py-2 pl-8 pr-4 border rounded-md appearance-none"
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-              >
-                <option value="0">Đang chờ</option>
-                <option value="1">Đã hủy</option>
-                <option value="2">Đang phục vụ</option>
-                <option value="3">Đã hoàn thành</option>
-              </select>
-              <div className={`absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full ${getStatusColor(selectedStatus)}`}></div>
+            <div className={`px-4 py-2 rounded-full text-white ${getStatusColor(Booking.status)}`}>
+              {getStatusText(Booking.status)}
             </div>
           </div>
 
@@ -118,7 +102,7 @@ const BookingDetailManager = () => {
               <label className="font-medium">Mã đặt chỗ</label>
               <input
                 type="text"
-                className="p-2 border rounded-md"
+                className="p-2 border rounded-md bg-gray-50"
                 value={Booking.bookingCode}
                 readOnly
               />
@@ -128,7 +112,7 @@ const BookingDetailManager = () => {
               <label className="font-medium">Tên khách hàng</label>
               <input
                 type="text"
-                className="p-2 border rounded-md"
+                className="p-2 border rounded-md bg-gray-50"
                 value={Booking.customerName}
                 readOnly
               />
@@ -138,7 +122,7 @@ const BookingDetailManager = () => {
               <label className="font-medium">Số điện thoại</label>
               <input
                 type="text"
-                className="p-2 border rounded-md"
+                className="p-2 border rounded-md bg-gray-50"
                 value={Booking.customerPhone}
                 readOnly
               />
@@ -148,7 +132,7 @@ const BookingDetailManager = () => {
               <label className="font-medium">Email</label>
               <input
                 type="email"
-                className="p-2 border rounded-md"
+                className="p-2 border rounded-md bg-gray-50"
                 value={Booking.customerEmail}
                 readOnly
               />
@@ -158,7 +142,7 @@ const BookingDetailManager = () => {
               <label className="font-medium">Ghi chú</label>
               <input
                 type="text"
-                className="p-2 border rounded-md"
+                className="p-2 border rounded-md bg-gray-50"
                 value={Booking.note}
                 readOnly
               />
@@ -168,7 +152,7 @@ const BookingDetailManager = () => {
               <label className="font-medium">Ngày đặt bàn</label>
               <input
                 type="text"
-                className="p-2 border rounded-md"
+                className="p-2 border rounded-md bg-gray-50"
                 value={new Date(Booking.bookingDate).toLocaleDateString('vi-VN')}
                 readOnly
               />
@@ -178,24 +162,20 @@ const BookingDetailManager = () => {
               <label className="font-medium">Thời gian check-in</label>
               <input
                 type="text"
-                className="p-2 border rounded-md"
+                className="p-2 border rounded-md bg-gray-50"
                 value={Booking.bookingTime}
                 readOnly
               />
             </div>
 
-            <div className="flex justify-end">
-              <button
-                className="px-6 py-2 mt-4 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors w-[150px] flex items-center justify-center"
-                onClick={handleSave}
-                disabled={isUpdating}
-              >
-                {isUpdating ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  "Cập nhật"
-                )}
-              </button>
+            <div className="flex flex-col">
+              <label className="font-medium">Phụ thu</label>
+              <input
+                type="text"
+                className="p-2 border rounded-md bg-gray-50"
+                value={`${Booking.additionalFee ? Booking.additionalFee.toLocaleString('vi-VN') : 0} VND`}
+                readOnly
+              />
             </div>
           </div>
         </div>

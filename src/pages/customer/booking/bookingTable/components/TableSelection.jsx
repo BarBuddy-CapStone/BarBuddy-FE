@@ -136,19 +136,19 @@ const TableSelection = (
         </div>
       ) : hasSearched && filteredTables.length > 0 ? (
         <>
-        {console.log("Filtered tables in TableSelection:", filteredTables)}
           <div className="flex flex-wrap gap-3.5 items-start text-center text-black max-md:max-w-full">
             {filteredTables.map(table => {
-              const isCurrentUserHolding = isTableHeldForCurrentTime(table) && table.holderId === userInfo.accountId;
-              console.log("Table in render:", table);
+              const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId;
+              const isAvailable = table.status === 1 || table.status === 3;
+              
               return (
                 <CustomButton
                   key={table.tableId}
                   onClick={() => isCurrentUserHolding ? handleTableRelease(table.tableId) : handleTableSelect(table)}
                   status={table.status}
-                  isHeld={isTableHeldForCurrentTime(table)}
+                  isHeld={table.isHeld}
                   isCurrentUserHolding={isCurrentUserHolding}
-                  disabled={table.status === 0 || (isTableHeldForCurrentTime(table) && !isCurrentUserHolding)}
+                  disabled={!isAvailable && !isCurrentUserHolding}
                 >
                   {table.tableName}
                 </CustomButton>

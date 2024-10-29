@@ -42,45 +42,51 @@ const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
   },
 }));
 
+// Thêm hàm helper để chuyển đổi dayOfWeek
+const convertDayOfWeek = (dayjs) => {
+  // dayjs.day() trả về: 0 (CN), 1 (T2), 2 (T3), 3 (T4), 4 (T5), 5 (T6), 6 (T7)
+  // Cần chuyển thành: 1 (T2), 2 (T3), 3 (T4), 4 (T5), 5 (T6), 6 (T7), 7 (CN)
+  const day = dayjs.day();
+  return day === 0 ? 7 : day; // Chuyển Chủ nhật từ 0 thành 7
+};
+
 const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate, barId, setFilteredTables, setSelectedTables }) => {
   const [selectedTime, setSelectedTime] = useState("");
   const [timeOptions, setTimeOptions] = useState([]);
 
-  const generateTimeOptions = (start, end, date) => {
+  // Sửa lại hàm generateTimeOptions
+  const generateTimeOptions = (date) => {
+    if (!barTimeResponses || barTimeResponses.length === 0) return [];
+
     const options = [];
     const currentDate = dayjs(date);
     const now = dayjs();
+    const dayOfWeek = convertDayOfWeek(currentDate);
 
-    // Parse the start and end times
+    const barTime = barTimeResponses.find(time => time.dayOfWeek === dayOfWeek);
+    if (!barTime) return [];
+
     let currentTime = currentDate
-      .hour(parseInt(start.split(":")[0]))
-      .minute(parseInt(start.split(":")[1]));
+      .hour(parseInt(barTime.startTime.split(":")[0]))
+      .minute(parseInt(barTime.startTime.split(":")[1]));
+    
     let endTimeObj = currentDate
-      .hour(parseInt(end.split(":")[0]))
-      .minute(parseInt(end.split(":")[1]));
+      .hour(parseInt(barTime.endTime.split(":")[0]))
+      .minute(parseInt(barTime.endTime.split(":")[1]));
 
-    // If the bar's closing time (end) is before the start time, assume it extends to the next day
     if (endTimeObj.isBefore(currentTime)) {
       endTimeObj = endTimeObj.add(1, "day");
     }
 
-    // Handle the case when the selected date is today
     if (currentDate.isSame(now, "day")) {
-      const barOpeningTime = dayjs()
-        .hour(parseInt(start.split(":")[0]))
-        .minute(parseInt(start.split(":")[1]));
-      if (now.isAfter(barOpeningTime)) {
-        currentTime = now.add(1, "hour").startOf("hour");
-      }
+      currentTime = now.add(1, "hour").startOf("hour");
     }
 
-    // Generate hourly slots between startTime and endTime
     while (currentTime.isBefore(endTimeObj)) {
       options.push(currentTime.format("HH:mm"));
       currentTime = currentTime.add(1, "hour");
     }
 
-    // Ensure that times after midnight are displayed correctly
     return options;
   };
 
@@ -103,58 +109,10 @@ const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate, barId, 
     }
   }, [startTime, endTime, selectedDate]);
 
-  const handleTimeChange = async (event) => {
+  const handleTimeChange = (event) => {
     const newTime = event.target.value;
     setSelectedTime(newTime);
     onTimeChange(newTime);
-
-    // Refresh the table list
-    await refreshTableList(newTime);
-  };
-
-  const refreshTableList = async (time) => {
-    try {
-      const holdTablesResponse = await getAllHoldTable(barId, dayjs(selectedDate).format("YYYY/MM/DD"), time);
-      const holdTables = holdTablesResponse.data.data;
-
-      const response = await filterBookingTable({
-        barId,
-        date: dayjs(selectedDate).format("YYYY/MM/DD"),
-        time: time
-      });
-
-      if (response.data.statusCode === 200 && response.data.data.bookingTables.length > 0) {
-        const updatedTables = response.data.data.bookingTables[0].tables.map(table => {
-          const holdInfo = holdTables.find(ht => 
-            ht.tableId === table.tableId && 
-            dayjs(ht.date).format("YYYY-MM-DD") === dayjs(selectedDate).format("YYYY-MM-DD") && 
-            ht.time === time + ":00"
-          );
-
-          if (holdInfo && holdInfo.isHeld) {
-            return {
-              ...table,
-              status: 2,
-              isHeld: true,
-              holdExpiry: holdInfo.holdExpiry,
-              holderId: holdInfo.accountId,
-              date: holdInfo.date,
-              time: holdInfo.time,
-            };
-          }
-          return { ...table, status: 1, isHeld: false };
-        });
-
-        setFilteredTables(updatedTables);
-        // Clear selected tables as they are no longer valid for the new time
-        setSelectedTables([]);
-      } else {
-        setFilteredTables([]);
-        setSelectedTables([]);
-      }
-    } catch (error) {
-      console.error("Error refreshing table list:", error);
-    }
   };
 
   return (
