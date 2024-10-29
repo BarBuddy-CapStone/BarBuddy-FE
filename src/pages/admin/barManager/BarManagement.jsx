@@ -3,41 +3,44 @@ import { ChevronRight, Search, Add } from '@mui/icons-material';
 import { Button, Box, CircularProgress, Pagination } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getAllBar } from 'src/lib/service/barManagerService';
+import { message } from 'antd';
 
 function BarManagement() {
   const navigate = useNavigate();
   const [barData, setBarData] = useState([]);
   const [search, setSearch] = useState('');
-  const [listSearchBar, setListSearchBar] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize] = useState(10);
 
   useEffect(() => {
-    const fetchBarData = async () => {
-      try {
-        setLoading(true);
-        const response = await getAllBar();
-        const bars = response?.data?.data || [];
-        setBarData(bars);
-        setListSearchBar(bars);
-      } catch (error) {
-        console.error("Error fetching bar data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchBarData();
-  }, []);
+  }, [currentPage]);
+
+  const fetchBarData = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllBar(currentPage, pageSize);
+      if (response?.data?.data) {
+        setBarData(response.data.data);
+        setTotalPages(Math.ceil(response.data.data.length / pageSize));
+      }
+    } catch (error) {
+      console.error("Error fetching bar data:", error);
+      message.error("Có lỗi xảy ra khi tải dữ liệu");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChevronClick = (barId) => {
     navigate(`/admin/barProfile/${barId}`);
   };
 
-  const SearchBarHandler = () => {
-    const result = barData?.filter((bar) =>
-      bar?.barName?.toLowerCase().includes(search?.toLowerCase())
-    );
-    setListSearchBar(result);
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
   };
 
   const handleFilterChange = (e) => {
@@ -48,11 +51,18 @@ function BarManagement() {
     navigate("/admin/addbar");
   };
 
-  const filteredBars = listSearchBar.filter(bar => {
-    if (filterStatus === 'ALL') return true;
-    if (filterStatus === 'Active') return bar.status === true;
-    if (filterStatus === 'Inactive') return bar.status === false;
-    return true;
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  const filteredBars = barData.filter(bar => {
+    const matchesSearch = bar.barName.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = filterStatus === 'ALL' 
+      ? true 
+      : filterStatus === 'Active' 
+        ? bar.status 
+        : !bar.status;
+    return matchesSearch && matchesStatus;
   });
 
   return (
@@ -64,21 +74,17 @@ function BarManagement() {
               type="text"
               placeholder="Tìm kiếm tên quán"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearchChange}
               className="px-4 py-2 pr-10 border border-sky-900 rounded-full w-full"
             />
-            <button
-              onClick={SearchBarHandler}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-sky-900"
-            >
-              <Search />
-            </button>
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
 
           <div className="flex items-center gap-4 w-full md:w-auto">
             <select 
               className="px-3 py-2 bg-white rounded-md border border-sky-900 shadow-sm text-sm transition-all duration-150 ease-in-out hover:bg-gray-100 active:bg-gray-200 focus:outline-none"
               onChange={handleFilterChange}
+              value={filterStatus}
             >
               <option value="ALL">Tất Cả</option>
               <option value="Active">Hoạt Động</option>
@@ -145,17 +151,27 @@ function BarManagement() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="12" className="text-center py-4">Không có dữ liệu</td>
+                      <td colSpan="10" className="text-center py-4 text-red-500">Không tìm thấy quán bar nào</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
           )}
+
+          {!loading && filteredBars.length > 0 && (
+            <div className="flex justify-center mt-4">
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+                showFirstButton
+                showLastButton
+              />
+            </div>
+          )}
         </div>
-      </div>
-      <div className="flex justify-end mt-6">
-        <Pagination count={5} size="small" shape="rounded" />
       </div>
     </main>
   );
