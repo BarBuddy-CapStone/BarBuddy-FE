@@ -12,6 +12,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import viLocale from "date-fns/locale/vi";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
+import { getTableTypeOfBar } from "src/lib/service/tableTypeService";
 
 // CustomTextField for Date and Type
 const CustomTextField = styled(TextField)(({ theme }) => ({
