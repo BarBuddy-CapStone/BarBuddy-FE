@@ -323,9 +323,7 @@ function AddDrink() {
         setIsPopupConfirm(false);
     };
 
-    const handleAddConfirm = async (event) => {
-        event.preventDefault();
-
+    const handleAddConfirm = async () => {
         if (!validateForm()) {
             return;
         }

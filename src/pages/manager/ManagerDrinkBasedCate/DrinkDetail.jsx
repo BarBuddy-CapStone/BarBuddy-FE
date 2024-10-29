@@ -249,8 +249,7 @@ function DrinkDetail() {
         setIsPopupConfirm(false);
     };
 
-    const handleUpdateConfirm = async (event) => {
-        event.preventDefault();
+    const handleUpdateConfirm = async () => {
 
         if (!validateForm()) {
             console.log("Form validation failed");
@@ -468,7 +467,8 @@ function DrinkDetail() {
                         value={formData.description}
                         onChange={handleInputChange}
                         multiline
-                        rows={4}
+                        rows={1}
+                        sx={{ height: '56px' }}
                     />
                 </div>
 
@@ -540,7 +540,7 @@ function DrinkDetail() {
 
                 <h2 className="text-xl font-bold mb-4">Hình ảnh</h2>
 
-                <div className="w-full max-w-[960px]">
+                <div className="w-full">
                     <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-full">
                         <DropzoneComponent onDrop={onDrop} />
                     </div>
