@@ -12,6 +12,11 @@ const sidebarItems = [
     path: "/staff/table-registrations",
   },
   {
+    icon: TableRestaurantIcon,
+    label: "Bàn",
+    path: "/staff/table-management",
+  },
+  {
     icon: PaymentIcon,
     label: "Thanh Toán",
     path: "/staff/payment-history",

@@ -348,21 +348,30 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
 
   const validateForm = () => {
     let formErrors = {};
-    if (!typeName || typeName.length < 1 || typeName.length > 99) {
-      formErrors.typeName = 'Tên loại bàn không được bỏ trống và phải trong khoảng 1-99 kí tự';
+    
+    // Validate typeName (7-100 ký tự)
+    if (!typeName || typeName.length < 7 || typeName.length > 100) {
+      formErrors.typeName = 'Tên loại bàn phải từ 7 đến 100 ký tự';
     }
-    if (!description || description.length < 1 || description.length > 999) {
-      formErrors.description = 'Mô tả loại bàn không được bỏ trống và phải trong khoảng 1-999 kí tự';
+
+    // Validate description (7-1000 ký tự) 
+    if (!description || description.length < 7 || description.length > 1000) {
+      formErrors.description = 'Mô tả phải từ 7 đến 1000 ký tự';
     }
+
+    // Validate số lượng khách
     const minGuest = parseInt(minimumGuest, 10);
     const maxGuest = parseInt(maximumGuest, 10);
     if (!minimumGuest || !maximumGuest || minGuest > maxGuest || minGuest < 1 || maxGuest > 99) {
       formErrors.guests = 'Số lượng khách hàng tối thiểu phải nhỏ hơn hoặc bằng số lượng khách hàng tối đa và cả hai phải trong khoảng 1-99';
     }
+
+    // Validate giá tối thiểu
     const minPrice = parseFloat(minimumPrice);
     if (!minimumPrice || minPrice < 0 || minPrice > 100000000) {
       formErrors.minimumPrice = 'Mức giá tối thiểu phải nằm trong khoảng 0-100.000.000';
     }
+
     setErrors(formErrors);
     return Object.keys(formErrors).length === 0;
   };
@@ -370,16 +379,40 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateForm()) return;
+
     setIsLoading(true);
-    const tableTypeData = {
-      typeName,
-      description,
-      minimumGuest: parseInt(minimumGuest, 10),
-      maximumGuest: parseInt(maximumGuest, 10),
-      minimumPrice: parseFloat(minimumPrice),
-    };
-    await handleAddTableType(event, tableTypeData);
-    setIsLoading(false);
+    try {
+      const tableTypeData = {
+        typeName: typeName.trim(),
+        description: description.trim(),
+        minimumGuest: parseInt(minimumGuest, 10),
+        maximumGuest: parseInt(maximumGuest, 10),
+        minimumPrice: parseFloat(minimumPrice),
+      };
+
+      await handleAddTableType(event, tableTypeData);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      if (error.response?.data?.errors) {
+        // Xử lý lỗi validation từ server
+        const serverErrors = error.response.data.errors;
+        const formattedErrors = {};
+        
+        if (serverErrors.TypeName) {
+          formattedErrors.typeName = serverErrors.TypeName[0];
+        }
+        if (serverErrors.Description) {
+          formattedErrors.description = serverErrors.Description[0];
+        }
+        // Thêm các trường lỗi khác nếu cần
+        
+        setErrors(formattedErrors);
+      } else {
+        message.error('Có lỗi xảy ra khi thêm loại bàn');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return isOpen ? (

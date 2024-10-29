@@ -25,11 +25,11 @@ const sidebarItems = [
     label: "Loại bàn",
     path: "/manager/table-type-management",
   },
-  // {
-  //   icon: TableRestaurantIcon,
-  //   label: "Bàn",
-  //   path: "/manager/table-management",
-  // },
+  {
+    icon: TableRestaurantIcon,
+    label: "Bàn",
+    path: "/manager/table-management",
+  },
   // {
   //   icon: LocalActivityIcon,
   //   label: "Sự kiện",

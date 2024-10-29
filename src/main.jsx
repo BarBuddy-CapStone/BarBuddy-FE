@@ -13,7 +13,6 @@ import EmotionalCategory from "./pages/manager/emotionalCategory/EmotionalCatego
 import TableTypeManagement from "./pages/manager/table-type-management/TableTypeManagement";
 import PaymentHistoryAdmin from "./pages/admin/payment-history/PaymentHistoryAdmin";
 import PaymentHistoryStaff from "./pages/staff/payment-history/PaymentHistoryStaff";
-import TableTypeManagementStaff from "./pages/staff/table-management/TableTypeManagementStaff";
 import TableManagementStaff from "./pages/staff/table-management/TableManagementStaff";
 import StaffManagement from "./pages/manager/staffManager/StaffManagement";
 import StaffCreation from "./pages/manager/staffManager/StaffCreation";
@@ -58,13 +57,13 @@ import ManagerDrink from "./pages/manager/ManagerDrinkBasedCate/ManagerDrink";
 import ProtectedManagerRoute from "./components/ProtectedManagerRoute";
 import FeedbackManager from "./pages/manager/feedback/FeedbackManager";
 import FeedbackDetailManager from "./pages/manager/feedback/FeedbackDetailManager";
-import TableTypeManagementManager from "./pages/manager/table-management/TableTypeManagementManager";
 import PaymentHistoryManager from "./pages/manager/payment-history/PaymentHistoryManager";
 import BookingDetailManager from "./pages/manager/table-registration/BookingDetailManager";
 import BookingListManager from "./pages/manager/table-registration/BookingListManager";
 import ManagerDetail from "./pages/admin/managerManagement/ManagerDetail";
 import ManagerCreation from "./pages/admin/managerManagement/ManagerCreation";
 import ManagerManagement from "./pages/admin/managerManagement/ManagerManagement";
+import TableManagementManager from "./pages/manager/table-management/TableManagementManager";
 
 
 
@@ -103,8 +102,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="manager/managerDrink/addDrink" element={<AddDrink />}/>
           <Route path="manager/emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}/> 
           
-          <Route path="manager/table-type-management" element={<TableTypeManagement />}/> 
-          
           {/* Emotional */}
           <Route path="manager/emotional" element={<EmotionalCategory />}/>
 
@@ -117,10 +114,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="manager/staff-creation" element={<StaffCreation />}/> 
           <Route path="manager/staff-detail/:id" element={<StaffDetail />}/> 
           
-          {/* quan li bàn */}
-          <Route path="manager/table-management" element={<TableTypeManagementManager />}/> 
-          <Route path="manager/table-management/table/:tableTypeId" element={<TableTypeManagement />}/> 
-
+          {/* quan li loaij bàn */}
+          <Route path="manager/table-type-management" element={<TableTypeManagement />}/> 
+          <Route path="manager/table-management" element={<TableManagementManager />}/> 
           <Route path="manager/table-registrations" element={<BookingListManager />}/> 
           <Route path="manager/table-registration-detail/:bookingId" element={<BookingDetailManager />}/> 
 
@@ -133,7 +129,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route element={<ProtectedStaffRoute />}>
           <Route path="/" element={<StaffLayout />}>
             <Route path="staff/table-management" element={<TableManagementStaff />}/> 
-            <Route path="staff/table-management/table/:tableTypeId" element={<TableTypeManagementStaff />}/> 
             <Route path="staff/payment-history" element={<PaymentHistoryStaff />}/> 
             <Route path="staff/table-registrations" element={<BookingListStaff />}/> 
             <Route path="staff/table-registration-detail/:bookingId" element={<BookingDetailStaff />}/> 
