@@ -296,12 +296,20 @@ function TableRow({
   const statusText = status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : "Đã đặt trước";
   const statusClass = status === 0 ? "bg-green-500" : status === 1 ? "bg-yellow-500" : "bg-red-500";
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   return (
     <div className={rowClass} onClick={onStatusClick}>
       <div className="text-center font-normal">{index + 1}</div>
       <div className="text-center font-normal">{tableName}</div>
       <div className="text-center font-normal">{tableTypeName}</div>
-      <div className="text-center font-normal">{minimumPrice}</div>
+      <div className="text-center font-normal">{formatCurrency(minimumPrice)} VND</div>
       <div className="text-center font-normal">{minimumGuest}</div>
       <div className="text-center font-normal">{maximumGuest}</div>
       <div className="text-center flex justify-center items-center">

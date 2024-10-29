@@ -46,14 +46,6 @@ function BookingTableRow({ booking, isEven, onViewDetails }) {
   );
 }
 
-function handleCheckIn(id) {
-  console.log(`Check-in cho booking ID: ${id}`);
-}
-
-function handleCancel(id) {
-  console.log(`Hủy booking ID: ${id}`);
-}
-
 function getStatusClass(status) {
   switch (status) {
     case 0:
@@ -69,12 +61,13 @@ function getStatusClass(status) {
   }
 }
 
-
-function BookingTable({ filter, bookings, loading }) {
-  const navigate = useNavigate(); 
+function BookingTableManager({ filter, bookings, loading }) {
+  const navigate = useNavigate();
 
   const handleViewDetails = (bookingId) => {
-    navigate(`/manager/table-registration-detail/${bookingId}`); 
+    const path = `/manager/table-registration-detail/${bookingId}`;
+    console.log("Navigating to:", path);
+    navigate(path);
   };
 
   const filteredBookings = bookings.filter(booking => {
@@ -128,4 +121,5 @@ function BookingTable({ filter, bookings, loading }) {
     </div>
   );
 }
-export default BookingTable;
+
+export default BookingTableManager;

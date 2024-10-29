@@ -3,55 +3,35 @@ import dayjs from "dayjs";
 
 const filterBookingTable = async (params) => {
   try {
-    // Đầu tiên, gọi getAllHoldTable để lấy dữ liệu từ memoryCache
-    const holdTablesResponse = await getAllHoldTable(params.barId);
-    const holdTables = holdTablesResponse.data.data;
+    const queryParams = {
+      barId: params.barId,
+      tableTypeId: params.tableTypeId,
+      date: dayjs(params.date).format("YYYY/MM/DD"),
+      time: params.time + ":00"
+    };
 
-    // Sau đó thực hiện filter
+    console.log("Sending filter request with params:", queryParams);
+
     const response = await axios.get(`api/bookingTable/filter`, {
-      params: params,
+      params: queryParams
     });
 
-    // Cập nhật trạng thái của các bàn dựa trên dữ liệu từ memoryCache
-    if (response.data.statusCode === 200 && response.data.data.bookingTables.length > 0) {
-      const filteredDate = dayjs(params.date).format("YYYY-MM-DD");
-      const filteredTime = params.time;
-
-      console.log("Filtered Date:", filteredDate);
-      console.log("Filtered Time:", filteredTime);
-
-      console.log("response.data.data.bookingTables[0].tables", response.data.data.bookingTables[0].tables)
-      console.log("holdTables", holdTables)
-
-      
-      response.data.data.bookingTables[0].tables = response.data.data.bookingTables[0].tables.map(table => {
-        const holdInfo = holdTables.find(ht => 
-          ht.tableId === table.tableId && 
-          dayjs(ht.date).format("YYYY-MM-DD") === filteredDate && 
-          ht.time === filteredTime + ":00"
-        );
-        console.log("holdInfo:", holdInfo);
-        if (holdInfo && holdInfo.isHeld) {
-          return {
-            ...table,
-            status: 2, // 2 for held
-            isHeld: true,
-            holdExpiry: holdInfo.holdExpiry,
-            holderId: holdInfo.accountId,
-            date: holdInfo.date,
-            time: holdInfo.time,
-          };
-        }
-        console.log("holdInfo", holdInfo)
-        console.log("Table khong chon:", table.tableId);
-        return { ...table, status: 1, isHeld: false };
-      });
+    console.log("Filter API response:", response.data);
+    
+    if (response.data.statusCode === 200) {
+      if (!response.data.data) {
+        console.warn("API returned success but no data");
+      }
+    } else {
+      console.error("API returned non-200 status:", response.data.statusCode);
     }
 
-    console.log("Filtered response:", response.data);
     return response;
   } catch (error) {
     console.error("Error in filterBookingTable:", error);
+    if (error.response) {
+      console.error("Server error details:", error.response.data);
+    }
     throw error;
   }
 };
@@ -87,18 +67,33 @@ const releaseTableList = async (token, data) => {
   return await axios.post(`api/bookingTable/releaseListTable`, data, config);
 };
 
-const getAllHoldTable = async(barId, date, time) => {
+const getAllHoldTable = async (token, barId, date, time) => {
   try {
-    const response = await axios.get(`api/bookingTable/getHoldTable/${barId}`, {
-      params: { date, time }
-    });
-    console.log("getAllHoldTable response:", response.data);
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }
+    };
+    
+    const formattedDate = dayjs(date).format("YYYY/MM/DD");
+    const formattedTime = time.includes(':00') ? time : time + ':00';
+    
+    const url = `api/bookingTable/getHoldTable/${barId}?Date=${formattedDate}&Time=${formattedTime}`;
+    console.log("Getting hold tables:", url);
+    
+    const response = await axios.get(url, config);
+    console.log("Hold tables response:", response.data);
+    
     return response;
   } catch (error) {
     console.error("Error in getAllHoldTable:", error);
+    if (error.response) {
+      console.error("Server error details:", error.response.data);
+    }
     throw error;
   }
-}
+};
 
 const boookingtableNow = async (token, data) => {
   const config = {

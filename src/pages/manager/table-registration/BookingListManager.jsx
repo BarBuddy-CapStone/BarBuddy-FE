@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react"; 
-import { FilterSection, BookingTable } from "src/pages";
+
 import BookingService from "src/lib/service/bookingService"; 
 import Pagination from '@mui/material/Pagination'; 
+import { message } from 'antd';
+import {BookingTableManager, FilterSectionManager } from "src/pages";
 
 function BookingListManager() {
   const getCurrentDate = () => {
@@ -21,53 +23,87 @@ function BookingListManager() {
   const [currentPage, setCurrentPage] = useState(1); 
   const [totalPages, setTotalPages] = useState(1); 
   const [loading, setLoading] = useState(true); 
+  const [pageSize] = useState(10);
 
   const handleFilterChange = async (newFilter) => {
     setFilter(newFilter);
-    setLoading(true); 
-    await fetchBookings(newFilter);
+    setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
+    await fetchBookings(newFilter, 1);
   };
 
-  const fetchBookings = async (currentFilter) => {
+  const fetchBookings = async (currentFilter, page) => {
     setLoading(true);
     const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); 
     const barId = userInfo ? userInfo.identityId : null; 
 
     try {
-      const response = await BookingService.getAllBookingsByStaff(
+      const response = await BookingService.getAllBookingsByManager(
         barId, 
         currentFilter.name || null,
         currentFilter.email || null,
         currentFilter.phone || null,
         currentFilter.bookingDate || null,
         currentFilter.checkInTime === "Cả ngày" ? null : currentFilter.checkInTime,
-        currentFilter.status === "All" ? undefined : parseInt(currentFilter.status),
-        currentPage
+        currentFilter.status === "All" ? null : parseInt(currentFilter.status),
+        page,
+        pageSize
       );
-      setBookings(response.data.response);
-      setTotalPages(response.data.totalPage);
-      setTimeRange({ startTime: response.data.startTime, endTime: response.data.endTime });
+
+      console.log("API Response:", response); // Thêm log để debug
+
+      if (response.data && response.data.data) {
+        setBookings(response.data.data.response || []);
+        setTotalPages(response.data.data.totalPage || 1);
+        if (response.data.data.startTime && response.data.data.endTime) {
+          setTimeRange({ 
+            startTime: response.data.data.startTime, 
+            endTime: response.data.data.endTime 
+          });
+        }
+      } else {
+        setBookings([]);
+        setTotalPages(1);
+      }
     } catch (error) {
       console.error("Lỗi khi lấy danh sách đặt chỗ:", error);
+      message.error("Có lỗi xảy ra khi tải dữ liệu");
+      setBookings([]);
+      setTotalPages(1);
     } finally {
       setLoading(false); 
     }
   };
 
+  // Gọi API khi component mount và khi trang thay đổi
   useEffect(() => {
-    fetchBookings(filter);
+    fetchBookings(filter, currentPage);
   }, [currentPage]); 
 
+  // Gọi API khi component mount lần đầu
+  useEffect(() => {
+    fetchBookings(filter, 1);
+  }, []); 
+
   const handlePageChange = (event, value) => {
-    setCurrentPage(value); 
+    setCurrentPage(value);
   };
 
   return (
     <main className="flex overflow-hidden flex-col grow px-7 pt-7 pb-8 w-full bg-white max-md:px-5 max-md:pb-24 max-md:max-w-full">
       <section className="flex flex-col px-6 py-6 bg-white rounded-3xl border border-black border-solid max-md:px-5 max-md:mr-1 max-md:max-w-full">
-        <FilterSection onFilterChange={handleFilterChange} timeRange={timeRange} initialDate={getCurrentDate()} />
+        <FilterSectionManager 
+          onFilterChange={handleFilterChange} 
+          timeRange={timeRange} 
+          initialDate={getCurrentDate()} 
+        />
       </section>
-      <BookingTable filter={filter} bookings={bookings} loading={loading} /> 
+      
+      <BookingTableManager 
+        filter={filter} 
+        bookings={bookings} 
+        loading={loading} 
+      /> 
+      
       {bookings.length > 0 && (
         <div className="flex justify-center pt-4">
           <Pagination
@@ -75,6 +111,8 @@ function BookingListManager() {
             page={currentPage}
             onChange={handlePageChange}
             color="primary"
+            showFirstButton
+            showLastButton
           />
         </div>
       )}

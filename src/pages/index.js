@@ -22,6 +22,9 @@ import BarDetail from "./customer/booking/bookingTable/components/BarDetails";
 import FilterSection from "./staff/table-registration/components/FilterSection";
 import BookingTable from "./staff/table-registration/components/BookingTable";
 
+import BookingTableManager from "./manager/table-registration/components/BookingTableManager";
+import FilterSectionManager from "./manager/table-registration/components/FilterSectionManager";
+
 // (auth)
 import Login from "./(auth)/login/Login";
 import Registration from "./(auth)/registration/Registration";
@@ -45,5 +48,7 @@ export {
   SelectedList,
   BarDetail,
   Login,
-  Registration
+  Registration,
+  FilterSectionManager,
+  BookingTableManager
 };

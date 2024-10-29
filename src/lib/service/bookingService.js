@@ -45,9 +45,13 @@ class BookingService {
     return await axios.get(`api/Booking/staff/${bookingId}`);
   }
 
-  static async updateStatusBooking(bookingId, status) {
+  static async getBookingDetailByManager(bookingId) {
+    return await axios.get(`api/Booking/manager/${bookingId}`);
+  }
+
+  static async updateStatusBooking(bookingId, status, additionalFee = 0) {
     try {
-      const response = await axios.patch(`api/Booking/status?BookingId=${bookingId}&Status=${status}`);
+      const response = await axios.patch(`api/Booking/status?BookingId=${bookingId}&Status=${status}&AdditionalFee=${additionalFee}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -61,6 +65,31 @@ class BookingService {
   static async getRecentBookings(accountId, numOfBookings) {
     const response = await axios.get(`api/Booking/top-booking?CustomerId=${accountId}&NumOfBookings=${numOfBookings}`);
     return response.data;
+  }
+
+  static async getAllBookingsByManager(barId, customerName = null, email = null, phone = null, bookingDate = null, bookingTime = null, status = null, pageIndex = 1, pageSize = 10) {
+    let url = `api/Booking/manager?BarId=${barId}&PageIndex=${pageIndex}&PageSize=${pageSize}`;
+    
+    if (status !== null) {
+      url += `&Status=${status}`;
+    }
+    if (customerName) {
+      url += `&CustomerName=${customerName}`;
+    }
+    if (email) {
+      url += `&Email=${email}`;
+    }
+    if (phone) {
+      url += `&Phone=${phone}`;
+    }
+    if (bookingDate) {
+      url += `&BookingDate=${bookingDate}`;
+    }
+    if (bookingTime) {
+      url += `&BookingTime=${bookingTime}`;
+    }
+
+    return await axios.get(url);
   }
 }
 

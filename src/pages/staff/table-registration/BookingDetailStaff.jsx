@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import BookingService from 'src/lib/service/bookingService';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { IconButton, CircularProgress } from '@mui/material';
-import { toast } from 'react-toastify';
+import { message, Modal } from 'antd';
 
 const BookingDetailStaff = () => {
   const { bookingId } = useParams();
@@ -12,18 +12,23 @@ const BookingDetailStaff = () => {
   const [Booking, setBooking] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [additionalFee, setAdditionalFee] = useState(0);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
         const response = await BookingService.getBookingDetailByStaff(bookingId);
-        const bookingData = response.data;
+        console.log("API Response:", response);
 
-        setBooking(bookingData);
-        setSelectedStatus(bookingData.status.toString());
+        if (response.data && response.data.data) {
+          const bookingData = response.data.data;
+          setBooking(bookingData);
+          setSelectedStatus(bookingData.status.toString());
+          setAdditionalFee(bookingData.additionalFee || 0);
+        }
       } catch (error) {
         console.error("Lỗi khi lấy thông tin đặt bàn:", error);
-        toast.error("Không thể lấy thông tin đặt bàn. Vui lòng thử lại sau.");
+        message.error("Không thể lấy thông tin đặt bàn. Vui lòng thử lại sau.");
       }
     };
 
@@ -33,17 +38,72 @@ const BookingDetailStaff = () => {
   const handleSave = async () => {
     setIsUpdating(true);
     try {
-      await BookingService.updateStatusBooking(bookingId, parseInt(selectedStatus));
-      setBooking(prevBooking => ({
-        ...prevBooking,
-        status: parseInt(selectedStatus)
-      }));
-      toast.success("Cập nhật trạng thái thành công!");
+      const currentStatus = Booking.status;
+      const newStatus = parseInt(selectedStatus);
+
+      if (currentStatus === 1) {
+        if (newStatus !== 0) {
+          Modal.error({
+            title: 'Không thể cập nhật',
+            content: 'Đơn đã hủy chỉ có thể chuyển về trạng thái Đang chờ.',
+          });
+          return;
+        }
+      }
+
+      if (currentStatus === 0 && (newStatus === 2 || newStatus === 3)) {
+        Modal.error({
+          title: 'Không thể cập nhật',
+          content: 'Không thể chuyển trực tiếp từ trạng thái Đang chờ sang Đang phục vụ hoặc Hoàn thành.',
+        });
+        return;
+      }
+
+      if (newStatus === 3 && currentStatus !== 3) {
+        Modal.confirm({
+          title: 'Xác nhận hoàn thành',
+          content: 'Bạn có chắc chắn muốn chuyển trạng thái sang Đã hoàn thành? Hành động này không thể hoàn tác.',
+          okText: 'Xác nhận',
+          cancelText: 'Hủy',
+          onOk: async () => {
+            await updateBookingStatus();
+          }
+        });
+      } else {
+        await updateBookingStatus();
+      }
     } catch (error) {
       console.error("Lỗi khi cập nhật trạng thái:", error);
-      toast.error("Không thể cập nhật trạng thái. Vui lòng thử lại sau.");
+      
+      if (error.response) {
+        const errorMessage = error.response.data.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.';
+        
+        Modal.error({
+          title: 'Không thể cập nhật',
+          content: errorMessage,
+        });
+      } else {
+        Modal.error({
+          title: 'Lỗi kết nối',
+          content: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối.',
+        });
+      }
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const updateBookingStatus = async () => {
+    try {
+      await BookingService.updateStatusBooking(bookingId, parseInt(selectedStatus), additionalFee);
+      setBooking(prevBooking => ({
+        ...prevBooking,
+        status: parseInt(selectedStatus),
+        additionalFee: additionalFee
+      }));
+      message.success("Cập nhật trạng thái thành công!");
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -81,8 +141,25 @@ const BookingDetailStaff = () => {
     navigate('/staff/table-registrations');
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const handleAdditionalFeeChange = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setAdditionalFee(value);
+  };
+
   if (!Booking) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <CircularProgress />
+      </div>
+    );
   }
 
   return (
@@ -182,6 +259,22 @@ const BookingDetailStaff = () => {
                 value={Booking.bookingTime}
                 readOnly
               />
+            </div>
+
+            <div className="flex flex-col">
+              <label className="font-medium">Phụ thu</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="p-2 border rounded-md w-full"
+                  value={formatCurrency(additionalFee)}
+                  onChange={handleAdditionalFeeChange}
+                  placeholder="Nhập số tiền phụ thu"
+                />
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  VND
+                </span>
+              </div>
             </div>
 
             <div className="flex justify-end">
