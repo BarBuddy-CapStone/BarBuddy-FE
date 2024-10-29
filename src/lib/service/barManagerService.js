@@ -20,22 +20,33 @@ const addBar = async (data) => {
   });
 }
 
-const updateBar = async (barId, data) => {
-  return await axios.patch(
-    `api/v1/Bar/admin/updateBar/${barId}`,
-    data,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+export const updateBar = async (data) => {
+  try {
+    const response = await axios.patch(`api/v1/Bar/admin/updateBar`, data);
+    return {
+      status: response.status,
+      data: response.data
+    };
+  } catch (error) {
+    if (error.response) {
+      // Lỗi từ server với status code
+      return {
+        status: error.response.status,
+        data: error.response.data
+      };
+    } else if (error.request) {
+      // Lỗi không nhận được response
+      throw new Error('Không nhận được phản hồi từ server');
+    } else {
+      // Lỗi khi setup request
+      throw new Error('Có lỗi xảy ra khi gửi yêu cầu');
     }
-  );
+  }
 };
 
 export {
   getAllBar,
   getBarProfile,
   addBar,
-  updateBar,
   getBarDetail
 }

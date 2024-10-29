@@ -7,6 +7,7 @@ import { CircularProgress, TextField, Button, Select, MenuItem, FormControl, Inp
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ChevronLeft } from '@mui/icons-material';
+import { convertFileToBase64 } from 'src/lib/Utils/Utils';
 
 const CircularIndeterminate = () => {
     return (
@@ -15,114 +16,93 @@ const CircularIndeterminate = () => {
         </Box>
     );
 }
-const InputField = ({ label, value, onChange, name, type, errorMessage }) => {
-    const handlePhoneChange = (e) => {
-        let onlyNums = e.target.value.replace(/[^\d]/g, '');
-        onChange({ target: { name, value: onlyNums } });
-    };
 
-    if (type === 'tel') {
-        return (
-            <TextField
-                fullWidth
-                label={label}
-                variant="outlined"
-                type="text"
-                name={name}
-                value={value || ''}
-                onChange={handlePhoneChange}
-                error={!!errorMessage}
-                helperText={errorMessage}
-                margin="normal"
-                InputLabelProps={{
-                    shrink: true,
-                }}
-            />
-        );
-    }
+const InputFieldv2 = ({ label, value, onChange, name, type, errorMessage, multiline, rows }) => (
+    <TextField
+        fullWidth
+        size="small"
+        label={label}
+        variant="outlined"
+        type={type}
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        error={!!errorMessage}
+        helperText={errorMessage}
+        margin="normal"
+        multiline={multiline}
+        rows={rows}
+    />
+);
 
-    return (
-        <TextField
-            fullWidth
-            label={label}
-            variant="outlined"
-            type={type}
-            name={name}
-            value={value || ''}
-            onChange={onChange}
-            error={!!errorMessage}
-            helperText={errorMessage}
-            margin="normal"
-            InputLabelProps={{
-                shrink: true,
-            }}
-        />
-    );
-};
+const DAYS_OF_WEEK = [
+    { value: 0, label: 'Chủ nhật' },
+    { value: 1, label: 'Thứ 2' },
+    { value: 2, label: 'Thứ 3' },
+    { value: 3, label: 'Thứ 4' },
+    { value: 4, label: 'Thứ 5' },
+    { value: 5, label: 'Thứ 6' },
+    { value: 6, label: 'Thứ 7' },
+];
 
-
-const TimeSelector = ({ label, value, onChange, errorMessage }) => {
-    const [isPickerVisible, setPickerVisible] = useState(false);
-    const [selectedTime, setSelectedTime] = useState(value ? value.slice(0, 5) : '');
+const DayTimeSelector = ({ day, times, onTimeChange, onDayToggle }) => {
+    const [isEnabled, setIsEnabled] = useState(false);
 
     useEffect(() => {
-        if (value) {
-            setSelectedTime(value.slice(0, 5));
-        }
-    }, [value]);
+        setIsEnabled(times !== null);
+    }, [times]);
 
-    const handleTimeChange = (e) => {
-        const newTime = e.target.value;
-        setSelectedTime(newTime);
-        onChange(newTime);
+    const handleToggle = () => {
+        const newState = !isEnabled;
+        setIsEnabled(newState);
+        onDayToggle(day.value, newState);
     };
 
-    const togglePicker = () => {
-        setPickerVisible(!isPickerVisible);
+    // Hàm để format thời gian từ HH:mm:ss về HH:mm để hiển thị
+    const formatTimeForDisplay = (time) => {
+        if (!time) return '';
+        return time.substring(0, 5); // Lấy 5 ký tự đầu (HH:mm)
     };
 
     return (
-        <Fragment>
-            <div>
-                <div className="flex flex-1 gap-5 items-center">
-                    <div
-                        className={`flex gap-3 items-center px-2 py-3 rounded-lg border-2 border-neutral-300 cursor-pointer hover:shadow-lg transition-all w-56`}
-                        onClick={togglePicker}
-                    >
-                        <img
-                            loading="lazy"
-                            src="https://cdn.builder.io/api/v1/image/assets/TEMP/8edff9b0fe2423f1fa6d271f3dca823bf43f90fa53d5166a49db967a79a8e404?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f"
-                            alt=""
-                            className="w-6 h-6 object-contain"
-                        />
-                        <div className="text-base font-semibold text-zinc-800 text-sm">
-                            {label}: <span className="text-gray-500">{selectedTime}</span>
-                        </div>
-                        <img
-                            loading="lazy"
-                            src="https://cdn.builder.io/api/v1/image/assets/TEMP/fd51fce0e88f2b1a79d30b8bce530411e7cff32f3c94e50c97e9c7724d9ada82?placeholderIfAbsent=true&apiKey=4ba6ce2eac644223baba8a7b3bc4374f"
-                            alt=""
-                            className="w-6 h-5 object-contain"
-                        />
-
-                    </div>
-                    {isPickerVisible && (
+        <div className="flex items-center gap-4 p-2 border-b last:border-b-0">
+            <div className="flex items-center gap-2 min-w-[100px]">
+                <input
+                    type="checkbox"
+                    checked={isEnabled}
+                    onChange={handleToggle}
+                    className="w-4 h-4"
+                />
+                <span className="text-sm font-medium">{day.label}</span>
+            </div>
+            
+            {isEnabled ? (
+                <div className="flex gap-4 flex-1">
+                    <div className="flex items-center gap-2 flex-1">
+                        <span className="text-sm text-gray-600 min-w-[60px]">Mở cửa:</span>
                         <input
                             type="time"
-                            value={selectedTime}
-                            onChange={handleTimeChange}
-                            className="mt-2 p-2 border border-neutral-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition"
+                            value={formatTimeForDisplay(times?.startTime)}
+                            onChange={(e) => onTimeChange(day.value, 'startTime', e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm flex-1"
                         />
-                    )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-1">
+                        <span className="text-sm text-gray-600 min-w-[60px]">Đóng cửa:</span>
+                        <input
+                            type="time"
+                            value={formatTimeForDisplay(times?.endTime)}
+                            onChange={(e) => onTimeChange(day.value, 'endTime', e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm flex-1"
+                        />
+                    </div>
                 </div>
-
-                {errorMessage && <span className="text-red-500 text-sm mt-1 font-normal">{errorMessage}</span>}
-
-            </div>
-        </Fragment>
+            ) : (
+                <div className="flex-1 text-sm text-gray-500 italic">Không hoạt động</div>
+            )}
+        </div>
     );
 };
-
 
 const DiscountField = ({ value, onChange, type, name, errorMessage }) => (
     <Fragment>
@@ -224,29 +204,31 @@ const BarProfile = () => {
         barName: '',
         emailBar: '',
         description: '',
-        startTime: '',
-        endTime: '',
         discount: '',
+        timeSlot: '',
         status: true,
-        images: []
+        images: [],
+        barTimeRequest: {}
     });
     const [isPopupConfirm, setIsPopupConfirm] = useState(false);
     const [uploadedImages, setUploadedImages] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
+    const [data, setData] = useState(null);
+    const [oldImages, setOldImages] = useState([]);
 
     const validateForm = () => {
         let newErrors = {};
         if (!formData.barName) newErrors.barName = 'Tên quán không được để trống';
         if (!formData.email) newErrors.email = 'Email không được để trống';
         if (!formData.address) newErrors.address = 'Địa chỉ không được để trống';
-        if (!formData.phoneNumber) newErrors.phoneNumber = 'S��� điện thoại không được để trống';
+        if (!formData.phoneNumber) newErrors.phoneNumber = 'Số điện thoại không được để trống';
         if (!formData.description) newErrors.description = 'Mô tả không được để trống';
-        if (!formData.startTime) newErrors.startTime = 'Giờ mở cửa không được để trống';
-        if (!formData.endTime) newErrors.endTime = 'Giờ đóng cửa không được để trống';
         if (!formData.discount) newErrors.discount = 'Chiết khấu không được để trống';
-        if (!formData.images) newErrors.images = 'Ảnh không đưc để trống';
+        if (!formData.timeSlot) newErrors.timeSlot = 'Thời gian không được để trống';
+        console.log('Validation errors:', newErrors);
+        console.log('Form data:', formData);
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -280,23 +262,45 @@ const BarProfile = () => {
         try {
             const response = await getBarProfile(barId);
             const data = response?.data?.data;
+            setData(data);
+
+            if (data.images) {
+                const imageUrls = data.images.split(',').map(url => url.trim());
+                setOldImages(imageUrls);
+            }
+
+            const barTimeRequestObject = {};
+            DAYS_OF_WEEK.forEach(day => {
+                barTimeRequestObject[day.value] = null;
+            });
+
+            if (data.barTimeResponses && Array.isArray(data.barTimeResponses)) {
+                data.barTimeResponses.forEach(time => {
+                    barTimeRequestObject[time.dayOfWeek] = {
+                        startTime: time.startTime.substring(0, 5),
+                        endTime: time.endTime.substring(0, 5)
+                    };
+                });
+            }
+
             setFormData({
                 barId: barId,
                 barName: data?.barName || '',
-                email: data?.email || '', // Đảm bảo đây là 'email', không phải 'emailBar'
+                email: data?.email || '',
                 address: data?.address || '',
                 phoneNumber: data?.phoneNumber || '',
                 description: data?.description || '',
-                startTime: data?.startTime || '',
-                endTime: data?.endTime || '',
                 discount: data?.discount || '',
+                timeSlot: data?.timeSlot || '',
                 images: data?.images ? data?.images.split(',') : [],
-                status: data.status
+                status: data.status,
+                barTimeRequest: barTimeRequestObject
             });
 
             if (data.images) {
                 setUploadedImages(data?.images.split(',').map((url) => ({
                     src: url.trim(),
+                    isOld: true
                 })));
             }
         } catch (error) {
@@ -320,7 +324,14 @@ const BarProfile = () => {
     };
 
     const handleDelete = (index) => {
-        setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index)); // Xóa hình ảnh tại chỉ mục chỉ định
+        setUploadedImages(prevImages => {
+            const updatedImages = prevImages.filter((_, i) => i !== index);
+            const remainingOldImages = updatedImages
+                .filter(img => img.isOld)
+                .map(img => img.src);
+            setOldImages(remainingOldImages);
+            return updatedImages;
+        });
     };
 
     const options = [
@@ -344,58 +355,125 @@ const BarProfile = () => {
         setIsPopupConfirm(false)
     }
 
-    const handleAddConfirm = async (event) => {
-        event.preventDefault();
-
+    const handleAddConfirm = async () => {
+        console.log('Starting handleAddConfirm');
         if (!validateForm()) {
+            console.log('Form validation failed');
             return;
         }
 
         setIsLoading(true);
         setIsPopupConfirm(false);
 
-        const formDatas = new FormData();
+        try {
+            console.log('Processing images...');
+            const newImagesBase64 = await Promise.all(
+                uploadedImages
+                    .filter(image => !image.isOld && image.file)
+                    .map(async (image) => {
+                        const base64 = await convertFileToBase64(image.file);
+                        return base64;
+                    })
+            );
 
-        formDatas.append('barId', formData.barId);
-        formDatas.append('barName', formData.barName);
-        formDatas.append('email', formData.email);
-        formDatas.append('address', formData.address);
-        formDatas.append('phoneNumber', formData.phoneNumber);
-        formDatas.append('description', formData.description);
-        formDatas.append('startTime', formData.startTime);
-        formDatas.append('endTime', formData.endTime);
-        formDatas.append('discount', formData.discount);
-        formDatas.append('status', formData.status);
+            const oldImageUrls = uploadedImages
+                .filter(image => image.isOld)
+                .map(image => image.src);
 
-        if (uploadedImages.length > 0) {
-            uploadedImages.forEach(image => {
-                if (image.file && image.src) {
-                    formDatas.append('images', image.file);
-                    if (image.src.startsWith('http')) {
-                        formDatas.append('imgsAsString', image.src);
+            const payload = {
+                barId: formData.barId,
+                barName: formData.barName,
+                email: formData.email,
+                address: formData.address,
+                phoneNumber: formData.phoneNumber,
+                timeSlot: formData.timeSlot,
+                description: formData.description,
+                discount: formData.discount,
+                status: formData.status,
+                images: newImagesBase64,
+                imgsAsString: oldImageUrls,
+                updateBarTimeRequests: Object.entries(formData.barTimeRequest)
+                    .filter(([_, times]) => times !== null)
+                    .map(([dayOfWeek, times]) => {
+                        const existingBarTime = data?.barTimeResponses?.find(
+                            time => time.dayOfWeek === parseInt(dayOfWeek)
+                        );
+
+                        return {
+                            dayOfWeek: parseInt(dayOfWeek),
+                            startTime: `${times.startTime}:00`,
+                            endTime: `${times.endTime}:00`,
+                            ...(existingBarTime?.barTimeId && { barTimeId: existingBarTime.barTimeId })
+                        };
+                    })
+            };
+
+            console.log('Payload:', payload);
+            const response = await updateBar(payload);
+            console.log('Response:', response);
+
+            if (response.status === 200) {
+                toast.success("Cập nhật thành công!", {
+                    type: "success",
+                    autoClose: 1500,
+                    onClose: () => {
+                        navigate('/admin/barmanager');
                     }
-                } else if (!image.file && image.src) {
-                    formDatas.append('imgsAsString', image.src);
-                } else if (image.file && !image.src) {
-                    formDatas.append('images', image.file);
+                });
+            } else if (response.status === 400) {
+                const errors = response.data.errors;
+                if (errors) {
+                    Object.values(errors).forEach(messages => {
+                        messages.forEach(message => {
+                            toast.error(message, {
+                                type: "error",
+                                autoClose: 3000
+                            });
+                        });
+                    });
+                } else {
+                    toast.error(response.data.message || "Dữ liệu không hợp lệ!");
                 }
-            });
-        } else {
-            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
-        }
-
-        var response = await updateBar(formData.barId, formDatas)
-        if (response.data.status === 200) {
+            } else {
+                toast.error(response.data?.message || "Có lỗi xảy ra! Vui lòng thử lại.");
+            }
+        } catch (error) {
+            console.error('Error updating bar:', error);
+            if (error.message) {
+                toast.error(error.message);
+            } else {
+                toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+            }
+        } finally {
             setIsLoading(false);
-            toast.success("Cập nhật thành công!");
-            setIsPopupConfirm(false);
-        } else {
-            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
         }
-    }
+    };
 
     const handleGoBack = () => {
         navigate('/admin/barmanager');
+    };
+
+    const handleTimeChange = (dayOfWeek, timeType, newTime) => {
+        setFormData(prev => ({
+            ...prev,
+            barTimeRequest: {
+                ...prev.barTimeRequest,
+                [dayOfWeek]: {
+                    ...prev.barTimeRequest[dayOfWeek],
+                    [timeType]: newTime
+                }
+            }
+        }));
+    };
+
+    const handleDayToggle = (dayOfWeek, enabled) => {
+        setFormData(prev => ({
+            ...prev,
+            barTimeRequest: {
+                ...prev.barTimeRequest,
+                [dayOfWeek]: enabled ? { startTime: '', endTime: '' } : null
+            }
+        }));
     };
 
     return (
@@ -470,68 +548,51 @@ const BarProfile = () => {
 
                 <h2 className="text-xl font-bold mt-6 mb-4">Thông tin quán bar</h2>
 
-                <div className="grid grid-cols-2 gap-6 mt-2 w-full max-w-[960px]">
-                    <InputField errorMessage={errors.barName} name="barName" label="Tên quán" type="text" value={formData.barName} onChange={handleInputChange} />
-                    <InputField errorMessage={errors.email} name="email" label="Email" type="text" value={formData.email} onChange={handleInputChange} />
-                    <InputField errorMessage={errors.address} name="address" label="Địa chỉ" type="text" value={formData.address} onChange={handleInputChange} />
-                    <InputField 
-                        errorMessage={errors.phoneNumber} 
-                        name="phoneNumber" 
-                        label="Số điện thoại" 
-                        type="tel" 
-                        value={formData.phoneNumber} 
-                        onChange={handleInputChange} 
-                    />
+                <div className="grid grid-cols-2 gap-4 mt-2 w-full max-w-[960px]">
+                    <InputFieldv2 errorMessage={errors.barName} name="barName" label="Tên quán" type="text" value={formData.barName} onChange={handleInputChange} />
+                    <InputFieldv2 errorMessage={errors.email} name="email" label="Email" type="email" value={formData.email} onChange={handleInputChange} />
+                    <InputFieldv2 errorMessage={errors.address} name="address" label="Địa chỉ" type="text" value={formData.address} onChange={handleInputChange} />
+                    <InputFieldv2 errorMessage={errors.phoneNumber} name="phoneNumber" label="Số điện thoại" type="tel" value={formData.phoneNumber} onChange={handleInputChange} />
+                    <InputFieldv2 errorMessage={errors.description} name="description" label="Mô tả" type="text" value={formData.description} onChange={handleInputChange}/>
+                    <InputFieldv2 errorMessage={errors.discount} name="discount" label="Chiết khấu" type="number" value={formData.discount} onChange={handleInputChange} />
+                    <InputFieldv2 errorMessage={errors.timeSlot} name="timeSlot" label="Thời gian của một slot" type="number" value={formData.timeSlot} onChange={handleInputChange}/>
                 </div>
 
-                <div className="mt-8 w-full">
-                    <InputField errorMessage={errors.description} name="description" label="Mô tả" type="text" value={formData.description} onChange={handleInputChange} multiline rows={4} />
-                </div>
-
-                {/* Thêm đường kẻ ngăn cách */}
-                <div className="w-full h-px bg-gray-300 my-8" />
-
-                <label htmlFor="time" className="block text-base font-bold mt-4 mb-2">
-                    Chọn thời gian
-                </label>
-                <div className="flex gap-10 mt-3 max-w-full text-sm font-bold leading-6 text-zinc-600 w-[430px]">
-                    <TimeSelector errorMessage={errors.startTime} label="Giờ mở cửa" value={formData.startTime} onChange={(newTime) => setFormData({ ...formData, startTime: newTime })} />
-                    <TimeSelector errorMessage={errors.endTime} label="Giờ đóng cửa" value={formData.endTime} onChange={(newTime) => setFormData({ ...formData, endTime: newTime })} />
-                </div>
-
-                {/* Thêm đường kẻ ngăn cách */}
-                <div className="w-full h-px bg-gray-300 my-8" />
-
-                <div>
-                    <DiscountField errorMessage={errors.discount} name="discount" type="number" value={formData.discount} onChange={handleInputChange} />
-                </div>
-            </section>
-
-            {/* Thêm đường kẻ ngăn cách */}
-            <div className="w-full h-px bg-gray-300 my-8" />
-
-            <section className="flex flex-col items-start w-full max-w-[913px] mt-4">
-                <h2 className="text-xl font-bold mb-4">Thêm hình ảnh</h2>
-                <div className="w-full max-w-[960px]">
-                    <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-full">
-                        <DropzoneComponent onDrop={onDrop} />
+                <div className="mt-6 w-full">
+                    <h2 className="text-lg font-bold mb-3">Thời gian hoạt động</h2>
+                    <div className="border rounded-lg overflow-hidden w-[84%]">
+                        {DAYS_OF_WEEK.map(day => (
+                            <DayTimeSelector
+                                key={day.value}
+                                day={day}
+                                times={formData.barTimeRequest[day.value]}
+                                onTimeChange={handleTimeChange}
+                                onDayToggle={handleDayToggle}
+                            />
+                        ))}
                     </div>
-                    <ImageGallery images={uploadedImages} onDelete={handleDelete} />
                 </div>
             </section>
 
-            <div className="w-full mt-8">
-                <button 
-                    onClick={PopupConfirmAdd} 
-                    className="w-full px-16 py-2.5 text-base font-bold text-center text-white whitespace-nowrap bg-orange-600 rounded hover:bg-orange-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50"
+            <section className="flex flex-col items-start w-full max-w-[84%] mt-8">
+                <h2 className="text-lg font-bold mb-3 text-zinc-600">Thêm hình ảnh</h2>
+                <div className="flex flex-col items-center self-stretch px-20 rounded border border-dashed border-stone-300 w-full">
+                    <DropzoneComponent onDrop={onDrop} />
+                </div>
+                <ImageGallery images={uploadedImages} onDelete={handleDelete} />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={PopupConfirmAdd}
+                    className="mt-5 w-full"
+                    style={{ backgroundColor: '#f97316', color: 'white' }}
                 >
                     Cập nhật
-                </button>
-            </div>
-
-            {isPopupConfirm && (
-                <Notification onCancel={PopupConfirmCancel} onConfirm={handleAddConfirm} />
-            )}
+                </Button>
+                {isPopupConfirm && (
+                    <Notification onCancel={PopupConfirmCancel} onConfirm={handleAddConfirm} />
+                )}
+            </section>
         </main>
     );
 };
