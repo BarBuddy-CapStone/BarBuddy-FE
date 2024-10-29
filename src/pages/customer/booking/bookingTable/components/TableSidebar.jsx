@@ -4,7 +4,10 @@ import { BarDetail, SelectedList } from "src/pages";
 const TableSidebar = ({ selectedTables, setSelectedTables, onRemove, barInfo, barId, selectedDate, selectedTime }) => {
   return (
     <div className="flex flex-col gap-4 lg:w-full">
-      <BarDetail barInfo={barInfo} />
+      <BarDetail 
+        barInfo={barInfo} 
+        selectedDate={selectedDate}
+      />
       <SelectedList 
         selectedTables={selectedTables} 
         setSelectedTables={setSelectedTables}

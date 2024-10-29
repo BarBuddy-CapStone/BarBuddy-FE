@@ -12,6 +12,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import viLocale from "date-fns/locale/vi";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
+import { getTableTypeOfBar } from "src/lib/service/tableTypeService";
 
 // CustomTextField for Date and Type
 const CustomTextField = styled(TextField)(({ theme }) => ({
@@ -39,7 +40,7 @@ const CustomTextField = styled(TextField)(({ theme }) => ({
   },
   "& .MuiInputLabel-root": {
     color: "white",
-    backgroundColor: "#1e1e1e",
+    backgroundColor: "transparent",
     padding: "0 4px",
     transform: "translate(14px, -9px) scale(0.75)",
   },
@@ -67,7 +68,7 @@ const CustomDatePicker = styled(DatePicker)(({ theme }) => ({
   },
   "& .MuiInputLabel-root": {
     color: "white",
-    backgroundColor: "#1e1e1e",
+    backgroundColor: "transparent",
     padding: "0 4px",
     transform: "translate(14px, -9px) scale(0.75)",
   },
@@ -113,11 +114,9 @@ const BookingTableInfo = ({
   useEffect(() => {
     const fetchTableTypes = async () => {
       try {
-        const response = await getAllTableTypes();
+        const response = await getTableTypeOfBar(barId);
         if (response.status === 200) {
           setTableTypes(response.data.data);
-        } else {
-          console.error("Failed to fetch table types");
         }
       } catch (error) {
         console.error("Error fetching table types:", error);
@@ -128,6 +127,10 @@ const BookingTableInfo = ({
   }, []);
 
   const generateTimeOptions = (start, end, date) => {
+    if (!start || !end) {
+      return [];
+    }
+
     const options = [];
     const currentDate = dayjs(date);
     const now = dayjs();
@@ -161,20 +164,25 @@ const BookingTableInfo = ({
   };
 
   useEffect(() => {
-    if (startTime && endTime && selectedDate) {
-      const newTimeOptions = generateTimeOptions(startTime, endTime, selectedDate);
-      setTimeOptions(newTimeOptions);
-
-      if (newTimeOptions.length > 0 && !selectedTime) {
-        onTimeChange(newTimeOptions[0]);
-      } else if (newTimeOptions.length === 0) {
-        onTimeChange("");
-      }
+    if (!startTime || !endTime) {
+      setTimeOptions([]);
+      onTimeChange("");
+      return;
     }
-  }, [startTime, endTime, selectedDate, selectedTime, onTimeChange]);
+
+    const newTimeOptions = generateTimeOptions(startTime, endTime, selectedDate);
+    setTimeOptions(newTimeOptions);
+
+    if (!newTimeOptions.includes(selectedTime)) {
+      onTimeChange("");
+    }
+  }, [startTime, endTime, selectedDate]);
 
   const handleDateChange = (newDate) => {
     onDateChange(newDate);
+    onTimeChange("");
+    setSelectedTableType("");
+    onTableTypeChange("");
   };
 
   const handleTableTypeChange = (tableType) => {
@@ -215,7 +223,7 @@ const BookingTableInfo = ({
           )}
 
           <div className="flex flex-nowrap gap-3 mt-3 items-center text-stone-300">
-            <FormControl sx={{ flex: '1 1 0', minWidth: '120px', maxWidth: '200px' }}>
+            <FormControl sx={{ flex: '1 1 0', minWidth: '120px', maxWidth: '250px' }}>
               <CustomDatePicker
                 label="Ngày"
                 value={selectedDate}
@@ -249,6 +257,7 @@ const BookingTableInfo = ({
                 onChange={(e) => onTimeChange(e.target.value)}
                 variant="outlined"
                 fullWidth
+                disabled={!startTime || !endTime}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -273,6 +282,7 @@ const BookingTableInfo = ({
                 onChange={(event) => handleTableTypeChange(tableTypes.find(t => t.tableTypeId === event.target.value))}
                 variant="outlined"
                 fullWidth
+                disabled={!startTime || !endTime || !selectedTime}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -281,6 +291,7 @@ const BookingTableInfo = ({
                   ),
                 }}
               >
+                {console.log("selectedTableType", selectedTableType)}
                 <MenuItem value="">
                   Chọn loại bàn
                 </MenuItem>
@@ -298,7 +309,7 @@ const BookingTableInfo = ({
             <Button
               variant="contained"
               onClick={onSearchTables}
-              disabled={!selectedTableType}
+              disabled={!startTime || !endTime || !selectedTime || !selectedTableType}
               sx={{
                 flex: '0 0 auto',
                 backgroundColor: "#FFA500",

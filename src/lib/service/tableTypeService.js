@@ -9,6 +9,10 @@ const getAllTableTypes = async () => {
   return await axios.get(`api/TableType`);
 };
 
+const getTableTypeOfBar = async (barId) => {
+  return await axios.get(`api/TableType/getTTOfBar/${barId}`);
+};
+
 const addTableType = async (data) => {
   const barId = useAuthStore.getState().userInfo?.identityId;
   return await axios.post(`api/TableType`, { ...data, barId });
@@ -31,4 +35,5 @@ export {
   addTableType,
   updateTableType,
   deleteTableType,
+  getTableTypeOfBar,
 };

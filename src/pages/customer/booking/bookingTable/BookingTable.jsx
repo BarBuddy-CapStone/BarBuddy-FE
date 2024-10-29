@@ -46,34 +46,84 @@ const BookingTable = () => {
       t.tableId === seleTable.tableId && t.date === seleTable.date && t.time === seleTable.time
     ))
   );
-  useEffect(() => {
-    const fetchTableData = async () => {
-      try {
-        const response = await getBarTableById(barId);
-        if (response.status === 200) {
-          setAllTables(response.data.data.tables);
-          setStartTime(response.data.data.startTime.slice(0, 5));
-          setEndTime(response.data.data.endTime.slice(0, 5));
-          setBarInfo({
-            id: response.data.data.barId,
-            name: response.data.data.barName,
-            location: response.data.data.address,
-            description: response.data.data.description,
-            discount: response.data.data.discount,
-            openingHours: `${response.data.data?.startTime.slice(0, 5)} - ${response.data.data?.endTime.slice(0, 5)}`,
-          });
-        } else {
-          console.error("Failed to fetch table data");
-        }
-      } catch (error) {
-        console.error("Error fetching table data:", error);
-      }
-    };
+  console.log("selectedDate", selectedDate)
 
+  const formatDateAndDay = (date) => {
+    const dayNames = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    const d = dayjs(date);
+    const dayOfWeek = dayNames[d.day()];
+    return `${dayOfWeek}, ${d.format('DD/MM/YYYY')}`;
+  };
+
+  const fetchTableData = async () => {
+    try {
+      const responseBarDetail = await getBarById(barId);
+      const responseBarTable = await getBarTableById(barId);
+      
+      if (responseBarDetail.status === 200) {
+        setBarInfo({
+          id: responseBarDetail.data.data.barId,
+          name: responseBarDetail.data.data.barName,
+          location: responseBarDetail.data.data.address,
+          description: responseBarDetail.data.data.description,
+          discount: responseBarDetail.data.data.discount,
+          openingHours: 'Quán đóng cửa',
+        });
+
+        setAllTables(responseBarTable.data.data.tables);
+        
+        const barTimeResponses = responseBarDetail.data.data.barTimeResponses;
+        const selectedDayOfWeek = dayjs(selectedDate).day();
+
+        setStartTime("");
+        setEndTime("");
+        setSelectedTime("");
+        
+        if (Array.isArray(barTimeResponses)) {
+          const matchingBarTime = barTimeResponses.find(time => 
+            Number(time.dayOfWeek) === selectedDayOfWeek
+          );
+
+          if (matchingBarTime) {
+            const newStartTime = matchingBarTime.startTime.slice(0, 5);
+            const newEndTime = matchingBarTime.endTime.slice(0, 5);
+            
+            setStartTime(newStartTime);
+            setEndTime(newEndTime);
+            
+            setBarInfo(prev => ({
+              ...prev,
+              openingHours: `${newStartTime} - ${newEndTime}`,
+            }));
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching table data:", error);
+      resetAllStates();
+    }
+  };
+
+  const resetAllStates = () => {
+    setStartTime("");
+    setEndTime("");
+    setSelectedTime("");
+    
+    setFilteredTables([]);
+    setAllFilteredTables({});
+    setSelectedTables([]);
+    setSelectedTablesMap({});
+    setSelectedTableTypeId("");
+    setTableTypeInfo(null);
+    setHasSearched(false);
+  };
+
+  useEffect(() => {
     if (barId) {
+      console.log("Fetching table data due to date change:", selectedDate);
       fetchTableData();
     }
-  }, [barId]);
+  }, [barId, selectedDate]);
 
   const mergeTables = useCallback((apiTables, holdTables, currentDate, currentTime) => {
     return apiTables.map(apiTable => {
@@ -123,11 +173,9 @@ const BookingTable = () => {
 
     setIsLoading(true);
     try {
-      // Fetch hold tables
       const holdTablesResponse = await getAllHoldTable(barId, dayjs(selectedDate).format("YYYY/MM/DD"), selectedTime);
       const holdTables = holdTablesResponse.data.data;
 
-      // Fetch filtered tables
       const response = await filterBookingTable({
         barId,
         tableTypeId: selectedTableTypeId,
