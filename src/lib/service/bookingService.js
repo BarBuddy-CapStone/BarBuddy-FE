@@ -12,7 +12,7 @@ class BookingService {
     return await axios.get(url);
   }
 
-  static async getAllBookingsByStaff(barId, customerName = null, email = null, phone = null, bookingDate = null, bookingTime = null, status = null, pageIndex = 1, pageSize = 10) {
+  static async getAllBookingsByStaff(barId, customerName = null, email = null, phone = null, bookingDate = null, bookingTime = null, status = null, pageIndex = 1, pageSize = 10, qrTicket = null) {
     let url = `api/Booking/staff?BarId=${barId}&PageIndex=${pageIndex}&PageSize=${pageSize}`;
     
     if (status !== null) {
@@ -32,6 +32,9 @@ class BookingService {
     }
     if (bookingTime) {
       url += `&BookingTime=${bookingTime}`;
+    }
+    if (qrTicket) {
+      url += `&qrTicket=${qrTicket}`;
     }
 
     return await axios.get(url);
@@ -67,7 +70,7 @@ class BookingService {
     return response.data;
   }
 
-  static async getAllBookingsByManager(barId, customerName = null, email = null, phone = null, bookingDate = null, bookingTime = null, status = null, pageIndex = 1, pageSize = 10) {
+  static async getAllBookingsByManager(barId, customerName = null, email = null, phone = null, bookingDate = null, bookingTime = null, status = null, pageIndex = 1, pageSize = 10, qrTicket = null) {
     let url = `api/Booking/manager?BarId=${barId}&PageIndex=${pageIndex}&PageSize=${pageSize}`;
     
     if (status !== null) {
@@ -87,6 +90,9 @@ class BookingService {
     }
     if (bookingTime) {
       url += `&BookingTime=${bookingTime}`;
+    }
+    if (qrTicket) {
+      url += `&qrTicket=${qrTicket}`;
     }
 
     return await axios.get(url);

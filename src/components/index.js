@@ -9,6 +9,7 @@ import ScrollToTopButton from "./commonComponents/ScrollToTopButton ";
 import LoadingSpinner from "./commonComponents/LoadingSpinner";
 import ManagerHeader from "./managerComponents/ManagerHeader";
 import ManagerSidebar from "./managerComponents/ManagerSidebar";
+import QRScanner from "./commonComponents/QRScanner";
 
 
-export { AdminHeader, StaffHeader, AdminSidebar ,StaffSidebar, CustomerHeader, CustomerFooter, Notification, ScrollToTopButton, LoadingSpinner, ManagerHeader, ManagerSidebar };
+export { AdminHeader, StaffHeader, AdminSidebar ,StaffSidebar, CustomerHeader, CustomerFooter, Notification, ScrollToTopButton, LoadingSpinner, ManagerHeader, ManagerSidebar, QRScanner };
