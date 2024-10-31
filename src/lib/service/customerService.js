@@ -10,6 +10,10 @@ export const getAllBar = async (search = '', pageIndex = 1, pageSize = 6) => {
     });
 }
 
+export const getAllBarAvailable = async (date) => {
+    return await axios.get(`api/v1/bars/${date}`);
+}
+
 export const getBarById = async (barId) => {
     return await axios.get(`api/v1/bar-detail/${barId}`);
 }

@@ -17,7 +17,7 @@
     "@microsoft/signalr": "^8.0.7",
     "@mui/icons-material": "^6.1.2",
     "@mui/material": "^6.1.1",
-    "@mui/x-date-pickers": "^7.19.0",
+    "@mui/x-date-pickers": "^7.22.0",
     "@nextui-org/react": "^2.4.6",
     "@payos/node": "^1.0.10",
     "@tailwindcss/aspect-ratio": "^0.4.2",
