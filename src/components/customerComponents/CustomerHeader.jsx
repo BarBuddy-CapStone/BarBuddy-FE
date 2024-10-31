@@ -10,6 +10,7 @@ import {
   Dialog,
   Badge,
   Popover, // Thêm Popover
+  Button,
 } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -19,6 +20,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { Login, Registration } from "src/pages";
 import { toast } from "react-toastify";
 import { getNotificationByAccountId } from "src/lib/service/notificationService"; // Import hàm
+import { timeAgo } from "src/lib/Utils/Utils";
+import { markNotificationsAsRead } from "src/lib/service/notificationService";
 
 const CustomerHeader = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -33,6 +36,8 @@ const CustomerHeader = () => {
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
 
   const [notifications, setNotifications] = useState([]); // State lưu trữ thông báo
+
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const storedUserInfo = sessionStorage.getItem('userInfo');
@@ -55,6 +60,13 @@ const CustomerHeader = () => {
 
     fetchNotifications();
   }, []);
+
+  useEffect(() => {
+    if (notifications) {
+      const unreadNotifications = notifications.filter(notif => !notif.isRead);
+      setUnreadCount(unreadNotifications.length);
+    }
+  }, [notifications]);
 
   const handleMenuClick = (event) => {
     if (anchorEl) {
@@ -98,8 +110,28 @@ const CustomerHeader = () => {
   };
 
   // Mở popup thông báo
-  const handleNotificationClick = (event) => {
+  const handleNotificationClick = async (event) => {
     setNotificationAnchorEl(event.currentTarget);
+    
+    // Nếu có thông báo chưa đọc, đánh dấu tất cả là đã đọc
+    if (unreadCount > 0 && accountId) {
+      try {
+        const unreadIds = notifications
+          .filter(notif => !notif.isRead)
+          .map(notif => notif.notificationId);
+        
+        await markNotificationsAsRead(accountId, unreadIds);
+        
+        // Cập nhật state local
+        setNotifications(notifications.map(notif => ({
+          ...notif,
+          isRead: true
+        })));
+        setUnreadCount(0);
+      } catch (error) {
+        console.error("Lỗi khi đánh dấu đã đọc:", error);
+      }
+    }
   };
 
   // Đóng popup thông báo
@@ -193,8 +225,22 @@ const CustomerHeader = () => {
             ) : (
               <Box display="flex" alignItems="center" sx={{ gap: 4 }}>
                 <IconButton color="inherit" onClick={handleNotificationClick}>
-                  <Badge color="error">
-                    <NotificationsIcon />
+                  <Badge 
+                    badgeContent={unreadCount} 
+                    color="error"
+                    sx={{
+                      '& .MuiBadge-badge': {
+                        backgroundColor: '#FF4444',
+                        color: 'white',
+                      }
+                    }}
+                  >
+                    <NotificationsIcon 
+                      sx={{ 
+                        color: unreadCount > 0 ? '#FF4444' : 'inherit',
+                        transition: 'color 0.3s ease'
+                      }} 
+                    />
                   </Badge>
                 </IconButton>
 
@@ -210,20 +256,103 @@ const CustomerHeader = () => {
                     vertical: 'top',
                     horizontal: 'right',
                   }}
+                  PaperProps={{
+                    sx: {
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.2)',
+                      mt: 1,
+                      maxHeight: '80vh',
+                      width: 360,
+                      backgroundColor: '#242526'
+                    }
+                  }}
                 >
-                  <Box sx={{ p: 2, width: 300, backgroundColor: "#444", color: "#FFF" }}>
-                    <Typography className="text-yellow-400" variant="h6">Thông báo</Typography>
-                    {notifications != null  && notifications.length > 0  ? (
-                      notifications.map((notification, index) => (
-                        <Box key={index} sx={{ mb: 1, p: 1, border: '1px solid #FFA500', borderRadius: '8px', backgroundColor: "#555" }}>
-                          <Typography variant="body2">
-                            {notification.message} {/* Giả sử thông báo có thuộc tính message */}
-                          </Typography>
-                        </Box>
-                      ))
-                    ) : (
-                      <Typography variant="body2">Không có thông báo mới!</Typography>
-                    )}
+                  <Box sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ color: '#FFF', mb: 2 }}>
+                      Thông báo
+                    </Typography>
+                    <Box sx={{ 
+                      maxHeight: 'calc(80vh - 60px)', 
+                      overflowY: 'auto',
+                      '&::-webkit-scrollbar': {
+                        width: '8px',
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        background: 'transparent',
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        background: '#666',
+                        borderRadius: '4px',
+                      },
+                    }}>
+                      {notifications && notifications.length > 0 ? (
+                        notifications.map((notification, index) => (
+                          <Box 
+                            key={index} 
+                            sx={{ 
+                              p: 2,
+                              mb: 1,
+                              backgroundColor: notification.isRead ? 'transparent' : 'rgba(45, 136, 255, 0.1)',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                              }
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', gap: 2 }}>
+                              <img 
+                                src={notification.image} 
+                                alt=""
+                                style={{
+                                  width: '60px',
+                                  height: '60px',
+                                  borderRadius: '8px',
+                                  objectFit: 'cover'
+                                }}
+                              />
+                              <Box sx={{ flex: 1 }}>
+                                <Typography 
+                                  variant="subtitle2" 
+                                  sx={{ 
+                                    color: '#FFA500',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  {notification.title}
+                                </Typography>
+                                <Typography 
+                                  variant="body2" 
+                                  sx={{ 
+                                    color: '#e4e6eb',
+                                    fontSize: '0.8rem',
+                                    mt: 0.5
+                                  }}
+                                >
+                                  {notification.message}
+                                </Typography>
+                                <Typography 
+                                  variant="caption" 
+                                  sx={{ 
+                                    color: '#B0B3B8',
+                                    fontSize: '0.75rem',
+                                    display: 'block',
+                                    mt: 0.5
+                                  }}
+                                >
+                                  {timeAgo(notification.createdAt)}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </Box>
+                        ))
+                      ) : (
+                        <Typography variant="body2" sx={{ color: '#B0B3B8', textAlign: 'center' }}>
+                          Không có thông báo mới!
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
                 </Popover>
 
