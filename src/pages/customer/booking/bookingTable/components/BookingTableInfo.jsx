@@ -13,6 +13,9 @@ import viLocale from "date-fns/locale/vi";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
 import { getTableTypeOfBar } from "src/lib/service/tableTypeService";
+import { getAllHoldTable } from "src/lib/service/BookingTableService";
+import useAuthStore from 'src/lib/hooks/useUserStore';
+import { toast } from "react-toastify";
 
 // CustomTextField for Date and Type
 const CustomTextField = styled(TextField)(({ theme }) => ({
@@ -145,6 +148,8 @@ const BookingTableInfo = ({
   const [tableTypes, setTableTypes] = useState([]);
   const [timeOptions, setTimeOptions] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
+  const { token, userInfo } = useAuthStore();
+  const [currentHoldCount, setCurrentHoldCount] = useState(0);
 
   useEffect(() => {
     const fetchTableTypes = async () => {
@@ -232,6 +237,41 @@ const BookingTableInfo = ({
 
   const handleBack = () => {
     navigate(`/bar-detail/${barId}`);
+  };
+
+  useEffect(() => {
+    const checkHoldTables = async () => {
+      if (barId && selectedDate && selectedTime) {
+        try {
+          const response = await getAllHoldTable(token, barId, selectedDate, selectedTime);
+          if (response.data.statusCode === 200) {
+            const userHoldTables = response.data.data.filter(
+              table => table.accountId === userInfo.accountId
+            );
+            setCurrentHoldCount(userHoldTables.length);
+          }
+        } catch (error) {
+          console.error("Error checking hold tables:", error);
+        }
+      }
+    };
+
+    checkHoldTables();
+  }, [barId, selectedDate, selectedTime, token, userInfo.accountId]);
+
+  const handleSearch = async () => {
+    if (currentHoldCount >= 5) {
+      toast.error("Bạn đã giữ tối đa 5 bàn. Vui lòng hủy bớt bàn trước khi tìm thêm.", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+    onSearchTables();
   };
 
   return (
@@ -384,8 +424,8 @@ const BookingTableInfo = ({
 
             <Button
               variant="contained"
-              onClick={onSearchTables}
-              disabled={!startTime || !endTime || !selectedTime || !selectedTableType}
+              onClick={handleSearch}
+              disabled={!startTime || !endTime || !selectedTime || !selectedTableTypeId || currentHoldCount >= 5}
               sx={{
                 flex: '0 0 auto',
                 backgroundColor: "#FFA500",
@@ -401,8 +441,14 @@ const BookingTableInfo = ({
                 },
               }}
             >
-              Tìm Bàn
+              {currentHoldCount >= 5 ? 'Đã đạt giới hạn bàn' : 'Tìm Bàn'}
             </Button>
+
+            {currentHoldCount >= 5 && (
+              <div className="text-red-500 text-sm mt-2">
+                Bạn đã giữ tối đa 5 bàn. Vui lòng hủy bớt bàn trước khi tìm thêm.
+              </div>
+            )}
           </div>
         </div>
       </section>

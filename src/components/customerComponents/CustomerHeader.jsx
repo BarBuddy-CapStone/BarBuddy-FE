@@ -116,11 +116,7 @@ const CustomerHeader = () => {
     // Nếu có thông báo chưa đọc, đánh dấu tất cả là đã đọc
     if (unreadCount > 0 && accountId) {
       try {
-        const unreadIds = notifications
-          .filter(notif => !notif.isRead)
-          .map(notif => notif.notificationId);
-        
-        await markNotificationsAsRead(accountId, unreadIds);
+        await markNotificationsAsRead(accountId);
         
         // Cập nhật state local
         setNotifications(notifications.map(notif => ({

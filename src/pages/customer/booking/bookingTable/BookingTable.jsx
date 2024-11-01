@@ -9,6 +9,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 import useAuthStore from 'src/lib/hooks/useUserStore';
 import { LoadingSpinner } from 'src/components';
+import { toast } from "react-toastify";
 
 import {
   BookingTableInfo,
@@ -332,14 +333,7 @@ const BookingTable = () => {
             holderId: holdData.accountId || userInfo.accountId
           };
           
-          const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
-          setSelectedTablesMap(prev => ({
-            ...prev,
-            [currentDateTimeKey]: [...(prev[currentDateTimeKey] || []), newSelectedTable]
-          }));
-
           setSelectedTables(prevSelectedTables => [...prevSelectedTables, newSelectedTable]);
-
           updateTableHeldStatus(table.tableId, true, newSelectedTable.holderId, holdData.date, holdData.time);
 
           await hubConnection.invoke("HoldTable", {
@@ -349,11 +343,22 @@ const BookingTable = () => {
             time: holdData.time,
             accountId: newSelectedTable.holderId
           });
-        } else {
-          console.error("Hold table request failed:", response.data);
         }
       } catch (error) {
-        console.error("Error holding table:", error);
+        if (error.response?.data?.statusCode === 400 && 
+            error.response?.data?.message?.includes("Bạn chỉ được phép giữ tối đa 5 bàn")) {
+          toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        } else {
+          console.error("Error holding table:", error);
+          toast.error("Có lỗi xảy ra khi giữ bàn. Vui lòng thử lại sau.");
+        }
       }
     }
 

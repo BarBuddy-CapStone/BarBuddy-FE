@@ -3,10 +3,11 @@ import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 import CircularProgress from '@mui/material/CircularProgress';
 import TableBarIcon from "@mui/icons-material/TableBar";
-import { holdTable, releaseTable } from 'src/lib/service/BookingTableService';
+import { holdTable, releaseTable, getAllHoldTable } from 'src/lib/service/BookingTableService';
 import useAuthStore from 'src/lib/hooks/useUserStore';
 import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 import dayjs from 'dayjs';
+import { toast } from "react-toastify";
 
 const TableSelection = (
   { selectedTables,
@@ -23,6 +24,7 @@ const TableSelection = (
   }) => {
   const { token, userInfo } = useAuthStore();
   const [heldTables, setHeldTables] = useState({});
+  const [currentHoldCount, setCurrentHoldCount] = useState(0);
 
   const updateTableHeldStatus = useCallback((tableId, isHeld, holderId, date, time) => {
     console.log("Updating table held status:", { tableId, isHeld, holderId, date, time });
@@ -62,10 +64,41 @@ const TableSelection = (
     };
   }, [updateTableHeldStatus]);
 
-  const handleTableSelect = (table) => {
+  useEffect(() => {
+    const checkHoldTables = async () => {
+      if (barId && selectedDate && selectedTime) {
+        try {
+          const response = await getAllHoldTable(token, barId, selectedDate, selectedTime);
+          if (response.data.statusCode === 200) {
+            const userHoldTables = response.data.data.filter(
+              table => table.accountId === userInfo.accountId
+            );
+            setCurrentHoldCount(userHoldTables.length);
+          }
+        } catch (error) {
+          console.error("Error checking hold tables:", error);
+        }
+      }
+    };
+
+    checkHoldTables();
+  }, [barId, selectedDate, selectedTime, token, userInfo.accountId]);
+
+  const handleTableSelect = async (table) => {
+    if (currentHoldCount >= 5) {
+      toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+
     if (table.status === 1 || table.status === 3) {
       onTableSelect(table);
-      // Các xử lý khác nếu cần
     }
   };
 
@@ -95,10 +128,10 @@ const TableSelection = (
 
   const CustomButton = styled(Button)(({ status, isHeld, isCurrentUserHolding }) => ({
     backgroundColor: 
-      isCurrentUserHolding ? '#D2691E' :  // Nâu xám cho bàn đang được chọn bởi người dùng hiện tại
-      isHeld ? '#FFA500' :  // Cam cho bàn đã được đặt bởi người khác
-      status === 0 || status === 2 ?  '#FFA500' :  // Cam cho bàn không khả dụng
-      '#D3D3D3',  // Xám nhạt cho bàn trống
+      isCurrentUserHolding ? '#D2691E' :
+      isHeld ? '#FFA500' :
+      status === 0 || status === 2 ? '#FFA500' :
+      '#D3D3D3',
     color: '#fff',
     '&:hover': {
       backgroundColor: 
@@ -108,8 +141,9 @@ const TableSelection = (
         '#C0C0C0',
     },
     '&:disabled': {
-      backgroundColor: '#FFA500',
+      backgroundColor: status === 1 ? '#A9A9A9' : '#FFA500',
       color: '#fff',
+      opacity: 0.7,
     },
     borderRadius: '4px',
     padding: '8px 16px',
@@ -140,6 +174,8 @@ const TableSelection = (
             {filteredTables.map(table => {
               const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId;
               const isAvailable = table.status === 1 || table.status === 3;
+              const isDisabled = (!isAvailable && !isCurrentUserHolding) || 
+                               (currentHoldCount >= 5 && !isCurrentUserHolding);
               
               return (
                 <CustomButton
@@ -148,13 +184,23 @@ const TableSelection = (
                   status={table.status}
                   isHeld={table.isHeld}
                   isCurrentUserHolding={isCurrentUserHolding}
-                  disabled={!isAvailable && !isCurrentUserHolding}
+                  disabled={isDisabled}
+                  sx={{
+                    cursor: isDisabled ? 'not-allowed' : 'pointer',
+                    opacity: isDisabled ? 0.5 : 1,
+                  }}
                 >
                   {table.tableName}
                 </CustomButton>
               );
             })}
           </div>
+
+          {currentHoldCount >= 5 && (
+            <div className="text-red-500 text-sm mt-4 text-center">
+              Bạn đã giữ tối đa 5 bàn. Vui lòng hủy bớt bàn trước khi chọn thêm.
+            </div>
+          )}
 
           {/* Legend */}
           <div className="flex gap-6 justify-end items-center mt-8 max-w-full text-sm text-center text-zinc-100">

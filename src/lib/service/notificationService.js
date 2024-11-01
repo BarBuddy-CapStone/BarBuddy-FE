@@ -20,7 +20,7 @@ export const getNotificationByAccountId = async () => {
     return await axios.get(`api/Notification/getAllNoti/${accountId}`, config);
 }
 
-export const markNotificationsAsRead = async (accountId, notificationIds) => {
+export const markNotificationsAsRead = async (accountId) => {
     const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
     const token = userInfo.accessToken;
     
@@ -36,8 +36,7 @@ export const markNotificationsAsRead = async (accountId, notificationIds) => {
     };
 
     const data = {
-        accountId: accountId,
-        notificationId: notificationIds
+        accountId: accountId
     };
     
     return await axios.patch('api/Notification/isRead', data, config);
