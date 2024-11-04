@@ -1,6 +1,6 @@
-import EditEmotionCategory from "./manager/emotionalCategory/components/EditEmotionCategory";
-import AddEmotionCategory from "./manager/emotionalCategory/components/AddEmotionCategory";
-import DeleteEmotionCategory from "./manager/emotionalCategory/components/DeleteEmotionCategory";
+import EditEmotionCategory from "./admin/emotionalCategory/components/EditEmotionCategory";
+import AddEmotionCategory from "./admin/emotionalCategory/components/AddEmotionCategory";
+import DeleteEmotionCategory from "./admin/emotionalCategory/components/DeleteEmotionCategory";
 
 // BookingTable Components
 import BookingTableInfo from "./customer/booking/bookingTable/components/BookingTableInfo";

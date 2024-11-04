@@ -41,12 +41,6 @@ const sidebarItems = [
     path: "/manager/staff",
   },
   {
-    icon: MoodIcon,
-    label: "Danh mục cảm xúc",
-    path: "/manager/emotional",
-  },
-  
-  {
     icon: LocalBarIcon,
     label: "Thức uống",
     path: "/manager/managerDrinkCategory",
