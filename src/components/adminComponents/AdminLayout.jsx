@@ -1,11 +1,28 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { AdminHeader, AdminSidebar } from "src/components";
+import { AnimatePresence } from "framer-motion";
+import PageTransition from "../animations/PageTransition";
+import Loading from "../commonComponents/loading/Loading";
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const sidebarRef = useRef(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Show loading when route changes
+    setIsLoading(true);
+    
+    // Hide loading after content is ready
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 400); 
+
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -26,6 +43,10 @@ const AdminLayout = () => {
 
   return (
     <div className="flex h-screen bg-neutral-100 overflow-hidden">
+      <AnimatePresence mode="wait">
+        {isLoading && <Loading />}
+      </AnimatePresence>
+
       <div ref={sidebarRef}>
         <AdminSidebar 
           className={`w-64 shadow-md transition-all duration-300 ease-in-out 
@@ -43,7 +64,13 @@ const AdminLayout = () => {
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-neutral-100">
           <div className="container mx-auto px-6 py-8">
-            <Outlet />
+            <AnimatePresence mode="wait">
+              {!isLoading && (
+                <PageTransition key={location.pathname}>
+                  <Outlet />
+                </PageTransition>
+              )}
+            </AnimatePresence>
           </div>
         </main>
       </div>

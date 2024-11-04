@@ -97,3 +97,22 @@ export const createManager = async (managerData) => {
     };
     return await axios.post("api/v1/manager-account", managerData, config);
 };
+
+export const revenueDashboard = async (barId, dateTime, type) => {
+    let url = "api/v1/Bar/admin/dashboard/revenue";
+    const params = new URLSearchParams();
+    
+    if (barId) params.append('barId', barId);
+    if (dateTime) params.append('dateTime', dateTime);
+    if (type) params.append('type', type);
+    
+    if (params.toString()) {
+        url += `?${params.toString()}`;
+    }
+    
+    return await axios.get(url);
+};
+
+export const getBarNameOnly = async () => {
+    return await axios.get(`api/v1/Bar/admin/dashboard/getBar`);
+}

@@ -3,9 +3,9 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import "./index.css";
-import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-import ProtectedStaffRoute from "./components/ProtectedStaffRoute";
-import ProtectedCustomerRoute from "./components/ProtectedCustomerRoute";
+import ProtectedStaffRoute from "./components/ProtectedRoute/ProtectedStaffRoute";
+import ProtectedManagerRoute from "./components/ProtectedRoute/ProtectedManagerRoute";
+import ProtectedAdminRoute from "./components/ProtectedRoute/ProtectedAdminRoute";
 import Dashboard from "./pages/admin/dashboard/DashBoard";
 import FeedbackAdmin from "./pages/admin/feedback/FeedbackAdmin";
 import FeedbackDetailAdmin from "./pages/admin/feedback/FeedbackDetailAdmin";
@@ -54,7 +54,7 @@ import EventManagement from "./pages/admin/event-management/EventManagement";
 import AddEvent from "./pages/admin/event-management/AddEvent";
 import ManagerLayout from "./components/managerComponents/ManagerLayout";
 import ManagerDrink from "./pages/manager/ManagerDrinkBasedCate/ManagerDrink";
-import ProtectedManagerRoute from "./components/ProtectedManagerRoute";
+
 import FeedbackManager from "./pages/manager/feedback/FeedbackManager";
 import FeedbackDetailManager from "./pages/manager/feedback/FeedbackDetailManager";
 import PaymentHistoryManager from "./pages/manager/payment-history/PaymentHistoryManager";
@@ -64,7 +64,7 @@ import ManagerDetail from "./pages/admin/managerManagement/ManagerDetail";
 import ManagerCreation from "./pages/admin/managerManagement/ManagerCreation";
 import ManagerManagement from "./pages/admin/managerManagement/ManagerManagement";
 import TableManagementManager from "./pages/manager/table-management/TableManagementManager";
-
+import ProtectedCustomerRoute from "./components/ProtectedRoute/ProtectedCustomerRoute";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(

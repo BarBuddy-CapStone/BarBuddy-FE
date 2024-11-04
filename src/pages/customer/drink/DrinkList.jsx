@@ -23,6 +23,8 @@ const FilterSection = ({
     const [tempSelectedDrink, setTempSelectedDrink] = useState(selectedDrink);
     const [tempSelectedEmotions, setTempSelectedEmotions] = useState([...selectedEmotions]);
     const [selectedCateId, setSelectedCateId] = useState(null);
+    const [isEmotionDetailModalOpen, setEmotionDetailModalOpen] = useState(false);
+    const [selectedEmotionDetail, setSelectedEmotionDetail] = useState(null);
 
     useEffect(() => {
         if (isDrinksModalOpen) {
@@ -132,18 +134,26 @@ const FilterSection = ({
                     </div>
                     <div className="flex flex-col justify-center pl-4 pr-1 py-2 mt-4 text-sm leading-none text-white rounded-xl bg-neutral-700 max-md:mr-0.5 max-h-40 overflow-y-auto custom-scrollbar">
                         {dataDrinkEmo.map((emotion) => (
-                            <label
-                                key={emotion.emotionalDrinksCategoryId}
-                                className="flex items-center gap-2 mb-2 text-sm"
-                            >
-                                <input
-                                    type="checkbox"
-                                    className="form-checkbox h-4 w-4"
-                                    checked={selectedEmotions.includes(emotion.emotionalDrinksCategoryId)}
-                                    onChange={() => handleEmotionChange(emotion.emotionalDrinksCategoryId)}
-                                />
-                                <span className="truncate">{emotion.categoryName}</span>
-                            </label>
+                            <div key={emotion.emotionalDrinksCategoryId} className="flex justify-between items-center mb-2">
+                                <label className="flex items-center gap-2 text-sm">
+                                    <input
+                                        type="checkbox"
+                                        className="form-checkbox h-4 w-4"
+                                        checked={selectedEmotions.includes(emotion.emotionalDrinksCategoryId)}
+                                        onChange={() => handleEmotionChange(emotion.emotionalDrinksCategoryId)}
+                                    />
+                                    <span className="truncate">{emotion.categoryName}</span>
+                                </label>
+                                <button 
+                                    onClick={() => {
+                                        setSelectedEmotionDetail(emotion);
+                                        setEmotionDetailModalOpen(true);
+                                    }}
+                                    className="text-amber-400 hover:text-amber-500 text-xs"
+                                >
+                                    Chi tiết
+                                </button>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -204,17 +214,56 @@ const FilterSection = ({
                     {dataDrinkCate.find(cate => cate.drinksCategoryId === selectedCateId)?.description || 'Không có mô tả.'}
                 </Modal>
             )}
+
+            {isEmotionDetailModalOpen && selectedEmotionDetail && (
+                <Modal
+                    title={selectedEmotionDetail.categoryName}
+                    onClose={() => setEmotionDetailModalOpen(false)}
+                    onConfirm={() => setEmotionDetailModalOpen(false)}
+                >
+                    {selectedEmotionDetail.description || 'Không có mô tả.'}
+                </Modal>
+            )}
         </aside>
     );
 };
 
 const Modal = ({ title, children, onClose, onConfirm }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        setIsOpen(true);
+    }, []);
+
+    const handleClose = () => {
+        setIsOpen(false);
+        setTimeout(onClose, 300); // Đợi animation kết thúc rồi mới đóng
+    };
+
+    const handleConfirm = () => {
+        setIsOpen(false);
+        setTimeout(onConfirm, 300);
+    };
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-neutral-800 text-white w-11/12 max-w-sm p-5 rounded-lg relative">
+        <div 
+            className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ${
+                isOpen ? 'opacity-100' : 'opacity-0'
+            }`}
+        >
+            <div 
+                className="fixed inset-0 bg-black transition-opacity duration-300"
+                style={{ opacity: isOpen ? 0.5 : 0 }}
+                onClick={handleClose}
+            />
+            <div 
+                className={`bg-neutral-800 text-white w-11/12 max-w-sm p-5 rounded-lg relative transform transition-all duration-300 ${
+                    isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                }`}
+            >
                 <button
-                    className="absolute top-2 right-2 text-gray-300 hover:text-white"
-                    onClick={onClose}
+                    className="absolute top-2 right-2 text-gray-300 hover:text-white transition-colors duration-200"
+                    onClick={handleClose}
                 >
                     &times;
                 </button>
@@ -224,8 +273,8 @@ const Modal = ({ title, children, onClose, onConfirm }) => {
                 </div>
                 <div className="flex justify-end mt-4">
                     <button
-                        className="bg-amber-400 hover:bg-amber-500 text-white py-2 px-4 rounded"
-                        onClick={onConfirm}
+                        className="bg-amber-400 hover:bg-amber-500 text-white py-2 px-4 rounded transition-colors duration-200"
+                        onClick={handleConfirm}
                     >
                         Xác nhận
                     </button>
