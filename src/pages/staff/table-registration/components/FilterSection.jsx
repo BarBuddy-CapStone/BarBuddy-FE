@@ -1,109 +1,4 @@
-import React, { useState, useEffect } from "react"; 
-
-function FilterInput({ label, value, onChange }) {
-  return (
-    <div className="flex flex-row gap-2 rounded-3xl">
-      <label className="self-start">{label}</label>
-      <input
-        id="fullName"
-        type="text"
-        className="flex-1 px-4 md:w-auto bg-white rounded-md border border-stone-300"
-        value={value}
-        onChange={onChange}
-      />
-    </div>
-  );
-}
-
-function DatePicker({ label, value, onChange }) {
-  return (
-    <div className="flex flex-row self-stretch my-auto rounded-md">
-      <label className="grow leading-loose text-zinc-800 mr-2">{label}</label>
-      <input
-        type="date"
-        className="flex shrink-0 text-center max-w-full bg-white rounded-3xl border border-solid border-stone-300 h-[38px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-        value={value}
-        onChange={onChange}
-      />
-    </div>
-  );
-}
-
-function TimePicker({ label, startTime, endTime, onChange }) {
-
-  const generateTimeOptions = () => {
-    const options = ["Cả ngày"]; 
-    const start = new Date(`1970-01-01T${startTime}`); 
-    const end = new Date(`1970-01-01T${endTime}`);
-
-    if (start > end) {
-      end.setDate(end.getDate() + 1);
-    }
-
-    while (start < end) { 
-      const hours = start.getHours().toString().padStart(2, "0");
-      const minutes = start.getMinutes().toString().padStart(2, "0");
-      const timeString = `${hours}:${minutes}`;
-      options.push(timeString);
-      start.setMinutes(start.getMinutes() + 30); 
-    }
-
-    return options;
-  };
-
-  const timeOptions = generateTimeOptions(); 
-
-  return (
-    <div className="flex flex-row self-stretch my-auto rounded-md">
-      <label className="leading-loose basis-auto text-zinc-800 mr-2">{label}</label>
-      <select
-        className="flex shrink-0 max-w-full bg-white rounded-3xl border border-solid border-stone-300 h-[38px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-        onChange={(e) => onChange(e.target.value === "Cả ngày" ? null : e.target.value)} 
-      >
-        {timeOptions.map((time, index) => (
-          <option key={index} value={time}>{time}</option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function StatusFilter({ label, selectedStatus, onChange }) {
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 0:
-        return "bg-gray-300";
-      case 1:
-        return "bg-red-600"; 
-      case 2:
-        return "bg-orange-600"; 
-      case 3:
-        return "bg-green-600"; 
-      default:
-        return "bg-gray-600"; 
-    }
-  };
-
-  return (
-    <div className="flex flex-row self-stretch my-auto rounded-md">
-      <label className="grow leading-loose text-zinc-800 mr-2">{label}</label>
-      <div className="relative">
-        <select
-          className="flex shrink-0 max-w-full bg-white rounded-3xl border border-solid border-stone-300 h-[38px] pl-8 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
-          value={selectedStatus} 
-          onChange={(e) => onChange(e.target.value === "All" ? "All" : Number(e.target.value))} 
-        >
-          <option value="All">Tất cả</option>
-          <option value={0}>Đang chờ</option>
-          <option value={1}>Đã hủy</option>
-          <option value={2}>Đang phục vụ</option>
-          <option value={3}>Đã hoàn thành</option>
-        </select>
-        <div className={`absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 rounded-full ${getStatusColor(selectedStatus)}`}></div>
-      </div>
-    </div>
-  );
-}
+import React, { useState } from "react"; 
 
 function FilterSection({ onFilterChange, timeRange, initialDate }) {
   const [name, setName] = useState("");
@@ -113,11 +8,10 @@ function FilterSection({ onFilterChange, timeRange, initialDate }) {
   const [bookingDate, setBookingDate] = useState(initialDate);
   const [checkInTime, setCheckInTime] = useState("Cả ngày");
 
-  useEffect(() => {
-    handleFilterChange();
-  }, []);
+  const isAnyFieldFilled = name || phone || email || bookingDate || checkInTime !== "Cả ngày" || selectedStatus !== "All";
 
-  const handleFilterChange = () => {
+  const handleSubmit = (e) => {
+    e.preventDefault();
     onFilterChange({ 
       name, 
       phone, 
@@ -145,31 +39,159 @@ function FilterSection({ onFilterChange, timeRange, initialDate }) {
     });
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "0":
+        return "text-gray-500";
+      case "1":
+        return "text-red-500";
+      case "2":
+        return "text-yellow-500";
+      case "3":
+        return "text-green-500";
+      default:
+        return "";
+    }
+  };
+
+  const getStatusDot = (status) => {
+    switch (status) {
+      case "0":
+        return "bg-gray-500";
+      case "1":
+        return "bg-red-500";
+      case "2":
+        return "bg-yellow-500";
+      case "3":
+        return "bg-green-500";
+      default:
+        return "bg-gray-400";
+    }
+  };
+
   return (
-    <>
-      <div className="flex flex-wrap gap-10 items-end leading-loose text-zinc-800 max-md:max-w-full">
-        <div className="flex gap-5">
-          <FilterInput label="Họ tên:" value={name} onChange={(e) => setName(e.target.value)} />
-          <FilterInput label="Số điện thoại:" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <FilterInput label="Email:" value={email} onChange={(e) => setEmail(e.target.value)} />
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col items-start p-4 mt-1.5 w-full text-sm bg-white rounded-3xl border border-black max-md:pr-5 max-md:mr-2.5 max-md:max-w-full"
+    >
+      <p className="text-sky-900 max-md:max-w-full">
+        * Bạn có thể tìm kiếm/xem (các) đặt chỗ bằng cách nhập một hoặc nhiều thông tin này
+      </p>
+
+      <div className="flex flex-wrap gap-4 justify-between w-full mt-3">
+        <div className="flex flex-1 flex-wrap items-center">
+          <label htmlFor="fullName" className="w-1/3 md:w-auto mr-2">Họ tên:</label>
+          <input
+            id="fullName"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="flex-1 px-3 py-1.5 w-full md:w-auto bg-white rounded-md border border-stone-300"
+          />
+        </div>
+
+        <div className="flex flex-1 flex-wrap items-center">
+          <label htmlFor="phoneNumber" className="w-1/3 md:w-auto mr-2">Số điện thoại:</label>
+          <input
+            id="phoneNumber"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="flex-1 px-3 py-1.5 w-full md:w-auto bg-white rounded-md border border-stone-300"
+          />
+        </div>
+
+        <div className="flex flex-1 flex-wrap items-center">
+          <label htmlFor="email" className="w-1/3 md:w-auto mr-2">Email:</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="flex-1 px-3 py-1.5 w-full md:w-auto bg-white rounded-md border border-stone-300"
+          />
         </div>
       </div>
-      <div className="flex flex-wrap gap-5 justify-between mt-9 w-full max-md:mr-1 max-md:max-w-full">
-        <div className="flex gap-5 items-center max-md:max-w-full">
-          <DatePicker label="Ngày đặt bàn:" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} /> {/* Thêm trường cho ngày đặt bàn */}
-          <TimePicker label="Thời gian check-in:" startTime={timeRange.startTime} endTime={timeRange.endTime} onChange={(value) => setCheckInTime(value)} /> {/* Thêm trường cho thời gian check-in */}
-          <StatusFilter label="Trạng thái:" selectedStatus={selectedStatus} onChange={(value) => setSelectedStatus(value)} />
+
+      <div className="flex flex-wrap gap-4 justify-between items-center w-full mt-3">
+        <div className="flex gap-2 items-center flex-1">
+          <label htmlFor="bookingDate" className="whitespace-nowrap">Ngày đặt bàn:</label>
+          <div className="flex items-center bg-neutral-200 px-3 py-1.5 rounded-md">
+            <input
+              id="bookingDate"
+              type="date"
+              value={bookingDate}
+              onChange={(e) => setBookingDate(e.target.value)}
+              className="bg-transparent border-none text-black text-sm"
+            />
+          </div>
+          
+          <label htmlFor="checkInTime" className="ml-4 whitespace-nowrap">Thời gian check-in:</label>
+          <select
+            id="checkInTime"
+            value={checkInTime}
+            onChange={(e) => setCheckInTime(e.target.value)}
+            className="bg-white border border-stone-300 rounded-md px-3 py-1.5"
+          >
+            <option value="Cả ngày">Cả ngày</option>
+            {timeRange.startTime && timeRange.endTime && 
+              Array.from(
+                { length: (parseInt(timeRange.endTime) - parseInt(timeRange.startTime)) / 100 + 1 },
+                (_, i) => {
+                  const time = (parseInt(timeRange.startTime) + i * 100).toString().padStart(4, '0');
+                  return (
+                    <option key={time} value={time}>
+                      {`${time.slice(0, 2)}:${time.slice(2)}`}
+                    </option>
+                  );
+                }
+              )
+            }
+          </select>
+
+          <label htmlFor="status" className="ml-4 whitespace-nowrap">Trạng thái:</label>
+          <div className="relative inline-block">
+            <select
+              id="status"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="bg-white border border-stone-300 rounded-md px-3 py-1.5 pl-8 appearance-none pr-8"
+            >
+              <option value="All" className="text-gray-700">Tất cả</option>
+              <option value="0" className={getStatusColor("0")}>Đang chờ</option>
+              <option value="1" className={getStatusColor("1")}>Đã hủy</option>
+              <option value="2" className={getStatusColor("2")}>Đang phục vụ</option>
+              <option value="3" className={getStatusColor("3")}>Đã hoàn thành</option>
+            </select>
+            <div className={`absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full ${getStatusDot(selectedStatus)}`}></div>
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <svg className="w-4 h-4 fill-current text-gray-400" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button onClick={handleReset} className="overflow-hidden self-start px-12 italic text-center text-white whitespace-nowrap bg-gray-600 hover:bg-gray-700 transition duration-300 min-h-[45px] rounded-[50px] max-md:px-5">
-            Đặt lại
+
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            className={`px-6 py-1.5 text-sm font-semibold text-white bg-gray-500 rounded-full hover:bg-gray-600 w-[150px] text-center ${
+              !isAnyFieldFilled ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={handleReset}
+            disabled={!isAnyFieldFilled}
+          >
+            Xóa bộ lọc
           </button>
-          <button onClick={handleFilterChange} className="overflow-hidden self-start px-12 italic text-center text-white whitespace-nowrap bg-blue-600 hover:bg-blue-700 transition duration-300 min-h-[45px] rounded-[50px] max-md:px-5">
+          <button
+            type="submit"
+            className="px-6 py-1.5 text-sm font-semibold text-white bg-blue-900 rounded-full hover:bg-blue-800 w-[150px] text-center"
+          >
             Xem
           </button>
         </div>
       </div>
-    </>
+    </form>
   );
 }
 

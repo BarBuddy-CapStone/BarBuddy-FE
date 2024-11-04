@@ -3,6 +3,9 @@ import { FilterSection, BookingTable } from "src/pages";
 import BookingService from "src/lib/service/bookingService"; 
 import Pagination from '@mui/material/Pagination'; 
 import { message } from 'antd';
+import {QRScanner} from 'src/components';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
+import { IconButton } from '@mui/material';
 
 function BookingListStaff() {
   const getCurrentDate = () => {
@@ -21,12 +24,14 @@ function BookingListStaff() {
   const [timeRange, setTimeRange] = useState({ startTime: "", endTime: "" }); 
   const [currentPage, setCurrentPage] = useState(1); 
   const [totalPages, setTotalPages] = useState(1); 
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(false);
   const [pageSize] = useState(10);
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   const handleFilterChange = async (newFilter) => {
     setFilter(newFilter);
-    setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
+    setCurrentPage(1);
     await fetchBookings(newFilter, 1);
   };
 
@@ -48,8 +53,6 @@ function BookingListStaff() {
         pageSize
       );
 
-      console.log("API Response:", response); // Thêm log để debug
-
       if (response.data && response.data.data) {
         setBookings(response.data.data.response || []);
         setTotalPages(response.data.data.totalPage || 1);
@@ -69,53 +72,111 @@ function BookingListStaff() {
       setBookings([]);
       setTotalPages(1);
     } finally {
-      setLoading(false); 
+      setLoading(false);
+      setInitialLoad(false);
     }
   };
 
-  // Gọi API khi component mount và khi trang thay đổi
   useEffect(() => {
-    fetchBookings(filter, currentPage);
-  }, [currentPage]); 
+    if (initialLoad) {
+      fetchBookings(filter, currentPage);
+    }
+  }, []);
 
-  // Gọi API khi component mount lần đầu
   useEffect(() => {
-    fetchBookings(filter, 1);
-  }, []); 
+    if (!initialLoad) {
+      fetchBookings(filter, currentPage);
+    }
+  }, [currentPage]);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
+  const handleScanSuccess = async (scannedBookingId) => {
+    try {
+      const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+      const barId = userInfo ? userInfo.identityId : null;
+
+      const response = await BookingService.getAllBookingsByStaff(
+        barId,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        1,
+        pageSize,
+        scannedBookingId
+      );
+
+      if (response.data?.data?.response?.length > 0) {
+        setBookings(response.data.data.response);
+        setTotalPages(response.data.data.totalPage || 1);
+        setCurrentPage(1);
+      } else {
+        throw new Error('Không tìm thấy đơn đặt bàn');
+      }
+    } catch (error) {
+      console.error("Lỗi khi tìm kiếm đơn đặt bàn:", error);
+      throw error;
+    }
+  };
+
   return (
-    <main className="flex overflow-hidden flex-col grow px-7 pt-7 pb-8 w-full bg-white max-md:px-5 max-md:pb-24 max-md:max-w-full">
-      <section className="flex flex-col px-6 py-6 bg-white rounded-3xl border border-black border-solid max-md:px-5 max-md:mr-1 max-md:max-w-full">
-        <FilterSection 
-          onFilterChange={handleFilterChange} 
-          timeRange={timeRange} 
-          initialDate={getCurrentDate()} 
-        />
-      </section>
-      
-      <BookingTable 
-        filter={filter} 
-        bookings={bookings} 
-        loading={loading} 
-      /> 
-      
-      {bookings.length > 0 && (
-        <div className="flex justify-center pt-4">
-          <Pagination
-            count={totalPages}
-            page={currentPage}
-            onChange={handlePageChange}
-            color="primary"
-            showFirstButton
-            showLastButton
-          />
-        </div>
-      )}
-    </main>
+    <div className="overflow-hidden bg-white">
+      <div className="flex gap-5 max-md:flex-col">
+        <main className="flex flex-col w-full max-md:ml-0 max-md:w-full">
+          <div className="flex overflow-hidden px-8 flex-col pb-10 w-full bg-white max-md:px-5">
+            <h1 className="text-2xl font-bold text-blue-900 mt-8 mb-6 pb-4 border-b border-gray-200">
+              DANH SÁCH ĐẶT BÀN
+            </h1>
+
+            <div className="flex justify-end mb-4">
+              <IconButton 
+                onClick={() => setIsQRScannerOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                size="large"
+              >
+                <QrCodeScannerIcon />
+              </IconButton>
+            </div>
+
+            <QRScanner 
+              isOpen={isQRScannerOpen}
+              onClose={() => setIsQRScannerOpen(false)}
+              onScanSuccess={handleScanSuccess}
+            />
+
+            <FilterSection 
+              onFilterChange={handleFilterChange} 
+              timeRange={timeRange} 
+              initialDate={getCurrentDate()} 
+            />
+            
+            <BookingTable 
+              filter={filter} 
+              bookings={bookings} 
+              loading={loading} 
+            /> 
+            
+            {bookings.length > 0 && (
+              <div className="flex justify-center pt-4">
+                <Pagination
+                  count={totalPages}
+                  page={currentPage}
+                  onChange={handlePageChange}
+                  color="primary"
+                  showFirstButton
+                  showLastButton
+                />
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }
 

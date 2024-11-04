@@ -37,14 +37,23 @@ const filterBookingTable = async (params) => {
 };
 
 const holdTable = async (token, data) => {
-  const config = {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  };
-  console.log("Sending holdTable request with data:", data);
-  return await axios.post(`api/bookingTable/holdTable`, data, config);
+  try {
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    };
+    console.log("Sending holdTable request with data:", data);
+    const response = await axios.post(`api/bookingTable/holdTable`, data, config);
+    return response;
+  } catch (error) {
+    if (error.response?.data?.statusCode === 400) {
+      throw error;
+    }
+    console.error("Error in holdTable service:", error);
+    throw new Error("Failed to hold table");
+  }
 };
 
 const releaseTable = async (token, data) => {

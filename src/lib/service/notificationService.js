@@ -17,6 +17,28 @@ export const getNotificationByAccountId = async () => {
         },
     };
     
-    return await axios.get(`https://localhost:7069/api/Notification/getAllNoti/${accountId}`, config);
+    return await axios.get(`api/Notification/getAllNoti/${accountId}`, config);
 }
+
+export const markNotificationsAsRead = async (accountId) => {
+    const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+    const token = userInfo.accessToken;
+    
+    if (!userInfo || !token) {
+        throw new Error('Không tìm thấy thông tin xác thực');
+    }
+
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    };
+
+    const data = {
+        accountId: accountId
+    };
+    
+    return await axios.patch('api/Notification/isRead', data, config);
+};
 
