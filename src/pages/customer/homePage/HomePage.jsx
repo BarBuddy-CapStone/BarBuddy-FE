@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllBar } from "src/lib/service/customerService";
+import { getAllBar, getAllBarAvailable } from "src/lib/service/customerService";
 import { Add, ArrowForward, Search } from "@mui/icons-material";
 import { getAllDrinkCustomer } from "src/lib/service/managerDrinksService";
-import { Button, Pagination, PaginationItem } from "@mui/material";
+import { Button, Pagination, PaginationItem, TextField } from "@mui/material";
 import { LoadingSpinner } from 'src/components';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
-const BranchCard = React.memo(({ branch, onClick }) => {
+const BranchCard = React.memo(({ branch, onClick, selectedDate }) => {
   const rating = useMemo(
     () =>
       branch.feedBacks.length > 0
@@ -21,6 +23,15 @@ const BranchCard = React.memo(({ branch, onClick }) => {
   );
 
   const reviews = branch.feedBacks.length;
+
+  const getOpeningHours = () => {
+    const daySchedule = branch.barTimeResponses.find(
+      (time) => time.dayOfWeek === new Date(selectedDate).getDay()
+    );
+    return daySchedule
+      ? `${daySchedule.startTime.slice(0, 5)} - ${daySchedule.endTime.slice(0, 5)}`
+      : "Không có thông tin";
+  };
 
   return (
     <div
@@ -63,7 +74,7 @@ const BranchCard = React.memo(({ branch, onClick }) => {
         </p>
         <p className="text-sm break-words inline-block">
           <span className="text-orange-400">Thời gian mở cửa - đóng cửa:</span>{" "}
-          {branch.startTime.slice(0, 5)} - {branch.endTime.slice(0, 5)}
+          {getOpeningHours()}
         </p>
       </div>
     </div>
@@ -276,6 +287,7 @@ const BarBuddyBranches = ({ onBranchesLoaded, onBarClick }) => {
             key={index}
             branch={branch}
             onClick={() => handleCardClick(branch.barId)}
+            selectedDate={new Date().toISOString().split('T')[0]}
           />
         ))}
       </div>
@@ -327,6 +339,117 @@ const BarBuddyBranches = ({ onBranchesLoaded, onBarClick }) => {
   );
 };
 
+const BarBuddyBranchesAvailable = ({ onBranchesLoaded, onBarClick }) => {
+  const [branchesAvailable, setBranchesAvailable] = useState([]);
+  const [loadingAvailable, setLoadingAvailable] = useState(true);
+  const [searchAvailable, setSearchAvailable] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const navigate = useNavigate();
+
+  const fetchBranchesAvailable = useCallback(async (searchTerm = searchAvailable, date = selectedDate) => {
+    setLoadingAvailable(true);
+    try {
+      const response = await getAllBarAvailable(date.toISOString().split('T')[0]);
+      if (response.data.statusCode === 200) {
+        setBranchesAvailable(response.data.data);
+        onBranchesLoaded(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+    } finally {
+      setLoadingAvailable(false);
+    }
+  }, [onBranchesLoaded, selectedDate]);
+
+  useEffect(() => {
+    fetchBranchesAvailable();
+  }, [selectedDate]);
+
+  const handleDateChange = (newValue) => {
+    setSelectedDate(newValue);
+    fetchBranchesAvailable(searchAvailable, newValue);
+  };
+
+  const handleCardClickAvailable = useCallback((barId) => {
+    onBarClick(barId);
+  }, [onBarClick]);
+
+  const handleSearchAvailable = () => {
+    fetchBranchesAvailable(searchAvailable);
+  };
+
+  const getDayOfWeek = (date) => {
+    const daysOfWeek = ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"];
+    return daysOfWeek[date.getDay()];
+  };
+
+  const today = new Date();
+  const dayOfWeek = selectedDate.toDateString() === today.toDateString() ? "ngày hôm nay" : getDayOfWeek(selectedDate);
+
+  if (loadingAvailable) return <div>Loading...</div>;
+
+  return (
+    <section className="w-full rounded-lg flex flex-col bg-neutral-800 ml-10 mb-10 mt-10 px-10 py-8">
+      <div className="flex flex-col md:flex-row items-center justify-end ml-4 mr-4 mb-8 gap-4">
+        <div className="flex"><label className="text-yellow-400 text-xs md:w-[124px]">Lọc chi nhánh quán bar theo ngày hoạt động:</label></div>
+        <div className="flex items-center gap-2">
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <DatePicker
+              className="bg-white rounded"
+              value={selectedDate}
+              onChange={handleDateChange}
+              slotProps={{ textField: { size: 'small' } }}
+            />
+          </LocalizationProvider>
+        </div>
+        <div className="border-l border-amber-400 border-solid h-8 mx-4"></div>
+        <div className="relative w-full md:w-72">
+          <input
+            type="text"
+            placeholder="Tìm kiếm tên quán bar"
+            value={searchAvailable}
+            onChange={(e) => setSearchAvailable(e.target.value)}
+            className="px-4 py-2 pr-10 border border-sky-900 rounded-full w-full"
+          />
+        </div>
+        <div className="flex items-center gap-4 w-full md:w-auto ">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSearchAvailable}
+            sx={{
+              borderRadius: 2,
+              padding: '8px 16px',
+              backgroundColor: '#f59e0b',
+              color: 'black',
+              border: '1px solid rgb(12 74 110)',
+              boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+              '&:hover': {
+                backgroundColor: '#d97706',
+              },
+            }}
+          >
+            Tìm kiếm
+          </Button>
+        </div>
+      </div>
+      <h2 className="text-2xl text-start mb-8 text-yellow-400">
+        {`Chi nhánh Bar Buddy hoạt động vào ${dayOfWeek}`}
+      </h2>
+      <div className="shrink-0 mb-4 h-px border border-amber-400 border-solid" />
+      <div className="grid mt-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {branchesAvailable.map((branch, index) => (
+          <BranchCard
+            branch={branch}
+            onClick={() => handleCardClickAvailable(branch.barId)}
+            selectedDate={selectedDate.toISOString().split('T')[0]}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
+
 function HomePage() {
   const [branches, setBranches] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -360,6 +483,7 @@ function HomePage() {
     <main className="self-center bg-inherit w-full mx-auto overflow-x-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-10 items-start gap-x-10 gap-y-6">
         <div className="col-span-7 w-full">
+          <BarBuddyBranchesAvailable onBranchesLoaded={setBranches} onBarClick={handleBarClick} />
           <BarBuddyBranches onBranchesLoaded={setBranches} onBarClick={handleBarClick} />
           <BarBuddyDrinks />
         </div>
