@@ -1,6 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 import axios from "../../axiosCustomize";
-import {useTableStore} from 'src/lib';
+import { useTableStore } from "src/lib";
 
 // Lấy base URL từ axios instance, nhưng đảm bảo sử dụng HTTPS
 const BASE_URL = axios.defaults.baseURL;
@@ -14,8 +14,8 @@ const connection = new signalR.HubConnectionBuilder()
     skipNegotiation: false,
     transport: signalR.HttpTransportType.WebSockets,
     accessTokenFactory: () => {
-      return sessionStorage.getItem('authToken');
-    }
+      return sessionStorage.getItem("authToken");
+    },
   })
   .withAutomaticReconnect()
   .configureLogging(signalR.LogLevel.Debug)
@@ -27,11 +27,11 @@ async function startConnection() {
     await connection.start();
     console.log("SignalR Connected.");
     console.log("Connection ID:", connection.connectionId);
-    
-    connection.invoke("CheckConnection")
+
+    connection
+      .invoke("CheckConnection")
       .then(() => console.log("Connection check successful"))
-      .catch(err => console.error("Connection check failed:", err));
-      
+      .catch((err) => console.error("Connection check failed:", err));
   } catch (err) {
     console.log("SignalR Connection Error: ", err);
     console.log("Error details:", err.toString());
@@ -69,45 +69,27 @@ export const hubConnection = connection;
 // Thêm các listener cho các sự kiện cụ thể
 connection.on("TableHoId", (response) => {
   console.log("Table held via SignalR:", response);
-  // const { addTable } = useTableStore.getState();
-  // addTable({
-  //   tableId: response.tableId,
-  //   isHeld: true,
-  //   holderId: response.accountId,
-  //   holdExpiry: response.holdExpiry,
-  //   date: response.date,
-  //   time: response.time
-  // });
-  document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId: response.tableId, isHeld: true, holderId: response.accountId } }));
+  document.dispatchEvent(
+    new CustomEvent("tableStatusChanged", {
+      detail: {
+        tableId: response.tableId,
+        isHeld: true,
+        holderId: response.accountId,
+      },
+    })
+  );
 });
 
 connection.on("TableReleased", (response) => {
   console.log("Table released:", response);
   const { releaseTable } = useTableStore.getState();
   releaseTable(response.tableId, response.date, response.time);
-  document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId: response.tableId, isHeld: false, holderId: null } }));
+  document.dispatchEvent(
+    new CustomEvent("tableStatusChanged", {
+      detail: { tableId: response.tableId, isHeld: false, holderId: null },
+    })
+  );
 });
-
-// Thêm vào cuối file
-export const getTableStatusFromSignalR = async (barId, tableId) => {
-  try {
-    const isHeld = await connection.invoke("GetTableStatus", barId, tableId);
-    return isHeld;
-  } catch (error) {
-    console.error("Error getting table status from SignalR:", error);
-    return false;
-  }
-};
-
-// Add new methods for holding and releasing tables
-export const holdTableSignalR = async (data) => {
-  try {
-    await hubConnection.invoke("HoldTable", data);
-    console.log(`Table ${data.tableId} held via SignalR`);
-  } catch (error) {
-    console.error("Error holding table via SignalR:", error);
-  }
-};
 
 export const releaseTableSignalR = async (data) => {
   try {
@@ -120,7 +102,12 @@ export const releaseTableSignalR = async (data) => {
 
 export const releaseTableListSignalR = async (data) => {
   try {
-    await hubConnection.invoke("ReleaseListTablee", data.barId);
+    await hubConnection.invoke("ReleaseListTablee", {
+      barId: data.barId,
+      date: data.date,
+      time: data.time,
+      table: data.table,
+    });
     console.log(`Tables released via SignalR for bar ${data.barId}`);
   } catch (error) {
     console.error("Error releasing tables via SignalR:", error);
@@ -130,7 +117,20 @@ export const releaseTableListSignalR = async (data) => {
 // Thêm listener cho TableListReleased
 connection.on("TableListReleased", (response) => {
   console.log("Tables list released:", response);
-  document.dispatchEvent(new CustomEvent('tableListStatusChanged', { 
-    detail: { barId: response }
-  }));
+  if (response.table && Array.isArray(response.table)) {
+    document.dispatchEvent(
+      new CustomEvent("tableListStatusChanged", {
+        detail: {
+          barId: response.barId,
+          date: response.date,
+          time: response.time,
+          tables: response.table.map((t) => ({
+            ...t,
+            holderId: null,
+            isHeld: false,
+          })),
+        },
+      })
+    );
+  }
 });

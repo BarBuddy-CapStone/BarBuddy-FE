@@ -431,9 +431,9 @@ const BookingTable = () => {
     setSelectedTableTypeId(tableTypeId);
   };
 
-  const handleClosePopup = () => {
-    setOpenPopup(false);
-  };
+  // const handleClosePopup = () => {
+  //   setOpenPopup(false);
+  // };
 
   useEffect(() => {
     console.log("Setting up SignalR listeners");
@@ -547,7 +547,7 @@ const BookingTable = () => {
           </div>
         </div>
       </main>
-      <Dialog open={openPopup} onClose={handleClosePopup}>
+      {/* <Dialog open={openPopup} onClose={handleClosePopup}>
         <DialogTitle>Thông báo</DialogTitle>
         <DialogContent>
           {!selectedTableTypeId
@@ -559,7 +559,7 @@ const BookingTable = () => {
             Đóng
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
       <LoadingSpinner open={isLoading} />
     </div>
   );

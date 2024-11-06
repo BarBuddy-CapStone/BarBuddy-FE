@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, selectedDate, selectedTime }) => {
   const [countdowns, setCountdowns] = useState({});
   const { token } = useAuthStore();
+
   const handleExpiredTable = useCallback(async (tableId, date, time) => {
     if (!date || !time) {
       console.error("date or time is missing");
@@ -23,14 +24,156 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
       };
       const response = await releaseTable(token, data);
       if (response.data.statusCode === 200) {
-        onRemove(tableId);
         await releaseTableSignalR(data);
+        onRemove(tableId);
+        document.dispatchEvent(new CustomEvent('tableStatusChanged', {
+          detail: { 
+            tableId, 
+            isHeld: false, 
+            holderId: null, 
+            date: null, 
+            time: null 
+          }
+        }));
       }
     } catch (error) {
       console.error("Error releasing expired table:", error);
     }
   }, [barId, onRemove, token]);
 
+  // Sửa lại useEffect để xử lý sự kiện TableListReleased
+  useEffect(() => {
+    const handleTableReleased = (response) => {
+      console.log("Table released event received:", response);
+      setSelectedTables(prev => prev.filter(table => 
+        !(table.tableId === response.tableId && 
+          table.date === response.date && 
+          table.time === response.time)
+      ));
+    };
+
+    const handleTableListReleased = (response) => {
+      console.log("Table list released event received:", response);
+      // Xóa tất cả bàn khỏi selectedTables
+      setSelectedTables([]);
+      
+      // Dispatch event để cập nhật trạng thái cho từng bàn
+      if (response.tables && Array.isArray(response.tables)) {
+        response.tables.forEach(table => {
+          document.dispatchEvent(new CustomEvent('tableStatusChanged', {
+            detail: { 
+              tableId: table.tableId, 
+              isHeld: false, 
+              holderId: null,
+              date: null,
+              time: null
+            }
+          }));
+        });
+      }
+    };
+
+    // Đăng ký lắng nghe sự kiện từ hubConnection
+    const handleSignalRTableReleased = (response) => {
+      handleTableReleased(response);
+    };
+
+    const handleSignalRTableListReleased = (response) => {
+      handleTableListReleased(response);
+    };
+
+    hubConnection.on("TableReleased", handleSignalRTableReleased);
+    hubConnection.on("TableListReleased", handleSignalRTableListReleased);
+
+    // Cleanup khi component unmount
+    return () => {
+      hubConnection.off("TableReleased", handleSignalRTableReleased);
+      hubConnection.off("TableListReleased", handleSignalRTableListReleased);
+    };
+  }, [setSelectedTables]);
+
+  const handleReleaseAll = async () => {
+    if (selectedTables.length === 0) return;
+
+    try {
+      const data = {
+        barId: barId,
+        date: dayjs(selectedDate).format('YYYY-MM-DD'),
+        time: selectedTime + ":00",
+        table: selectedTables.map(table => ({
+          tableId: table.tableId,
+          time: table.time
+        }))
+      };
+
+      const response = await releaseTableList(token, data);
+      if (response.data.statusCode === 200) {
+        // Gửi SignalR để thông báo cho các clients khác
+        await releaseTableListSignalR(data);
+        
+        // Xóa tất cả bàn khỏi danh sách đã chọn
+        setSelectedTables([]);
+        
+        // Dispatch event để cập nhật UI và trạng thái holdTable cho từng bàn
+        selectedTables.forEach(table => {
+          document.dispatchEvent(new CustomEvent('tableStatusChanged', {
+            detail: { 
+              tableId: table.tableId, 
+              isHeld: false, 
+              holderId: null,
+              date: null,
+              time: null,
+              fromReleaseList: true  // Thêm flag để đánh dấu là từ releaseList
+            }
+          }));
+        });
+
+        toast.success("Đã xóa tất cả bàn đã chọn");
+      }
+    } catch (error) {
+      console.error("Error releasing all tables:", error);
+      toast.error("Có lỗi xảy ra khi xóa các bàn");
+    }
+  };
+
+  const handleRemove = async (tableId, date, time) => {
+    if (!date || !time) {
+      console.error("date or time is missing");
+      return;
+    }
+    try {
+      const data = {
+        barId: barId,
+        tableId: tableId,
+        date: date,
+        time: time
+      };
+      const response = await releaseTable(token, data);
+      if (response.data.statusCode === 200) {
+        // Gửi SignalR để thông báo cho các clients khác
+        await releaseTableSignalR(data);
+        
+        // Xóa bàn khỏi danh sách đã chọn
+        onRemove(tableId);
+        
+        // Dispatch event để cập nhật UI
+        document.dispatchEvent(new CustomEvent('tableStatusChanged', {
+          detail: { 
+            tableId, 
+            isHeld: false, 
+            holderId: null, 
+            date: null, 
+            time: null 
+          }
+        }));
+      }
+    } catch (error) {
+      console.error("Error releasing table:", error);
+      // toast.error("Có lỗi xảy ra khi giải phóng bàn");
+    }
+  };
+
+  // Countdown timer effect
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date().getTime();
@@ -59,83 +202,12 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
     return () => clearInterval(timer);
   }, [selectedTables, handleExpiredTable, setSelectedTables, countdowns]);
 
-  const handleRemove = async (tableId, date, time) => {
-    if (!date || !time) {
-      console.error("date or time is missing");
-      return;
-    }
-    console.log("Attempting to release table:", tableId);
-    try {
-      const data = {
-        barId: barId,
-        tableId: tableId,
-        date: date,
-        time: time
-      };
-      const response = await releaseTable(token, data);
-      if (response.data.statusCode === 200) {
-        onRemove(tableId);
-        await releaseTableSignalR(data);
-      }
-    } catch (error) {
-      console.error("Error releasing table:", error);
-    }
-  };
-
-  // Lọc bàn theo ngày và giờ hiện tại
-  // const filteredTables = selectedTables.filter(table => 
-  //   dayjs(table.date).isSame(dayjs(selectedDate), 'day') && table.time === selectedTime + ":00"
-  // );
-
   // Sắp xếp bàn theo thời gian
   const sortedTables = [...selectedTables].sort((a, b) => {
     if (a.time < b.time) return -1;
     if (a.time > b.time) return 1;
     return 0;
   });
-
-  const handleReleaseAll = async () => {
-    if (selectedTables.length === 0) return;
-
-    try {
-      const data = {
-        barId: barId,
-        date: dayjs(selectedDate).format('YYYY-MM-DD'),
-        time: selectedTime + ":00",
-        table: selectedTables.map(table => ({
-          tableId: table.tableId,
-          time: table.time
-        }))
-      };
-
-      const response = await releaseTableList(token, data);
-      if (response.data.statusCode === 200) {
-        // Gọi SignalR để thông báo cho các clients khác
-        await releaseTableListSignalR(data);
-        // Xóa local state
-        setSelectedTables([]);
-        toast.success("Đã xóa tất cả bàn đã chọn");
-      }
-    } catch (error) {
-      console.error("Error releasing all tables:", error);
-      toast.error("Có lỗi xảy ra khi xóa các bàn");
-    }
-  };
-
-  // Thêm useEffect để lắng nghe sự kiện tableListStatusChanged
-  useEffect(() => {
-    const handleTableListReleased = (event) => {
-      const { barId } = event.detail;
-      if (barId === barId) { // Kiểm tra nếu đúng barId hiện tại
-        setSelectedTables([]); // Xóa toàn bộ selected tables
-      }
-    };
-
-    document.addEventListener('tableListStatusChanged', handleTableListReleased);
-    return () => {
-      document.removeEventListener('tableListStatusChanged', handleTableListReleased);
-    };
-  }, [barId]);
 
   return (
     <div className={`flex flex-col px-8 pt-4 pb-10 mt-4 w-full text-xs text-white rounded-md bg-neutral-800 shadow-[0px_0px_16px_rgba(0,0,0,0.07)] ${sortedTables.length === 0 ? 'hidden' : ''}`}>

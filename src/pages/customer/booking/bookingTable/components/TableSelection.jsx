@@ -25,60 +25,84 @@ const TableSelection = (
   const { token, userInfo } = useAuthStore();
   const [heldTables, setHeldTables] = useState({});
   const [currentHoldCount, setCurrentHoldCount] = useState(0);
+  const [heldTableIds, setHeldTableIds] = useState(new Set());
 
   const updateTableHeldStatus = useCallback((tableId, isHeld, holderId, date, time) => {
     console.log("Updating table held status:", { tableId, isHeld, holderId, date, time });
-    setHeldTables(prev => ({
-      ...prev,
-      [tableId]: { isHeld, holderId, date, time }
-    }));
+    
+    setHeldTableIds(prev => {
+      const newSet = new Set(prev);
+      if (isHeld) {
+        newSet.add(tableId);
+      } else {
+        newSet.delete(tableId);
+      }
+      return newSet;
+    });
 
     setFilteredTables(prevTables =>
       prevTables.map(table => {
         if (table.tableId === tableId) {
-          console.log("Updating table:", { ...table, status: isHeld ? 2 : 1, holderId, date, time, isHeld });
+          return {
+            ...table,
+            status: isHeld ? 2 : 1,
+            isHeld: isHeld,
+            holderId: holderId,
+            date: date,
+            time: time
+          };
         }
-        return table.tableId === tableId 
-          ? { ...table, status: isHeld ? 2 : 1, holderId, date, time, isHeld }
-          : table
+        return table;
       })
     );
-  }, [setFilteredTables]);
+  }, []);
+
+  const handleTableListRelease = useCallback((response) => {
+    console.log("Table list released event received:", response);
+    if (response.tables && Array.isArray(response.tables)) {
+      const releasedTableIds = response.tables.map(t => t.tableId);
+      setHeldTableIds(prev => {
+        const newSet = new Set(prev);
+        releasedTableIds.forEach(id => newSet.delete(id));
+        return newSet;
+      });
+
+      setFilteredTables(prevTables => 
+        prevTables.map(table => {
+          if (releasedTableIds.includes(table.tableId)) {
+            return {
+              ...table,
+              status: 1,
+              isHeld: false,
+              holderId: null,
+              date: null,
+              time: null
+            };
+          }
+          return table;
+        })
+      );
+    }
+  }, []);
 
   useEffect(() => {
-    console.log("Setting up SignalR listeners");
+    const handleTableStatusChange = (event) => {
+      const { tableId, isHeld, holderId, date, time } = event.detail;
+      updateTableHeldStatus(tableId, isHeld, holderId, date, time);
+    };
 
-    hubConnection.on("TableHoId", (response) => {
-      console.log("Table HoId:", response);
-      updateTableHeldStatus(response.tableId, true, response.accountId, response.date, response.time);
-    });
+    const handleTableListStatusChange = (event) => {
+      handleTableListRelease(event.detail);
+    };
 
-    hubConnection.on("TableReleased", (response) => {
-      console.log("Table released:", response);
-      updateTableHeldStatus(response.tableId, false, null, response.date, response.time);
-    });
-
-    hubConnection.on("TableListReleased", (barId) => {
-      console.log("Table list released for bar:", barId);
-      if (barId === barId) {
-        // Cập nhật trạng thái của tất cả các bàn về trạng thái trống
-        setFilteredTables(prevTables => 
-          prevTables.map(table => ({
-            ...table,
-            status: 1,
-            isHeld: false,
-            holderId: null
-          }))
-        );
-      }
-    });
+    document.addEventListener('tableStatusChanged', handleTableStatusChange);
+    document.addEventListener('tableListStatusChanged', handleTableListStatusChange);
 
     return () => {
-      hubConnection.off("TableHoId");
-      hubConnection.off("TableReleased");
-      hubConnection.off("TableListReleased");
+      document.removeEventListener('tableStatusChanged', handleTableStatusChange);
+      document.removeEventListener('tableListStatusChanged', handleTableListStatusChange);
     };
-  }, [barId, updateTableHeldStatus]);
+  }, [updateTableHeldStatus, handleTableListRelease]);
 
   useEffect(() => {
     const checkHoldTables = async () => {
@@ -102,14 +126,12 @@ const TableSelection = (
 
   const handleTableSelect = async (table) => {
     if (currentHoldCount >= 5) {
-      toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.");
+      return;
+    }
+
+    if (heldTableIds.has(table.tableId)) {
+      console.log("Table is already held:", table.tableId);
       return;
     }
 
@@ -131,10 +153,8 @@ const TableSelection = (
         const response = await releaseTable(token, data);
         if (response.data.statusCode === 200) {
           setSelectedTables(prev => prev.filter(t => t.tableId !== tableId));
-          updateTableHeldStatus(tableId, false, null, table.date, table.time);
+          updateTableHeldStatus(tableId, false, null, null, null);
           await hubConnection.invoke("ReleaseTable", data);
-        } else {
-          console.error("Release table request failed:", response.data);
         }
       } catch (error) {
         console.error("Error releasing table:", error);
