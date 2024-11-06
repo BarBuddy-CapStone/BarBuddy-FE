@@ -79,6 +79,12 @@ const Dashboard = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalBarBranch, setTotalBarBranch] = useState(0);
 
+  // Thêm state để quản lý lỗi
+  const [dateError, setDateError] = useState("");
+
+  // Thêm state để quản lý lỗi API
+  const [apiError, setApiError] = useState("");
+
   useEffect(() => {
     const fetchBarList = async () => {
       try {
@@ -114,6 +120,10 @@ const Dashboard = () => {
 
   const fetchRevenue = async (filters = {}) => {
     try {
+      // Reset error messages
+      setDateError("");
+      setApiError("");
+
       const response = await revenueDashboard(
         filters.barId || barId,
         filters.fromTime || startDate,
@@ -156,24 +166,27 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error fetching revenue:", error);
       if (error.response?.data?.message) {
-        message.error(error.response.data.message);
+        setApiError(error.response.data.message);
       } else {
-        message.error('Có lỗi xảy ra khi tải dữ liệu');
+        setApiError('Có lỗi xảy ra khi tải dữ liệu');
       }
     }
   };
 
-  // Cập nhật hàm handleFilter để dùng message
+  // Cập nhật hàm handleFilter
   const handleFilter = () => {
+    // Reset error trước khi validate
+    setDateError("");
+
     // Kiểm tra cả hai ngày phải được chọn
     if (!startDate || !endDate) {
-      message.error('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc');
+      setDateError("Vui lòng chọn cả ngày bắt đầu và ngày kết thúc");
       return;
     }
 
     // Kiểm tra ngày bắt đầu không được lớn hơn ngày kết thúc
     if (new Date(startDate) > new Date(endDate)) {
-      message.error('Ngày bắt đầu không thể lớn hơn ngày kết thúc');
+      setDateError("Ngày bắt đầu không thể lớn hơn ngày kết thúc");
       return;
     }
 
@@ -328,7 +341,7 @@ const Dashboard = () => {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={`px-3 py-2 border ${dateError ? 'border-red-500' : 'border-gray-300'} rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                 required
               />
             </div>
@@ -341,7 +354,7 @@ const Dashboard = () => {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={`px-3 py-2 border ${dateError ? 'border-red-500' : 'border-gray-300'} rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                 required
               />
             </div>
@@ -356,6 +369,20 @@ const Dashboard = () => {
               </button>
             </div>
           </div>
+
+          {/* Hiển thị lỗi validation ngày */}
+          {dateError && (
+            <div className="mt-2">
+              <span className="text-red-500 text-sm">{dateError}</span>
+            </div>
+          )}
+
+          {/* Hiển thị lỗi từ API */}
+          {apiError && (
+            <div className="mt-2">
+              <span className="text-red-500 text-sm">{apiError}</span>
+            </div>
+          )}
         </div>
 
         {/* Phần biểu đồ */}

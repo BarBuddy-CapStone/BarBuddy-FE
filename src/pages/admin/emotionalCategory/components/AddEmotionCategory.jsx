@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
-import { message } from "antd"; // Import message từ antd
+import { message } from "antd";
 import ClipLoader from "react-spinners/ClipLoader";
-import useAuthStore from "src/lib/hooks/useUserStore";
 
 function AddEmotionCategory({ onClose, onAddSuccess }) {
   const [emotionType, setEmotionType] = useState("");
@@ -11,10 +10,6 @@ function AddEmotionCategory({ onClose, onAddSuccess }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   
-  // Get barId from userInfo
-  const { userInfo } = useAuthStore();
-  const barId = userInfo?.identityId;
-
   useEffect(() => {
     setShowPopup(true);
   }, []);
@@ -24,29 +19,38 @@ function AddEmotionCategory({ onClose, onAddSuccess }) {
     setLoading(true);
     setErrorMessage("");
 
+    if (emotionType.trim().length < 3 || emotionType.trim().length > 50) {
+      setErrorMessage("Thể loại cảm xúc phải có độ dài từ 3 đến 50 kí tự!");
+      setLoading(false);
+      return;
+    }
+
+    if (!description.trim()) {
+      setErrorMessage("Mô tả không được để trống!");
+      setLoading(false);
+      return;
+    }
+
     try {
       const emotionData = {
-        barId: barId,
-        categoryName: emotionType,
-        description: description
+        categoryName: emotionType.trim(),
+        description: description.trim()
       };
 
       const response = await createEmotionCategory(emotionData);
-      console.log("API Response:", response);
 
       if (response.data.statusCode === 200) {
-        message.success(response.data.message); // Sử dụng message.success thay vì toast
+        message.success(response.data.message || "Tạo EmotionCategory thành công.");
         onAddSuccess(true, response.data.message, emotionType);
-      } else {
-        throw new Error(response.data?.message || "Không thể thêm danh mục.");
       }
     } catch (error) {
       console.error("Error adding emotion category:", error);
-
-      if (error.response && error.response.status === 400) {
-        setErrorMessage("Category name must be between 3 and 20 characters");
+      if (error.response?.data?.errors?.Description) {
+        setErrorMessage(error.response.data.errors.Description[0]);
+      } else if (error.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
       } else {
-        message.error(error.message || "Có lỗi xảy ra khi thêm danh mục."); // Sử dụng message.error
+        setErrorMessage("Có lỗi xảy ra khi thêm danh mục cảm xúc.");
       }
     } finally {
       setLoading(false);
@@ -93,8 +97,8 @@ function AddEmotionCategory({ onClose, onAddSuccess }) {
         </div>
 
         {errorMessage && (
-          <div className="mt-1 text-red-500 text-xs">
-            <p>{errorMessage}</p>
+          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-500 text-sm">{errorMessage}</p>
           </div>
         )}
 
@@ -103,6 +107,7 @@ function AddEmotionCategory({ onClose, onAddSuccess }) {
             type="button"
             onClick={handleCancel}
             className="w-full py-2 text-white font-semibold rounded-full bg-gray-500 hover:bg-gray-600 transition-all focus:outline-none"
+            disabled={loading}
           >
             Hủy
           </button>

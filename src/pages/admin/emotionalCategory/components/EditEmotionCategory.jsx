@@ -5,13 +5,12 @@ import ClipLoader from "react-spinners/ClipLoader";
 import useAuthStore from "src/lib/hooks/useUserStore";
 
 function EditEmotionCategory({ emotionId, emotionName, emotionDescription, onClose, onEditSuccess }) {
-  const [emotion, setEmotion] = useState(emotionName);
+  const [emotion] = useState(emotionName);
   const [description, setDescription] = useState(emotionDescription);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
 
-  // Get barId from userInfo
   const { userInfo } = useAuthStore();
   const barId = userInfo?.identityId;
 
@@ -22,18 +21,22 @@ function EditEmotionCategory({ emotionId, emotionName, emotionDescription, onClo
   const handleSubmit = async (event) => {
     event.preventDefault();
     setErrorMessage("");
+
+    if (!description.trim()) {
+      setErrorMessage("Mô tả không được để trống!");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const updateData = {
-        barId: barId,
-        categoryName: emotion,
-        description: description
+        description: description.trim()
       };
 
       const response = await updateEmotionCategory(emotionId, updateData);
       if (response.data.statusCode === 200) {
-        message.success(response.data.message); // Sử dụng message.success
+        message.success(response.data.message || "Cập Nhật EmotionCategory thành công.");
         setShowPopup(false);
         setTimeout(() => {
           onEditSuccess();
@@ -41,10 +44,13 @@ function EditEmotionCategory({ emotionId, emotionName, emotionDescription, onClo
         }, 180);
       }
     } catch (error) {
-      if (error.response && error.response.status === 400) {
-        setErrorMessage("Category name must be between 3 and 20 characters");
+      console.error("Error updating category:", error);
+      if (error.response?.data?.errors?.Description) {
+        setErrorMessage(error.response.data.errors.Description[0]);
+      } else if (error.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
       } else {
-        message.error("Có lỗi xảy ra khi chỉnh sửa danh mục."); // Sử dụng message.error
+        setErrorMessage("Có lỗi xảy ra khi cập nhật danh mục cảm xúc.");
       }
     } finally {
       setLoading(false);
@@ -75,9 +81,14 @@ function EditEmotionCategory({ emotionId, emotionName, emotionDescription, onClo
             type="text"
             id="emotionName"
             value={emotion}
-            onChange={(e) => setEmotion(e.target.value)}
-            className="px-4 py-3 text-sm font-aBeeZee rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all w-full"
-            placeholder="Nhập cảm xúc"
+            readOnly
+            className="px-4 py-3 text-sm font-aBeeZee rounded-md border border-gray-300 bg-gray-100 cursor-not-allowed opacity-70 w-full"
+            style={{
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
+            }}
           />
         </div>
 
@@ -95,8 +106,8 @@ function EditEmotionCategory({ emotionId, emotionName, emotionDescription, onClo
         </div>
 
         {errorMessage && (
-          <div className="mt-1 text-red-500 text-xs">
-            <p>{errorMessage}</p>
+          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-500 text-sm">{errorMessage}</p>
           </div>
         )}
       </div>

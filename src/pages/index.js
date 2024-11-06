@@ -1,6 +1,12 @@
+// Admin Emotion Category
 import EditEmotionCategory from "./admin/emotionalCategory/components/EditEmotionCategory";
 import AddEmotionCategory from "./admin/emotionalCategory/components/AddEmotionCategory";
 import DeleteEmotionCategory from "./admin/emotionalCategory/components/DeleteEmotionCategory";
+
+// Admin Drink Category
+import PopUpCreate from "./admin/drinkCategory/components/PopUpCreate";
+import PopUpUpdate from "./admin/drinkCategory/components/PopUpUpdate";
+import PopupConfirmDelete from "./admin/drinkCategory/components/PopupConfirmDelete";
 
 // BookingTable Components
 import BookingTableInfo from "./customer/booking/bookingTable/components/BookingTableInfo";
@@ -50,5 +56,8 @@ export {
   Login,
   Registration,
   FilterSectionManager,
-  BookingTableManager
+  BookingTableManager,
+  PopUpCreate,
+  PopUpUpdate,
+  PopupConfirmDelete
 };

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, Add, Delete, Edit } from "@mui/icons-material";
+import { Search, Add, Edit, Delete } from "@mui/icons-material";
 import { getAllEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Pagination } from "@mui/material";
 import { message } from "antd";
 import AddEmotionCategory from "./components/AddEmotionCategory";
 import EditEmotionCategory from "./components/EditEmotionCategory";
 import DeleteEmotionCategory from "./components/DeleteEmotionCategory";
-import useAuthStore from "src/lib/hooks/useUserStore";
+import useDebounce from "src/lib/hooks/useDebounce";
 
 function EmotionCategoryCard({ category, onEdit, onDelete }) {
   return (
@@ -48,41 +48,46 @@ function EmotionalCategory() {
   const [currentDeleteCategory, setCurrentDeleteCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredCategories, setFilteredCategories] = useState([]);
+  const [currentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const pageSize = 6;
+  const debouncedSearchTerm = useDebounce(searchTerm);
 
-  const { userInfo } = useAuthStore();
-  const barId = userInfo?.identityId;
-
-  const fetchEmotionCategories = useCallback(async () => {
+  const fetchEmotionCategories = useCallback(async (search = '') => {
     setIsLoading(true);
+    setEmotionCategories([]);
     try {
-      const response = await getAllEmotionCategory();
-      const categories = response.data?.data || [];
-      setEmotionCategories(categories);
-      setFilteredCategories(categories);
+      const response = await getAllEmotionCategory(currentPage, pageSize, search);
+      if (response?.data?.data?.length > 0) {
+        setEmotionCategories(response.data.data);
+        setTotalItems(response.data.totalItems || response.data.data.length);
+      } else {
+        setEmotionCategories([]);
+      }
     } catch (error) {
-      console.error("Error fetching emotion categories:", error);
-      message.error("Không thể tải danh sách danh mục cảm xúc.");
+      if (error.response && error.response.status === 404) {
+        setEmotionCategories([]);
+      } else {
+        console.error("Error fetching emotion categories:", error);
+        message.error("Có lỗi xảy ra khi tải danh sách danh mục cảm xúc.");
+      }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
-    fetchEmotionCategories();
-  }, [fetchEmotionCategories]);
+    fetchEmotionCategories(debouncedSearchTerm);
+  }, [debouncedSearchTerm, fetchEmotionCategories]);
 
-  const handleSearch = () => {
-    const filtered = emotionCategories.filter(category =>
-      category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredCategories(filtered);
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   const handleAddSuccess = useCallback(async () => {
     setIsAdding(false);
-    await fetchEmotionCategories();
-  }, [fetchEmotionCategories]);
+    await fetchEmotionCategories(searchTerm);
+  }, [fetchEmotionCategories, searchTerm]);
 
   const handleEdit = (category) => {
     setCurrentEditCategory(category);
@@ -91,7 +96,7 @@ function EmotionalCategory() {
 
   const handleEditSuccess = async () => {
     setIsEditing(false);
-    await fetchEmotionCategories();
+    await fetchEmotionCategories(searchTerm);
   };
 
   const handleDelete = (category) => {
@@ -101,29 +106,29 @@ function EmotionalCategory() {
 
   const handleDeleteSuccess = async () => {
     setIsDeleting(false);
-    await fetchEmotionCategories();
+    await fetchEmotionCategories(searchTerm);
+  };
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
   };
 
   return (
     <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
       <div className="flex flex-col gap-0 max-md:flex-col">
-        <div className="flex flex-col md:flex-row items-center justify-between ml-4 mr-4 mt-6 gap-4 mb-4">
-          <div className="relative w-full md:w-96">
+        <div className="flex justify-between gap-4 mx-4 my-6">
+          <div className="relative w-[300px]">
             <input
               type="text"
               placeholder="Tìm kiếm danh mục cảm xúc..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-4 py-2 pr-10 border border-sky-900 rounded-full w-full"
+              onChange={handleSearch}
+              className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <Search 
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" 
-              onClick={handleSearch}
-            />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
-
           <button
-            className="flex items-center gap-2 px-6 py-2 text-base text-black bg-white rounded-full border border-sky-900 shadow hover:bg-gray-100 transition-colors duration-200 w-full md:w-auto"
+            className="flex items-center gap-2 px-6 py-2 text-base text-black bg-white rounded-full border border-sky-900 shadow hover:bg-gray-100 transition-colors duration-200"
             onClick={() => setIsAdding(true)}
           >
             <Add className="w-5 h-5" />
@@ -131,30 +136,45 @@ function EmotionalCategory() {
           </button>
         </div>
 
+        <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">
+          Danh Sách Danh Mục Cảm Xúc
+        </h2>
+        
         <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
-          <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">
-            Danh Sách Danh Mục Cảm Xúc
-          </h2>
-          
           {isLoading ? (
             <div className="flex justify-center items-center h-32">
               <CircularProgress />
             </div>
-          ) : filteredCategories.length === 0 ? (
+          ) : emotionCategories.length === 0 ? (
             <div className="flex justify-center items-center h-32">
-              <p className="text-red-500 text-lg font-semibold">Không có danh mục cảm xúc</p>
+              <p className="text-red-500 text-lg font-semibold">
+                Không tìm thấy danh mục cảm xúc!
+              </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {filteredCategories.map((category) => (
-                <EmotionCategoryCard
-                  key={category.emotionalDrinksCategoryId}
-                  category={category}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
+            <>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {emotionCategories.map((category) => (
+                  <EmotionCategoryCard
+                    key={category.emotionalDrinksCategoryId}
+                    category={category}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+              <div className="flex justify-center mt-4">
+                <Pagination
+                  count={Math.ceil(totalItems / pageSize)}
+                  page={currentPage}
+                  onChange={handlePageChange}
+                  color="primary"
+                  shape="rounded"
+                  showFirstButton
+                  showLastButton
                 />
-              ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
       </div>
