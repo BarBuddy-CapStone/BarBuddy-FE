@@ -58,11 +58,27 @@ const TableSelection = (
       updateTableHeldStatus(response.tableId, false, null, response.date, response.time);
     });
 
+    hubConnection.on("TableListReleased", (barId) => {
+      console.log("Table list released for bar:", barId);
+      if (barId === barId) {
+        // Cập nhật trạng thái của tất cả các bàn về trạng thái trống
+        setFilteredTables(prevTables => 
+          prevTables.map(table => ({
+            ...table,
+            status: 1,
+            isHeld: false,
+            holderId: null
+          }))
+        );
+      }
+    });
+
     return () => {
       hubConnection.off("TableHoId");
       hubConnection.off("TableReleased");
+      hubConnection.off("TableListReleased");
     };
-  }, [updateTableHeldStatus]);
+  }, [barId, updateTableHeldStatus]);
 
   useEffect(() => {
     const checkHoldTables = async () => {

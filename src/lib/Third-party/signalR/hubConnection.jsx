@@ -120,9 +120,17 @@ export const releaseTableSignalR = async (data) => {
 
 export const releaseTableListSignalR = async (data) => {
   try {
-    await hubConnection.invoke("ReleaseTableList", data);
+    await hubConnection.invoke("ReleaseListTablee", data.barId);
     console.log(`Tables released via SignalR for bar ${data.barId}`);
   } catch (error) {
     console.error("Error releasing tables via SignalR:", error);
   }
 };
+
+// Thêm listener cho TableListReleased
+connection.on("TableListReleased", (response) => {
+  console.log("Tables list released:", response);
+  document.dispatchEvent(new CustomEvent('tableListStatusChanged', { 
+    detail: { barId: response }
+  }));
+});

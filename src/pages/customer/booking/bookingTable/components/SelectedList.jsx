@@ -4,6 +4,7 @@ import useAuthStore from 'src/lib/hooks/useUserStore';
 import { hubConnection, releaseTableSignalR, releaseTableListSignalR } from 'src/lib/Third-party/signalR/hubConnection';
 import dayjs from 'dayjs';
 import { Button } from '@mui/material';
+import { toast } from "react-toastify";
 
 const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, selectedDate, selectedTime }) => {
   const [countdowns, setCountdowns] = useState({});
@@ -103,21 +104,38 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
         time: selectedTime + ":00",
         table: selectedTables.map(table => ({
           tableId: table.tableId,
-          time: table.time // Sử dụng trực tiếp giá trị time của bàn
+          time: table.time
         }))
       };
 
       const response = await releaseTableList(token, data);
       if (response.data.statusCode === 200) {
-        setSelectedTables([]);
+        // Gọi SignalR để thông báo cho các clients khác
         await releaseTableListSignalR(data);
-        // Thông báo cho người dùng
-        console.log("Đã xóa tất cả bàn đã chọn");
+        // Xóa local state
+        setSelectedTables([]);
+        toast.success("Đã xóa tất cả bàn đã chọn");
       }
     } catch (error) {
       console.error("Error releasing all tables:", error);
+      toast.error("Có lỗi xảy ra khi xóa các bàn");
     }
   };
+
+  // Thêm useEffect để lắng nghe sự kiện tableListStatusChanged
+  useEffect(() => {
+    const handleTableListReleased = (event) => {
+      const { barId } = event.detail;
+      if (barId === barId) { // Kiểm tra nếu đúng barId hiện tại
+        setSelectedTables([]); // Xóa toàn bộ selected tables
+      }
+    };
+
+    document.addEventListener('tableListStatusChanged', handleTableListReleased);
+    return () => {
+      document.removeEventListener('tableListStatusChanged', handleTableListReleased);
+    };
+  }, [barId]);
 
   return (
     <div className={`flex flex-col px-8 pt-4 pb-10 mt-4 w-full text-xs text-white rounded-md bg-neutral-800 shadow-[0px_0px_16px_rgba(0,0,0,0.07)] ${sortedTables.length === 0 ? 'hidden' : ''}`}>
