@@ -1,7 +1,7 @@
 import axios from "../axiosCustomize";
 
-const getAllEmotionCategory = async () => {
-  return await axios.get(`api/emocategory/get`);
+const getAllEmotionCategory = async (pageIndex = 1, pageSize = 6, search = '') => {
+  return await axios.get(`api/emocategory/get?PageIndex=${pageIndex}&PageSize=${pageSize}&Search=${search}`);
 };
 
 const createEmotionCategory = async (data) => {

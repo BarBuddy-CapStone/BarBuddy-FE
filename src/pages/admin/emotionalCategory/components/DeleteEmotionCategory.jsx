@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { message } from 'antd'; // Import message từ antd
 import { deleteEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
 import ClipLoader from "react-spinners/ClipLoader";
-import useAuthStore from "src/lib/hooks/useUserStore";
 
 const DeleteEmotionCategory = ({
   emotionId,
@@ -13,10 +12,6 @@ const DeleteEmotionCategory = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
-  
-  // Get barId from userInfo
-  const { userInfo } = useAuthStore();
-  const barId = userInfo?.identityId;
 
   useEffect(() => {
     setShowPopup(true);

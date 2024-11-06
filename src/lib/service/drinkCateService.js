@@ -1,7 +1,7 @@
 import axios from "../axiosCustomize";
 
-const getAllDrinkCate = async () => {
-    return await axios.get('api/v1/DrinkCategory')
+const getAllDrinkCate = async (pageIndex = 1, pageSize = 6, search = '') => {
+    return await axios.get(`api/v1/DrinkCategory?PageIndex=${pageIndex}&PageSize=${pageSize}&Search=${search}`)
 }
 
 const getOneDrinkCate = async (drinkCateId) => {

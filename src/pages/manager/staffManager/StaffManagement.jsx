@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; // Thêm useLocation
 import SearchIcon from '@mui/icons-material/Search';
 import { getStaffAccounts } from '../../../lib/service/adminService'; // Import hàm mới
@@ -155,6 +155,12 @@ const StaffManagement = () => {
     const location = useLocation();
     const [barOptions, setBarOptions] = useState(["All"]); // Mặc định có option "All"
 
+    // Thêm useMemo để tối ưu hóa việc lọc danh sách bar
+    const uniqueBars = useMemo(() => {
+        return ["All", ...new Set((staffData || []).map(staff => staff.bar?.barName).filter(Boolean))];
+    }, [staffData]);
+
+    // Sửa lại useEffect để tránh re-render không cần thiết
     useEffect(() => {
         const loadData = async () => {
             setIsLoading(true);
@@ -162,33 +168,39 @@ const StaffManagement = () => {
                 const response = await getAllStaff(pageSize, pageIndex);
                 if (response.data.statusCode === 200) {
                     const { items, total, pageIndex: currentPage, pageSize: size } = response.data.data;
-                    setStaffData(items || []); // Đảm bảo items không null
-                    setFilteredStaff(items || []); // Đảm bảo items không null
+                    setStaffData(items || []); 
+                    setFilteredStaff(items || []); 
                     setTotalStaff(total);
                     setPageIndex(currentPage);
                     setPageSize(size);
-
-                    // Lấy danh sách bar từ staff data
-                    const uniqueBars = ["All", ...new Set((items || []).map(staff => staff.bar?.barName).filter(Boolean))];
                     setBarOptions(uniqueBars);
-                } else if (response.data.statusCode === 404) {
-                    // Xử lý trường hợp danh sách trống
+                } else {
                     setStaffData([]);
                     setFilteredStaff([]);
-                    message.warning("Danh sách staff đang trống !");
                 }
             } catch (error) {
                 console.error('Failed to fetch staff data:', error);
-                message.error('Không thể tải danh sách nhân viên.');
             } finally {
                 setIsLoading(false);
             }
         };
-        loadData();
-    }, [pageIndex, pageSize]);
 
+        // Thêm một flag để kiểm soát việc gọi API
+        let isSubscribed = true;
+
+        if (isSubscribed) {
+            loadData();
+        }
+
+        // Cleanup function
+        return () => {
+            isSubscribed = false;
+        };
+    }, [pageIndex]); // Chỉ theo dõi pageIndex, bỏ pageSize ra khỏi dependencies
+
+    // Tách riêng useEffect cho location.state để tránh conflict
     useEffect(() => {
-        if (location.state && location.state.successMessage) {
+        if (location.state?.successMessage) {
             message.success(location.state.successMessage);
         }
     }, [location.state]);
