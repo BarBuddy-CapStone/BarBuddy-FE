@@ -9,7 +9,7 @@ import ProtectedAdminRoute from "./components/ProtectedRoute/ProtectedAdminRoute
 import Dashboard from "./pages/admin/dashboard/DashBoard";
 import FeedbackAdmin from "./pages/admin/feedback/FeedbackAdmin";
 import FeedbackDetailAdmin from "./pages/admin/feedback/FeedbackDetailAdmin";
-import EmotionalCategory from "./pages/manager/emotionalCategory/EmotionalCategory";
+import EmotionalCategory from "./pages/admin/emotionalCategory/EmotionalCategory";
 import TableTypeManagement from "./pages/manager/table-type-management/TableTypeManagement";
 import PaymentHistoryAdmin from "./pages/admin/payment-history/PaymentHistoryAdmin";
 import PaymentHistoryStaff from "./pages/staff/payment-history/PaymentHistoryStaff";
@@ -23,7 +23,7 @@ import CustomerDetail from "./pages/admin/customerManagerment/CustomerDetail";
 import BookingListStaff from "./pages/staff/table-registration/BookingListStaff";
 import BarManagement from "./pages/admin/barManager/BarManagement";
 import BarProfile from "./pages/admin/barManager/BarProfile";
-import DrinkCategories from "./pages/manager/managerDrinkCate/DrinkCategories";
+import DrinkCategoriesAdmin from "./pages/admin/drinkCategory/DrinkCategoriesAdmin";
 import DrinkDetail from "./pages/manager/ManagerDrinkBasedCate/DrinkDetail";
 import ManagerDrinkBasedEmotional from "./pages/manager/ManagerDrinkBasedCate/ManagerDrinkBasedEmotion";
 import AdminLayout from "./components/adminComponents/AdminLayout";
@@ -54,7 +54,6 @@ import EventManagement from "./pages/admin/event-management/EventManagement";
 import AddEvent from "./pages/admin/event-management/AddEvent";
 import ManagerLayout from "./components/managerComponents/ManagerLayout";
 import ManagerDrink from "./pages/manager/ManagerDrinkBasedCate/ManagerDrink";
-
 import FeedbackManager from "./pages/manager/feedback/FeedbackManager";
 import FeedbackDetailManager from "./pages/manager/feedback/FeedbackDetailManager";
 import PaymentHistoryManager from "./pages/manager/payment-history/PaymentHistoryManager";
@@ -65,6 +64,7 @@ import ManagerCreation from "./pages/admin/managerManagement/ManagerCreation";
 import ManagerManagement from "./pages/admin/managerManagement/ManagerManagement";
 import TableManagementManager from "./pages/manager/table-management/TableManagementManager";
 import ProtectedCustomerRoute from "./components/ProtectedRoute/ProtectedCustomerRoute";
+import DrinkCategories from "./pages/manager/managerDrinkCate/DrinkCategories";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -89,6 +89,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="admin/addBar" element={<AddBar />}/> 
             <Route path="admin/event-management" element={<EventManagement />}/>
             <Route path="admin/event-management/add-event" element={<AddEvent />} />
+            <Route path="admin/drink-categories" element={<DrinkCategoriesAdmin />}/>
+
+            {/* Emotional */}
+          <Route path="admin/emotional" element={<EmotionalCategory />}/>
           </Route>
         </Route>
 
@@ -102,9 +106,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="manager/managerDrink/addDrink" element={<AddDrink />}/>
           <Route path="manager/emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}/> 
           
-          {/* Emotional */}
-          <Route path="manager/emotional" element={<EmotionalCategory />}/>
-
           {/* Feedback */}
           <Route path="manager/feedback" element={<FeedbackManager />}/> 
           <Route path="manager/feedback/detail/:feedbackId" element={<FeedbackDetailManager />}/> 

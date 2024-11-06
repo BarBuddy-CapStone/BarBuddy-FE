@@ -11,7 +11,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { revenueDashboard, getBarNameOnly } from "../../../lib/service/adminService";
+import { revenueDashboard, getBarNameOnly, getAllRevenue } from "../../../lib/service/adminService";
+import { message } from 'antd';
 
 ChartJS.register(
   CategoryScale,
@@ -31,15 +32,52 @@ const formatDateToUTC7 = (date) => {
   return d.toISOString().split('T')[0]; // Lấy phần ngày yyyy-mm-dd
 };
 
+// Sửa hàm helper để format tiền VND
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(amount).replace('₫', 'VND');
+};
+
 const Dashboard = () => {
   // Khởi tạo startDate với ngày hiện tại theo UTC+7
   const [startDate, setStartDate] = useState(formatDateToUTC7());
   const [endDate, setEndDate] = useState("");
   const [barId, setBarId] = useState("");
   const [revenue, setRevenue] = useState(0);
-  const [filterType, setFilterType] = useState("day");
   const [barList, setBarList] = useState([]);
   const navigate = useNavigate();
+
+  // Thêm state để lưu dữ liệu biểu đồ
+  const [chartData, setChartData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: 'Doanh thu',
+        data: [],
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.3,
+        yAxisID: 'y',
+      },
+      {
+        label: 'Số đơn đặt bàn',
+        data: [],
+        borderColor: 'rgb(255, 99, 132)',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        tension: 0.3,
+        yAxisID: 'y1',
+      }
+    ]
+  });
+
+  // Thêm state mới cho totalBooking
+  const [totalBooking, setTotalBooking] = useState(0);
+
+  // Thêm state mới cho totalRevenue và totalBarBranch
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalBarBranch, setTotalBarBranch] = useState(0);
 
   useEffect(() => {
     const fetchBarList = async () => {
@@ -53,11 +91,24 @@ const Dashboard = () => {
       }
     };
 
+    const fetchAllRevenue = async () => {
+      try {
+        const response = await getAllRevenue();
+        if (response.data?.data) {
+          const { revenueBranch, totalBooking, totalBarBranch } = response.data.data;
+          setTotalRevenue(revenueBranch);
+          setTotalBooking(totalBooking);
+          setTotalBarBranch(totalBarBranch);
+        }
+      } catch (error) {
+        console.error("Error fetching all revenue:", error);
+      }
+    };
+
     fetchBarList();
-    // Gọi fetchRevenue với ngày hiện tại và type mặc định
+    fetchAllRevenue(); // Gọi API mới
     fetchRevenue({
-      dateTime: formatDateToUTC7(),
-      type: "day"
+      fromTime: formatDateToUTC7()
     });
   }, []);
 
@@ -65,58 +116,147 @@ const Dashboard = () => {
     try {
       const response = await revenueDashboard(
         filters.barId || barId,
-        filters.dateTime || startDate,
-        filters.type || filterType
+        filters.fromTime || startDate,
+        filters.toTime || endDate
       );
-      if (response.data?.data?.revenueOfBar !== undefined) {
-        setRevenue(response.data.data.revenueOfBar);
+      
+      if (response.data?.data) {
+        const { revenueOfBar, totalBooking, bookingReveueResponses } = response.data.data;
+        setRevenue(revenueOfBar);
+        setTotalBooking(totalBooking);
+
+        const labels = bookingReveueResponses.map(item => 
+          new Date(item.date).toLocaleDateString('vi-VN')
+        );
+        const revenueData = bookingReveueResponses.map(item => item.totalPrice);
+        const bookingData = bookingReveueResponses.map(item => item.totalBookingOfDay);
+
+        setChartData({
+          labels,
+          datasets: [
+            {
+              label: 'Doanh thu (VNĐ)',
+              data: revenueData,
+              borderColor: 'rgb(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              tension: 0.3,
+              yAxisID: 'y',
+            },
+            {
+              label: 'Số đơn đặt bàn',
+              data: bookingData,
+              borderColor: 'rgb(255, 99, 132)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              tension: 0.3,
+              yAxisID: 'y1',
+            }
+          ]
+        });
       }
     } catch (error) {
       console.error("Error fetching revenue:", error);
+      if (error.response?.data?.message) {
+        message.error(error.response.data.message);
+      } else {
+        message.error('Có lỗi xảy ra khi tải dữ liệu');
+      }
     }
   };
 
-  // Cập nhật hàm handleFilter để sử dụng ngày đã format
+  // Cập nhật hàm handleFilter để dùng message
   const handleFilter = () => {
+    // Kiểm tra cả hai ngày phải được chọn
+    if (!startDate || !endDate) {
+      message.error('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc');
+      return;
+    }
+
+    // Kiểm tra ngày bắt đầu không được lớn hơn ngày kết thúc
+    if (new Date(startDate) > new Date(endDate)) {
+      message.error('Ngày bắt đầu không thể lớn hơn ngày kết thúc');
+      return;
+    }
+
+    // Nếu validation pass, gọi API
     fetchRevenue({
       barId: barId,
-      dateTime: startDate,
-      type: filterType
+      fromTime: startDate,
+      toTime: endDate
     });
   };
 
-  // Sample data for Chart.js
-  const data = {
-    labels: ['09/01', '09/02', '09/03', '09/04', '09/05', '09/06', '09/07'],
-    datasets: [
-      {
-        label: 'Đặt bàn trước',
-        data: [100, 150, 180, 130, 190, 170, 220],
-        borderColor: 'rgb(255, 205, 86)',
-        backgroundColor: 'rgba(255, 205, 86, 0.2)',
-        tension: 0.3,
-      },
-      {
-        label: 'Khách hàng',
-        data: [120, 140, 160, 110, 150, 190, 210],
-        borderColor: 'rgb(54, 162, 235)',
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        tension: 0.3,
-      }
-    ]
-  };
-
+  // Cập nhật options cho biểu đồ
   const options = {
     responsive: true,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
     plugins: {
       legend: {
         position: 'top',
       },
       title: {
         display: true,
-        text: 'Thống kê đặt bàn trước và khách hàng',
+        text: 'Biểu đồ doanh thu và số đơn đặt bàn',
       },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.datasetIndex === 0) { // Doanh thu
+              label += new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+              }).format(context.parsed.y);
+            } else { // Số đơn
+              label += context.parsed.y + ' đơn';
+            }
+            return label;
+          }
+        }
+      }
     },
+    scales: {
+      y: {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        title: {
+          display: true,
+          text: 'Doanh thu (VNĐ)'
+        },
+        ticks: {
+          callback: function(value) {
+            return new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND'
+            }).format(value);
+          }
+        }
+      },
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        title: {
+          display: true,
+          text: 'Số đơn đặt bàn'
+        },
+        ticks: {
+          stepSize: 1,
+          callback: function(value) {
+            return value + ' đơn';
+          }
+        },
+        grid: {
+          drawOnChartArea: false,
+        },
+      },
+    }
   };
 
   // Handle navigation
@@ -126,92 +266,103 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
+      {/* Card thống kê tổng quan */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-2 text-gray-600">Tổng số bàn</h3>
-          <p className="text-3xl font-bold text-blue-600">50</p>
+          <h3 className="text-lg font-semibold mb-2 text-gray-600">Tổng Chi Nhánh</h3>
+          <p className="text-3xl font-bold text-blue-600">{totalBarBranch}</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-gray-600">Tổng doanh thu</h3>
             <button
-            onClick={handleNavigate}
-            className="flex items-center gap-2 px-4 py-2 text-base text-black bg-white rounded-md border border-blue-500 shadow hover:bg-gray-300 w-full md:w-auto"
+              onClick={handleNavigate}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 bg-white rounded-md border border-blue-500 hover:bg-blue-50 transition-colors"
             >
-            <span>Lịch sử giao dịch</span>
-          </button>
-
+              <span>Lịch sử giao dịch</span>
+            </button>
           </div>
           <p className="text-3xl font-bold text-green-600 mt-2">
-            {revenue.toLocaleString()}đ
+            {formatCurrency(totalRevenue)}
           </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-2 text-gray-600">Tổng khách hàng</h3>
-          <p className="text-3xl font-bold text-purple-600">500</p>
+          <h3 className="text-lg font-semibold mb-2 text-gray-600">Tổng đơn đặt bàn</h3>
+          <p className="text-3xl font-bold text-purple-600">{totalBooking}</p>
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow-md">
-        <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex flex-col">
-            <label className="text-gray-600 text-sm mb-1 font-bold">
-              Chi nhánh
-            </label>
-            <select
-              value={barId}
-              onChange={(e) => setBarId(e.target.value)}
-              className="p-1 border rounded-md text-sm min-w-[200px]"
-            >
-              <option value="">Tất cả chi nhánh</option>
-              {barList.map((bar) => (
-                <option key={bar.barId} value={bar.barId}>
-                  {bar.barName}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col">
-            <label className="text-gray-600 text-sm mb-1 font-bold">
-              Từ ngày
-            </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="p-1 border rounded-md text-sm"
-            />
-          </div>
-
-          <div className="flex flex-col">
-            <label className="text-gray-600 text-sm mb-1 font-bold">
-              Loại thống kê
-            </label>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="p-1 border rounded-md text-sm"
-            >
-              <option value="day">Trong ngày</option>
-              <option value="month">Trong tháng</option>
-              <option value="year">Trong năm</option>
-            </select>
-          </div>
-
-          <button
-            onClick={handleFilter}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-          >
-            Lọc
-          </button>
+      {/* Card biểu đồ và bộ lọc */}
+      <div className="bg-white rounded-lg shadow-md">
+        {/* Header của card */}
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-800">Biểu đồ doanh thu và số đơn đặt bàn</h2>
         </div>
-      </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Biểu đồ doanh thu</h2>
-        <div className="h-96">
-          <Line data={data} options={options} />
+        {/* Phần filter */}
+        <div className="p-6 border-b border-gray-200 bg-gray-50">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="flex flex-col">
+              <label className="text-gray-600 text-sm mb-1.5 font-medium">
+                Chi nhánh
+              </label>
+              <select
+                value={barId}
+                onChange={(e) => setBarId(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Tất cả chi nhánh</option>
+                {barList.map((bar) => (
+                  <option key={bar.barId} value={bar.barId}>
+                    {bar.barName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-gray-600 text-sm mb-1.5 font-medium">
+                Từ ngày <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-gray-600 text-sm mb-1.5 font-medium">
+                Đến ngày <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <div className="flex-grow"></div>
+              <button
+                onClick={handleFilter}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Áp dụng bộ lọc
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Phần biểu đồ */}
+        <div className="p-6">
+          <div className="h-[400px]">
+            <Line data={chartData} options={options} />
+          </div>
         </div>
       </div>
     </div>

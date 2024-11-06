@@ -1,18 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import AddDrinkCategoryForm from './PopUpCreate';
+import UpdDrinkCategoryForm from './PopUpUpdate';
+import PopupConfirmDelete from 'src/components/popupConfirm/popupCfDelete';
 import { getAllDrinkCate } from 'src/lib/service/drinkCateService';
 import { CircularProgress } from '@mui/material';
-import { Add, Info } from '@mui/icons-material';
+import { Add, Info, Edit, Delete } from '@mui/icons-material';
 
-const CategoryCard = ({ id, type, description }) => {
-    const navigate = useNavigate();
+const CategoryCard = ({ id, type, description, setLoading, refreshList }) => {
+    const [isPopupUpdate, setIsPopupUpdate] = useState(false);
+    const [isPopupDelete, setIsPopupDelete] = useState(false);
 
-    const handleInfoClick = () => {
-        navigate(`/manager/managerDrinkCategory/managerDrink/${id}`);
+    const handleEditClick = () => {
+        setIsPopupUpdate(true);
     };
 
-    const handleAddDrinkClick = () => {
-        navigate(`/manager/managerDrink/addDrink?cateId=${id}`);
+    const handleCloseUpdatePopup = () => {
+        setIsPopupUpdate(false);
+        refreshList();
+    };
+
+    const handleCloseDeletePopup = () => {
+        setIsPopupDelete(false);
+        refreshList();
     };
 
     return (
@@ -24,19 +33,11 @@ const CategoryCard = ({ id, type, description }) => {
                 </div>
 
                 <div className="flex gap-2 flex-shrink-0 items-center">
-                    <button 
-                        onClick={handleInfoClick} 
-                        className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 flex items-center justify-center"
-                        title="Xem chi tiết"
-                    >
-                        <Info className="w-5 h-5 text-gray-600" />
+                    <button onClick={handleEditClick} className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 flex items-center justify-center">
+                        <Edit className="w-5 h-5 text-gray-600" />
                     </button>
-                    <button 
-                        onClick={handleAddDrinkClick} 
-                        className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 flex items-center justify-center"
-                        title="Thêm đồ uống"
-                    >
-                        <Add className="w-5 h-5 text-gray-600" />
+                    <button onClick={() => setIsPopupDelete(true)} className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 flex items-center justify-center">
+                        <Delete className="w-5 h-5 text-gray-600" />
                     </button>
                 </div>
             </div>
@@ -44,12 +45,29 @@ const CategoryCard = ({ id, type, description }) => {
                 <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/1e2a568ee4fc18b3ebd3b96ec24c6285c3f03c41f2b949ffc5bc1e20431c5b66" className="object-contain shrink-0 self-start mt-1 w-6 aspect-square" alt="" />
                 <p className="flex-1 min-h-[60px] break-words">{description}</p>
             </div>
+            {isPopupUpdate && (
+                <UpdDrinkCategoryForm 
+                    setLoading={setLoading} 
+                    data={{ drinksCategoryId: id, drinksCategoryName: type, description: description }}
+                    onClose={handleCloseUpdatePopup}
+                />
+            )}
+            {isPopupDelete && (
+                <PopupConfirmDelete 
+                    refreshList={refreshList} 
+                    setLoading={setLoading} 
+                    onClose={handleCloseDeletePopup} 
+                    id={id} 
+                    confirmDelete={true} 
+                />
+            )}
         </div>
     );
 };
 
-const DrinkCategories = () => {
+const DrinkCategoriesAdmin = () => {
     const [drinkCateList, setDrinkCateList] = useState([]);
+    const [isPopupCreate, setIsPopupCreate] = useState(false);
     const [loading, setLoading] = useState(false);
     const [noData, setNoData] = useState(false);
 
@@ -77,11 +95,27 @@ const DrinkCategories = () => {
         fetchdataDrCate();
     }, []);
 
+    const handleAddCategory = async () => {
+        setIsPopupCreate(true);
+    };
+
+    const handleCloseAddPopup = () => {
+        setIsPopupCreate(false);
+        fetchdataDrCate();
+    };
+
     return (
         <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
             <div className="flex flex-col gap-0 max-md:flex-col">
                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mx-4 my-6">
                     <h1 className="text-3xl font-bold">Danh mục thức uống</h1>
+                    <button
+                        onClick={handleAddCategory}
+                        className="flex items-center justify-center gap-2 px-6 py-2 text-base text-black bg-white rounded-full border border-sky-900 shadow hover:bg-gray-100 transition-colors duration-200 w-full sm:w-auto"
+                    >
+                        <Add className="w-5 h-5" />
+                        <span>Thêm danh mục</span>
+                    </button>
                 </div>
                 <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
                     {loading ? (
@@ -100,14 +134,19 @@ const DrinkCategories = () => {
                                     id={category.drinksCategoryId}
                                     type={category.drinksCategoryName}
                                     description={category.description}
+                                    refreshList={fetchdataDrCate}
+                                    setLoading={setLoading}
                                 />
                             ))}
                         </div>
                     )}
                 </div>
             </div>
+            {isPopupCreate && (
+                <AddDrinkCategoryForm onClose={handleCloseAddPopup} setLoading={setLoading} refreshList={fetchdataDrCate} />
+            )}
         </main>
     );
 };
 
-export default DrinkCategories;
+export default DrinkCategoriesAdmin; 

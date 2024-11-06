@@ -98,13 +98,13 @@ export const createManager = async (managerData) => {
     return await axios.post("api/v1/manager-account", managerData, config);
 };
 
-export const revenueDashboard = async (barId, dateTime, type) => {
-    let url = "api/v1/Bar/admin/dashboard/revenue";
+export const revenueDashboard = async (barId, fromTime, toTime) => {
+    let url = "api/v1/Bar/admin/dashboard/revenueChart";
     const params = new URLSearchParams();
     
     if (barId) params.append('barId', barId);
-    if (dateTime) params.append('dateTime', dateTime);
-    if (type) params.append('type', type);
+    if (fromTime) params.append('fromTime', fromTime);
+    if (toTime) params.append('toTime', toTime);
     
     if (params.toString()) {
         url += `?${params.toString()}`;
@@ -116,3 +116,8 @@ export const revenueDashboard = async (barId, dateTime, type) => {
 export const getBarNameOnly = async () => {
     return await axios.get(`api/v1/Bar/admin/dashboard/getBar`);
 }
+
+// Thêm API mới
+export const getAllRevenue = async () => {
+    return await axios.get("api/v1/Bar/admin/dashboard/getAllRevenue");
+};

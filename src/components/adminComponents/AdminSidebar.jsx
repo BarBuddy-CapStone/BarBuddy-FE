@@ -11,6 +11,7 @@ import MoodIcon from '@mui/icons-material/Mood';
 import LocalBarIcon from '@mui/icons-material/LocalBar';
 import FeedbackIcon from '@mui/icons-material/Feedback';
 import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
+import DrinkCategoriesAdmin from "src/pages/admin/drinkCategory/DrinkCategoriesAdmin";
 
 const sidebarItems = [
   {
@@ -43,20 +44,20 @@ const sidebarItems = [
     label: "Khách Hàng",
     path: "/admin/customers",
   },
+  {
+    icon: LocalBarIcon,
+    label: "Thức uống",
+    path: "admin/drink-categories",
+  },
+  {
+    icon: MoodIcon,
+    label: "Danh mục cảm xúc",
+    path: "/admin/emotional",
+  },
   // {
   //   icon: BadgeIcon,
   //   label: "Nhân viên",
   //   path: "/admin/staff",
-  // },
-  // {
-  //   icon: MoodIcon,
-  //   label: "Danh mục cảm xúc",
-  //   path: "/admin/emotional",
-  // },
-  // {
-  //   icon: LocalBarIcon,
-  //   label: "Thức uống",
-  //   path: "/admin/managerDrinkCategory",
   // },
   {
     icon: FeedbackIcon,
