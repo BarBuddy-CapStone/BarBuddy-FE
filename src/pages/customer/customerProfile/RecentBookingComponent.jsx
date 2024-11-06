@@ -175,20 +175,21 @@ function BookingHistory({ accountId }) {
   // Check if the booking can be canceled (before 1 hour)
   function canCancelBooking(bookingDate, bookingTime) {
     const now = new Date();
+    
+    // Chuyển đổi múi giờ UTC+7
+    const utcOffset = 7 * 60; // Offset in minutes for UTC+7
+    const nowUTC7 = new Date(now.getTime() + (now.getTimezoneOffset() + utcOffset) * 60000);
 
     // Combine bookingDate and bookingTime
-    const bookingDateTimeStr = `${bookingDate}T${bookingTime}`;
-    const bookingDateTime = parseISO(bookingDateTimeStr);
+    const [hours, minutes] = bookingTime.split(':');
+    const bookingDateTime = new Date(bookingDate);
+    bookingDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
 
-    if (isNaN(bookingDateTime.getTime())) {
-      console.error("Invalid booking date and time:", bookingDateTimeStr);
-      return false; // Fail gracefully if the date is invalid
-    }
+    // Calculate the deadline to cancel (2 hours before booking time)
+    const cancelDeadline = new Date(bookingDateTime.getTime() - (2 * 60 * 60 * 1000));
 
-    // Calculate the deadline to cancel (1 hour before booking time)
-    const cancelDeadline = addHours(bookingDateTime, -1);
-
-    return isBefore(now, cancelDeadline);
+    // So sánh thời gian hiện tại với deadline
+    return nowUTC7 < cancelDeadline;
   }
 
   return (
@@ -263,7 +264,7 @@ function BookingHistory({ accountId }) {
                   <p className="text-gray-400 text-sm mb-2">
                     {getTimeAgo(booking.createAt)}
                   </p>
-                  {booking.status === 0 && (
+                  {booking.status === 0 && canCancelBooking(booking.bookingDate, booking.bookingTime) && (
                     <button
                       className={`px-4 py-2 w-[120px] bg-amber-400 text-black rounded-full text-sm hover:bg-amber-500 transition duration-200`}
                       onClick={(e) => {
