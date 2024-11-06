@@ -83,8 +83,8 @@ connection.on("TableHoId", (response) => {
 
 connection.on("TableReleased", (response) => {
   console.log("Table released:", response);
-  // const { releaseTable } = useTableStore.getState();
-  // releaseTable(response.tableId, response.date, response.time);
+  const { releaseTable } = useTableStore.getState();
+  releaseTable(response.tableId, response.date, response.time);
   document.dispatchEvent(new CustomEvent('tableStatusChanged', { detail: { tableId: response.tableId, isHeld: false, holderId: null } }));
 });
 

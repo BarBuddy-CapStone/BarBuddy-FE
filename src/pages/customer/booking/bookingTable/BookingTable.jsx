@@ -392,12 +392,29 @@ const BookingTable = () => {
           }));
 
           updateTableHeldStatus(tableId, false, null, table.date, table.time);
-          await hubConnection.invoke("ReleaseTable", data);
+          
+          const hubResponse = {
+            barId: barId,
+            tableId: tableId,
+            date: table.date,
+            time: table.time,
+            accountId: userInfo.accountId
+          };
+          
+          await hubConnection.invoke("ReleaseTable", hubResponse);
         } else {
           console.error("Release table request failed:", response.data);
         }
       } catch (error) {
         console.error("Error releasing table:", error);
+        toast.error("Có lỗi xảy ra khi giải phóng bàn. Vui lòng thử lại sau.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     }
 
