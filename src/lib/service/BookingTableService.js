@@ -57,23 +57,54 @@ const holdTable = async (token, data) => {
 };
 
 const releaseTable = async (token, data) => {
-  const config = {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  };
-  return await axios.post(`api/bookingTable/releaseTable`, data, config);
+  try {
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    };
+    
+    const cleanData = {
+      barId: data.barId,
+      tableId: data.tableId,
+      date: data.date,
+      time: data.time
+    };
+    
+    const response = await axios.post(`api/bookingTable/releaseTable`, cleanData, config);
+    return response;
+  } catch (error) {
+    console.error("Error in releaseTable:", error);
+    throw error;
+  }
 };
 
 const releaseTableList = async (token, data) => {
-  const config = {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  };
-  return await axios.post(`api/bookingTable/releaseListTable`, data, config);
+  try {
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    };
+    
+    const cleanData = {
+      barId: data.barId,
+      date: data.date,
+      time: data.time,
+      table: data.table.map(t => ({
+        tableId: t.tableId,
+        time: t.time
+      }))
+    };
+    
+    const response = await axios.post(`api/bookingTable/releaseListTable`, cleanData, config);
+    return response;
+  } catch (error) {
+    console.error("Error in releaseTableList:", error);
+    throw error;
+  }
 };
 
 const getAllHoldTable = async (token, barId, date, time) => {
@@ -88,10 +119,18 @@ const getAllHoldTable = async (token, barId, date, time) => {
     const formattedDate = dayjs(date).format("YYYY/MM/DD");
     const formattedTime = time.includes(':00') ? time : time + ':00';
     
-    const url = `api/bookingTable/getHoldTable/${barId}?Date=${formattedDate}&Time=${formattedTime}`;
-    console.log("Getting hold tables:", url);
+    const params = {
+      Date: formattedDate,
+      Time: formattedTime
+    };
+
+    console.log("Getting hold tables with params:", { barId, ...params });
     
-    const response = await axios.get(url, config);
+    const response = await axios.get(`api/bookingTable/getHoldTable/${barId}`, {
+      ...config,
+      params: params
+    });
+
     console.log("Hold tables response:", response.data);
     
     return response;
@@ -100,7 +139,12 @@ const getAllHoldTable = async (token, barId, date, time) => {
     if (error.response) {
       console.error("Server error details:", error.response.data);
     }
-    throw error;
+    return {
+      data: {
+        statusCode: 200,
+        data: []
+      }
+    };
   }
 };
 

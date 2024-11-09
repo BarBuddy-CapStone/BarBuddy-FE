@@ -53,7 +53,7 @@ const TableSelection = (
           };
         }
         return table;
-      })
+      }) 
     );
   }, []);
 
@@ -87,12 +87,48 @@ const TableSelection = (
 
   useEffect(() => {
     const handleTableStatusChange = (event) => {
-      const { tableId, isHeld, holderId, date, time } = event.detail;
-      updateTableHeldStatus(tableId, isHeld, holderId, date, time);
+      const { tableId, isHeld, holderId, accountId, status, date, time } = event.detail;
+      console.log("TableSelection received tableStatusChanged:", event.detail);
+      
+      setFilteredTables(prevTables =>
+        prevTables.map(table => {
+          if (table.tableId === tableId) {
+            return {
+              ...table,
+              status: status || (isHeld ? 2 : 1),
+              isHeld: isHeld,
+              holderId: holderId,
+              accountId: accountId,
+              date: date,
+              time: time
+            };
+          }
+          return table;
+        })
+      );
     };
 
     const handleTableListStatusChange = (event) => {
-      handleTableListRelease(event.detail);
+      const { tables } = event.detail;
+      console.log("TableSelection received tableListStatusChanged:", event.detail);
+
+      // Cập nhật trạng thái các bàn trong filteredTables
+      setFilteredTables(prevTables =>
+        prevTables.map(table => {
+          if (tables.some(t => t.tableId === table.tableId)) {
+            return {
+              ...table,
+              status: 1,
+              isHeld: false,
+              holderId: null,
+              accountId: null,
+              date: null,
+              time: null
+            };
+          }
+          return table;
+        })
+      );
     };
 
     document.addEventListener('tableStatusChanged', handleTableStatusChange);
@@ -102,7 +138,7 @@ const TableSelection = (
       document.removeEventListener('tableStatusChanged', handleTableStatusChange);
       document.removeEventListener('tableListStatusChanged', handleTableListStatusChange);
     };
-  }, [updateTableHeldStatus, handleTableListRelease]);
+  }, [setFilteredTables, setCurrentHoldCount]);
 
   useEffect(() => {
     const checkHoldTables = async () => {
@@ -130,13 +166,61 @@ const TableSelection = (
       return;
     }
 
-    if (heldTableIds.has(table.tableId)) {
+    if (table.isHeld || table.status === 2) {
       console.log("Table is already held:", table.tableId);
       return;
     }
 
     if (table.status === 1 || table.status === 3) {
-      onTableSelect(table);
+      try {
+        const data = {
+          barId: barId,
+          tableId: table.tableId,
+          date: dayjs(selectedDate).format('YYYY-MM-DD'),
+          time: selectedTime + ":00"
+        };
+
+        console.log("Sending holdTable request:", data);
+        const response = await holdTable(token, data);
+
+        if (response.data.statusCode === 200) {
+          const holdData = response.data.data;
+          const newSelectedTable = {
+            tableId: table.tableId,
+            tableName: table.tableName,
+            isHeld: true,
+            holdExpiry: new Date(holdData.holdExpiry).getTime(),
+            date: holdData.date,
+            time: holdData.time,
+            holderId: holdData.accountId,
+            accountId: holdData.accountId
+          };
+
+          // Cập nhật UI
+          setHeldTableIds(prev => new Set([...prev, table.tableId]));
+          onTableSelect(newSelectedTable);
+
+          // Gửi SignalR
+          await hubConnection.invoke("HoldTable", {
+            barId: barId,
+            tableId: table.tableId,
+            date: holdData.date,
+            time: holdData.time,
+            accountId: holdData.accountId
+          });
+
+          // Cập nhật số lượng bàn đang giữ
+          setCurrentHoldCount(prev => prev + 1);
+        }
+      } catch (error) {
+        if (error.response?.data?.statusCode === 400 && 
+            error.response?.data?.message?.includes("Bạn chỉ được phép giữ tối đa 5 bàn")) {
+          toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.");
+        } else {
+          console.error("Error holding table:", error);
+          toast.error("Có lỗi xảy ra khi giữ bàn");
+        }
+      }
     }
   };
 
@@ -191,6 +275,28 @@ const TableSelection = (
            table.time === selectedTime + ":00";
   };
 
+  const isTableDisabled = useCallback((table) => {
+    const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId;
+    const isAvailable = table.status === 1 || table.status === 3;
+    return (!isAvailable && !isCurrentUserHolding) || 
+           (currentHoldCount >= 5 && !isCurrentUserHolding);
+  }, [currentHoldCount, userInfo.accountId]);
+
+  const getButtonStyle = useCallback((table) => {
+    const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId;
+    const isHeld = table.isHeld || table.status === 2;
+    
+    return {
+      backgroundColor: 
+        isCurrentUserHolding ? '#D2691E' :
+        isHeld ? '#FFA500' :
+        table.status === 1 ? '#D3D3D3' :
+        '#FFA500',
+      cursor: isTableDisabled(table) ? 'not-allowed' : 'pointer',
+      opacity: isTableDisabled(table) ? 0.5 : 1,
+    };
+  }, [isTableDisabled, userInfo.accountId]);
+
   return (
     <div className="mt-6">
       <h3 className="text-lg leading-none mb-2 text-amber-400">Chọn Bàn</h3>
@@ -207,29 +313,19 @@ const TableSelection = (
       ) : hasSearched && filteredTables.length > 0 ? (
         <>
           <div className="flex flex-wrap gap-3.5 items-start text-center text-black max-md:max-w-full">
-            {filteredTables.map(table => {
-              const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId;
-              const isAvailable = table.status === 1 || table.status === 3;
-              const isDisabled = (!isAvailable && !isCurrentUserHolding) || 
-                               (currentHoldCount >= 5 && !isCurrentUserHolding);
-              
-              return (
-                <CustomButton
-                  key={table.tableId}
-                  onClick={() => isCurrentUserHolding ? handleTableRelease(table.tableId) : handleTableSelect(table)}
-                  status={table.status}
-                  isHeld={table.isHeld}
-                  isCurrentUserHolding={isCurrentUserHolding}
-                  disabled={isDisabled}
-                  sx={{
-                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    opacity: isDisabled ? 0.5 : 1,
-                  }}
-                >
-                  {table.tableName}
-                </CustomButton>
-              );
-            })}
+            {filteredTables.map(table => (
+              <CustomButton
+                key={table.tableId}
+                onClick={() => !isTableDisabled(table) && handleTableSelect(table)}
+                status={table.status}
+                isHeld={table.isHeld}
+                isCurrentUserHolding={table.holderId === userInfo.accountId}
+                disabled={isTableDisabled(table)}
+                sx={getButtonStyle(table)}
+              >
+                {table.tableName}
+              </CustomButton>
+            ))}
           </div>
 
           {currentHoldCount >= 5 && (

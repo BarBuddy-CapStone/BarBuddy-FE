@@ -2,6 +2,11 @@ import React from "react";
 import dayjs from "dayjs";
 
 const BarDetail = ({ barInfo, selectedDate }) => {
+  // Thêm kiểm tra null
+  if (!barInfo) {
+    return null; // hoặc return một loading state
+  }
+
   // Format ngày và thứ
   const formatDateAndDay = (date) => {
     const dayNames = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];

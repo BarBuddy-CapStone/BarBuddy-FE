@@ -1,7 +1,7 @@
 import React from "react";
 import { BarDetail, SelectedList } from "src/pages";
 
-const TableSidebar = ({ selectedTables, setSelectedTables, onRemove, barInfo, barId, selectedDate, selectedTime }) => {
+const TableSidebar = ({ selectedTables, setSelectedTables, onRemove, onReleaseList, barInfo, barId, selectedDate, selectedTime }) => {
   return (
     <div className="flex flex-col gap-4 lg:w-full">
       <BarDetail 
@@ -12,6 +12,7 @@ const TableSidebar = ({ selectedTables, setSelectedTables, onRemove, barInfo, ba
         selectedTables={selectedTables} 
         setSelectedTables={setSelectedTables}
         onRemove={onRemove} 
+        onReleaseList={onReleaseList}
         barId={barId}
         selectedDate={selectedDate}
         selectedTime={selectedTime}

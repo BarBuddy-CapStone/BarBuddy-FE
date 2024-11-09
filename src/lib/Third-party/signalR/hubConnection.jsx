@@ -1,14 +1,9 @@
 import * as signalR from "@microsoft/signalr";
 import axios from "../../axiosCustomize";
-import { useTableStore } from "src/lib";
 
-// Lấy base URL từ axios instance, nhưng đảm bảo sử dụng HTTPS
 const BASE_URL = axios.defaults.baseURL;
-
-// Cập nhật URL của SignalR hub
 const HUB_URL = `${BASE_URL}bookingHub`;
 
-// Tạo kết nối
 const connection = new signalR.HubConnectionBuilder()
   .withUrl(HUB_URL, {
     skipNegotiation: false,
@@ -21,23 +16,12 @@ const connection = new signalR.HubConnectionBuilder()
   .configureLogging(signalR.LogLevel.Debug)
   .build();
 
-// Bắt đầu kết nối
 async function startConnection() {
   try {
     await connection.start();
     console.log("SignalR Connected.");
-    console.log("Connection ID:", connection.connectionId);
-
-    connection
-      .invoke("CheckConnection")
-      .then(() => console.log("Connection check successful"))
-      .catch((err) => console.error("Connection check failed:", err));
   } catch (err) {
-    console.log("SignalR Connection Error: ", err);
-    console.log("Error details:", err.toString());
-    if (err instanceof Error) {
-      console.log("Stack trace:", err.stack);
-    }
+    console.error("SignalR Connection Error: ", err);
     setTimeout(startConnection, 5000);
   }
 }
@@ -49,24 +33,9 @@ connection.onclose(async () => {
 
 startConnection();
 
-// Hàm để gửi tin nhắn (nếu cần)
-export const sendMessage = async (method, ...args) => {
-  try {
-    await connection.invoke(method, ...args);
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-// Thêm một listener cho tất cả các tin nhắn
-connection.on("*", (name, message) => {
-  console.log(`Received message '${name}':`, message);
-});
-
-// Export connection để sử dụng ở nơi khác
 export const hubConnection = connection;
 
-// Thêm các listener cho các sự kiện cụ thể
+// Chỉ giữ lại các event listeners cần thiết
 connection.on("TableHoId", (response) => {
   console.log("Table held via SignalR:", response);
   document.dispatchEvent(
@@ -75,62 +44,65 @@ connection.on("TableHoId", (response) => {
         tableId: response.tableId,
         isHeld: true,
         holderId: response.accountId,
-      },
+        accountId: response.accountId,
+        status: 2,
+        date: response.date,
+        time: response.time
+      }
     })
   );
 });
 
 connection.on("TableReleased", (response) => {
   console.log("Table released:", response);
-  const { releaseTable } = useTableStore.getState();
-  releaseTable(response.tableId, response.date, response.time);
   document.dispatchEvent(
     new CustomEvent("tableStatusChanged", {
-      detail: { tableId: response.tableId, isHeld: false, holderId: null },
+      detail: {
+        tableId: response.tableId,
+        isHeld: false,
+        holderId: null,
+        accountId: null,
+        status: 1,
+        date: response.date,
+        time: response.time
+      }
     })
   );
 });
 
+connection.on("TableListReleased", (response) => {
+  console.log("TableListReleased received:", response);
+  document.dispatchEvent(
+    new CustomEvent("tableListStatusChanged", {
+      detail: {
+        barId: response.barId,
+        date: response.date,
+        time: response.time,
+        tables: response.tables || response.table || []
+      }
+    })
+  );
+});
+
+// Export các hàm gửi SignalR
 export const releaseTableSignalR = async (data) => {
   try {
-    await hubConnection.invoke("ReleaseTable", data.barId);
-    console.log(`Table ${data.barId} released via SignalR`);
+    await hubConnection.invoke("ReleaseTable", data);
   } catch (error) {
-    console.error("Error releasing table via SignalR:", error);
+    console.error("Error in releaseTableSignalR:", error);
   }
 };
 
 export const releaseTableListSignalR = async (data) => {
   try {
-    await hubConnection.invoke("ReleaseListTablee", {
+    console.log("Sending ReleaseListTable signal:", data);
+    await hubConnection.invoke("ReleaseListTable", {
       barId: data.barId,
       date: data.date,
       time: data.time,
-      table: data.table,
+      tables: data.table
     });
-    console.log(`Tables released via SignalR for bar ${data.barId}`);
   } catch (error) {
-    console.error("Error releasing tables via SignalR:", error);
+    console.error("Error in releaseTableListSignalR:", error);
   }
 };
-
-// Thêm listener cho TableListReleased
-connection.on("TableListReleased", (response) => {
-  console.log("Tables list released:", response);
-  if (response.table && Array.isArray(response.table)) {
-    document.dispatchEvent(
-      new CustomEvent("tableListStatusChanged", {
-        detail: {
-          barId: response.barId,
-          date: response.date,
-          time: response.time,
-          tables: response.table.map((t) => ({
-            ...t,
-            holderId: null,
-            isHeld: false,
-          })),
-        },
-      })
-    );
-  }
-});

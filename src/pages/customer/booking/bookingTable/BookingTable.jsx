@@ -310,121 +310,75 @@ const BookingTable = () => {
     setFilteredTables([]);
   };
 
-  const handleTableSelect = async (table) => {
-    if (table.status === 1 || table.status === 3) {
-      try {
-        const data = {
-          barId: barId,
-          tableId: table.tableId,
-          date: dayjs(selectedDate).format('YYYY-MM-DD'),
-          time: selectedTime + ":00"
-        };
-        const response = await holdTable(token, data);
-
-        if (response.data.statusCode === 200) {
-          const holdData = response.data.data;
-          const newSelectedTable = {
-            tableId: table.tableId,
-            tableName: table.tableName,
-            isHeld: true,
-            holdExpiry: new Date(holdData.holdExpiry).getTime(),
-            date: holdData.date,
-            time: holdData.time,
-            holderId: holdData.accountId || userInfo.accountId
-          };
-          
-          setSelectedTables(prevSelectedTables => [...prevSelectedTables, newSelectedTable]);
-          updateTableHeldStatus(table.tableId, true, newSelectedTable.holderId, holdData.date, holdData.time);
-
-          await hubConnection.invoke("HoldTable", {
-            barId: barId,
-            tableId: table.tableId,
-            date: holdData.date,
-            time: holdData.time,
-            accountId: newSelectedTable.holderId
-          });
-        }
-      } catch (error) {
-        if (error.response?.data?.statusCode === 400 && 
-            error.response?.data?.message?.includes("Bạn chỉ được phép giữ tối đa 5 bàn")) {
-          toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.", {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
-        } else {
-          console.error("Error holding table:", error);
-          toast.error("Có lỗi xảy ra khi giữ bàn. Vui lòng thử lại sau.");
-        }
-      }
-    }
-
-    const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
-    setAllFilteredTables(prev => ({
-      ...prev,
-      [currentDateTimeKey]: prev[currentDateTimeKey].map(t => 
-        t.tableId === table.tableId ? { ...t, status: 2, isHeld: true, holderId: userInfo.accountId } : t
-      )
-    }));
+  const handleTableSelect = async (newSelectedTable) => {
+    // Cập nhật selectedTables với bàn mới được chọn
+    setSelectedTables(prev => [...prev, newSelectedTable]);
   };
 
   const handleRemoveTable = async (tableId) => {
     const table = selectedTables.find(t => t.tableId === tableId);
-    if (table) {
-      try {
-        const data = {
+    if (!table) return;
+
+    try {
+      const data = {
+        barId: barId,
+        tableId: tableId,
+        date: table.date,
+        time: table.time
+      };
+
+      console.log("Sending releaseTable request with data:", data);
+      const response = await releaseTable(token, data);
+      
+      if (response.data.statusCode === 200) {
+        // Gửi SignalR
+        await releaseTableSignalR({
           barId: barId,
           tableId: tableId,
           date: table.date,
           time: table.time
-        };
-        const response = await releaseTable(token, data);
-        if (response.data.statusCode === 200) {
-          setSelectedTables(prev => prev.filter(t => t.tableId !== tableId));
-          
-          const currentDateTimeKey = `${dayjs(table.date).format('YYYY-MM-DD')}-${table.time}`;
-          setSelectedTablesMap(prev => ({
-            ...prev,
-            [currentDateTimeKey]: prev[currentDateTimeKey].filter(t => t.tableId !== tableId)
-          }));
-
-          updateTableHeldStatus(tableId, false, null, table.date, table.time);
-          
-          const hubResponse = {
-            barId: barId,
-            tableId: tableId,
-            date: table.date,
-            time: table.time,
-            accountId: userInfo.accountId
-          };
-          
-          await hubConnection.invoke("ReleaseTable", hubResponse);
-        } else {
-          console.error("Release table request failed:", response.data);
-        }
-      } catch (error) {
-        console.error("Error releasing table:", error);
-        toast.error("Có lỗi xảy ra khi giải phóng bàn. Vui lòng thử lại sau.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
         });
-      }
-    }
 
-    const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
-    setAllFilteredTables(prev => ({
-      ...prev,
-      [currentDateTimeKey]: prev[currentDateTimeKey].map(t => 
-        t.tableId === tableId ? { ...t, status: 1, isHeld: false, holderId: null } : t
-      )
-    }));
+        // Cập nhật UI
+        setSelectedTables(prev => prev.filter(t => t.tableId !== tableId));
+        
+        // Cập nhật trạng thái bàn
+        setAllFilteredTables(prev => {
+          const currentDateTimeKey = `${dayjs(table.date).format('YYYY-MM-DD')}-${table.time}`;
+          return {
+            ...prev,
+            [currentDateTimeKey]: prev[currentDateTimeKey]?.map(t => 
+              t.tableId === tableId ? {
+                ...t,
+                status: 1,
+                isHeld: false,
+                holderId: null,
+                accountId: null,
+                date: null,
+                time: null
+              } : t
+            )
+          };
+        });
+
+        setFilteredTables(prev =>
+          prev.map(t =>
+            t.tableId === tableId ? {
+              ...t,
+              status: 1,
+              isHeld: false,
+              holderId: null,
+              accountId: null,
+              date: null,
+              time: null
+            } : t
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error releasing table:", error);
+      toast.error("Có lỗi xảy ra khi giải phóng bàn");
+    }
   };
 
   const handleTableTypeChange = (tableTypeId) => {
@@ -493,6 +447,185 @@ const BookingTable = () => {
     }
   }, [selectedDate, selectedTime, hasSearched, allFilteredTables, selectedTablesMap]);
 
+  useEffect(() => {
+    const handleTableListStatusChange = (event) => {
+      const { tables } = event.detail;
+      console.log("Handling table list status change in BookingTable:", event.detail);
+
+      // Cập nhật trạng thái cho tất cả các bàn trong danh sách
+      setAllFilteredTables(prev => {
+        const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
+        return {
+          ...prev,
+          [currentDateTimeKey]: prev[currentDateTimeKey]?.map(table => {
+            const updatedTable = tables.find(t => t.tableId === table.tableId);
+            if (updatedTable) {
+              return {
+                ...table,
+                status: 1,
+                isHeld: false,
+                holderId: null,
+                accountId: null,
+                date: null,
+                time: null
+              };
+            }
+            return table;
+          })
+        };
+      });
+
+      // Cập nhật filteredTables
+      setFilteredTables(prev =>
+        prev.map(table => {
+          const updatedTable = tables.find(t => t.tableId === table.tableId);
+          if (updatedTable) {
+            return {
+              ...table,
+              status: 1,
+              isHeld: false,
+              holderId: null,
+              accountId: null,
+              date: null,
+              time: null
+            };
+          }
+          return table;
+        })
+      );
+
+      // Xóa các bàn khỏi selectedTables
+      setSelectedTables([]);
+    };
+
+    document.addEventListener('tableListStatusChanged', handleTableListStatusChange);
+
+    return () => {
+      document.removeEventListener('tableListStatusChanged', handleTableListStatusChange);
+    };
+  }, [selectedDate, selectedTime]);
+
+  const handleReleaseList = async () => {
+    if (selectedTables.length === 0) return;
+
+    try {
+      const data = {
+        barId: barId,
+        date: dayjs(selectedDate).format('YYYY-MM-DD'),
+        time: selectedTime + ":00",
+        table: selectedTables.map(table => ({
+          tableId: table.tableId,
+          time: selectedTime + ":00"
+        }))
+      };
+
+      const response = await releaseTableList(token, data);
+      if (response.data.statusCode === 200) {
+        // 1. Gửi SignalR
+        await releaseTableListSignalR({
+          barId: data.barId,
+          date: data.date,
+          time: data.time,
+          table: data.table
+        });
+
+        // 2. Cập nhật trạng thái các bàn trong filteredTables
+        setFilteredTables(prev =>
+          prev.map(table => {
+            if (selectedTables.some(st => st.tableId === table.tableId)) {
+              return {
+                ...table,
+                status: 1,
+                isHeld: false,
+                holderId: null,
+                accountId: null,
+                date: null,
+                time: null
+              };
+            }
+            return table;
+          })
+        );
+
+        // 3. Xóa danh sách đã chọn
+        setSelectedTables([]);
+        toast.success("Đã xóa tất cả bàn thành công");
+      }
+    } catch (error) {
+      console.error("Error releasing all tables:", error);
+      toast.error("Có lỗi xảy ra khi xóa các bàn");
+    }
+  };
+
+  useEffect(() => {
+    const checkHoldTables = async () => {
+      if (!barId || !selectedDate || !selectedTime || !token || !userInfo.accountId) {
+        return; // Tránh gọi API khi thiếu thông tin
+      }
+
+      try {
+        const response = await getAllHoldTable(token, barId, selectedDate, selectedTime);
+        if (response?.data?.statusCode === 200 && response?.data?.data) {
+          const heldTables = response.data.data;
+          const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
+          
+          // Cập nhật allFilteredTables
+          setAllFilteredTables(prev => {
+            if (!prev[currentDateTimeKey]) return prev;
+            
+            return {
+              ...prev,
+              [currentDateTimeKey]: prev[currentDateTimeKey].map(table => {
+                const heldTable = heldTables.find(ht => ht.tableId === table.tableId);
+                if (heldTable) {
+                  return {
+                    ...table,
+                    status: 2,
+                    isHeld: true,
+                    holderId: heldTable.accountId,
+                    accountId: heldTable.accountId,
+                    date: heldTable.date,
+                    time: heldTable.time
+                  };
+                }
+                return table;
+              })
+            };
+          });
+
+          // Cập nhật filteredTables
+          setFilteredTables(prev =>
+            prev.map(table => {
+              const heldTable = heldTables.find(ht => ht.tableId === table.tableId);
+              if (heldTable) {
+                return {
+                  ...table,
+                  status: 2,
+                  isHeld: true,
+                  holderId: heldTable.accountId,
+                  accountId: heldTable.accountId,
+                  date: heldTable.date,
+                  time: heldTable.time
+                };
+              }
+              return table;
+            })
+          );
+
+          // Cập nhật currentHoldCount
+          const userHoldTables = heldTables.filter(
+            table => table.accountId === userInfo.accountId
+          );
+          setCurrentHoldCount(userHoldTables.length);
+        }
+      } catch (error) {
+        console.error("Error checking hold tables:", error);
+      }
+    };
+
+    checkHoldTables();
+  }, [barId, selectedDate, selectedTime, token, userInfo.accountId]);
+
   return (
     <div className="flex overflow-hidden flex-col bg-zinc-900">
       <main className="self-center mt-4 mx-4 w-full max-w-[1100px]">
@@ -536,13 +669,14 @@ const BookingTable = () => {
           </div>
           <div className="flex flex-col w-1/4 max-md:w-full">
             <TableSidebar
-              selectedTables={uniqueTablesByDateAndTime}
+              selectedTables={selectedTables}
               setSelectedTables={setSelectedTables}
               onRemove={handleRemoveTable}
-              barInfo={barInfo}
+              onReleaseList={handleReleaseList}
               barId={barId}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
+              barInfo={barInfo}
             />
           </div>
         </div>

@@ -6,174 +6,11 @@ import dayjs from 'dayjs';
 import { Button } from '@mui/material';
 import { toast } from "react-toastify";
 
-const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, selectedDate, selectedTime }) => {
+const SelectedList = ({ selectedTables, setSelectedTables, onRemove, onReleaseList, barId, selectedDate, selectedTime }) => {
   const [countdowns, setCountdowns] = useState({});
   const { token } = useAuthStore();
 
-  const handleExpiredTable = useCallback(async (tableId, date, time) => {
-    if (!date || !time) {
-      console.error("date or time is missing");
-      return;
-    }
-    try {
-      const data = {
-        barId: barId,
-        tableId: tableId,
-        date: date,
-        time: time
-      };
-      const response = await releaseTable(token, data);
-      if (response.data.statusCode === 200) {
-        await releaseTableSignalR(data);
-        onRemove(tableId);
-        document.dispatchEvent(new CustomEvent('tableStatusChanged', {
-          detail: { 
-            tableId, 
-            isHeld: false, 
-            holderId: null, 
-            date: null, 
-            time: null 
-          }
-        }));
-      }
-    } catch (error) {
-      console.error("Error releasing expired table:", error);
-    }
-  }, [barId, onRemove, token]);
-
-  // Sửa lại useEffect để xử lý sự kiện TableListReleased
-  useEffect(() => {
-    const handleTableReleased = (response) => {
-      console.log("Table released event received:", response);
-      setSelectedTables(prev => prev.filter(table => 
-        !(table.tableId === response.tableId && 
-          table.date === response.date && 
-          table.time === response.time)
-      ));
-    };
-
-    const handleTableListReleased = (response) => {
-      console.log("Table list released event received:", response);
-      // Xóa tất cả bàn khỏi selectedTables
-      setSelectedTables([]);
-      
-      // Dispatch event để cập nhật trạng thái cho từng bàn
-      if (response.tables && Array.isArray(response.tables)) {
-        response.tables.forEach(table => {
-          document.dispatchEvent(new CustomEvent('tableStatusChanged', {
-            detail: { 
-              tableId: table.tableId, 
-              isHeld: false, 
-              holderId: null,
-              date: null,
-              time: null
-            }
-          }));
-        });
-      }
-    };
-
-    // Đăng ký lắng nghe sự kiện từ hubConnection
-    const handleSignalRTableReleased = (response) => {
-      handleTableReleased(response);
-    };
-
-    const handleSignalRTableListReleased = (response) => {
-      handleTableListReleased(response);
-    };
-
-    hubConnection.on("TableReleased", handleSignalRTableReleased);
-    hubConnection.on("TableListReleased", handleSignalRTableListReleased);
-
-    // Cleanup khi component unmount
-    return () => {
-      hubConnection.off("TableReleased", handleSignalRTableReleased);
-      hubConnection.off("TableListReleased", handleSignalRTableListReleased);
-    };
-  }, [setSelectedTables]);
-
-  const handleReleaseAll = async () => {
-    if (selectedTables.length === 0) return;
-
-    try {
-      const data = {
-        barId: barId,
-        date: dayjs(selectedDate).format('YYYY-MM-DD'),
-        time: selectedTime + ":00",
-        table: selectedTables.map(table => ({
-          tableId: table.tableId,
-          time: table.time
-        }))
-      };
-
-      const response = await releaseTableList(token, data);
-      if (response.data.statusCode === 200) {
-        // Gửi SignalR để thông báo cho các clients khác
-        await releaseTableListSignalR(data);
-        
-        // Xóa tất cả bàn khỏi danh sách đã chọn
-        setSelectedTables([]);
-        
-        // Dispatch event để cập nhật UI và trạng thái holdTable cho từng bàn
-        selectedTables.forEach(table => {
-          document.dispatchEvent(new CustomEvent('tableStatusChanged', {
-            detail: { 
-              tableId: table.tableId, 
-              isHeld: false, 
-              holderId: null,
-              date: null,
-              time: null,
-              fromReleaseList: true  // Thêm flag để đánh dấu là từ releaseList
-            }
-          }));
-        });
-
-        toast.success("Đã xóa tất cả bàn đã chọn");
-      }
-    } catch (error) {
-      console.error("Error releasing all tables:", error);
-      toast.error("Có lỗi xảy ra khi xóa các bàn");
-    }
-  };
-
-  const handleRemove = async (tableId, date, time) => {
-    if (!date || !time) {
-      console.error("date or time is missing");
-      return;
-    }
-    try {
-      const data = {
-        barId: barId,
-        tableId: tableId,
-        date: date,
-        time: time
-      };
-      const response = await releaseTable(token, data);
-      if (response.data.statusCode === 200) {
-        // Gửi SignalR để thông báo cho các clients khác
-        await releaseTableSignalR(data);
-        
-        // Xóa bàn khỏi danh sách đã chọn
-        onRemove(tableId);
-        
-        // Dispatch event để cập nhật UI
-        document.dispatchEvent(new CustomEvent('tableStatusChanged', {
-          detail: { 
-            tableId, 
-            isHeld: false, 
-            holderId: null, 
-            date: null, 
-            time: null 
-          }
-        }));
-      }
-    } catch (error) {
-      console.error("Error releasing table:", error);
-      // toast.error("Có lỗi xảy ra khi giải phóng bàn");
-    }
-  };
-
-  // Countdown timer effect
+  // Chỉ giữ lại useEffect cho countdown
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date().getTime();
@@ -200,7 +37,83 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [selectedTables, handleExpiredTable, setSelectedTables, countdowns]);
+  }, [selectedTables, countdowns]);
+
+  // Các hàm xử lý
+  const handleExpiredTable = useCallback(async (tableId, date, time) => {
+    if (!date || !time) return;
+    try {
+      const data = {
+        barId: barId,
+        tableId: tableId,
+        date: date,
+        time: time
+      };
+      const response = await releaseTable(token, data);
+      if (response.data.statusCode === 200) {
+        await releaseTableSignalR(data);
+        setSelectedTables(prev => prev.filter(t => t.tableId !== tableId));
+        onRemove(tableId);
+      }
+    } catch (error) {
+      console.error("Error releasing expired table:", error);
+    }
+  }, [barId, onRemove, token, setSelectedTables]);
+
+  const handleRemove = async (tableId, date, time) => {
+    if (!date || !time) return;
+    try {
+      const data = {
+        barId: barId,
+        tableId: tableId,
+        date: date,
+        time: time
+      };
+
+      const response = await releaseTable(token, data);
+      if (response.data.statusCode === 200) {
+        await releaseTableSignalR(data);
+        
+        setSelectedTables(prev => prev.filter(t => t.tableId !== tableId));
+        toast.success("Đã xóa bàn thành công");
+      }
+    } catch (error) {
+      console.error("Error releasing table:", error);
+      toast.error("Có lỗi xảy ra khi xóa bàn");
+    }
+  };
+
+  const handleReleaseAll = async () => {
+    if (selectedTables.length === 0) return;
+
+    try {
+      const data = {
+        barId: barId,
+        date: dayjs(selectedDate).format('YYYY-MM-DD'),
+        time: selectedTime + ":00",
+        table: selectedTables.map(table => ({
+          tableId: table.tableId,
+          time: selectedTime + ":00"
+        }))
+      };
+
+      const response = await releaseTableList(token, data);
+      if (response.data.statusCode === 200) {
+        await releaseTableListSignalR({
+          barId: data.barId,
+          date: data.date,
+          time: data.time,
+          table: data.table
+        });
+        
+        setSelectedTables([]);
+        toast.success("Đã xóa tất cả bàn thành công");
+      }
+    } catch (error) {
+      console.error("Error releasing all tables:", error);
+      toast.error("Có lỗi xảy ra khi xóa các bàn");
+    }
+  };
 
   // Sắp xếp bàn theo thời gian
   const sortedTables = [...selectedTables].sort((a, b) => {
