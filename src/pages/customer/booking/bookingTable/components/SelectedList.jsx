@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import { Button } from '@mui/material';
 import { toast } from "react-toastify";
 
-const SelectedList = ({ selectedTables, setSelectedTables, onRemove, onReleaseList, barId, selectedDate, selectedTime }) => {
+const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, selectedDate, selectedTime }) => {
   const [countdowns, setCountdowns] = useState({});
   const { token } = useAuthStore();
 

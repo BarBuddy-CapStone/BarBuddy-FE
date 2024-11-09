@@ -9,10 +9,18 @@ const BarDetail = ({ barInfo, selectedDate }) => {
 
   // Format ngày và thứ
   const formatDateAndDay = (date) => {
-    const dayNames = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    const dayNames = [
+      "Chủ nhật",
+      "Thứ 2",
+      "Thứ 3",
+      "Thứ 4",
+      "Thứ 5",
+      "Thứ 6",
+      "Thứ 7",
+    ];
     const d = dayjs(date);
     const dayOfWeek = dayNames[d.day()];
-    return `${dayOfWeek}, ${d.format('DD/MM/YYYY')}`;
+    return `${dayOfWeek}, ${d.format("DD/MM/YYYY")}`;
   };
 
   return (
@@ -26,7 +34,7 @@ const BarDetail = ({ barInfo, selectedDate }) => {
         />
         <div className="font-aBeeZee text-sm">{barInfo.location}</div>
       </div>
-      
+
       {/* Thêm phần hiển thị ngày */}
       <div className="flex gap-4 py-px mt-6 max-w-full w-[230px] ">
         <img
@@ -48,14 +56,20 @@ const BarDetail = ({ barInfo, selectedDate }) => {
         />
         <div className="flex flex-col">
           <span className="text-amber-400">Mở cửa - đóng cửa:</span>
-          <span className={barInfo.openingHours === 'Quán đóng cửa' ? "text-red-500 mt-1" : "text-white mt-1"}>
+          <span
+            className={
+              barInfo.openingHours === "Quán đóng cửa"
+                ? "text-red-500 mt-1"
+                : "text-white mt-1"
+            }
+          >
             {barInfo.openingHours}
           </span>
         </div>
       </div>
 
       <div className="mt-4 text-sm text-gray-300">
-      <span className="text-amber-400 text-base">Mô tả:</span>
+        <span className="text-amber-400 text-base">Mô tả:</span>
         <p>{barInfo.description}</p>
       </div>
     </div>

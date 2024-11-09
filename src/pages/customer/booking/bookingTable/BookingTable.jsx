@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { getBarById, getBarTableById } from "src/lib/service/customerService";
-import { filterBookingTable, holdTable, releaseTable, getAllHoldTable } from "src/lib/service/BookingTableService";
-import CustomerForm from './components/CustomerForm';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import dayjs from "dayjs";
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import React, { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { LoadingSpinner } from 'src/components';
 import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
 import useAuthStore from 'src/lib/hooks/useUserStore';
-import { LoadingSpinner } from 'src/components';
-import { toast } from "react-toastify";
+import { filterBookingTable, getAllHoldTable, releaseTable } from "src/lib/service/BookingTableService";
+import { getBarById, getBarTableById } from "src/lib/service/customerService";
+import CustomerForm from './components/CustomerForm';
 
 import {
   BookingTableInfo,

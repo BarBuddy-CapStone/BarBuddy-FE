@@ -5,7 +5,15 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import TableBarIcon from "@mui/icons-material/TableBar";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import InfoIcon from "@mui/icons-material/Info";
-import { TextField, InputAdornment, Button, Menu, MenuItem, FormControl, InputLabel } from "@mui/material";
+import {
+  TextField,
+  InputAdornment,
+  Button,
+  Menu,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -14,7 +22,7 @@ import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
 import { getTableTypeOfBar } from "src/lib/service/tableTypeService";
 import { getAllHoldTable } from "src/lib/service/BookingTableService";
-import useAuthStore from 'src/lib/hooks/useUserStore';
+import useAuthStore from "src/lib/hooks/useUserStore";
 import { toast } from "react-toastify";
 
 // CustomTextField for Date and Type
@@ -130,17 +138,17 @@ const CustomSelect = styled(TextField)(({ theme }) => ({
   },
 }));
 
-const BookingTableInfo = ({ 
-  barId, 
-  selectedDate, 
-  onDateChange, 
-  onTableTypeChange, 
+const BookingTableInfo = ({
+  barId,
+  selectedDate,
+  onDateChange,
+  onTableTypeChange,
   onSearchTables,
   selectedTableTypeId,
   selectedTime,
   onTimeChange,
   startTime,
-  endTime
+  endTime,
 }) => {
   const navigate = useNavigate();
   const [selectedTableType, setSelectedTableType] = useState("");
@@ -210,7 +218,11 @@ const BookingTableInfo = ({
       return;
     }
 
-    const newTimeOptions = generateTimeOptions(startTime, endTime, selectedDate);
+    const newTimeOptions = generateTimeOptions(
+      startTime,
+      endTime,
+      selectedDate
+    );
     setTimeOptions(newTimeOptions);
 
     if (!newTimeOptions.includes(selectedTime)) {
@@ -232,7 +244,9 @@ const BookingTableInfo = ({
   };
 
   const isDateValid = (date) => {
-    return dayjs(date).isAfter(dayjs(), 'day') || dayjs(date).isSame(dayjs(), 'day');
+    return (
+      dayjs(date).isAfter(dayjs(), "day") || dayjs(date).isSame(dayjs(), "day")
+    );
   };
 
   const handleBack = () => {
@@ -243,10 +257,15 @@ const BookingTableInfo = ({
     const checkHoldTables = async () => {
       if (barId && selectedDate && selectedTime) {
         try {
-          const response = await getAllHoldTable(token, barId, selectedDate, selectedTime);
+          const response = await getAllHoldTable(
+            token,
+            barId,
+            selectedDate,
+            selectedTime
+          );
           if (response.data.statusCode === 200) {
             const userHoldTables = response.data.data.filter(
-              table => table.accountId === userInfo.accountId
+              (table) => table.accountId === userInfo.accountId
             );
             setCurrentHoldCount(userHoldTables.length);
           }
@@ -261,14 +280,17 @@ const BookingTableInfo = ({
 
   const handleSearch = async () => {
     if (currentHoldCount >= 5) {
-      toast.error("Bạn đã giữ tối đa 5 bàn. Vui lòng hủy bớt bàn trước khi tìm thêm.", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error(
+        "Bạn đã giữ tối đa 5 bàn. Vui lòng hủy bớt bàn trước khi tìm thêm.",
+        {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
       return;
     }
     onSearchTables();
@@ -278,7 +300,7 @@ const BookingTableInfo = ({
     <LocalizationProvider dateAdapter={AdapterDateFns} locale={viLocale}>
       <section className="flex flex-col py-4 px-4 w-full text-base text-amber-400 bg-neutral-800 max-md:mt-4 max-md:max-w-full">
         <div className="flex flex-col items-start w-full max-md:max-w-full">
-          <button 
+          <button
             onClick={handleBack}
             className="flex items-center text-xl leading-snug text-gray-200 hover:text-amber-400 transition-all duration-300 ease-in-out transform hover:translate-x-1"
           >
@@ -298,7 +320,9 @@ const BookingTableInfo = ({
           )}
 
           <div className="flex flex-nowrap gap-3 mt-3 items-center text-stone-300">
-            <FormControl sx={{ flex: '1 1 0', minWidth: '120px', maxWidth: '250px' }}>
+            <FormControl
+              sx={{ flex: "1 1 0", minWidth: "120px", maxWidth: "250px" }}
+            >
               <CustomDatePicker
                 label="Ngày"
                 value={selectedDate}
@@ -324,7 +348,9 @@ const BookingTableInfo = ({
               />
             </FormControl>
 
-            <FormControl sx={{ flex: '1 1 0', minWidth: '120px', maxWidth: '200px' }}>
+            <FormControl
+              sx={{ flex: "1 1 0", minWidth: "120px", maxWidth: "200px" }}
+            >
               <CustomTextField
                 select
                 label="Giờ"
@@ -349,7 +375,10 @@ const BookingTableInfo = ({
               </CustomTextField>
             </FormControl>
 
-            <div className="relative" style={{ flex: '1 1 0', minWidth: '120px', maxWidth: '200px' }}>
+            <div
+              className="relative"
+              style={{ flex: "1 1 0", minWidth: "120px", maxWidth: "200px" }}
+            >
               <button
                 className="w-full h-[56px] px-4 py-2 bg-transparent border border-white rounded-lg text-white flex items-center justify-between hover:border-amber-400 focus:border-amber-400"
                 onClick={(e) => {
@@ -359,20 +388,32 @@ const BookingTableInfo = ({
                 }}
               >
                 <div className="flex items-center min-w-0">
-                  <TableBarIcon style={{ color: '#FFA500', marginRight: '8px', flexShrink: 0 }} />
+                  <TableBarIcon
+                    style={{
+                      color: "#FFA500",
+                      marginRight: "8px",
+                      flexShrink: 0,
+                    }}
+                  />
                   <span className="truncate">
-                    {selectedTableType ? tableTypes.find(t => t.tableTypeId === selectedTableType)?.typeName : "Loại bàn"}
+                    {selectedTableType
+                      ? tableTypes.find(
+                          (t) => t.tableTypeId === selectedTableType
+                        )?.typeName
+                      : "Loại bàn"}
                   </span>
                 </div>
-                <span style={{ 
-                  width: 0, 
-                  height: 0, 
-                  borderLeft: '5px solid transparent',
-                  borderRight: '5px solid transparent',
-                  borderTop: '5px solid #FFA500',
-                  marginLeft: '8px',
-                  flexShrink: 0
-                }} />
+                <span
+                  style={{
+                    width: 0,
+                    height: 0,
+                    borderLeft: "5px solid transparent",
+                    borderRight: "5px solid transparent",
+                    borderTop: "5px solid #FFA500",
+                    marginLeft: "8px",
+                    flexShrink: 0,
+                  }}
+                />
               </button>
 
               <Menu
@@ -381,20 +422,20 @@ const BookingTableInfo = ({
                 onClose={() => setAnchorEl(null)}
                 PaperProps={{
                   style: {
-                    backgroundColor: '#2D2D2D',
-                    borderRadius: '8px',
-                    marginTop: '8px',
+                    backgroundColor: "#2D2D2D",
+                    borderRadius: "8px",
+                    marginTop: "8px",
                     minWidth: anchorEl?.rect?.width,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
                   },
                 }}
                 anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'left',
+                  vertical: "bottom",
+                  horizontal: "left",
                 }}
                 transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'left',
+                  vertical: "top",
+                  horizontal: "left",
                 }}
               >
                 {tableTypes.map((tableType) => (
@@ -405,14 +446,14 @@ const BookingTableInfo = ({
                       setAnchorEl(null);
                     }}
                     style={{
-                      color: '#FFA500',
-                      padding: '10px 16px',
-                      borderBottom: '1px solid #404040',
-                      '&:last-child': {
-                        borderBottom: 'none',
+                      color: "#FFA500",
+                      padding: "10px 16px",
+                      borderBottom: "1px solid #404040",
+                      "&:last-child": {
+                        borderBottom: "none",
                       },
-                      '&:hover': {
-                        backgroundColor: '#3D3D3D',
+                      "&:hover": {
+                        backgroundColor: "#3D3D3D",
                       },
                     }}
                   >
@@ -425,9 +466,15 @@ const BookingTableInfo = ({
             <Button
               variant="contained"
               onClick={handleSearch}
-              disabled={!startTime || !endTime || !selectedTime || !selectedTableTypeId || currentHoldCount >= 5}
+              disabled={
+                !startTime ||
+                !endTime ||
+                !selectedTime ||
+                !selectedTableTypeId ||
+                currentHoldCount >= 5
+              }
               sx={{
-                flex: '0 0 auto',
+                flex: "0 0 auto",
                 backgroundColor: "#FFA500",
                 height: "56px",
                 color: "white",
@@ -441,12 +488,13 @@ const BookingTableInfo = ({
                 },
               }}
             >
-              {currentHoldCount >= 5 ? 'Đã đạt giới hạn bàn' : 'Tìm Bàn'}
+              {currentHoldCount >= 5 ? "Đã đạt giới hạn bàn" : "Tìm Bàn"}
             </Button>
 
             {currentHoldCount >= 5 && (
               <div className="text-red-500 text-sm mt-2">
-                Bạn đã giữ tối đa 5 bàn. Vui lòng hủy bớt bàn trước khi tìm thêm.
+                Bạn đã giữ tối đa 5 bàn. Vui lòng hủy bớt bàn trước khi tìm
+                thêm.
               </div>
             )}
           </div>
