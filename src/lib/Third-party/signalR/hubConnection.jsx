@@ -78,7 +78,15 @@ connection.on("TableListReleased", (response) => {
         barId: response.barId,
         date: response.date,
         time: response.time,
-        tables: response.tables || response.table || []
+        tables: response.table.map(t => ({
+          tableId: t.tableId,
+          isHeld: false,
+          holderId: null,
+          accountId: null,
+          status: 1,
+          date: null,
+          time: null
+        }))
       }
     })
   );
@@ -95,13 +103,7 @@ export const releaseTableSignalR = async (data) => {
 
 export const releaseTableListSignalR = async (data) => {
   try {
-    console.log("Sending ReleaseListTable signal:", data);
-    await hubConnection.invoke("ReleaseListTable", {
-      barId: data.barId,
-      date: data.date,
-      time: data.time,
-      tables: data.table
-    });
+    await hubConnection.invoke("ReleaseListTablee", data);
   } catch (error) {
     console.error("Error in releaseTableListSignalR:", error);
   }

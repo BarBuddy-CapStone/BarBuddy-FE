@@ -1,13 +1,15 @@
-import dayjs from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { LoadingSpinner } from 'src/components';
-import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
-import useAuthStore from 'src/lib/hooks/useUserStore';
-import { filterBookingTable, getAllHoldTable, releaseTable } from "src/lib/service/BookingTableService";
 import { getBarById, getBarTableById } from "src/lib/service/customerService";
+import { filterBookingTable, holdTable, releaseTable, getAllHoldTable, releaseTableList } from "src/lib/service/BookingTableService";
 import CustomerForm from './components/CustomerForm';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import dayjs from "dayjs";
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import { hubConnection, releaseTableListSignalR, releaseTableSignalR } from 'src/lib/Third-party/signalR/hubConnection';
+import useAuthStore from 'src/lib/hooks/useUserStore';
+import { LoadingSpinner } from 'src/components';
+import { toast } from "react-toastify";
 
 import {
   BookingTableInfo,
@@ -447,12 +449,12 @@ const BookingTable = () => {
 
   useEffect(() => {
     const handleTableListStatusChange = (event) => {
-      const { tables } = event.detail;
+      const { tables, barId, date, time } = event.detail;
       console.log("Handling table list status change in BookingTable:", event.detail);
 
       // Cập nhật trạng thái cho tất cả các bàn trong danh sách
       setAllFilteredTables(prev => {
-        const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
+        const currentDateTimeKey = `${dayjs(date).format('YYYY-MM-DD')}-${time}`;
         return {
           ...prev,
           [currentDateTimeKey]: prev[currentDateTimeKey]?.map(table => {
@@ -493,7 +495,9 @@ const BookingTable = () => {
       );
 
       // Xóa các bàn khỏi selectedTables
-      setSelectedTables([]);
+      setSelectedTables(prev => 
+        prev.filter(table => !tables.some(t => t.tableId === table.tableId))
+      );
     };
 
     document.addEventListener('tableListStatusChanged', handleTableListStatusChange);
@@ -527,7 +531,10 @@ const BookingTable = () => {
           table: data.table
         });
 
-        // 2. Cập nhật trạng thái các bàn trong filteredTables
+        // 2. Cập nhật selectedTables
+        setSelectedTables([]);
+        
+        // 3. Cập nhật trạng thái các bàn trong filteredTables
         setFilteredTables(prev =>
           prev.map(table => {
             if (selectedTables.some(st => st.tableId === table.tableId)) {
@@ -545,9 +552,7 @@ const BookingTable = () => {
           })
         );
 
-        // 3. Xóa danh sách đã chọn
-        setSelectedTables([]);
-        toast.success("Đã xóa tất cả bàn thành công");
+        toast.success("Đã xóa tất cả bàn đã chọn");
       }
     } catch (error) {
       console.error("Error releasing all tables:", error);
