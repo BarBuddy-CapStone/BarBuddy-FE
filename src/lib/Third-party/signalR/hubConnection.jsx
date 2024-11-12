@@ -1,7 +1,6 @@
 import * as signalR from "@microsoft/signalr";
-import axios from "../../axiosCustomize";
 
-const BASE_URL = axios.defaults.baseURL;
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 const HUB_URL = `${BASE_URL}bookingHub`;
 
 const connection = new signalR.HubConnectionBuilder()

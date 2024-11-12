@@ -7,6 +7,7 @@ import { Button, Pagination, PaginationItem, TextField } from "@mui/material";
 import { LoadingSpinner } from 'src/components';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { GoongMap } from 'src/lib';
 
 const BranchCard = React.memo(({ branch, onClick, selectedDate }) => {
   const rating = useMemo(
@@ -460,6 +461,7 @@ function HomePage() {
       try {
         const response = await getAllBar();
         if (response.status === 200) {
+          console.log("Fetched bars:", response.data.data);
           setBranches(response.data.data);
         }
       } catch (error) {
@@ -487,8 +489,42 @@ function HomePage() {
           <BarBuddyBranches onBranchesLoaded={setBranches} onBarClick={handleBarClick} />
           <BarBuddyDrinks />
         </div>
-        <aside className="col-span-3 w-full lg:ml-8 mt-10">
-          <LocationsList locations={branches} />
+        <aside className="col-span-3 w-full lg:ml-8 mt-10 sticky top-4">
+          <div className="bg-neutral-800 p-4 rounded-lg shadow-lg mb-6">
+            <h2 className="text-xl text-yellow-500 font-bold mb-2">Bản đồ chi nhánh</h2>
+            <div className="flex flex-wrap items-center gap-4 mb-3">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
+                <span className="text-sm text-white">Vị trí của bạn</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                <span className="text-sm text-white">Chi nhánh</span>
+              </div>
+            </div>
+            <div className="w-full rounded-lg overflow-hidden border border-gray-700">
+              <GoongMap branches={branches} />
+            </div>
+            <div className="mt-2 text-xs text-gray-400 text-center">
+              Nhấn vào marker để xem thông tin chi tiết
+            </div>
+          </div>
+
+          <div className="bg-neutral-700 shadow-lg text-white p-4 rounded-lg">
+            <h2 className="text-lg font-semibold mb-4 text-yellow-500 border-b border-yellow-500 pb-2">
+              Tất cả chi nhánh
+            </h2>
+            <ul className="space-y-2">
+              {branches.map((location, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="mr-2 text-yellow-500">📍</span>
+                  <span className="text-sm">
+                    {location.barName}, {location.address}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </aside>
       </div>
       <LoadingSpinner open={isLoading} />

@@ -6,6 +6,7 @@ import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import StarIcon from '@mui/icons-material/Star';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'; // Thêm import này
 import { LoadingSpinner } from 'src/components'; // Import LoadingSpinner
+import { GoongMap } from 'src/lib';
 
 // Component hiển thị danh sách đánh giá
 const FeedbackList = React.memo(({ feedbacks }) => (
@@ -92,7 +93,8 @@ const BarDetail = () => {
     if (!barDetails) return <div>Loading...</div>;
 
     return (
-        <div className="container bg-inherit p-4 flex flex-col items-center">
+        <div className="container bg-inherit p-4">
+            {/* Container chính */}
             <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
                 <button
                     className="text-gray-200 mb-4 flex items-center text-base hover:text-amber-400 transition-colors duration-300"
@@ -102,16 +104,19 @@ const BarDetail = () => {
                 </button>
                 <img src={barDetails.images} alt={barDetails.barName} className="w-full h-64 object-cover rounded-lg mb-4" />
                 <h1 className="text-3xl text-yellow-500 font-bold mb-4">{barDetails.barName}</h1>
+                
+                {/* Các phần thông tin chi tiết giữ nguyên */}
                 <div className="mb-4 ml-1 flex items-center">
-                    <span className="text-gray-400 my-2"><img
-                        src={
-                            barDetails.isAnyTableAvailable
+                    <span className="text-gray-400 my-2">
+                        <img
+                            src={barDetails.isAnyTableAvailable
                                 ? "https://img.icons8.com/?size=100&id=60362&format=png&color=40C057"
                                 : "https://img.icons8.com/?size=100&id=60362&format=png&color=FA5252"
-                        }
-                        alt={barDetails.isAnyTableAvailable ? "Còn bàn" : "Hết bàn"}
-                        className="inline-block w-5 h-5 mr-2"
-                    /></span>
+                            }
+                            alt={barDetails.isAnyTableAvailable ? "Còn bàn" : "Hết bàn"}
+                            className="inline-block w-5 h-5 mr-2"
+                        />
+                    </span>
                     <span className="text-lg text-white">{barDetails.isAnyTableAvailable ? "Còn bàn" : "Hết bàn"}</span>
                 </div>
 
@@ -121,6 +126,7 @@ const BarDetail = () => {
                     <span className="text-yellow-500 text-lg mr-2">{averageRating}</span>
                     <span className="text-white text-sm">({totalReviews} đánh giá)</span>
                 </div>
+
                 <div className="mb-6">
                     <p className="text-white my-2">
                         <LocationOnIcon className='text-yellow-500 mr-2' />
@@ -142,6 +148,7 @@ const BarDetail = () => {
                         </ul>
                     )}
                 </div>
+
                 <hr className="border-yellow-500 mb-4" />
                 <p className="mb-6">{barDetails.description}</p>
                 <button 
@@ -156,10 +163,27 @@ const BarDetail = () => {
                     {isLoading ? 'Đang xử lý...' : (barDetails.isAnyTableAvailable ? 'Đặt bàn' : 'Hết Bàn')}
                 </button>
             </div>
+
+            {/* Phần đánh giá */}
             <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg mt-6 w-full max-w-4xl">
                 <h2 className="text-2xl text-yellow-500 font-bold mb-4">Đánh giá</h2>
                 <FeedbackList feedbacks={barDetails.feedBacks} />
             </div>
+
+            {/* Map container - Đặt ở góc phải */}
+            <div className="fixed top-32 right-8 bg-neutral-800 p-4 rounded-lg shadow-lg w-[400px]">
+                <h2 className="text-xl text-yellow-500 font-bold mb-4">Vị trí quán</h2>
+                <GoongMap
+                    branches={[{
+                        barId: barDetails.barId,
+                        barName: barDetails.barName,
+                        address: barDetails.address,
+                        latitude: barDetails.latitude,
+                        longitude: barDetails.longitude
+                    }]}
+                />
+            </div>
+
             <LoadingSpinner open={isLoading} />
         </div>
     );

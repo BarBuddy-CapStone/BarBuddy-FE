@@ -14,6 +14,8 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@goongmaps/goong-js": "^1.0.9",
+    "@goongmaps/goong-map-react": "^1.1.2",
     "@microsoft/signalr": "^8.0.7",
     "@mui/icons-material": "^6.1.2",
     "@mui/material": "^6.1.1",

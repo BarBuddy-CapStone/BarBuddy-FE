@@ -4,4 +4,7 @@ import paymentHistoryService from "./service/paymentHistoryService";
 import useAuthStore from "./hooks/useUserStore";
 import useTableStore from "./hooks/useTableStore";
 
-export { headerConstants, BookingService, paymentHistoryService, useAuthStore, useTableStore };
+// Third-party
+import GoongMap from "./Third-party/goong/GoongMap";
+
+export { headerConstants, BookingService, paymentHistoryService, useAuthStore, useTableStore, GoongMap };
