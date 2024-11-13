@@ -30,11 +30,11 @@ const sidebarItems = [
     label: "Bàn",
     path: "/manager/table-management",
   },
-  // {
-  //   icon: LocalActivityIcon,
-  //   label: "Sự kiện",
-  //   path: "/admin/event-management",
-  // },
+  {
+    icon: LocalActivityIcon,
+    label: "Sự kiện",
+    path: "/manager/event-management",
+  },
   {
     icon: BadgeIcon,
     label: "Nhân viên",
