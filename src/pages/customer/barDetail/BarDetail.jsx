@@ -172,7 +172,17 @@ const BarDetail = () => {
 
             {/* Map container - Đặt ở góc phải */}
             <div className="fixed top-32 right-8 bg-neutral-800 p-4 rounded-lg shadow-lg w-[400px]">
-                <h2 className="text-xl text-yellow-500 font-bold mb-4">Vị trí quán</h2>
+                <h2 className="text-xl text-yellow-500 font-bold mb-2">Vị trí quán</h2>
+                <div className="flex flex-wrap items-center gap-4 mb-3">
+                    <div className="flex items-center">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
+                        <span className="text-sm text-white">Vị trí của bạn</span>
+                    </div>
+                    <div className="flex items-center">
+                        <div className="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                        <span className="text-sm text-white">Chi nhánh</span>
+                    </div>
+                </div>
                 <GoongMap
                     branches={[{
                         barId: barDetails.barId,
