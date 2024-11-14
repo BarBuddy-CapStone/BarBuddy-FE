@@ -50,8 +50,8 @@ import Login from "./pages/(auth)/login/Login";
 import Success from "./pages/(auth)/paymentStatus/Success";
 import Failed from "./pages/(auth)/paymentStatus/Failed";
 import Error from "./pages/(auth)/paymentStatus/Error";
-import EventManagement from "./pages/admin/event-management/EventManagement";
-import AddEvent from "./pages/admin/event-management/AddEvent";
+import EventManagement from "./pages/manager/event-management/EventManagement";
+import AddEvent from "./pages/manager/event-management/AddEvent";
 import ManagerLayout from "./components/managerComponents/ManagerLayout";
 import ManagerDrink from "./pages/manager/ManagerDrinkBasedCate/ManagerDrink";
 import FeedbackManager from "./pages/manager/feedback/FeedbackManager";
@@ -65,6 +65,7 @@ import ManagerManagement from "./pages/admin/managerManagement/ManagerManagement
 import TableManagementManager from "./pages/manager/table-management/TableManagementManager";
 import ProtectedCustomerRoute from "./components/ProtectedRoute/ProtectedCustomerRoute";
 import DrinkCategories from "./pages/manager/managerDrinkCate/DrinkCategories";
+import EventDetail from "./pages/manager/event-management/EventDetail";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -124,6 +125,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
           {/* quan li payment history */}
           <Route path="manager/payment-history" element={<PaymentHistoryManager />}/> 
+
+          {/* quan li event */}
+          <Route path="manager/event-management" element={<EventManagement />}/> 
+          <Route path="manager/event-management/add-event" element={<AddEvent />}/> 
+          <Route path="manager/event-management/event-detail/:eventId" element={<EventDetail />}/>
           </Route>
         </Route>
 

@@ -246,7 +246,7 @@ const BarBuddyBranches = ({ onBranchesLoaded, onBarClick }) => {
     <section className="w-full rounded-lg flex flex-col bg-neutral-800 ml-10 mb-10 mt-10 px-10 py-8">
       <div className="flex justify-between">
         <h2 className="text-2xl text-start mb-8 text-yellow-400">
-          Chi nhánh Bar Buddy
+          Tất cả chi nhánh Bar Buddy
         </h2>
         <div className="flex flex-col md:flex-row items-center justify-between ml-4 mr-4 mb-8 gap-4">
           <div className="relative w-full md:w-96">
