@@ -1,6 +1,7 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getOneDrink } from "src/lib/service/managerDrinksService";
+import he from 'he';
 
 const InfoItem = ({ data, emotion }) => {
     // Format price to Vietnamese currency
@@ -24,6 +25,9 @@ const InfoItem = ({ data, emotion }) => {
             <li className="mt-4 first:mt-0">
                 <span className="text-amber-400 text-base">Danh mục cảm xúc: </span> {emotion}
             </li>
+            <li className="mt-4 first:mt-0">
+                <span className="text-amber-400 text-base">Có tại: </span> {data.barName}
+            </li>
         </Fragment>
     );
 }
@@ -43,7 +47,7 @@ const DescriptionSection = ({ description }) => (
             Mô tả
         </h2>
         <p className="self-center mt-3 text-sm leading-6 text-gray-200 max-md:max-w-full">
-            {description}
+            {description ? he.decode(description) : "Không có mô tả"}
         </p>
     </section>
 );
@@ -99,13 +103,13 @@ const DrinkDetail = () => {
         }
     }, [imageUrls]);
 
-    const backToBarHandle = () => {
-        redirect(`/drinkList`)
+    const backToBarHandle = (barId) => {
+        redirect(`/bar-detail/${barId}`)
     }
     return (
         <main className="mt-8 flex flex-col items-start w-[65%] ml-[16%] px-10 py-5 bg-neutral-800 max-md:px-3 rounded">
             <button
-                onClick={backToBarHandle}
+                onClick={() => backToBarHandle(dataDrink?.barId)}
                 className="flex gap-2 text-lg leading-snug text-gray-200">
                 <img
                     loading="lazy"

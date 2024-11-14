@@ -33,7 +33,7 @@ const updateDrink = async (drinkId, data) => {
 }
 
 const getAllDrinkByBarId = async (barId) => {
-  return await axios.get(`getDrink/${barId}`)
+  return await axios.get(`api/v1/Drink/customer/${barId}`)
 }
 
 export {
