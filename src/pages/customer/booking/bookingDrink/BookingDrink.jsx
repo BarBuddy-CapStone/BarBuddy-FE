@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BookingDrinkInfo, DrinkSelection, DrinkSidebar, Filter } from "src/pages";
-import { getAllDrink } from 'src/lib/service/managerDrinksService';
+import { getAllDrinkByBarId } from 'src/lib/service/managerDrinksService';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from 'src/lib/hooks/useUserStore';
 import { Button, Dialog, CircularProgress, DialogContent, Typography } from '@mui/material';
@@ -21,7 +21,7 @@ const BookingDrink = () => {
   useEffect(() => {
     const fetchDrinks = async () => {
       try {
-        const response = await getAllDrink();
+        const response = await getAllDrinkByBarId(barInfo.id);
         const drinksData = response.data.data || [];
         setDrinks(drinksData.map(drink => ({ ...drink, quantity: 0 })));
         setFilteredDrinks(drinksData.map(drink => ({ ...drink, quantity: 0 })));

@@ -26,18 +26,18 @@ function DrinksList({ totalAmount, selectedDrinks }) {
 function DrinkItem({ drinkName, price, quantity, image }) {
   return (
     <div className="flex gap-4 justify-between mt-5 leading-none text-white">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-1 min-w-0">
         <img 
           src={image} 
           alt={drinkName} 
-          className="w-12 h-12 object-cover rounded-full"
+          className="w-12 h-12 shrink-0 object-cover rounded-full"
         />
-        <div className="flex flex-col text-sm">
-          <div className="truncate">{drinkName}</div>
+        <div className="flex flex-col text-sm min-w-0">
+          <div className="truncate max-w-[150px]">{drinkName}</div>
           <div className="text-amber-400">{price.toLocaleString()} VND</div>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         <div className="text-amber-400">{(price * quantity).toLocaleString()} VND</div>
         <div className="text-lg font-bold">{quantity}x</div>
       </div>

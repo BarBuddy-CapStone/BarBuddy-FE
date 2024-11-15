@@ -41,11 +41,11 @@ const FilterSection = ({
 
     const handleEmotionChange = (key, isModal = false) => {
         if (isModal) {
-            setTempSelectedEmotions(prev => 
+            setTempSelectedEmotions(prev =>
                 prev.includes(key) ? prev.filter(e => e !== key) : [...prev, key]
             );
         } else {
-            setSelectedEmotions(prev => 
+            setSelectedEmotions(prev =>
                 prev.includes(key) ? prev.filter(e => e !== key) : [...prev, key]
             );
         }
@@ -118,7 +118,7 @@ const FilterSection = ({
                             </Fragment>
                         ))}
                     </div>
-                    
+
                     <div className="flex justify-between items-center mt-4">
                         <h3 className="text-base leading-none text-amber-400">Cảm xúc</h3>
                         <div className="flex gap-2">
@@ -144,7 +144,7 @@ const FilterSection = ({
                                     />
                                     <span className="truncate">{emotion.categoryName}</span>
                                 </label>
-                                <button 
+                                <button
                                     onClick={() => {
                                         setSelectedEmotionDetail(emotion);
                                         setEmotionDetailModalOpen(true);
@@ -162,8 +162,8 @@ const FilterSection = ({
                     <PriceFilter dataDrinkPrice={dataDrinkPrice} onPriceChange={setPriceRange} />
 
                     <div className="flex justify-center mt-5">
-                        <button 
-                            onClick={onApplyFilters} 
+                        <button
+                            onClick={onApplyFilters}
                             className="px-4 py-2 bg-amber-400 text-white rounded-xl hover:bg-amber-500 transition-colors"
                         >
                             Xác nhận
@@ -208,7 +208,7 @@ const FilterSection = ({
             {isCateModalOpen && selectedCateId && (
                 <Modal
                     title={dataDrinkCate.find(cate => cate.drinksCategoryId === selectedCateId)?.drinksCategoryName || 'Không có tên'}
-                    onClose={() => setCateModalOpen(false)} 
+                    onClose={() => setCateModalOpen(false)}
                     onConfirm={handleConfirmCate}
                 >
                     {dataDrinkCate.find(cate => cate.drinksCategoryId === selectedCateId)?.description || 'Không có mô tả.'}
@@ -246,20 +246,18 @@ const Modal = ({ title, children, onClose, onConfirm }) => {
     };
 
     return (
-        <div 
-            className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ${
-                isOpen ? 'opacity-100' : 'opacity-0'
-            }`}
+        <div
+            className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'
+                }`}
         >
-            <div 
+            <div
                 className="fixed inset-0 bg-black transition-opacity duration-300"
                 style={{ opacity: isOpen ? 0.5 : 0 }}
                 onClick={handleClose}
             />
-            <div 
-                className={`bg-neutral-800 text-white w-11/12 max-w-sm p-5 rounded-lg relative transform transition-all duration-300 ${
-                    isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
-                }`}
+            <div
+                className={`bg-neutral-800 text-white w-11/12 max-w-sm p-5 rounded-lg relative transform transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                    }`}
             >
                 <button
                     className="absolute top-2 right-2 text-gray-300 hover:text-white transition-colors duration-200"
@@ -287,7 +285,7 @@ const Modal = ({ title, children, onClose, onConfirm }) => {
 const DrinkCard = ({ images, drinkName, price, withDivider, drinkId }) => {
     const redirect = useNavigate();
     const drinkDetailHandle = () => {
-        redirect(`/drinkDetail?drinkId=${drinkId}`)
+        redirect(`/drink-detail?drinkId=${drinkId}`)
     }
 
     // Format price to Vietnamese currency
@@ -300,20 +298,26 @@ const DrinkCard = ({ images, drinkName, price, withDivider, drinkId }) => {
     return (
         <div className="flex flex-col w-full">
             <div
-                className={`rounded-md flex flex-col grow items-center px-2 py-2 w-full text-center bg-neutral-700 ${withDivider ? 'max-md:mt-5' : ''
+                className={`rounded-md flex flex-col grow items-center px-2 py-2 w-full text-center bg-neutral-700 hover:bg-neutral-600 transition-colors cursor-pointer ${withDivider ? 'max-md:mt-5' : ''
                     }`}
+                onClick={drinkDetailHandle}
             >
-                <div className="w-full aspect-[0.84]">
+                <div className="w-full aspect-[1/1]">
                     <img
                         loading="lazy"
                         src={images}
                         className="object-cover w-full h-full rounded-md"
+                        alt={drinkName}
                     />
                 </div>
-                <button onClick={drinkDetailHandle}>
-                    <h3 className="mt-1 text-base leading-5 text-zinc-100 truncate">{drinkName}</h3>
-                </button>
-                <p className="mt-1 text-sm leading-tight text-amber-400">Giá: {formattedPrice}</p>
+                <div className="w-full px-1 mt-2">
+                    <h3 className="text-sm font-medium leading-5 text-zinc-100 truncate hover:text-amber-400">
+                        {drinkName}
+                    </h3>
+                    <p className="mt-1 text-sm font-medium leading-tight text-amber-400">
+                        {formattedPrice}
+                    </p>
+                </div>
             </div>
             {withDivider && <div className="flex shrink-0 mt-5 h-2.5 rounded-sm bg-neutral-700" />}
         </div>
@@ -398,14 +402,20 @@ const PriceFilter = ({ dataDrinkPrice, onPriceChange }) => {
 
 const BackButton = () => {
     const navigate = useNavigate();
-    
+    const location = useLocation();
+    const barId = location.state?.barId;
+
     const handleBack = () => {
-        navigate('/home');
+        if (barId) {
+            navigate(`/bar-detail/${barId}`);
+        } else {
+            navigate('/home');
+        }
     };
 
     return (
-        <button 
-            onClick={handleBack} 
+        <button
+            onClick={handleBack}
             className="flex items-center gap-2 self-start mt-2.5 text-xl text-gray-200 hover:text-amber-400 transition-colors duration-300"
         >
             <ChevronLeftIcon />
@@ -445,7 +455,11 @@ const StyleTag = () => (
 
 const DrinkList = () => {
     const location = useLocation();
-    const searchParams = new URLSearchParams(location.search);
+    const navigate = useNavigate();
+
+    // Lấy dữ liệu từ state của navigation
+    const drinksOfBar = location.state?.drinksOfBar || [];
+    const barName = location.state?.barName || ''; // Lấy barName từ state
 
     const [dataDrinksOfBar, setDataDrinkOfBar] = useState([]);
     const [dataDrinkCate, setDataDrinkCate] = useState([]);
@@ -456,38 +470,38 @@ const DrinkList = () => {
     const [selectedDrink, setSelectedDrink] = useState(null);
     const [selectedEmotions, setSelectedEmotions] = useState([]);
     const [priceRange, setPriceRange] = useState([0, 100000000]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        // Thêm đoạn code này để cuộn lên đầu trang khi component được mount
         window.scrollTo(0, 0);
 
         const fetchDataDrinkOfBar = async () => {
             try {
-                const response = await getAllDrink();
-                const dataDrinksOfBar = response.data.data;
-                console.log("data", dataDrinksOfBar)
-                const allEmotionDrink = dataDrinksOfBar.flatMap(drink => drink.emotionsDrink);
+                const allEmotionDrink = drinksOfBar.flatMap(drink => drink.emotionsDrink);
                 const uniqueEmo = Array.from(new Set(allEmotionDrink.map(emotion => emotion.emotionalDrinksCategoryId)))
                     .map(id => allEmotionDrink.find(emotion => emotion.emotionalDrinksCategoryId === id));
 
-                const allCateDrink = dataDrinksOfBar.flatMap(drink => drink.drinkCategoryResponse);
+                const allCateDrink = drinksOfBar.flatMap(drink => drink.drinkCategoryResponse);
                 const uniqueCate = Array.from(new Set(allCateDrink.map(cate => cate.drinksCategoryId)))
                     .map(id => allCateDrink.find(cate => cate.drinksCategoryId === id));
 
-                const allPriceDrink = dataDrinksOfBar.flatMap(drink => Number(drink.price));
+                const allPriceDrink = drinksOfBar.flatMap(drink => Number(drink.price));
                 const uniquePrice = Array.from(new Set(allPriceDrink));
 
-                setDataDrinkOfBar(dataDrinksOfBar);
+                setDataDrinkOfBar(drinksOfBar);
                 setDataDrinkEmo(uniqueEmo);
                 setDataDrinkCate(uniqueCate);
                 setDataDrinkPrice(uniquePrice);
-                setFilteredDrinks(dataDrinksOfBar);
-            } catch {
-                console.error();
+                setFilteredDrinks(drinksOfBar);
+            } catch (error) {
+                console.error('Error processing drink data:', error);
             }
         };
-        fetchDataDrinkOfBar();
-    }, []); // Dependency array trống để chỉ chạy một lần khi component mount
+
+        if (drinksOfBar.length > 0) {
+            fetchDataDrinkOfBar();
+        }
+    }, [drinksOfBar]); // Dependency array cập nhật
 
     const applyFilters = () => {
         let filtered = dataDrinksOfBar;
@@ -512,6 +526,16 @@ const DrinkList = () => {
         setFilteredDrinks(filtered);
     };
 
+    const handleSearch = () => {
+        let filtered = dataDrinksOfBar;
+        if (searchTerm.trim()) {
+            filtered = filtered.filter(drink =>
+                drink.drinkName.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        setFilteredDrinks(filtered);
+    };
+
     return (
         <>
             <StyleTag />
@@ -530,12 +554,38 @@ const DrinkList = () => {
                             setPriceRange={setPriceRange}
                             onApplyFilters={applyFilters} // Pass the filter function
                         />
-                        <main className="flex flex-col w-[60%] max-md:w-full ">
-                            <section className="flex flex-col px-6 pt-4 mx-auto w-full bg-neutral-800 max-md:px-4 max-md:mt-8 max-md:max-w-full rounded-md">
+                        <main className="flex flex-col w-[60%] max-md:w-full">
+                            <section className="flex flex-col px-6 pt-4 w-full bg-neutral-800 max-md:px-4 max-md:mt-8 max-md:max-w-full rounded-md">
+                                <div className="relative flex items-center w-full mb-4">
+                                    <div className="absolute left-0">
+                                        <BackButton />
+                                    </div>
+                                    <div className="flex-1 text-center">
+                                        <h2 className="text-xl text-amber-400 mt-2.5 font-bold">
+                                            {barName ? `Danh sách đồ uống tại ${barName}` : 'Danh sách đồ uống'}
+                                        </h2>
+                                    </div>
+                                </div>
 
-                                <div className="flex flex-wrap gap-4 justify-between max-w-full leading-snug w-[646px] text-center items-center">
-                                    <BackButton />
-                                    <h2 className="text-xl text-center ceter-text text-amber-400 font-bold mr-[20%]">Danh sách đồ uống</h2>
+                                <div className="flex justify-end items-center gap-2 ">
+                                    <input
+                                        type="text"
+                                        placeholder="Tìm kiếm tên đồ uống..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="px-4 py-2 rounded-lg bg-neutral-700 text-white border border-neutral-600 focus:outline-none focus:border-amber-400"
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleSearch();
+                                            }
+                                        }}
+                                    />
+                                    <button
+                                        onClick={handleSearch}
+                                        className="px-4 py-2 bg-amber-400 text-white rounded-lg hover:bg-amber-500 transition-colors"
+                                    >
+                                        Tìm kiếm
+                                    </button>
                                 </div>
                                 <div className="shrink-0 mt-3 h-px border border-amber-400 border-solid max-md:max-w-full" />
                                 <div className="mt-5 max-md:max-w-full">

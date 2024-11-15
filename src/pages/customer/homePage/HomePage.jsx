@@ -100,97 +100,6 @@ const LocationsList = React.memo(({ locations }) => (
   </div>
 ));
 
-
-const DrinkCard = React.memo(({ images, drinkName, price, drinkId }) => {
-  const redirect = useNavigate();
-  const drinkDetailHandle = () => {
-    redirect(`/drinkDetail?drinkId=${drinkId}`);
-  };
-
-  // Format price to Vietnamese currency
-  const formattedPrice = new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    minimumFractionDigits: 0
-  }).format(price);
-
-  return (
-    <div className="flex flex-col px-2.5 py-3 w-1/6 flex-shrink-0 max-md:w-full transition-transform transform hover:scale-105">
-      <div className="flex flex-col grow items-center w-full text-center rounded-xl bg-neutral-700 max-md:mt-7">
-        <img
-          loading="lazy"
-          src={images}
-          alt={drinkName}
-          className="object-contain self-stretch max-h-45 rounded-md aspect-[0.84]"
-        />
-        <button onClick={drinkDetailHandle}>
-          <h3 className="mt-1.5 text-base leading-7 text-zinc-100">
-            {drinkName}
-          </h3>
-        </button>
-        <p className="mt-1 text-sm leading-snug text-amber-400">{formattedPrice}</p>
-      </div>
-    </div>
-  );
-});
-
-const BarBuddyDrinks = React.memo(() => {
-  const [drinkData, setDrinkData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const dataFetchDrink = async () => {
-      const response = await getAllDrinkCustomer();
-      const dataFetch = response?.data?.data || [];
-      setDrinkData(dataFetch);
-    };
-    dataFetchDrink();
-  }, []);
-
-  useEffect(() => {
-    console.log(drinkData)
-  }, [drinkData]);
-
-  const infiniteData = useMemo(() => {
-    return [...drinkData, ...drinkData, ...drinkData];
-  }, [drinkData]);
-
-  const viewDrinkHandle = () => {
-    setIsLoading(true);
-    // Sử dụng Promise để đảm bảo loading spinner hiển thị trước khi chuyển trang
-    new Promise(resolve => setTimeout(resolve, 1000))
-      .then(() => {
-        setIsLoading(false);
-        navigate(`/drinkList`);
-      });
-  };
-
-  return (
-    <section className="w-full rounded-lg flex flex-col bg-neutral-800 ml-10 mt-10 mb-20 px-10 py-5">
-      <header className="flex flex-wrap gap-3 justify-between w-full leading-snug">
-        <h2 className="text-2xl text-amber-400">Đồ uống toàn chi nhánh</h2>
-        <div className="flex gap-5 my-auto text-xl text-gray-200 cursor-pointer hover:text-amber-400">
-          <button onClick={viewDrinkHandle}>
-            <span className="basis-auto">
-              Xem tất cả <ArrowForward className="mb-1" />
-            </span>
-          </button>
-        </div>
-      </header>
-      <div className="shrink-0 mt-4 h-px border border-amber-400 border-solid max-md:max-w-full" />
-      <div className="mt-5 max-md:max-w-full overflow-hidden relative">
-        <div className="flex items-center animate-scroll gap-0">
-          {infiniteData.map((drink, index) => (
-            <DrinkCard key={index} {...drink} />
-          ))}
-        </div>
-      </div>
-      <LoadingSpinner open={isLoading} />
-    </section>
-  );
-});
-
 const BarBuddyBranches = ({ onBranchesLoaded, onBarClick }) => {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -487,7 +396,6 @@ function HomePage() {
         <div className="col-span-7 w-full">
           <BarBuddyBranchesAvailable onBranchesLoaded={setBranches} onBarClick={handleBarClick} />
           <BarBuddyBranches onBranchesLoaded={setBranches} onBarClick={handleBarClick} />
-          <BarBuddyDrinks />
         </div>
         <aside className="col-span-3 w-full lg:ml-8 mt-10 sticky top-4">
           <div className="bg-neutral-800 p-4 rounded-lg shadow-lg mb-6">
