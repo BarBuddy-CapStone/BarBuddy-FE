@@ -71,20 +71,30 @@ connection.on("TableReleased", (response) => {
 
 connection.on("TableListReleased", (response) => {
   console.log("TableListReleased received:", response);
+  
+  // Kiểm tra response
+  if (!response) {
+    console.error("Empty TableListReleased response");
+    return;
+  }
+
+  // Xử lý cả trường hợp response là array và object
+  const tables = Array.isArray(response.table) ? response.table : [response.table];
+  
   document.dispatchEvent(
     new CustomEvent("tableListStatusChanged", {
       detail: {
         barId: response.barId,
         date: response.date,
         time: response.time,
-        tables: response.table.map(t => ({
+        tables: tables.map(t => ({
           tableId: t.tableId,
+          time: t.time,
           isHeld: false,
           holderId: null,
           accountId: null,
           status: 1,
-          date: null,
-          time: null
+          date: null
         }))
       }
     })
@@ -102,8 +112,11 @@ export const releaseTableSignalR = async (data) => {
 
 export const releaseTableListSignalR = async (data) => {
   try {
-    await hubConnection.invoke("ReleaseListTablee", data);
+    console.log("Sending releaseTableListSignalR:", data);
+    await hubConnection.invoke("ReleaseTableList", data);
+    return true;
   } catch (error) {
     console.error("Error in releaseTableListSignalR:", error);
+    return false;
   }
 };

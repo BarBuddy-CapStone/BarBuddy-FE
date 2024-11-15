@@ -109,13 +109,25 @@ const TableSelection = (
     };
 
     const handleTableListStatusChange = (event) => {
-      const { tables } = event.detail;
-      console.log("TableSelection received tableListStatusChanged:", event.detail);
+      const { tables, barId, date, time } = event.detail;
+      console.log("TableSelection received tableListStatusChanged:", {
+        tables,
+        barId,
+        date,
+        time,
+        currentFilteredTables: filteredTables
+      });
 
-      setFilteredTables(prevTables =>
-        prevTables.map(table => {
+      if (!tables || !Array.isArray(tables)) {
+        console.error("Invalid tables data:", tables);
+        return;
+      }
+
+      setFilteredTables(prevTables => {
+        const updatedTables = prevTables.map(table => {
           const updatedTable = tables.find(t => t.tableId === table.tableId);
           if (updatedTable) {
+            console.log(`Updating table ${table.tableId} status to available`);
             return {
               ...table,
               status: 1,
@@ -127,23 +139,22 @@ const TableSelection = (
             };
           }
           return table;
-        })
-      );
-
-      setCurrentHoldCount(prev => {
-        const releasedCount = tables.length;
-        return Math.max(0, prev - releasedCount);
+        });
+        console.log("Updated filteredTables:", updatedTables);
+        return updatedTables;
       });
     };
 
     document.addEventListener('tableStatusChanged', handleTableStatusChange);
     document.addEventListener('tableListStatusChanged', handleTableListStatusChange);
+    console.log("TableListStatusChanged event listener added");
 
     return () => {
       document.removeEventListener('tableStatusChanged', handleTableStatusChange);
       document.removeEventListener('tableListStatusChanged', handleTableListStatusChange);
+      console.log("TableListStatusChanged event listener removed");
     };
-  }, []);
+  }, [filteredTables]);
 
   useEffect(() => {
     const checkHoldTables = async () => {
