@@ -59,3 +59,55 @@
   transition: opacity 300ms, transform 300ms;
 }
 
+/* Custom scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #666;
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #888;
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #666 transparent;
+}
+
+/* When scrollbar is not being used */
+.custom-scrollbar::-webkit-scrollbar-thumb:vertical:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:horizontal:hover {
+  background-color: #888;
+}
+
+/* When actively scrolling */
+.custom-scrollbar::-webkit-scrollbar-thumb:vertical:active,
+.custom-scrollbar::-webkit-scrollbar-thumb:horizontal:active {
+  background-color: #999;
+}
+
+/* Hide scrollbar when not hovering */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  transition: scrollbar-width 0.2s ease;
+}
+
+.custom-scrollbar:not(:hover)::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+.custom-scrollbar:not(:hover) {
+  scrollbar-width: none;
+}
+
