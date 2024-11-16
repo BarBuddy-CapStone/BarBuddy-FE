@@ -8,7 +8,7 @@ import Stack from '@mui/material/Stack';
 import { message } from 'antd';
 import { CircularProgress } from '@mui/material';
 import { Search } from '@mui/icons-material';
-import { getAllTableTypes } from "src/lib/service/tableTypeService";
+import { getAllTableTypes, getTableTypeOfBar } from "src/lib/service/tableTypeService";
 
 function TableManagementManager() {
   const [tableData, setTableData] = useState([]);
@@ -38,33 +38,46 @@ function TableManagementManager() {
   const [errors, setErrors] = useState({
     tableName: ""
   });
+  const [barId, setBarId] = useState(null);
 
   useEffect(() => {
-    const fetchInitialData = async () => {
-      setIsLoading(true);
-      try {
-        const tableTypesResponse = await getAllTableTypes();
-        setTableTypes(tableTypesResponse.data.data);
-
-        const response = await TableService.getTables(null, null, 1, pageSize);
-        setTableData(response.data.data.response);
-        setTotalPages(response.data.data.totalPage);
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu:", error);
-        message.error("Có lỗi xảy ra khi tải dữ liệu");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchInitialData();
+    const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
+    if (userInfo && userInfo.identityId) {
+      setBarId(userInfo.identityId);
+    }
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTableTypes = async () => {
+      if (!barId) return;
+      
+      try {
+        const response = await getTableTypeOfBar(barId);
+        setTableTypes(response.data.data);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách loại bàn:", error);
+        message.error("Có lỗi xảy ra khi tải danh sách loại bàn");
+      }
+    };
+
+    fetchTableTypes();
+  }, [barId]);
+
+  useEffect(() => {
+    const fetchTables = async () => {
+      if (!barId) return;
+      
       setIsLoading(true);
       try {
         const tableTypeId = selectedTableType === "all" ? null : selectedTableType;
-        const response = await TableService.getTables(tableTypeId, null, pageIndex, pageSize);
+        const response = await TableService.getTablesOfBar(
+          barId, 
+          tableTypeId, 
+          null, 
+          pageIndex, 
+          pageSize
+        );
+
         setTableData(response.data.data.response);
         setTotalPages(response.data.data.totalPage);
       } catch (error) {
@@ -74,8 +87,9 @@ function TableManagementManager() {
         setIsLoading(false);
       }
     };
-    fetchData();
-  }, [pageIndex, selectedTableType]);
+
+    fetchTables();
+  }, [pageIndex, selectedTableType, barId]);
 
   const filteredTableData = tableData.filter((table) => {
     const matchesSearch = table.tableName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -466,7 +480,7 @@ function TableRow({
 
   return (
     <div className={rowClass}>
-      <div className="text-center font-normal">{index + 1}</div>
+      <div className="text-center font-normal">{index}</div>
       <div className="text-center font-normal">{tableName}</div>
       <div className="text-center font-normal">{tableTypeName}</div>
       <div className="text-center font-normal">{minimumPrice.toLocaleString('vi-VN')} VND</div>

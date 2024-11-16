@@ -1,15 +1,14 @@
 import PropTypes from "prop-types";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Pagination from '@mui/material/Pagination';
 import { message } from 'antd';
 import { CircularProgress } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import TableService from 'src/lib/service/tableService';
-import { getAllTableTypes } from 'src/lib/service/tableTypeService';
+import { getTableTypeOfBar } from 'src/lib/service/tableTypeService';
 
 function TableManagementStaff() {
-  const { tableTypeId } = useParams();
   const navigate = useNavigate();
 
   const [tableData, setTableData] = useState([]);
@@ -26,13 +25,23 @@ function TableManagementStaff() {
   const [selectedTableType, setSelectedTableType] = useState("all");
   const [tableTypes, setTableTypes] = useState([]);
   const [newStatus, setNewStatus] = useState(null);
+  const [barId, setBarId] = useState(null);
+
+  useEffect(() => {
+    const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
+    if (userInfo && userInfo.identityId) {
+      setBarId(userInfo.identityId);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!barId) return;
+      
       setIsLoading(true);
       try {
         const tableTypeId = selectedTableType === "all" ? null : selectedTableType;
-        const response = await TableService.getTables(tableTypeId, null, pageIndex, pageSize);
+        const response = await TableService.getTablesOfBar(barId, tableTypeId, null, pageIndex, pageSize);
         setTableData(response.data.data.response);
         setTotalPages(response.data.data.totalPage);
       } catch (error) {
@@ -43,12 +52,12 @@ function TableManagementStaff() {
       }
     };
     fetchData();
-  }, [pageIndex, selectedTableType]);
+  }, [pageIndex, selectedTableType, barId]);
 
   useEffect(() => {
     const fetchTableTypes = async () => {
       try {
-        const response = await getAllTableTypes();
+        const response = await getTableTypeOfBar(barId);
         setTableTypes(response.data.data);
       } catch (error) {
         console.error("Lỗi khi lấy danh sách loại bàn:", error);
