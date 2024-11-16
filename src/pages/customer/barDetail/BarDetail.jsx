@@ -5,7 +5,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import StarIcon from '@mui/icons-material/Star';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { LoadingSpinner } from 'src/components';
+import { LoadingSpinner, ImageGallery } from 'src/components';
 import { GoongMap } from 'src/lib';
 import { getAllDrinkByBarId } from 'src/lib/service/managerDrinksService';
 import { Pagination } from '@mui/material';
@@ -261,7 +261,7 @@ const BarDetail = () => {
                 >
                     <ChevronLeftIcon /> Quay Lại
                 </button>
-                <img src={barDetails.images} alt={barDetails.barName} className="w-full h-64 object-cover rounded-lg mb-4" />
+                <ImageGallery images={barDetails.images} />
                 <h1 className="text-3xl text-yellow-500 font-bold mb-4">{barDetails.barName}</h1>
 
                 {/* Các phần thông tin chi tiết giữ nguyên */}
