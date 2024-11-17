@@ -603,7 +603,7 @@ function HomePage() {
                   onClick={() => navigate('/bar-branch')}
                   className="text-yellow-500 hover:text-yellow-400 flex items-center gap-1 text-sm group transition-all duration-300"
                 >
-                  Xem tất c���
+                  Xem tất cả
                   <ArrowForward className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
