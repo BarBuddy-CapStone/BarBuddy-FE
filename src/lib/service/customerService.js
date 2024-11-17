@@ -22,20 +22,28 @@ export const getCoordinatesFromAddress = async (address) => {
     }
 };
 
-export const getAllBar = async (search = '', pageIndex = 1, pageSize = 6) => {
-    const response = await axios.get(`api/v1/bars`, {
+export const getAllBar = async (search = '', pageIndex = 1, pageSize = 10) => {
+    return await axios.get(`api/v1/bars`, {
         params: {
             search,
             pageIndex,
             pageSize
         }
     });
+};
 
-    if (response.data.statusCode === 200) {
-        const barsWithCoordinates = await Promise.all(
-            response.data.data.map(async (bar) => {
-                // Chỉ gọi geocoding nếu bar chưa có latitude/longitude
-                if (!bar.latitude || !bar.longitude) {
+
+export const getAllBarForMap = async (pageIndex = 1, pageSize = 10) => {
+    try {
+        const response = await axios.get(`api/v1/bar/customer/getBar`, {
+            params: {
+                pageIndex,
+                pageSize
+            }
+        });
+        if (response.data.statusCode === 200) {
+            const barsWithCoordinates = await Promise.all(
+                response.data.data.map(async (bar) => {
                     try {
                         const geoResponse = await getCoordinatesFromAddress(bar.address);
                         if (geoResponse?.results?.[0]?.geometry?.location) {
@@ -49,18 +57,25 @@ export const getAllBar = async (search = '', pageIndex = 1, pageSize = 6) => {
                     } catch (error) {
                         console.error("Error getting coordinates for bar:", error);
                     }
-                }
-                return bar;
-            })
-        );
-        response.data.data = barsWithCoordinates;
+                    return bar;
+                })
+            );
+            response.data.data = barsWithCoordinates.filter(bar => bar.latitude && bar.longitude);
+        }
+        
+        return response;
+    } catch (error) {
+        console.error("Error fetching bars for map:", error);
+        throw error;
     }
-    
-    return response;
 };
 
-export const getAllBarAvailable = async (date) => {
-    return await axios.get(`api/v1/bars/${date}`);
+export const getAllBarAvailable = async (date, search = '') => {
+    return await axios.get(`api/v1/bars/${date}`, {
+        params: {
+            search
+        }
+    });
 }
 
 export const getBarById = async (barId) => {

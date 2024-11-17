@@ -66,6 +66,9 @@ import TableManagementManager from "./pages/manager/table-management/TableManage
 import ProtectedCustomerRoute from "./components/ProtectedRoute/ProtectedCustomerRoute";
 import DrinkCategories from "./pages/manager/managerDrinkCate/DrinkCategories";
 import EventDetail from "./pages/manager/event-management/EventDetail";
+import Event from "./pages/customer/event/Event";
+import EventDetailCustomer from "./pages/customer/event/EventDetailCustomer";
+import BarBranch from "./pages/customer/barBranch/BarBranch";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -160,6 +163,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="customer" element={<BookingTable />}/> 
             <Route path="payment" element={<PaymentPage />}/> 
             <Route path="payment-detail" element={<PaymentDetail />}/> 
+            <Route path="event" element={<Event />}/> 
+            <Route path="event/:eventId" element={<EventDetailCustomer />}/> 
+            <Route path="bar-branch" element={<BarBranch />}/>
 
             {/* Trạng thái trang khi thanh toán */}
             <Route path="payment-success/:paymentId" element={<Success />}/> 

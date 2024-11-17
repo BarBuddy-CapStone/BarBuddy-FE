@@ -31,6 +31,10 @@ import BookingTable from "./staff/table-registration/components/BookingTable";
 import BookingTableManager from "./manager/table-registration/components/BookingTableManager";
 import FilterSectionManager from "./manager/table-registration/components/FilterSectionManager";
 
+// Customer Event
+import Event from "./customer/event/Event";
+import EventDetail from "./customer/event/EventDetailCustomer";
+
 // (auth)
 import Login from "./(auth)/login/Login";
 import Registration from "./(auth)/registration/Registration";
@@ -59,5 +63,7 @@ export {
   BookingTableManager,
   PopUpCreate,
   PopUpUpdate,
-  PopupConfirmDelete
+  PopupConfirmDelete,
+  Event,
+  EventDetail
 };
