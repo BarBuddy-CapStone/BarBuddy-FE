@@ -13,349 +13,246 @@ import Pagination from '@mui/material/Pagination';
 
 // Component hiển thị danh sách đánh giá
 const FeedbackList = React.memo(({ feedbacks }) => {
-    const [currentPage, setCurrentPage] = useState(1);
-    const feedbacksPerPage = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  const feedbacksPerPage = 5;
 
-    // Tính toán feedback cho trang hiện tại
-    const indexOfLastFeedback = currentPage * feedbacksPerPage;
-    const indexOfFirstFeedback = indexOfLastFeedback - feedbacksPerPage;
-    const currentFeedbacks = feedbacks.slice(indexOfFirstFeedback, indexOfLastFeedback);
-    const totalPages = Math.ceil(feedbacks.length / feedbacksPerPage);
+  // Tính toán feedback cho trang hiện tại
+  const indexOfLastFeedback = currentPage * feedbacksPerPage;
+  const indexOfFirstFeedback = indexOfLastFeedback - feedbacksPerPage;
+  const currentFeedbacks = feedbacks.slice(indexOfFirstFeedback, indexOfLastFeedback);
+  const totalPages = Math.ceil(feedbacks.length / feedbacksPerPage);
 
-    const handlePageChange = (event, value) => {
-        setCurrentPage(value);
-        // Scroll to reviews section smoothly
-        document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth' });
-    };
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+    // Scroll to reviews section smoothly
+    document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth' });
+  };
 
-    return (
-        <div className="space-y-6">
-            {/* Rating Summary */}
-            <div className="flex items-center justify-center gap-8 p-6 bg-neutral-900 rounded-lg mb-8">
-                <div className="text-center">
-                    <div className="text-5xl font-bold text-yellow-500 mb-2">
-                        {(feedbacks.reduce((acc, feedback) => acc + feedback.rating, 0) / feedbacks.length || 0).toFixed(1)}
-                    </div>
-                    <div className="flex items-center justify-center gap-1 mb-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                            <StarIcon key={star} className="text-yellow-500 w-5 h-5" />
-                        ))}
-                    </div>
-                    <div className="text-sm text-gray-400">{feedbacks.length} đánh giá</div>
-                </div>
-
-                {/* Rating Distribution */}
-                <div className="flex-1 max-w-xs">
-                    {[5, 4, 3, 2, 1].map((rating) => {
-                        const count = feedbacks.filter(f => Math.floor(f.rating) === rating).length;
-                        const percentage = (count / feedbacks.length) * 100 || 0;
-
-                        return (
-                            <div key={rating} className="flex items-center gap-2 text-sm mb-1">
-                                <div className="flex items-center gap-1 w-16">
-                                    <span>{rating}</span>
-                                    <StarIcon className="text-yellow-500 w-4 h-4" />
-                                </div>
-                                <div className="flex-1 h-2 bg-neutral-700 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-yellow-500 rounded-full"
-                                        style={{ width: `${percentage}%` }}
-                                    />
-                                </div>
-                                <span className="text-gray-400 w-12">{count}</span>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Reviews List */}
-            <div className="space-y-4">
-                {currentFeedbacks.map((feedback, index) => (
-                    <div key={index} className="bg-neutral-900 p-4 rounded-lg">
-                        <div className="flex items-start gap-4">
-                            <img
-                                src={feedback.imageAccount}
-                                alt={feedback.accountName}
-                                className="w-12 h-12 rounded-full object-cover"
-                            />
-                            <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-semibold text-lg text-white">
-                                            {feedback.accountName || "Người dùng"}
-                                        </h3>
-                                        <div className="flex items-center gap-2 text-sm text-gray-400">
-                                            <div className="flex">
-                                                {Array.from({ length: 5 }).map((_, i) => (
-                                                    <StarIcon
-                                                        key={i}
-                                                        className={`w-4 h-4 ${i < feedback.rating ? 'text-yellow-500' : 'text-gray-600'}`}
-                                                    />
-                                                ))}
-                                            </div>
-                                            <span>•</span>
-                                            <time>
-                                                {new Date(feedback.createdTime).toLocaleDateString('vi-VN', {
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric'
-                                                })}
-                                            </time>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p className="mt-2 text-gray-300">{feedback.comment}</p>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex justify-center mt-6">
-                    <Pagination
-                        count={totalPages}
-                        page={currentPage}
-                        onChange={handlePageChange}
-                        color="primary"
-                        size="large"
-                        sx={{
-                            '& .MuiPaginationItem-root': {
-                                color: '#fff',
-                                borderColor: '#f59e0b',
-                                '&:hover': {
-                                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                                },
-                                '&.Mui-selected': {
-                                    backgroundColor: '#f59e0b',
-                                    color: '#000',
-                                    '&:hover': {
-                                        backgroundColor: '#d97706',
-                                    },
-                                },
-                            },
-                        }}
-                    />
-                </div>
-            )}
-
-            {/* No Reviews Message */}
-            {feedbacks.length === 0 && (
-                <div className="text-center py-8 text-gray-400">
-                    Chưa có đánh giá nào cho quán bar này
-                </div>
-            )}
+  return (
+    <div className="space-y-6">
+      {/* Rating Summary */}
+      <div className="flex items-center justify-center gap-8 p-6 bg-neutral-900 rounded-lg mb-8">
+        <div className="text-center">
+          <div className="text-5xl font-bold text-yellow-500 mb-2">
+            {(feedbacks.reduce((acc, feedback) => acc + feedback.rating, 0) / feedbacks.length || 0).toFixed(1)}
+          </div>
+          <div className="flex items-center justify-center gap-1 mb-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <StarIcon key={star} className="text-yellow-500 w-5 h-5" />
+            ))}
+          </div>
+          <div className="text-sm text-gray-400">{feedbacks.length} đánh giá</div>
         </div>
-    );
+        
+        {/* Rating Distribution */}
+        <div className="flex-1 max-w-xs">
+          {[5, 4, 3, 2, 1].map((rating) => {
+            const count = feedbacks.filter(f => Math.floor(f.rating) === rating).length;
+            const percentage = (count / feedbacks.length) * 100 || 0;
+            
+            return (
+              <div key={rating} className="flex items-center gap-2 text-sm mb-1">
+                <div className="flex items-center gap-1 w-16">
+                  <span>{rating}</span>
+                  <StarIcon className="text-yellow-500 w-4 h-4" />
+                </div>
+                <div className="flex-1 h-2 bg-neutral-700 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-yellow-500 rounded-full"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+                <span className="text-gray-400 w-12">{count}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Reviews List */}
+      <div className="space-y-4">
+        {currentFeedbacks.map((feedback, index) => (
+          <div key={index} className="bg-neutral-900 p-4 rounded-lg">
+            <div className="flex items-start gap-4">
+              <img 
+                src={feedback.imageAccount} 
+                alt={feedback.accountName} 
+                className="w-12 h-12 rounded-full object-cover"
+              />
+              <div className="flex-1">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-lg text-white">
+                      {feedback.accountName || "Người dùng"}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <StarIcon 
+                            key={i}
+                            className={`w-4 h-4 ${i < feedback.rating ? 'text-yellow-500' : 'text-gray-600'}`}
+                          />
+                        ))}
+                      </div>
+                      <span>•</span>
+                      <time>
+                        {new Date(feedback.createdTime).toLocaleDateString('vi-VN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </time>
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-2 text-gray-300">{feedback.comment}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6">
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
+            color="primary"
+            size="large"
+            sx={{
+              '& .MuiPaginationItem-root': {
+                color: '#fff',
+                borderColor: '#f59e0b',
+                '&:hover': {
+                  backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                },
+                '&.Mui-selected': {
+                  backgroundColor: '#f59e0b',
+                  color: '#000',
+                  '&:hover': {
+                    backgroundColor: '#d97706',
+                  },
+                },
+              },
+            }}
+          />
+        </div>
+      )}
+
+      {/* No Reviews Message */}
+      {feedbacks.length === 0 && (
+        <div className="text-center py-8 text-gray-400">
+          Chưa có đánh giá nào cho quán bar này
+        </div>
+      )}
+    </div>
+  );
 });
 
 // Cập nhật component EventSlider
 const EventSlider = React.memo(({ events, onEventClick }) => {
-    const navigate = useNavigate();
-    const [currentSlide, setCurrentSlide] = useState(0);
+  const navigate = useNavigate();
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-    const viewAllEvents = () => {
-        navigate('/event');
-    };
+  const viewAllEvents = () => {
+    navigate('/event');
+  };
 
-    useEffect(() => {
-        if (!events || events.length === 0) return;
+  useEffect(() => {
+    if (!events || events.length === 0) return;
 
-        const interval = setInterval(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % events.length);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [events]);
+
+  if (!events || events.length === 0) return null;
+
+  return (
+    <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg mb-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl text-yellow-500 font-bold">Sự kiện đang diễn ra</h2>
+        <button
+          onClick={viewAllEvents}
+          className="text-yellow-500 hover:text-yellow-400 flex items-center gap-1 text-sm group transition-all duration-300"
+        >
+          Xem tất cả
+          <ArrowForward className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        </button>
+      </div>
+      <div className="shrink-0 mb-4 h-px border border-amber-400 border-solid" />
+      
+      {/* Điều chỉnh chiều cao của slider container */}
+      <div className="relative w-full h-[300px] overflow-hidden rounded-lg"> {/* Giảm từ 400px xuống 300px */}
+        <div 
+          className="flex transition-transform duration-500 ease-in-out h-full w-full"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {events.map((event, index) => (
+            <div
+              key={event.eventId}
+              className="flex-none w-full h-full relative cursor-pointer"
+              onClick={() => onEventClick(event.eventId)}
+            >
+              <img
+                src={event.images}
+                alt={event.eventName}
+                className="w-full h-full object-cover"
+              />
+              {/* Điều chỉnh overlay và content */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-4"> {/* Giảm padding từ p-6 xuống p-4 */}
+                <h3 className="text-xl font-bold text-yellow-500 mb-1"> {/* Giảm font-size và margin */}
+                  {event.eventName}
+                </h3>
+                <p className="text-white/90 text-sm line-clamp-2">
+                  {event.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Navigation arrows - Điều chỉnh vị trí */}
+        <button
+          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition-all duration-300 backdrop-blur-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            setCurrentSlide((prev) => (prev - 1 + events.length) % events.length);
+          }}
+        >
+          <ArrowBackIos className="text-yellow-500 w-4 h-4" />
+        </button>
+        <button
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition-all duration-300 backdrop-blur-sm"
+          onClick={(e) => {
+            e.stopPropagation();
             setCurrentSlide((prev) => (prev + 1) % events.length);
-        }, 6000);
+          }}
+        >
+          <ArrowForwardIos className="text-yellow-500 w-4 h-4" />
+        </button>
 
-        return () => clearInterval(interval);
-    }, [events]);
-
-    if (!events || events.length === 0) return null;
-
-    return (
-        <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg mb-6">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl text-yellow-500 font-bold">Sự kiện đang diễn ra</h2>
-                <button
-                    onClick={viewAllEvents}
-                    className="text-yellow-500 hover:text-yellow-400 flex items-center gap-1 text-sm group transition-all duration-300"
-                >
-                    Xem tất cả
-                    <ArrowForward className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-            </div>
-            <div className="shrink-0 mb-4 h-px border border-amber-400 border-solid" />
-
-            {/* Điều chỉnh chiều cao của slider container */}
-            <div className="relative w-full h-[300px] overflow-hidden rounded-lg"> {/* Giảm từ 400px xuống 300px */}
-                <div
-                    className="flex transition-transform duration-500 ease-in-out h-full w-full"
-                    style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                >
-                    {events.map((event, index) => (
-                        <div
-                            key={event.eventId}
-                            className="flex-none w-full h-full relative cursor-pointer"
-                            onClick={() => onEventClick(event.eventId)}
-                        >
-                            <img
-                                src={event.images}
-                                alt={event.eventName}
-                                className="w-full h-full object-cover"
-                            />
-                            {/* Điều chỉnh overlay và content */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                            <div className="absolute bottom-0 left-0 right-0 p-4"> {/* Giảm padding từ p-6 xuống p-4 */}
-                                <h3 className="text-xl font-bold text-yellow-500 mb-1"> {/* Giảm font-size và margin */}
-                                    {event.eventName}
-                                </h3>
-                                <p className="text-white/90 text-sm line-clamp-2">
-                                    {event.description}
-                                </p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Navigation arrows - Điều chỉnh vị trí */}
-                <button
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition-all duration-300 backdrop-blur-sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setCurrentSlide((prev) => (prev - 1 + events.length) % events.length);
-                    }}
-                >
-                    <ArrowBackIos className="text-yellow-500 w-4 h-4" />
-                </button>
-                <button
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition-all duration-300 backdrop-blur-sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setCurrentSlide((prev) => (prev + 1) % events.length);
-                    }}
-                >
-                    <ArrowForwardIos className="text-yellow-500 w-4 h-4" />
-                </button>
-
-                {/* Dots navigation */}
-                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                    {events.map((_, index) => (
-                        <button
-                            key={index}
-                            className={`w-1.5 h-1.5 rounded-full transition-all ${currentSlide === index ? 'bg-yellow-500 w-3' : 'bg-white/50'
-                                }`}
-                            onClick={() => setCurrentSlide(index)}
-                        />
-                    ))}
-                </div>
-            </div>
+        {/* Dots navigation */}
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+          {events.map((_, index) => (
+            <button
+              key={index}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${
+                currentSlide === index ? 'bg-yellow-500 w-3' : 'bg-white/50'
+              }`}
+              onClick={() => setCurrentSlide(index)}
+            />
+          ))}
         </div>
-    );
+      </div>
+    </div>
+  );
 });
-
-const DrinkCard = React.memo(({ images, drinkName, price, drinkId }) => {
-    const redirect = useNavigate();
-    const drinkDetailHandle = () => {
-        redirect(`/drink-detail?drinkId=${drinkId}`);
-    };
-
-    const formattedPrice = new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-        minimumFractionDigits: 0
-    }).format(price);
-
-    return (
-        <div className="flex flex-col w-[calc(33.333%-1rem)] min-w-[250px] transition-transform transform hover:scale-105">
-            <div className="flex flex-col grow items-center w-full text-center rounded-xl bg-neutral-700 p-4">
-                <img
-                    loading="lazy"
-                    src={images}
-                    alt={drinkName}
-                    className="object-contain w-full h-48 rounded-md"
-                />
-                <div className="flex flex-col justify-between h-[80px] w-full">
-                    <button onClick={drinkDetailHandle} className="w-full" title={drinkName}>
-                        <h3 className="mt-3 text-base leading-7 text-zinc-100 hover:text-amber-400 truncate">
-                            {drinkName}
-                        </h3>
-                    </button>
-                    <p className="text-sm leading-snug text-amber-400">{formattedPrice}</p>
-                </div>
-            </div>
-        </div>
-    );
-});
-
-const BarBuddyDrinks = React.memo(({ barId, barName }) => {
-    const [drinkData, setDrinkData] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
-    const MAX_DISPLAY_ITEMS = 6;
-
-    const handleViewMore = () => {
-        navigate('/drink-list', {
-            state: {
-                drinksOfBar: drinkData,
-                barId: barId,
-                barName: barName
-            }
-        });
-    };
-
-    useEffect(() => {
-        const dataFetchDrink = async () => {
-            try {
-                setIsLoading(true);
-                const response = await getAllDrinkByBarId(barId);
-                const dataFetch = response?.data?.data || [];
-                setDrinkData(dataFetch);
-            } catch (error) {
-                console.error('Error fetching drinks:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        dataFetchDrink();
-    }, [barId]);
-
-    // Chỉ lấy 6 phần tử đầu tiên
-    const displayedDrinks = drinkData.slice(0, MAX_DISPLAY_ITEMS);
-    const hasMoreDrinks = drinkData.length > MAX_DISPLAY_ITEMS;
-
-    return (
-        <section className="w-full rounded-lg flex flex-col">
-            <header className="flex flex-wrap gap-3 justify-between w-full leading-snug">
-                <h2 className="text-2xl text-amber-400">Đồ uống tại chi nhánh</h2>
-            </header>
-            <div className="shrink-0 mt-4 h-px border border-amber-400 border-solid max-md:max-w-full" />
-            <div className="mt-5 max-md:max-w-full">
-                {isLoading ? (
-                    <LoadingSpinner />
-                ) : (
-                    <>
-                        <div className="flex flex-wrap gap-4">
-                            {displayedDrinks.map((drink, index) => (
-                                <DrinkCard key={drink.id || index} {...drink} />
-                            ))}
-                        </div>
-                        {hasMoreDrinks && (
-                            <div className="flex justify-center mt-6 mb-2">
-                                <button
-                                    onClick={handleViewMore}
-                                    className="px-6 py-2 bg-yellow-500 text-gray-800 rounded-lg hover:bg-yellow-600 transition-colors duration-300 font-semibold"
-                                >
-                                    Xem thêm
-                                </button>
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
-        </section>
-    );
-});
-
 
 const BarDetail = () => {
     const { barId } = useParams();
@@ -364,7 +261,6 @@ const BarDetail = () => {
     const [totalReviews, setTotalReviews] = useState(0);
     const [isLoading, setIsLoading] = useState(false); // New state for loading
     const [events, setEvents] = useState([]);
-    const [showLoginPopup, setShowLoginPopup] = useState(false);
 
     const navigate = useNavigate();
 
@@ -465,19 +361,6 @@ const BarDetail = () => {
 
     return (
         <div className="container mx-auto p-4 max-w-[1440px]">
-            {/* Thêm popup đăng nhập */}
-            {showLoginPopup && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-                    <Login
-                        onClose={() => setShowLoginPopup(false)}
-                        onLoginSuccess={handleLoginSuccess}
-                        onSwitchToRegister={() => {
-                            setShowLoginPopup(false);
-                        }}
-                    />
-                </div>
-            )}
-
             {/* Main content */}
             <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg mb-6">
                 <button
@@ -487,11 +370,14 @@ const BarDetail = () => {
                     <ChevronLeftIcon /> Quay Lại
                 </button>
 
-
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Left column - Main info */}
                     <div>
-                        <ImageGallery images={barDetails.images} />
+                        <img 
+                            src={barDetails.images} 
+                            alt={barDetails.barName} 
+                            className="w-full h-64 object-cover rounded-lg mb-4" 
+                        />
                         <h1 className="text-3xl text-yellow-500 font-bold mb-4">{barDetails.barName}</h1>
 
                         <div className="flex items-center mb-4">
