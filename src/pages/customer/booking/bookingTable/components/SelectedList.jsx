@@ -1,64 +1,52 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { releaseTable, releaseTableList } from 'src/lib/service/BookingTableService';
 import useAuthStore from 'src/lib/hooks/useUserStore';
-import { hubConnection, releaseTableSignalR, releaseTableListSignalR } from 'src/lib/Third-party/signalR/hubConnection';
+import { releaseTableSignalR, releaseTableListSignalR } from 'src/lib/Third-party/signalR/hubConnection';
 import dayjs from 'dayjs';
 import { Button } from '@mui/material';
 import { toast } from "react-toastify";
 
-const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, selectedDate, selectedTime }) => {
+const SelectedList = ({ selectedTables, setSelectedTables, barId, selectedDate, selectedTime }) => {
   const [countdowns, setCountdowns] = useState({});
   const { token } = useAuthStore();
+  const [isReleasingAll, setIsReleasingAll] = useState(false);
 
-  // Chỉ giữ lại useEffect cho countdown
+  // Chỉ update countdown UI
   useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const updatedCountdowns = {};
-      let tablesChanged = false;
-
-      selectedTables.forEach(table => {
-        if (table.holdExpiry) {
-          const timeLeft = Math.max(0, Math.floor((table.holdExpiry - now) / 1000));
-          updatedCountdowns[table.tableId] = timeLeft;
-
-          if (timeLeft === 0 && countdowns[table.tableId] !== 0) {
-            handleExpiredTable(table.tableId, table.date, table.time);
-            tablesChanged = true;
+    let timer;
+    if (!isReleasingAll) {
+      timer = setInterval(() => {
+        const now = new Date().getTime();
+        const updatedCountdowns = {};
+        
+        selectedTables.forEach(table => {
+          if (table.holdExpiry) {
+            const timeLeft = Math.max(0, Math.floor((table.holdExpiry - now) / 1000));
+            updatedCountdowns[table.tableId] = timeLeft;
           }
-        }
-      });
+        });
 
-      setCountdowns(updatedCountdowns);
-
-      if (tablesChanged) {
-        setSelectedTables(prev => prev.filter(table => updatedCountdowns[table.tableId] > 0));
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [selectedTables, countdowns]);
-
-  // Các hàm xử lý
-  const handleExpiredTable = useCallback(async (tableId, date, time) => {
-    if (!date || !time) return;
-    try {
-      const data = {
-        barId: barId,
-        tableId: tableId,
-        date: date,
-        time: time
-      };
-      const response = await releaseTable(token, data);
-      if (response.data.statusCode === 200) {
-        await releaseTableSignalR(data);
-        setSelectedTables(prev => prev.filter(t => t.tableId !== tableId));
-        onRemove(tableId);
-      }
-    } catch (error) {
-      console.error("Error releasing expired table:", error);
+        setCountdowns(updatedCountdowns);
+      }, 1000);
     }
-  }, [barId, onRemove, token, setSelectedTables]);
+
+    return () => timer && clearInterval(timer);
+  }, [selectedTables, isReleasingAll]);
+
+  // Chỉ update UI khi countdown hết
+  useEffect(() => {
+    if (!isReleasingAll) {
+      const expiredTables = selectedTables.filter(table => 
+        countdowns[table.tableId] === 0
+      );
+      
+      if (expiredTables.length > 0) {
+        setSelectedTables(prev => 
+          prev.filter(table => countdowns[table.tableId] > 0)
+        );
+      }
+    }
+  }, [countdowns, isReleasingAll, selectedTables, setSelectedTables]);
 
   const handleRemove = async (tableId, date, time) => {
     if (!date || !time) return;
@@ -73,7 +61,6 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
       const response = await releaseTable(token, data);
       if (response.data.statusCode === 200) {
         await releaseTableSignalR(data);
-        
         setSelectedTables(prev => prev.filter(t => t.tableId !== tableId));
         toast.success("Đã xóa bàn thành công");
       }
@@ -87,6 +74,8 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
     if (selectedTables.length === 0) return;
 
     try {
+      setIsReleasingAll(true);
+
       const data = {
         barId: barId,
         date: dayjs(selectedDate).format('YYYY-MM-DD'),
@@ -97,25 +86,30 @@ const SelectedList = ({ selectedTables, setSelectedTables, onRemove, barId, sele
         }))
       };
 
+      console.log("Sending releaseTableList request:", data);
       const response = await releaseTableList(token, data);
+      
       if (response.data.statusCode === 200) {
-        await releaseTableListSignalR({
+        setSelectedTables([]);
+        
+        const signalRData = {
           barId: data.barId,
           date: data.date,
           time: data.time,
           table: data.table
-        });
-        
-        setSelectedTables([]);
+        };
+
+        await releaseTableListSignalR(signalRData);
         toast.success("Đã xóa tất cả bàn thành công");
       }
     } catch (error) {
       console.error("Error releasing all tables:", error);
       toast.error("Có lỗi xảy ra khi xóa các bàn");
+    } finally {
+      setIsReleasingAll(false);
     }
   };
 
-  // Sắp xếp bàn theo thời gian
   const sortedTables = [...selectedTables].sort((a, b) => {
     if (a.time < b.time) return -1;
     if (a.time > b.time) return 1;

@@ -158,8 +158,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="booking-history/:accountId" element={<BookingHistory />} />
             <Route path="booking-detail/:bookingId" element={<BookingDetailPage />} />
             <Route path="payment-history/:accountId" element={<CustomerPaymentHistory />} />
-            <Route path="drinkList" element={<DrinkList />} /> 
-            <Route path="drinkDetail" element={<DrinkDetailCustomer />}/> 
+            <Route path="drink-list" element={<DrinkList />} /> 
+            <Route path="drink-detail" element={<DrinkDetailCustomer />}/> 
             <Route path="customer" element={<BookingTable />}/> 
             <Route path="payment" element={<PaymentPage />}/> 
             <Route path="payment-detail" element={<PaymentDetail />}/> 

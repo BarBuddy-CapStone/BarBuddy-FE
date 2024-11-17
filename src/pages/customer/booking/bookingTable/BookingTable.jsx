@@ -450,9 +450,9 @@ const BookingTable = () => {
   useEffect(() => {
     const handleTableListStatusChange = (event) => {
       const { tables, barId, date, time } = event.detail;
-      console.log("Handling table list status change in BookingTable:", event.detail);
+      console.log("BookingTable received tableListStatusChanged:", event.detail);
 
-      // Cập nhật trạng thái cho tất cả các bàn trong danh sách
+      // Cập nhật allFilteredTables
       setAllFilteredTables(prev => {
         const currentDateTimeKey = `${dayjs(date).format('YYYY-MM-DD')}-${time}`;
         return {
@@ -475,26 +475,7 @@ const BookingTable = () => {
         };
       });
 
-      // Cập nhật filteredTables
-      setFilteredTables(prev =>
-        prev.map(table => {
-          const updatedTable = tables.find(t => t.tableId === table.tableId);
-          if (updatedTable) {
-            return {
-              ...table,
-              status: 1,
-              isHeld: false,
-              holderId: null,
-              accountId: null,
-              date: null,
-              time: null
-            };
-          }
-          return table;
-        })
-      );
-
-      // Xóa các bàn khỏi selectedTables
+      // Cập nhật selectedTables
       setSelectedTables(prev => 
         prev.filter(table => !tables.some(t => t.tableId === table.tableId))
       );
@@ -505,129 +486,7 @@ const BookingTable = () => {
     return () => {
       document.removeEventListener('tableListStatusChanged', handleTableListStatusChange);
     };
-  }, [selectedDate, selectedTime]);
-
-  const handleReleaseList = async () => {
-    if (selectedTables.length === 0) return;
-
-    try {
-      const data = {
-        barId: barId,
-        date: dayjs(selectedDate).format('YYYY-MM-DD'),
-        time: selectedTime + ":00",
-        table: selectedTables.map(table => ({
-          tableId: table.tableId,
-          time: selectedTime + ":00"
-        }))
-      };
-
-      const response = await releaseTableList(token, data);
-      if (response.data.statusCode === 200) {
-        // 1. Gửi SignalR
-        await releaseTableListSignalR({
-          barId: data.barId,
-          date: data.date,
-          time: data.time,
-          table: data.table
-        });
-
-        // 2. Cập nhật selectedTables
-        setSelectedTables([]);
-        
-        // 3. Cập nhật trạng thái các bàn trong filteredTables
-        setFilteredTables(prev =>
-          prev.map(table => {
-            if (selectedTables.some(st => st.tableId === table.tableId)) {
-              return {
-                ...table,
-                status: 1,
-                isHeld: false,
-                holderId: null,
-                accountId: null,
-                date: null,
-                time: null
-              };
-            }
-            return table;
-          })
-        );
-
-        toast.success("Đã xóa tất cả bàn đã chọn");
-      }
-    } catch (error) {
-      console.error("Error releasing all tables:", error);
-      toast.error("Có lỗi xảy ra khi xóa các bàn");
-    }
-  };
-
-  useEffect(() => {
-    const checkHoldTables = async () => {
-      if (!barId || !selectedDate || !selectedTime || !token || !userInfo.accountId) {
-        return; // Tránh gọi API khi thiếu thông tin
-      }
-
-      try {
-        const response = await getAllHoldTable(token, barId, selectedDate, selectedTime);
-        if (response?.data?.statusCode === 200 && response?.data?.data) {
-          const heldTables = response.data.data;
-          const currentDateTimeKey = `${dayjs(selectedDate).format('YYYY-MM-DD')}-${selectedTime}:00`;
-          
-          // Cập nhật allFilteredTables
-          setAllFilteredTables(prev => {
-            if (!prev[currentDateTimeKey]) return prev;
-            
-            return {
-              ...prev,
-              [currentDateTimeKey]: prev[currentDateTimeKey].map(table => {
-                const heldTable = heldTables.find(ht => ht.tableId === table.tableId);
-                if (heldTable) {
-                  return {
-                    ...table,
-                    status: 2,
-                    isHeld: true,
-                    holderId: heldTable.accountId,
-                    accountId: heldTable.accountId,
-                    date: heldTable.date,
-                    time: heldTable.time
-                  };
-                }
-                return table;
-              })
-            };
-          });
-
-          // Cập nhật filteredTables
-          setFilteredTables(prev =>
-            prev.map(table => {
-              const heldTable = heldTables.find(ht => ht.tableId === table.tableId);
-              if (heldTable) {
-                return {
-                  ...table,
-                  status: 2,
-                  isHeld: true,
-                  holderId: heldTable.accountId,
-                  accountId: heldTable.accountId,
-                  date: heldTable.date,
-                  time: heldTable.time
-                };
-              }
-              return table;
-            })
-          );
-
-          // Cập nhật currentHoldCount
-          const userHoldTables = heldTables.filter(
-            table => table.accountId === userInfo.accountId
-          );
-          setCurrentHoldCount(userHoldTables.length);
-        }
-      } catch (error) {
-        console.error("Error checking hold tables:", error);
-      }
-    };
-
-    checkHoldTables();
-  }, [barId, selectedDate, selectedTime, token, userInfo.accountId]);
+  }, []);
 
   return (
     <div className="flex overflow-hidden flex-col bg-zinc-900">
@@ -674,8 +533,6 @@ const BookingTable = () => {
             <TableSidebar
               selectedTables={selectedTables}
               setSelectedTables={setSelectedTables}
-              onRemove={handleRemoveTable}
-              onReleaseList={handleReleaseList}
               barId={barId}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
@@ -688,7 +545,7 @@ const BookingTable = () => {
         <DialogTitle>Thông báo</DialogTitle>
         <DialogContent>
           {!selectedTableTypeId
-            ? "Vui lòng chn loại bàn trước khi tìm kiếm."
+            ? "Vui lòng chn loại bàn trước khi tìm kim."
             : "Không có bàn nào phù hợp với thời gian bạn đã chọn. Vui lòng chọn thời gian khác hoặc loại bàn khác."}
         </DialogContent>
         <DialogActions>

@@ -16,6 +16,21 @@ class TableService {
     return response;
   }
 
+  static async getTablesOfBar(barId, tableTypeId, status, pageIndex, pageSize) {
+    let url = `api/Table/tables-of-bar?BarId=${barId}&PageIndex=${pageIndex}&PageSize=${pageSize}`;
+    
+    if (tableTypeId) {
+      url += `&TableTypeId=${tableTypeId}`;
+    }
+    
+    if (status !== null) {
+      url += `&Status=${status}`;
+    }
+
+    const response = await axios.get(url);
+    return response;
+  }
+
   static async addTable(tableData) {
     const response = await axios.post('api/Table', tableData);
     return response;

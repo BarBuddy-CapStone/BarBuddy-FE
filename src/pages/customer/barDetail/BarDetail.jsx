@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getBarById } from '../../../lib/service/customerService'; // Removed getBarTableById
+import { getBarById } from '../../../lib/service/customerService';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import StarIcon from '@mui/icons-material/Star';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'; // Thêm import này
-import { LoadingSpinner } from 'src/components'; // Import LoadingSpinner
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import { LoadingSpinner, ImageGallery } from 'src/components';
 import { GoongMap } from 'src/lib';
 import { getEventByBarId } from '../../../lib/service/eventManagerService';
 import { ArrowForward, ArrowBack, ArrowForwardIos, ArrowBackIos } from '@mui/icons-material';
@@ -268,8 +268,20 @@ const BarDetail = () => {
         navigate("/home");
     }, [navigate]);
 
+    const handleLoginSuccess = (userData) => {
+        setShowLoginPopup(false);
+        toast.success("Đăng nhập thành công! Bạn có thể tiếp tục đặt bàn.");
+    };
+
     const handleBooking = () => {
-        if (!barDetails.isAnyTableAvailable) return; // Prevent booking if no tables available
+        if (!barDetails.isAnyTableAvailable) return;
+
+        const authToken = sessionStorage.getItem('authToken');
+        if (!authToken) {
+            setShowLoginPopup(true);
+            return;
+        }
+
         setIsLoading(true);
         setTimeout(() => {
             setIsLoading(false);
@@ -277,30 +289,38 @@ const BarDetail = () => {
         }, 1000);
     };
 
+    const calculateRatingStats = useCallback((feedbacks) => {
+        if (!feedbacks?.length) return { averageRating: 0, totalReviews: 0 };
+        const total = feedbacks.reduce((acc, feedback) => acc + feedback.rating, 0);
+        return {
+            averageRating: (total / feedbacks.length).toFixed(1),
+            totalReviews: feedbacks.length
+        };
+    }, []);
+
     useEffect(() => {
         const fetchBarDetails = async () => {
             try {
+                setIsLoading(true);
                 const barData = await getBarById(barId);
                 if (barData.status === 200) {
                     const barInfo = barData.data.data;
                     setBarDetails(barInfo);
-                    const rating = barInfo.feedBacks.length > 0
-                        ? (barInfo.feedBacks.reduce((acc, feedback) => acc + feedback.rating, 0) / barInfo.feedBacks.length).toFixed(1)
-                        : 0;
-                    setAverageRating(rating);
-                    setTotalReviews(barInfo.feedBacks.length);
-                } else {
-                    console.error("Failed to fetch bar details");
+                    const { averageRating, totalReviews } = calculateRatingStats(barInfo.feedBacks);
+                    setAverageRating(averageRating);
+                    setTotalReviews(totalReviews);
                 }
             } catch (error) {
                 console.error("Error fetching bar details:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
         if (barId) {
             fetchBarDetails();
         }
-    }, [barId]);
+    }, [barId, calculateRatingStats]);
 
     useEffect(() => {
         const fetchEvents = async () => {
