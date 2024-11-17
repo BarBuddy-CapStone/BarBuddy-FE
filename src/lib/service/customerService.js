@@ -70,8 +70,12 @@ export const getAllBarForMap = async (pageIndex = 1, pageSize = 10) => {
     }
 };
 
-export const getAllBarAvailable = async (date) => {
-    return await axios.get(`api/v1/bars/${date}`);
+export const getAllBarAvailable = async (date, search = '') => {
+    return await axios.get(`api/v1/bars/${date}`, {
+        params: {
+            search
+        }
+    });
 }
 
 export const getBarById = async (barId) => {

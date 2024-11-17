@@ -333,7 +333,10 @@ const BarBuddyBranchesAvailable = ({ onBranchesLoaded, onBarClick }) => {
   const fetchBranchesAvailable = useCallback(async (searchTerm = searchAvailable, date = selectedDate) => {
     setLoadingAvailable(true);
     try {
-      const response = await getAllBarAvailable(date.toISOString().split('T')[0]);
+      const response = await getAllBarAvailable(
+        date.toISOString().split('T')[0],
+        searchTerm
+      );
       if (response.data.statusCode === 200) {
         setBranchesAvailable(response.data.data);
         onBranchesLoaded(response.data.data);
@@ -343,7 +346,7 @@ const BarBuddyBranchesAvailable = ({ onBranchesLoaded, onBarClick }) => {
     } finally {
       setLoadingAvailable(false);
     }
-  }, [onBranchesLoaded, selectedDate]);
+  }, [onBranchesLoaded, searchAvailable, selectedDate]);
 
   useEffect(() => {
     fetchBranchesAvailable();
@@ -359,7 +362,7 @@ const BarBuddyBranchesAvailable = ({ onBranchesLoaded, onBarClick }) => {
   }, [onBarClick]);
 
   const handleSearchAvailable = () => {
-    fetchBranchesAvailable(searchAvailable);
+    fetchBranchesAvailable(searchAvailable, selectedDate);
   };
 
   const getDayOfWeek = (date) => {
