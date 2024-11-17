@@ -102,7 +102,7 @@ const CustomerForm = ({
         barId: barId,
         bookingDate: formattedDate,
         bookingTime: formattedTime,
-        note: note || "string",
+        note: note || "Không Có Ghi Chú",
         tableIds: selectedTables.map((table) => table.tableId),
       };
 
