@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllBar, getAllBarAvailable, getAllBarForMap } from "src/lib/service/customerService";
-import { Add, ArrowForward, Search } from "@mui/icons-material";
+import { Add, ArrowForward, Search, ArrowBackIos, ArrowForwardIos, AccessTime } from "@mui/icons-material";
 import { getAllDrinkCustomer } from "src/lib/service/managerDrinksService";
 import { Button, Pagination, PaginationItem, TextField } from "@mui/material";
 import { LoadingSpinner } from 'src/components';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { GoongMap } from 'src/lib';
+import { getEventAllBar } from '../../../lib/service/eventManagerService';
+
 
 const BranchCard = React.memo(({ branch, onClick, selectedDate }) => {
   const rating = useMemo(
@@ -82,97 +84,195 @@ const BranchCard = React.memo(({ branch, onClick, selectedDate }) => {
   );
 });
 
+const EventSlider = React.memo(({ onEventClick }) => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isStill, setIsStill] = useState(1);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const navigate = useNavigate();
 
+  const fetchEvents = useCallback(async () => {
+    try {
+      const response = await getEventAllBar({
+        pageIndex: currentPage,
+        pageSize: 6,
+        isStill: isStill
+      });
+      if (response.data.statusCode === 200) {
+        setEvents(response.data.data.eventResponses);
+      }
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, isStill]);
 
-// const DrinkCard = React.memo(({ images, drinkName, price, drinkId }) => {
-//   const redirect = useNavigate();
-//   const drinkDetailHandle = () => {
-//     redirect(`/drinkDetail?drinkId=${drinkId}`);
-//   };
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
-//   // Format price to Vietnamese currency
-//   const formattedPrice = new Intl.NumberFormat('vi-VN', {
-//     style: 'currency',
-//     currency: 'VND',
-//     minimumFractionDigits: 0
-//   }).format(price);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % events.length);
+    }, 6000);
 
-//   return (
-//     <div className="flex flex-col px-2.5 py-3 w-1/6 flex-shrink-0 max-md:w-full transition-transform transform hover:scale-105">
-//       <div className="flex flex-col grow items-center w-full text-center rounded-xl bg-neutral-700 max-md:mt-7">
-//         <img
-//           loading="lazy"
-//           src={images}
-//           alt={drinkName}
-//           className="object-contain self-stretch max-h-45 rounded-md aspect-[0.84]"
-//         />
-//         <button onClick={drinkDetailHandle}>
-//           <h3 className="mt-1.5 text-base leading-7 text-zinc-100">
-//             {drinkName}
-//           </h3>
-//         </button>
-//         <p className="mt-1 text-sm leading-snug text-amber-400">{formattedPrice}</p>
-//       </div>
-//     </div>
-//   );
-// });
+    return () => clearInterval(interval);
+  }, [events.length]);
 
-// const BarBuddyDrinks = React.memo(() => {
-//   const [drinkData, setDrinkData] = useState([]);
-//   const [isLoading, setIsLoading] = useState(false);
-//   const navigate = useNavigate();
+  const handleEventTypeChange = (value) => {
+    setIsStill(value);
+    setCurrentPage(1);
+    setCurrentSlide(0);
+  };
 
-//   useEffect(() => {
-//     const dataFetchDrink = async () => {
-//       const response = await getAllDrinkCustomer();
-//       const dataFetch = response?.data?.data || [];
-//       setDrinkData(dataFetch);
-//     };
-//     dataFetchDrink();
-//   }, []);
+  if (loading) return (
+    <section className="w-full rounded-lg flex flex-col bg-neutral-800 mb-6 p-6">
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+      </div>
+    </section>
+  );
 
-//   useEffect(() => {
-//     console.log(drinkData)
-//   }, [drinkData]);
+  return (
+    <section className="w-full rounded-lg flex flex-col bg-neutral-800 mb-6 p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl text-yellow-500 font-bold">Sự kiện tại Bar Buddy</h2>
+        <div className="flex items-center gap-4">
+          <select 
+            className="bg-neutral-700 text-white px-4 py-2 rounded-lg border border-yellow-500"
+            value={isStill}
+            onChange={(e) => {
+              const value = e.target.value;
+              handleEventTypeChange(value === '' ? undefined : Number(value));
+            }}
+          >
+            <option value={0}>Sự kiện hiện tại</option>
+            <option value={1}>Sự kiện sắp tới</option>
+            <option value="">Tất cả sự kiện</option>
+          </select>
+          <button
+            onClick={() => navigate('/event')}
+            className="text-yellow-500 hover:text-yellow-400 flex items-center gap-1 text-sm group transition-all duration-300"
+          >
+            Xem tất cả
+            <ArrowForward className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+      </div>
 
-//   const infiniteData = useMemo(() => {
-//     return [...drinkData, ...drinkData, ...drinkData];
-//   }, [drinkData]);
+      {events.length > 0 ? (
+        <div className="relative overflow-hidden group">
+          <div 
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          >
+            {events.map((event) => (
+              <div
+                key={event.eventId}
+                className="w-full flex-shrink-0 px-2"
+                onClick={() => navigate(`/event/${event.eventId}`)}
+              >
+                <div className="bg-neutral-900 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300">
+                  <div className="relative h-48">
+                    <img
+                      src={event.images}
+                      alt={event.eventName}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h3 className="text-xl font-bold text-white mb-1">{event.eventName}</h3>
+                      <p className="text-sm text-yellow-500">{event.barName}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4">
+                    <p className="text-gray-300 text-sm line-clamp-2 mb-2">
+                      {event.description}
+                    </p>
+                    
+                    {event.eventTimeResponses.map((time, index) => (
+                      <div key={index} className="flex items-center text-gray-400 text-sm">
+                        <AccessTime className="w-4 h-4 mr-2" />
+                        {`${time.startTime.slice(0, 5)} - ${time.endTime.slice(0, 5)}`}
+                      </div>
+                    ))}
 
-//   const viewDrinkHandle = () => {
-//     setIsLoading(true);
-//     // Sử dụng Promise để đảm bảo loading spinner hiển thị trước khi chuyển trang
-//     new Promise(resolve => setTimeout(resolve, 1000))
-//       .then(() => {
-//         setIsLoading(false);
-//         navigate(`/drinkList`);
-//       });
-//   };
+                    {event.eventVoucherResponse && (
+                      <div className="mt-2 bg-yellow-500/10 p-2 rounded">
+                        <p className="text-yellow-500 text-sm font-semibold">
+                          Giảm {event.eventVoucherResponse.discount}%
+                          (Tối đa {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(event.eventVoucherResponse.maxPrice)})
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          Mã: {event.eventVoucherResponse.voucherCode}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
-//   return (
-//     <section className="w-full rounded-lg flex flex-col bg-neutral-800 ml-10 mt-10 mb-20 px-10 py-5">
-//       <header className="flex flex-wrap gap-3 justify-between w-full leading-snug">
-//         <h2 className="text-2xl text-amber-400">Đồ uống toàn chi nhánh</h2>
-//         <div className="flex gap-5 my-auto text-xl text-gray-200 cursor-pointer hover:text-amber-400">
-//           <button onClick={viewDrinkHandle}>
-//             <span className="basis-auto">
-//               Xem tất cả <ArrowForward className="mb-1" />
-//             </span>
-//           </button>
-//         </div>
-//       </header>
-//       <div className="shrink-0 mt-4 h-px border border-amber-400 border-solid max-md:max-w-full" />
-//       <div className="mt-5 max-md:max-w-full overflow-hidden relative">
-//         <div className="flex items-center animate-scroll gap-0">
-//           {infiniteData.map((drink, index) => (
-//             <DrinkCard key={index} {...drink} />
-//           ))}
-//         </div>
-//       </div>
-//       <LoadingSpinner open={isLoading} />
-//     </section>
-//   );
-// });
+          <button
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-yellow-500/80 hover:bg-yellow-600/80 p-2 rounded-full text-black transition-all duration-300 opacity-0 group-hover:opacity-100 invisible group-hover:visible"
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrentSlide((prev) => (prev - 1 + events.length) % events.length);
+            }}
+          >
+            <ArrowBackIos className="h-5 w-5" />
+          </button>
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-yellow-500/80 hover:bg-yellow-600/80 p-2 rounded-full text-black transition-all duration-300 opacity-0 group-hover:opacity-100 invisible group-hover:visible"
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrentSlide((prev) => (prev + 1) % events.length);
+            }}
+          >
+            <ArrowForwardIos className="h-5 w-5" />
+          </button>
+
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+            {events.map((_, index) => (
+              <button
+                key={index}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  currentSlide === index 
+                    ? 'bg-yellow-500 w-6' 
+                    : 'bg-gray-400 w-2 hover:bg-yellow-500/50'
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentSlide(index);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16 px-4 bg-neutral-900 rounded-lg">
+          <img 
+            src="https://img.icons8.com/clouds/100/000000/calendar.png" 
+            alt="No events" 
+            className="w-24 h-24 mb-4 opacity-50"
+          />
+          <p className="text-gray-400 text-lg text-center mb-2">
+            {isStill === 0 && "Không có sự kiện nào đang diễn ra"}
+            {isStill === 1 && "Không có sự kiện nào sắp diễn ra"}
+            {isStill === undefined && "Không tìm thấy sự kiện nào"}
+          </p>
+          <p className="text-gray-500 text-sm text-center">
+            Vui lòng quay lại sau hoặc thử chọn thời gian khác
+          </p>
+        </div>
+      )}
+    </section>
+  );
+});
 
 const BarBuddyBranches = ({ onBranchesLoaded, onBarClick }) => {
   const [branches, setBranches] = useState([]);
@@ -467,6 +567,7 @@ function HomePage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="col-span-1 lg:col-span-8">
           <BarBuddyBranchesAvailable onBranchesLoaded={setBranches} onBarClick={handleBarClick} />
+          <EventSlider />
         </div>
         
         <aside className="col-span-1 lg:col-span-4 space-y-6">
@@ -502,7 +603,7 @@ function HomePage() {
                   onClick={() => navigate('/bar-branch')}
                   className="text-yellow-500 hover:text-yellow-400 flex items-center gap-1 text-sm group transition-all duration-300"
                 >
-                  Xem tất cả
+                  Xem tất c���
                   <ArrowForward className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
