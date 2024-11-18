@@ -294,7 +294,7 @@ const BarBuddyDrinks = React.memo(({ barId, barName }) => {
     const [drinkData, setDrinkData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
-    const MAX_DISPLAY_ITEMS = 6;
+    const MAX_DISPLAY_ITEMS = 8;
 
     const handleViewMore = () => {
         navigate('/drink-list', {

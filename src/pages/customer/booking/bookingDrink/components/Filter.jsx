@@ -60,6 +60,13 @@ const Filter = ({
     const safeDataDrinkEmo = Array.isArray(dataDrinkEmo) ? dataDrinkEmo : [];
     const safeDrinkPrice = Array.isArray(dataDrinkPrice) ? dataDrinkPrice : [0, 100000000];
 
+    // Đảm bảo không có category trùng lặp
+    const uniqueCategories = Array.from(
+        new Map(
+            dataDrinkCate.map(category => [category.drinksCategoryId, category])
+        ).values()
+    );
+
     return (
         <aside className="flex flex-col w-full bg-neutral-800 rounded-lg p-4">
             <h3 className="font-bold text-lg leading-none text-amber-400 mb-3">Bộ lọc</h3>
@@ -72,7 +79,7 @@ const Filter = ({
                         Xem tất cả
                     </button>
                 </div>
-                {safeDrinkCate.slice(0, 5).map((cate) => (
+                {uniqueCategories.slice(0, 5).map((cate) => (
                     <div key={cate.drinksCategoryId} className="flex items-center justify-between py-1">
                         <label className="flex items-center gap-2 text-sm text-white">
                             <input
@@ -157,7 +164,7 @@ const Filter = ({
             }}>
                 <DialogTitle style={{ color: '#FFA500' }}>Danh mục thức uống</DialogTitle>
                 <DialogContent>
-                    {safeDrinkCate.map((cate) => (
+                    {uniqueCategories.map((cate) => (
                         <div key={cate.drinksCategoryId} className="flex items-center justify-between mb-2">
                             <label className="flex items-center">
                                 <input

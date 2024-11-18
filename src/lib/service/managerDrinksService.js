@@ -36,6 +36,10 @@ const getAllDrinkByBarId = async (barId) => {
   return await axios.get(`api/v1/Drink/customer/${barId}`)
 }
 
+const getDrinkRecommendation = async (emotion, barId) => { 
+  return await axios.get(`/api/DrinkRecommendation/drink-recommendation?emotion=${emotion}&barId=${barId}`)
+}
+
 export {
   getDrinkBasedCateByID,
   getAllDrink,
@@ -43,5 +47,6 @@ export {
   addDrink,
   updateDrink,
   getAllDrinkByBarId,
-  getAllDrinkCustomer
+  getAllDrinkCustomer,
+  getDrinkRecommendation
 }

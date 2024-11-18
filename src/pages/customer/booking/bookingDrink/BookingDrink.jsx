@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { BookingDrinkInfo, DrinkSelection, DrinkSidebar, Filter } from "src/pages";
-import { getAllDrinkByBarId } from 'src/lib/service/managerDrinksService';
+import { getAllDrinkByBarId, getDrinkRecommendation } from 'src/lib/service/managerDrinksService';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from 'src/lib/hooks/useUserStore';
-import { Button, Dialog, CircularProgress, DialogContent, Typography } from '@mui/material';
+import { Button, Dialog, CircularProgress, DialogContent, Typography, IconButton } from '@mui/material';
+import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
+import { EmotionRecommendationDialog } from 'src/pages';
 
 const BookingDrink = () => {
   const navigate = useNavigate();
@@ -13,6 +15,12 @@ const BookingDrink = () => {
   const [dataDrinkEmo, setDataDrinkEmo] = useState([]);
   const [dataDrinkPrice, setDataDrinkPrice] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showEmotionDialog, setShowEmotionDialog] = useState(false);
+  const [recommendedDrinks, setRecommendedDrinks] = useState([]);
+  const [emotionText, setEmotionText] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
+  const [currentEmotion, setCurrentEmotion] = useState('');
 
   const location = useLocation();
   const { barInfo, selectedTables, customerInfo } = location.state || {};
@@ -26,12 +34,20 @@ const BookingDrink = () => {
         setDrinks(drinksData.map(drink => ({ ...drink, quantity: 0 })));
         setFilteredDrinks(drinksData.map(drink => ({ ...drink, quantity: 0 })));
 
-        // Extract categories, emotions, and prices
-        const categories = [...new Set(drinksData.map(drink => drink.drinkCategoryResponse).filter(Boolean))];
+        // Sử dụng Set và map để loại bỏ các category trùng lặp
+        const uniqueCategories = Array.from(
+          new Map(
+            drinksData
+              .map(drink => drink.drinkCategoryResponse)
+              .filter(Boolean)
+              .map(category => [category.drinksCategoryId, category])
+          ).values()
+        );
+
         const emotions = [...new Set(drinksData.flatMap(drink => drink.emotionsDrink || []))];
         const prices = drinksData.map(drink => parseFloat(drink.price)).filter(price => !isNaN(price));
 
-        setDataDrinkCate(categories);
+        setDataDrinkCate(uniqueCategories);
         setDataDrinkEmo(emotions);
         setDataDrinkPrice(prices);
       } catch (error) {
@@ -101,6 +117,7 @@ const BookingDrink = () => {
       return !isNaN(price) && price >= filters.priceRange[0] && price <= filters.priceRange[1];
     });
     setFilteredDrinks(filtered);
+    setCurrentEmotion('');
   };
 
   const handleBackClick = () => {
@@ -133,6 +150,40 @@ const BookingDrink = () => {
     }, 2000);
   };
 
+  const handleGetRecommendation = async () => {
+    if (!emotionText.trim()) {
+      setErrorMessage('Vui lòng nhập cảm xúc của bạn');
+      return;
+    }
+
+    setIsLoadingRecommendation(true);
+    setErrorMessage('');
+    try {
+      const response = (await getDrinkRecommendation(emotionText, barInfo.id)).data;
+      if (response.data) {
+        setFilteredDrinks(response.data.drinkList.map(drink => ({ ...drink, quantity: 0 })));
+        setCurrentEmotion(response.data.emotion);
+        setShowEmotionDialog(false);
+        setEmotionText('');
+      }
+    } catch (error) {
+      console.error("Error getting drink recommendations:", error);
+      setErrorMessage('Không tìm thấy đồ uống phù hợp với cảm xúc này');
+    } finally {
+      setIsLoadingRecommendation(false);
+    }
+  };
+
+  const handleEmotionTextChange = (text) => {
+    setEmotionText(text);
+  };
+
+  const handleCloseDialog = () => {
+    setShowEmotionDialog(false);
+    setEmotionText('');
+    setErrorMessage('');
+  };
+
   return (
     <div className="flex flex-col lg:flex-row w-full max-w-screen-xl mx-auto px-4">
       <div className="w-full lg:w-3/4 pr-0 lg:pr-4">
@@ -144,21 +195,36 @@ const BookingDrink = () => {
             userInfo={userInfo}
             onBackClick={handleBackClick}
           />
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleCancelBooking}
-            sx={{ mt: 2 }}
-          >
-            Hủy đặt bàn
-          </Button>
+          <div className="flex gap-4 mt-4">
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleCancelBooking}
+            >
+              Hủy đặt bàn
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<EmojiEmotionsIcon />}
+              onClick={() => setShowEmotionDialog(true)}
+              sx={{
+                backgroundColor: 'rgb(245, 158, 11)',
+                '&:hover': { backgroundColor: 'rgb(251, 191, 36)' },
+              }}
+            >
+              Gợi ý đồ uống theo cảm xúc
+            </Button>
+          </div>
         </div>
+
         <DrinkSelection
           drinks={filteredDrinks}
           onIncrease={handleIncrease}
           onDecrease={handleDecrease}
+          emotion={currentEmotion}
         />
       </div>
+      
       <div className="w-full lg:w-1/4 mt-4 lg:mt-8">
         <Filter 
           dataDrinkCate={dataDrinkCate}
@@ -174,7 +240,16 @@ const BookingDrink = () => {
         />
       </div>
 
-      {/* Loading Popup */}
+      <EmotionRecommendationDialog 
+        showDialog={showEmotionDialog}
+        onClose={handleCloseDialog}
+        emotionText={emotionText}
+        onEmotionTextChange={handleEmotionTextChange}
+        errorMessage={errorMessage}
+        isLoading={isLoadingRecommendation}
+        onSubmit={handleGetRecommendation}
+      />
+      
       <Dialog 
         open={isLoading} 
         PaperProps={{
