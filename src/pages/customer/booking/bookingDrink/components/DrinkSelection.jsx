@@ -1,7 +1,7 @@
 import React from "react";
 import Pagination from '@mui/material/Pagination';
 
-const DrinkSelection = ({ drinks, onIncrease, onDecrease }) => {
+const DrinkSelection = ({ drinks, onIncrease, onDecrease, emotion }) => {
   const [currentPage, setCurrentPage] = React.useState(1);
   const drinksPerPage = 6;
 
@@ -14,11 +14,30 @@ const DrinkSelection = ({ drinks, onIncrease, onDecrease }) => {
     setCurrentPage(value);
   };
 
+  const renderTitle = () => {
+    if (!emotion) {
+      return (
+        <h2 className="ml-6 text-3xl leading-snug text-amber-400">
+          Chọn đồ uống (tùy chọn)
+        </h2>
+      );
+    }
+
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <h2 className="ml-6 text-3xl leading-snug text-amber-400">
+          Đồ uống được gợi ý cho bạn
+        </h2>
+        <p className="text-gray-400 italic">
+          Dựa trên cảm xúc: "{emotion}"
+        </p>
+      </div>
+    );
+  };
+
   return (
     <section className="flex flex-col grow items-center px-8 pt-5 pb-10 w-full text-center bg-neutral-800 max-md:px-5 max-md:pb-24 max-md:mt-10 max-md:max-w-full">
-      <h2 className="ml-6 text-3xl leading-snug text-amber-400">
-        Chọn đồ uống (tùy chọn)
-      </h2>
+      {renderTitle()}
       <div className="flex flex-col mt-8 max-w-full w-[100]">
         <div className="flex flex-wrap gap-10 items-center w-full max-md:max-w-full">
           {currentDrinks.map((drink) => (

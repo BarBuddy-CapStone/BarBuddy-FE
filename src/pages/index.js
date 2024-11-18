@@ -23,6 +23,7 @@ import Filter from "./customer/booking/bookingDrink/components/Filter";
 import DrinkSidebar from "./customer/booking/bookingDrink/components/DrinkSidebar";
 import SelectedItems from "./customer/booking/bookingDrink/components/SelectedItems";
 import BarDetail from "./customer/booking/bookingTable/components/BarDetails";
+import EmotionRecommendationDialog from "./customer/booking/bookingDrink/components/EmotionRecommendationDialog";
 
 // Staff Table-registration 
 import FilterSection from "./staff/table-registration/components/FilterSection";
@@ -57,6 +58,7 @@ export {
   TableSidebar,
   SelectedList,
   BarDetail,
+  EmotionRecommendationDialog,
   Login,
   Registration,
   FilterSectionManager,
