@@ -51,10 +51,18 @@ const BookingDetailStaff = () => {
         }
       }
 
-      if (currentStatus === 0 && (newStatus === 2 || newStatus === 3)) {
+      if (currentStatus === 0 && (newStatus === 3)) {
         Modal.error({
           title: 'Không thể cập nhật',
-          content: 'Không thể chuyển trực tiếp từ trạng thái Đang chờ sang Đang phục vụ hoặc Hoàn thành.',
+          content: 'Không thể chuyển trực tiếp từ trạng thái Đang chờ sang Hoàn thành.',
+        });
+        return;
+      }
+
+      if (currentStatus === 3 &&  (newStatus === 0 || newStatus === 1 || newStatus === 2)) {
+        Modal.error({
+          title: 'Không thể cập nhật',
+          content: 'Trạng thái hoàn thành không thể điều chỉnh về các trạng thái khác',
         });
         return;
       }
