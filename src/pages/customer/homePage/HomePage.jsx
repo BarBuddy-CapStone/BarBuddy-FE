@@ -608,7 +608,22 @@ function HomePage() {
                 </button>
               </div>
               <div className="border-b border-yellow-500 mt-4 mb-4" />
-              <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+              <div 
+                className="max-h-[400px] overflow-y-auto" 
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#f59e0b #1f2937'
+                }}
+              >
+                <style jsx>{`
+                  div::-webkit-scrollbar {
+                    display: none;
+                  }
+                  div {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                  }
+                `}</style>
                 <ul className="space-y-3 pr-2">
                   {mapBranches.map((location, index) => (
                     <li 
