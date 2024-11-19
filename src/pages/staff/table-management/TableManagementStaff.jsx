@@ -31,6 +31,18 @@ function TableManagementStaff() {
     const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
     if (userInfo && userInfo.identityId) {
       setBarId(userInfo.identityId);
+      
+      const fetchTableTypes = async (barId) => {
+        try {
+          const response = await getTableTypeOfBar(barId);
+          setTableTypes(response.data.data);
+        } catch (error) {
+          console.error("Lỗi khi lấy danh sách loại bàn:", error);
+          message.error("Có lỗi xảy ra khi tải danh sách loại bàn");
+        }
+      };
+
+      fetchTableTypes(userInfo.identityId);
     }
   }, []);
 
@@ -53,19 +65,6 @@ function TableManagementStaff() {
     };
     fetchData();
   }, [pageIndex, selectedTableType, barId]);
-
-  useEffect(() => {
-    const fetchTableTypes = async () => {
-      try {
-        const response = await getTableTypeOfBar(barId);
-        setTableTypes(response.data.data);
-      } catch (error) {
-        console.error("Lỗi khi lấy danh sách loại bàn:", error);
-        message.error("Có lỗi xảy ra khi tải danh sách loại bàn");
-      }
-    };
-    fetchTableTypes();
-  }, []);
 
   const handlePageChange = (event, value) => {
     setPageIndex(value);

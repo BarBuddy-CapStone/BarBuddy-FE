@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getEventByEventId, updateEvent } from '../../../lib/service/eventManagerService';
-import { Card, Row, Col, Spin, Tag, Table, Button, Space, Form, Input, InputNumber, TimePicker, DatePicker, message, Radio, Upload } from 'antd';
+import { getEventByEventId, updateEvent, deleteEvent } from '../../../lib/service/eventManagerService';
+import { Card, Row, Col, Spin, Tag, Table, Button, Space, Form, Input, InputNumber, TimePicker, DatePicker, message, Radio, Upload, Modal } from 'antd';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -25,6 +25,7 @@ export default function EventDetail() {
   const [eventType, setEventType] = useState('specific');
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchEventDetail = async () => {
@@ -184,6 +185,20 @@ export default function EventDetail() {
       console.error('Lỗi khi cập nhật sự kiện:', error);
       message.error('Cập nhật sự kiện thất bại');
     }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const response = await deleteEvent(eventId);
+      if (response.data) {
+        message.success('Xóa sự kiện thành công');
+        navigate('/manager/event-management');
+      }
+    } catch (error) {
+      console.error('Lỗi khi xóa sự kiện:', error);
+      message.error('Xóa sự kiện thất bại');
+    }
+    setIsDeleteModalVisible(false);
   };
 
   const renderEventForm = () => {
@@ -459,9 +474,13 @@ export default function EventDetail() {
         bordered={false}
         extra={
           <Space>
-            <Tag color={event.isHide ? 'red' : 'green'}>
-              {event.isHide ? 'Đã ẩn' : 'Đang hiển thị'}
-            </Tag>
+            <Button 
+              type="primary" 
+              danger
+              onClick={() => setIsDeleteModalVisible(true)}
+            >
+              Xóa sự kiện
+            </Button>
             {!isEditing && (
               <Button type="primary" onClick={handleEdit}>
                 Chỉnh sửa
@@ -593,6 +612,16 @@ export default function EventDetail() {
           </Row>
         )}
       </Card>
+      <Modal
+        title="Xác nhận xóa"
+        open={isDeleteModalVisible}
+        onOk={handleDelete}
+        onCancel={() => setIsDeleteModalVisible(false)}
+        okText="Xóa"
+        cancelText="Hủy"
+      >
+        <p>Bạn có chắc chắn muốn xóa sự kiện này không?</p>
+      </Modal>
     </div>
   );
 }
