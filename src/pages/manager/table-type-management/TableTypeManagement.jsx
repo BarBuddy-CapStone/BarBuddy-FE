@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { message } from 'antd';
 import { CircularProgress, TextField, Button, InputAdornment } from "@mui/material";
 import { Search, Add } from "@mui/icons-material";
-import { getAllTableTypesManager, addTableType, updateTableType, deleteTableType } from 'src/lib/service/tableTypeService';
+import { getAllTableTypesManager, addTableType, updateTableType, deleteTableType, getTableTypeOfBar } from 'src/lib/service/tableTypeService';
 
 const TableTypeManagement = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -22,7 +22,19 @@ const TableTypeManagement = () => {
   const fetchTableTypes = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await getAllTableTypesManager();
+      const userInfoString = sessionStorage.getItem('userInfo');
+      if (!userInfoString) {
+        throw new Error('Không tìm thấy thông tin người dùng');
+      }
+
+      const userInfo = JSON.parse(userInfoString);
+      const barId = userInfo.identityId;
+
+      if (!barId) {
+        throw new Error('Không tìm thấy ID quán bar');
+      }
+
+      const response = await getTableTypeOfBar(barId);
       const tableTypesData = response.data.data.map((tableType) => ({
         ...tableType,
         editIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb',
@@ -31,7 +43,7 @@ const TableTypeManagement = () => {
       setTableTypes(tableTypesData);
     } catch (error) {
       console.error('Error fetching table types:', error);
-      message.error('Lỗi khi tải danh sách loại bàn');
+      message.error('Lỗi khi tải danh sách loại bàn: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -460,7 +472,7 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
                 inputProps: { min: 1, max: 99 },
                 endAdornment: <InputAdornment position="end">khách</InputAdornment>,
               }}
-              placeholder="Nhập số lượng tối thiểu"
+              placeholder="Nhập số lượng t���i thiểu"
             />
           </div>
           <div className="mb-4">

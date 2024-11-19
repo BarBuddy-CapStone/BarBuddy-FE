@@ -34,6 +34,10 @@ const updateEvent = async (eventId, eventRequest) => {
     });
 }
 
+const deleteEvent = async (eventId) => {
+    return await axios.delete(`/api/Event/deleteEvent?eventId=${eventId}`);
+}
+
 const getEventByEventId = async (eventId) => {
     return await axios.get(`/api/Event/getOne/${eventId}`);
 }
@@ -44,5 +48,6 @@ export {
     getEventByBarId,
     createEvent,
     getEventByEventId,
-    updateEvent
+    updateEvent,
+    deleteEvent
 }
