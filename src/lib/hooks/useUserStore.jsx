@@ -1,5 +1,6 @@
 "use client";
 import { create } from 'zustand';
+import { logout } from '../service/authenService';
 
 const useAuthStore = create((set, get) => {
   const storedToken = typeof window !== 'undefined' ? sessionStorage.getItem('authToken') : null;
@@ -25,10 +26,21 @@ const useAuthStore = create((set, get) => {
       sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
       set({ isLoggedIn: true, userInfo, token });
     },
-    logout: () => {
-      sessionStorage.removeItem('authToken');
-      sessionStorage.removeItem('userInfo');
-      set({ isLoggedIn: false, userInfo: {}, token: null });
+    logout: async () => {
+      try {
+        const token = get().token;
+        if (token) {
+          await logout(token);
+        }
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('userInfo');
+        set({ isLoggedIn: false, userInfo: {}, token: null });
+      } catch (error) {
+        console.error("Logout error:", error);
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('userInfo');
+        set({ isLoggedIn: false, userInfo: {}, token: null });
+      }
     },
   };
 });

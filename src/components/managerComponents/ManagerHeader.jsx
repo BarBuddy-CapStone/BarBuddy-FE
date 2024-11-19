@@ -3,8 +3,9 @@ import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useLocation, useNavigate } from "react-router-dom";
 import { headerConstants } from "src/lib";
-import { IconButton, Menu, MenuItem, Badge, Avatar, CircularProgress, Backdrop } from "@mui/material";
+import { IconButton, Menu, MenuItem, Badge, Avatar, CircularProgress, Backdrop, Typography } from "@mui/material";
 import useAuthStore from "src/lib/hooks/useUserStore";
+import { toast } from "react-toastify";
 
 const getTitlePath = (pathName) => {
   switch (pathName) {
@@ -39,15 +40,18 @@ const ManagerHeader = ({ className, onMenuClick, isSidebarOpen }) => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsLoggingOut(true);
-    logout();
-    handleMenuClose();
-    
-    // Thêm một độ trễ trước khi chuyển hướng
-    setTimeout(() => {
+    try {
+      await logout();
+      handleMenuClose();
+      // Thêm delay để hiển thị loading spinner
+      await new Promise(resolve => setTimeout(resolve, 1500));
       navigate("/home");
-    }, 1500); // Đợi 1.5 giây trước khi chuyển hướng
+      window.location.reload();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (
@@ -91,10 +95,17 @@ const ManagerHeader = ({ className, onMenuClick, isSidebarOpen }) => {
         </div>
       </header>
       <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        sx={{ 
+          color: '#fff', 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2 
+        }}
         open={isLoggingOut}
       >
         <CircularProgress color="inherit" />
+        <Typography>Đang đăng xuất...</Typography>
       </Backdrop>
     </>
   );

@@ -1,15 +1,18 @@
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import Pagination from '@mui/material/Pagination';
-import { message } from 'antd';
-import { CircularProgress } from '@mui/material';
-import { Search } from '@mui/icons-material';
-import TableService from 'src/lib/service/tableService';
-import { getTableTypeOfBar } from 'src/lib/service/tableTypeService';
+import Pagination from "@mui/material/Pagination";
+import { message } from "antd";
+import { CircularProgress } from "@mui/material";
+import { Search } from "@mui/icons-material";
+import TableService from "src/lib/service/tableService";
+import { getTableTypeOfBar } from "src/lib/service/tableTypeService";
+import { useAuthStore } from "src/lib";
 
 function TableManagementStaff() {
   const navigate = useNavigate();
+  const { userInfo } = useAuthStore();
+  const barId = userInfo?.identityId;
 
   const [tableData, setTableData] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
@@ -25,23 +28,22 @@ function TableManagementStaff() {
   const [selectedTableType, setSelectedTableType] = useState("all");
   const [tableTypes, setTableTypes] = useState([]);
   const [newStatus, setNewStatus] = useState(null);
-  const [barId, setBarId] = useState(null);
-
-  useEffect(() => {
-    const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
-    if (userInfo && userInfo.identityId) {
-      setBarId(userInfo.identityId);
-    }
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!barId) return;
-      
+
       setIsLoading(true);
       try {
-        const tableTypeId = selectedTableType === "all" ? null : selectedTableType;
-        const response = await TableService.getTablesOfBar(barId, tableTypeId, null, pageIndex, pageSize);
+        const tableTypeId =
+          selectedTableType === "all" ? null : selectedTableType;
+        const response = await TableService.getTablesOfBar(
+          barId,
+          tableTypeId,
+          null,
+          pageIndex,
+          pageSize
+        );
         setTableData(response.data.data.response);
         setTotalPages(response.data.data.totalPage);
       } catch (error) {
@@ -56,16 +58,21 @@ function TableManagementStaff() {
 
   useEffect(() => {
     const fetchTableTypes = async () => {
+      if (!barId) return;
+      
       try {
         const response = await getTableTypeOfBar(barId);
-        setTableTypes(response.data.data);
+        if (response?.data?.data) {
+          setTableTypes(response.data.data);
+        }
       } catch (error) {
         console.error("Lỗi khi lấy danh sách loại bàn:", error);
         message.error("Có lỗi xảy ra khi tải danh sách loại bàn");
       }
     };
+
     fetchTableTypes();
-  }, []);
+  }, [barId]);
 
   const handlePageChange = (event, value) => {
     setPageIndex(value);
@@ -76,11 +83,11 @@ function TableManagementStaff() {
     setSearchTerm(term);
   };
 
-  const filteredTableData = tableData && tableData.length > 0 
-    ? tableData.filter((table) =>
-        table.tableName.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+  const filteredTableData = tableData.filter((table) => {
+    const matchesSearch = table.tableName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTableType = selectedTableType === "all" || table.tableTypeId === selectedTableType;
+    return matchesSearch && matchesTableType;
+  });
 
   const openStatusModal = (table) => {
     setSelectedTable(table);
@@ -99,13 +106,22 @@ function TableManagementStaff() {
 
     setIsUpdating(true);
     try {
-      const response = await TableService.updateTableStatus(selectedTable.tableId, parseInt(newStatus));
-      
+      const response = await TableService.updateTableStatus(
+        selectedTable.tableId,
+        parseInt(newStatus)
+      );
+
       if (response.status === 200) {
         message.success("Cập nhật trạng thái bàn thành công!");
         // Refresh data với API mới
-        const tableTypeId = selectedTableType === "all" ? null : selectedTableType;
-        const updatedResponse = await TableService.getTables(tableTypeId, null, pageIndex, pageSize);
+        const tableTypeId =
+          selectedTableType === "all" ? null : selectedTableType;
+        const updatedResponse = await TableService.getTables(
+          tableTypeId,
+          null,
+          pageIndex,
+          pageSize
+        );
         if (updatedResponse.data?.data) {
           setTableData(updatedResponse.data.data.response);
           setTotalPages(updatedResponse.data.data.totalPage);
@@ -133,7 +149,7 @@ function TableManagementStaff() {
               onSearch={handleSearch}
               onTableTypeChange={setSelectedTableType}
               selectedTableType={selectedTableType}
-              tableTypes={tableTypes}
+              tableTypes={tableTypes || []}
             />
 
             <section className="w-full mt-10">
@@ -142,8 +158,12 @@ function TableManagementStaff() {
                 <div className="text-center break-words">Tên Bàn</div>
                 <div className="text-center break-words">Loại bàn</div>
                 <div className="text-center break-words">Mức giá tối thiểu</div>
-                <div className="text-center break-words">Lượng khách tối thiểu</div>
-                <div className="text-center break-words">Lượng khách tối đa</div>
+                <div className="text-center break-words">
+                  Lượng khách tối thiểu
+                </div>
+                <div className="text-center break-words">
+                  Lượng khách tối đa
+                </div>
                 <div className="text-center break-words">Trạng thái</div>
               </div>
 
@@ -180,25 +200,39 @@ function TableManagementStaff() {
             {isStatusModalOpen && selectedTable && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                 <div className="bg-white rounded-lg p-6 w-[400px]">
-                  <h2 className="text-xl font-semibold mb-4">Cập nhật trạng thái bàn</h2>
+                  <h2 className="text-xl font-semibold mb-4">
+                    Cập nhật trạng thái bàn
+                  </h2>
                   <p className="mb-4">Bàn: {selectedTable.tableName}</p>
                   <div className="space-y-2">
                     <button
-                      className={`w-full p-2 rounded ${newStatus === 0 ? 'bg-green-500 text-white' : 'bg-gray-100'}`}
+                      className={`w-full p-2 rounded ${
+                        newStatus === 0
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-100"
+                      }`}
                       onClick={() => setNewStatus(0)}
                       disabled={isUpdating}
                     >
                       Còn trống
                     </button>
                     <button
-                      className={`w-full p-2 rounded ${newStatus === 1 ? 'bg-yellow-500 text-white' : 'bg-gray-100'}`}
+                      className={`w-full p-2 rounded ${
+                        newStatus === 1
+                          ? "bg-yellow-500 text-white"
+                          : "bg-gray-100"
+                      }`}
                       onClick={() => setNewStatus(1)}
                       disabled={isUpdating}
                     >
                       Đang phục vụ
                     </button>
                     <button
-                      className={`w-full p-2 rounded ${newStatus === 2 ? 'bg-red-500 text-white' : 'bg-gray-100'}`}
+                      className={`w-full p-2 rounded ${
+                        newStatus === 2
+                          ? "bg-red-500 text-white"
+                          : "bg-gray-100"
+                      }`}
                       onClick={() => setNewStatus(2)}
                       disabled={isUpdating}
                     >
@@ -221,7 +255,7 @@ function TableManagementStaff() {
                       {isUpdating ? (
                         <CircularProgress size={20} color="inherit" />
                       ) : (
-                        'Lưu'
+                        "Lưu"
                       )}
                     </button>
                   </div>
@@ -235,8 +269,13 @@ function TableManagementStaff() {
   );
 }
 
-function TableHeader({ onSearch, onTableTypeChange, selectedTableType, tableTypes }) {
-  const [searchInput, setSearchInput] = useState('');
+function TableHeader({
+  onSearch,
+  onTableTypeChange,
+  selectedTableType,
+  tableTypes = []
+}) {
+  const [searchInput, setSearchInput] = useState("");
 
   const handleSearchChange = (event) => {
     setSearchInput(event.target.value);
@@ -256,7 +295,7 @@ function TableHeader({ onSearch, onTableTypeChange, selectedTableType, tableType
           onChange={(e) => onTableTypeChange(e.target.value)}
         >
           <option value="all">Tất cả loại bàn</option>
-          {tableTypes.map((type) => (
+          {tableTypes && tableTypes.map((type) => (
             <option key={type.tableTypeId} value={type.tableTypeId}>
               {type.typeName}
             </option>
@@ -270,9 +309,7 @@ function TableHeader({ onSearch, onTableTypeChange, selectedTableType, tableType
             onChange={handleSearchChange}
             className="px-4 py-2 pr-10 border rounded-full w-full"
           />
-          <Search 
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" 
-          />
+          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
         </div>
       </div>
     </div>
@@ -296,20 +333,26 @@ function TableRow({
   status,
   isEven,
   index,
-  onStatusClick
+  onStatusClick,
 }) {
   const rowClass = isEven
     ? "grid grid-cols-7 gap-4 px-5 py-4 w-full bg-orange-50 border-b border-gray-200 text-sm min-h-[60px] break-words items-center cursor-pointer hover:bg-orange-100"
     : "grid grid-cols-7 gap-4 px-5 py-4 w-full bg-white border-b border-orange-200 text-sm min-h-[60px] break-words items-center cursor-pointer hover:bg-gray-50";
 
-  const statusText = status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : "Đã đặt trước";
-  const statusClass = status === 0 ? "bg-green-500" : status === 1 ? "bg-yellow-500" : "bg-red-500";
+  const statusText =
+    status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : "Đã đặt trước";
+  const statusClass =
+    status === 0
+      ? "bg-green-500"
+      : status === 1
+      ? "bg-yellow-500"
+      : "bg-red-500";
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'decimal',
+    return new Intl.NumberFormat("vi-VN", {
+      style: "decimal",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -318,7 +361,9 @@ function TableRow({
       <div className="text-center font-normal">{index + 1}</div>
       <div className="text-center font-normal">{tableName}</div>
       <div className="text-center font-normal">{tableTypeName}</div>
-      <div className="text-center font-normal">{formatCurrency(minimumPrice)} VND</div>
+      <div className="text-center font-normal">
+        {formatCurrency(minimumPrice)} VND
+      </div>
       <div className="text-center font-normal">{minimumGuest}</div>
       <div className="text-center font-normal">{maximumGuest}</div>
       <div className="text-center flex justify-center items-center">

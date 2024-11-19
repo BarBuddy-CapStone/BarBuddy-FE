@@ -11,6 +11,7 @@ import {
   Badge,
   Popover, // Thêm Popover
   Button,
+  CircularProgress,
 } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -24,6 +25,7 @@ import { timeAgo } from "src/lib/Utils/Utils";
 import { markNotificationsAsRead } from "src/lib/service/notificationService";
 
 const CustomerHeader = () => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [openLogin, setOpenLogin] = useState(false);
   const [openRegister, setOpenRegister] = useState(false);
@@ -80,14 +82,21 @@ const CustomerHeader = () => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    logout();
-    setAnchorEl(null);
-    toast.success("Đăng xuất thành công");
-    setTimeout(() => {
-      navigate("/");
-      window.location.reload();
-    }, 1500);
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      toast.success("Đăng xuất thành công");
+      setTimeout(() => {
+        navigate("/");
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Có lỗi xảy ra khi đăng xuất");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleOpenLogin = () => {
@@ -413,7 +422,13 @@ const CustomerHeader = () => {
                   <MenuItem onClick={() => { navigate(`/profile/${accountId}`); handleMenuClose(); }}>
                     Hồ sơ
                   </MenuItem>
-                  <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
+                  <MenuItem onClick={handleLogout} disabled={isLoggingOut}>
+                    {isLoggingOut ? (
+                      <CircularProgress size={24} />
+                    ) : (
+                      "Đăng xuất"
+                    )}
+                  </MenuItem>
                 </Menu>
               </Box>
             )}

@@ -16,3 +16,24 @@ export const googleLogin = async (idToken) => {
   return await axios.post("api/authen/google-login", { idToken });
 };
 
+export const refreshToken = async (currentToken) => {
+  try {
+    if (!currentToken) {
+      throw new Error('No token found');
+    }
+    const response = await axios.post("api/authen/refresh-token", currentToken);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const logout = async (token) => {
+  try {
+    // Chỉ gọi API logout
+    return await axios.post("api/authen/logout", token);
+  } catch (error) {
+    throw error;
+  }
+};
+
