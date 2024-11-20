@@ -38,28 +38,38 @@ const DrinkSelection = ({ drinks, onIncrease, onDecrease, emotion }) => {
   return (
     <section className="flex flex-col grow items-center px-8 pt-5 pb-10 w-full text-center bg-neutral-800 max-md:px-5 max-md:pb-24 max-md:mt-10 max-md:max-w-full">
       {renderTitle()}
-      <div className="flex flex-col mt-8 max-w-full w-[100]">
-        <div className="flex flex-wrap gap-10 items-center w-full max-md:max-w-full">
+      <div className="flex flex-col mt-8 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center w-full">
           {currentDrinks.map((drink) => (
-            <article key={drink.drinkId} className="flex flex-col grow shrink self-stretch my-auto rounded-xl min-w-[240px] w-[206px] h-[400px]">
+            <article 
+              key={drink.drinkId} 
+              className="w-full max-w-[280px] h-[400px] rounded-xl"
+            >
               <div className="flex flex-col items-center px-5 py-3.5 w-full h-full rounded-md bg-neutral-700 max-md:px-5">
                 <div className="w-full h-48 rounded-md overflow-hidden">
-                  <img loading="lazy" src={drink.images} alt={drink.drinkName} className="object-cover w-full h-full" />
+                  <img 
+                    loading="lazy" 
+                    src={drink.images} 
+                    alt={drink.drinkName} 
+                    className="object-cover w-full h-full"
+                  />
                 </div>
-                <h3 className="mt-4 text-xl leading-7 text-zinc-100 text-center">{drink.drinkName}</h3>
+                <h3 className="mt-4 text-xl leading-7 text-zinc-100 text-center line-clamp-2">
+                  {drink.drinkName}
+                </h3>
                 <p className="mt-4 text-base leading-snug text-amber-400 text-center">
                   {parseInt(drink.price).toLocaleString()} VND
                 </p>
                 <div className="flex gap-2 mt-5 w-24 text-lg text-black justify-center">
                   <button
-                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center"
+                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
                     onClick={() => onDecrease(drink)}
                   >
                     -
                   </button>
                   <span className="text-white">{drink.quantity || 0}</span>
                   <button
-                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center"
+                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
                     onClick={() => onIncrease(drink)}
                   >
                     +
@@ -69,7 +79,7 @@ const DrinkSelection = ({ drinks, onIncrease, onDecrease, emotion }) => {
             </article>
           ))}
         </div>
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center mt-8">
           <Pagination
             count={totalPages}
             page={currentPage}
