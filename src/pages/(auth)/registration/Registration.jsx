@@ -37,7 +37,7 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
 
     const initializeGoogleSignIn = () => {
       window.google.accounts.id.initialize({
-        client_id: '294668771815-0ofnuitrmh09f1gs9ift8ap8qnodsnac.apps.googleusercontent.com',
+        client_id: import.meta.env.VITE_GOOGLE_LOGIN_API,
         callback: handleGoogleResponse
       });
       
