@@ -32,8 +32,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
 
     const initializeGoogleSignIn = () => {
       window.google.accounts.id.initialize({
-        client_id:
-          "294668771815-0ofnuitrmh09f1gs9ift8ap8qnodsnac.apps.googleusercontent.com",
+        client_id: import.meta.env.VITE_GOOGLE_LOGIN_API,
         callback: handleGoogleResponse,
       });
 
@@ -87,7 +86,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
           case "ADMIN":
             navigate("/admin/dashboard");
             break;
-          case "MANAGER":  // Thêm case cho MANAGER
+          case "MANAGER": // Thêm case cho MANAGER
             navigate("/manager/managerDrinkCategory");
             break;
           case "STAFF":
@@ -141,7 +140,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
             navigate("/admin/dashboard");
             window.location.reload();
             break;
-          case "MANAGER":  // Thêm case cho MANAGER
+          case "MANAGER": // Thêm case cho MANAGER
             navigate("/manager/table-registrations");
             window.location.reload();
             break;
