@@ -31,17 +31,16 @@ instance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Thực hiện refresh token
-        const currentToken = sessionStorage.getItem('authToken');
-        const response = await refreshToken(currentToken);
-        const newToken = response.data.data.tokens;
+        // Lấy refreshToken từ userInfo
+        const userInfo = useAuthStore.getState().userInfo;
+        const response = await refreshToken(userInfo.refreshToken);
+        const { accessToken } = response.data.data;
 
-        // Cập nhật token mới vào sessionStorage và store
-        sessionStorage.setItem('authToken', newToken);
-        useAuthStore.getState().login(newToken, useAuthStore.getState().userInfo);
+        // Cập nhật token mới vào store
+        useAuthStore.getState().updateToken(accessToken);
 
         // Cập nhật token mới vào header của request cũ
-        originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+        originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
         
         // Thực hiện lại request cũ với token mới
         return instance(originalRequest);

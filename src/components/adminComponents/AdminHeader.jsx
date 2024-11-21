@@ -67,12 +67,14 @@ const AdminHeader = ({ className, onMenuClick, isSidebarOpen }) => {
     try {
       await logout();
       handleMenuClose();
-      // Thêm delay để hiển thị loading spinner
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      navigate("/home");
-      window.location.reload();
+      sessionStorage.clear();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      window.location.href = '/';
     } catch (error) {
       console.error("Logout error:", error);
+      toast.error("Có lỗi xảy ra khi đăng xuất");
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 

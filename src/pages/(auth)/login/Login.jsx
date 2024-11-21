@@ -112,27 +112,21 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
 
   // Function to handle login
   const handleLogin = async () => {
-    setLoading(true); // Bắt đầu hiển thị spinner
-    setError(null); // Reset lại lỗi trước khi thực hiện request
+    setLoading(true);
+    setError(null);
     try {
       const response = await login({ email, password });
       if (response.data.statusCode === 200) {
         const userData = response.data.data;
-        loginStore.login(userData.accessToken, userData); // Lưu thông tin người dùng vào store
+        loginStore.login(userData.accessToken, userData);
 
         // Giải mã JWT token
         const decodedToken = jwtDecode(userData.accessToken);
-        const userRole =
-          decodedToken[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-          ];
+        const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
-        // Hiển thị toast thành công
         toast.success("Đăng nhập thành công!");
-
-        // Cập nhật thông tin người dùng và đóng popup
         onLoginSuccess(userData);
-        onClose(); // Đóng popup đăng nhập
+        onClose();
 
         // Chuyển hướng dựa trên vai trò
         switch (userRole) {
@@ -173,7 +167,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
         setError("Đăng nhập thất bại! Vui lòng thử lại.");
       }
     } finally {
-      setLoading(false); // Dừng hiển thị spinner nếu đăng nhập thất bại
+      setLoading(false);
     }
   };
 

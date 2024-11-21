@@ -86,11 +86,12 @@ const CustomerHeader = () => {
     setIsLoggingOut(true);
     try {
       await logout();
-      toast.success("Đăng xuất thành công");
-      setTimeout(() => {
-        navigate("/");
-        window.location.reload();
-      }, 1500);
+      handleMenuClose();
+      // Đảm bảo xóa dữ liệu trước khi reload
+      sessionStorage.clear(); // Xóa tất cả dữ liệu trong sessionStorage
+      // Thêm delay để hiển thị loading spinner
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      window.location.href = '/'; // Chuyển về trang chủ
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Có lỗi xảy ra khi đăng xuất");
