@@ -32,8 +32,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
 
     const initializeGoogleSignIn = () => {
       window.google.accounts.id.initialize({
-        client_id:
-          "294668771815-0ofnuitrmh09f1gs9ift8ap8qnodsnac.apps.googleusercontent.com",
+        client_id: import.meta.env.VITE_GOOGLE_LOGIN_API,
         callback: handleGoogleResponse,
       });
 
@@ -87,7 +86,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
           case "ADMIN":
             navigate("/admin/dashboard");
             break;
-          case "MANAGER":  // Thêm case cho MANAGER
+          case "MANAGER": // Thêm case cho MANAGER
             navigate("/manager/managerDrinkCategory");
             break;
           case "STAFF":
@@ -113,27 +112,21 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
 
   // Function to handle login
   const handleLogin = async () => {
-    setLoading(true); // Bắt đầu hiển thị spinner
-    setError(null); // Reset lại lỗi trước khi thực hiện request
+    setLoading(true);
+    setError(null);
     try {
       const response = await login({ email, password });
       if (response.data.statusCode === 200) {
         const userData = response.data.data;
-        loginStore.login(userData.accessToken, userData); // Lưu thông tin người dùng vào store
+        loginStore.login(userData.accessToken, userData);
 
         // Giải mã JWT token
         const decodedToken = jwtDecode(userData.accessToken);
-        const userRole =
-          decodedToken[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-          ];
+        const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
-        // Hiển thị toast thành công
         toast.success("Đăng nhập thành công!");
-
-        // Cập nhật thông tin người dùng và đóng popup
         onLoginSuccess(userData);
-        onClose(); // Đóng popup đăng nhập
+        onClose();
 
         // Chuyển hướng dựa trên vai trò
         switch (userRole) {
@@ -141,7 +134,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
             navigate("/admin/dashboard");
             window.location.reload();
             break;
-          case "MANAGER":  // Thêm case cho MANAGER
+          case "MANAGER": // Thêm case cho MANAGER
             navigate("/manager/table-registrations");
             window.location.reload();
             break;
@@ -174,7 +167,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
         setError("Đăng nhập thất bại! Vui lòng thử lại.");
       }
     } finally {
-      setLoading(false); // Dừng hiển thị spinner nếu đăng nhập thất bại
+      setLoading(false);
     }
   };
 

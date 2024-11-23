@@ -26,11 +26,15 @@ const useAuthStore = create((set, get) => {
       sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
       set({ isLoggedIn: true, userInfo, token });
     },
+    updateToken: (newToken) => {
+      sessionStorage.setItem('authToken', newToken);
+      set({ token: newToken });
+    },
     logout: async () => {
       try {
-        const token = get().token;
-        if (token) {
-          await logout(token);
+        const userInfo = get().userInfo;
+        if (userInfo?.refreshToken) {
+          await logout(userInfo.refreshToken);
         }
         sessionStorage.removeItem('authToken');
         sessionStorage.removeItem('userInfo');

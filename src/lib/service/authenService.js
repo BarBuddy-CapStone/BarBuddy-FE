@@ -16,22 +16,20 @@ export const googleLogin = async (idToken) => {
   return await axios.post("api/authen/google-login", { idToken });
 };
 
-export const refreshToken = async (currentToken) => {
+export const refreshToken = async (refreshToken) => {
   try {
-    if (!currentToken) {
-      throw new Error('No token found');
+    if (!refreshToken) {
+      throw new Error('No refresh token found');
     }
-    const response = await axios.post("api/authen/refresh-token", currentToken);
-    return response;
+    return await axios.post("api/authen/refresh-token", refreshToken);
   } catch (error) {
     throw error;
   }
 };
 
-export const logout = async (token) => {
+export const logout = async (refreshToken) => {
   try {
-    // Chỉ gọi API logout
-    return await axios.post("api/authen/logout", token);
+    return await axios.post("api/authen/logout", refreshToken);
   } catch (error) {
     throw error;
   }
