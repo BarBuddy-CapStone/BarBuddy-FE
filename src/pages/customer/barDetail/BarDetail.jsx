@@ -377,7 +377,6 @@ const BarDetail = () => {
 
     const handleLoginSuccess = (userData) => {
         setShowLoginPopup(false);
-        toast.success("Đăng nhập thành công! Bạn có thể tiếp tục đặt bàn.");
     };
 
     const handleBooking = () => {

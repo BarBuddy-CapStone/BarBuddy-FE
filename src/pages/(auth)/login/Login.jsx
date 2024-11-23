@@ -145,7 +145,7 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
           case "CUSTOMER":
             setTimeout(() => {
               window.location.reload();
-            }, 1500);
+            }, 1000);
             break;
           default:
             navigate("/home");
