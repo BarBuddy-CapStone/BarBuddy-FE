@@ -72,115 +72,113 @@ import BarBranch from "./pages/customer/barBranch/BarBranch";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        {/* Route Của Admin */}
-        <Route element={<ProtectedAdminRoute />}>
-          <Route path="/" element={<AdminLayout />}>
-            <Route path="admin/dashboard" element={<Dashboard />} />
-            <Route path="admin/feedback" element={<FeedbackAdmin />}/> 
-            <Route path="admin/feedback/detail/:feedbackId" element={<FeedbackDetailAdmin />}/> 
-            <Route path="admin/customers" element={<CustomerManagement />}/> 
-            <Route path="admin/customer-creation" element={<CustomerCreation />}/> 
-            <Route path="admin/customer-detail" element={<CustomerDetail />}/> 
-            <Route path="admin/managers" element={<ManagerManagement />}/> 
-            <Route path="admin/manager-creation" element={<ManagerCreation />}/> 
-            <Route path="admin/manager-detail/:accountId" element={<ManagerDetail />}/> 
-            <Route path="admin/payment-history" element={<PaymentHistoryAdmin />}/> 
-            <Route path="admin/barmanager" element={<BarManagement />}/> 
-            <Route path="admin/barProfile/:barId" element={<BarProfile />}/> 
-            <Route path="admin/addBar" element={<AddBar />}/> 
-            <Route path="admin/event-management" element={<EventManagement />}/>
-            <Route path="admin/event-management/add-event" element={<AddEvent />} />
-            <Route path="admin/drink-categories" element={<DrinkCategoriesAdmin />}/>
+  <BrowserRouter>
+    <Routes>
+      {/* Route Của Admin */}
+      <Route element={<ProtectedAdminRoute />}>
+        <Route path="/" element={<AdminLayout />}>
+          <Route path="admin/dashboard" element={<Dashboard />} />
+          <Route path="admin/feedback" element={<FeedbackAdmin />}/> 
+          <Route path="admin/feedback/detail/:feedbackId" element={<FeedbackDetailAdmin />}/> 
+          <Route path="admin/customers" element={<CustomerManagement />}/> 
+          <Route path="admin/customer-creation" element={<CustomerCreation />}/> 
+          <Route path="admin/customer-detail" element={<CustomerDetail />}/> 
+          <Route path="admin/managers" element={<ManagerManagement />}/> 
+          <Route path="admin/manager-creation" element={<ManagerCreation />}/> 
+          <Route path="admin/manager-detail/:accountId" element={<ManagerDetail />}/> 
+          <Route path="admin/payment-history" element={<PaymentHistoryAdmin />}/> 
+          <Route path="admin/barmanager" element={<BarManagement />}/> 
+          <Route path="admin/barProfile/:barId" element={<BarProfile />}/> 
+          <Route path="admin/addBar" element={<AddBar />}/> 
+          <Route path="admin/event-management" element={<EventManagement />}/>
+          <Route path="admin/event-management/add-event" element={<AddEvent />} />
+          <Route path="admin/drink-categories" element={<DrinkCategoriesAdmin />}/>
 
-            {/* Emotional */}
-          <Route path="admin/emotional" element={<EmotionalCategory />}/>
-          </Route>
+          {/* Emotional */}
+        <Route path="admin/emotional" element={<EmotionalCategory />}/>
         </Route>
+      </Route>
 
-        {/* Route Của Manager */}
-        <Route element={<ProtectedManagerRoute />}>
-          <Route path="/" element={<ManagerLayout />}>
-          {/* Thức uống */}
-          <Route path="manager/managerDrinkCategory" element={<DrinkCategories />}/>  
-          <Route path="manager/managerDrinkCategory/managerDrink/:cateId" element={<ManagerDrink />}/>
-          <Route path="manager/managerDrink/DrinkDetail/:drinkId" element={<DrinkDetail />}/>
-          <Route path="manager/managerDrink/addDrink" element={<AddDrink />}/>
-          <Route path="manager/emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}/> 
-          
-          {/* Feedback */}
-          <Route path="manager/feedback" element={<FeedbackManager />}/> 
-          <Route path="manager/feedback/detail/:feedbackId" element={<FeedbackDetailManager />}/> 
-
-          {/* quan li Staff */}
-          <Route path="manager/staff" element={<StaffManagement />}/> 
-          <Route path="manager/staff-creation" element={<StaffCreation />}/> 
-          <Route path="manager/staff-detail/:id" element={<StaffDetail />}/> 
-          
-          {/* quan li loaij bàn */}
-          <Route path="manager/table-type-management" element={<TableTypeManagement />}/> 
-          <Route path="manager/table-management" element={<TableManagementManager />}/> 
-          
-          <Route path="manager/table-registrations" element={<BookingListManager />}/> 
-          <Route path="manager/table-registration-detail/:bookingId" element={<BookingDetailManager />}/> 
-
-          {/* quan li payment history */}
-          <Route path="manager/payment-history" element={<PaymentHistoryManager />}/> 
-
-          {/* quan li event */}
-          <Route path="manager/event-management" element={<EventManagement />}/> 
-          <Route path="manager/event-management/add-event" element={<AddEvent />}/> 
-          <Route path="manager/event-management/event-detail/:eventId" element={<EventDetail />}/>
-          </Route>
-        </Route>
-
-        {/* Route Của Staff */}
-        <Route element={<ProtectedStaffRoute />}>
-          <Route path="/" element={<StaffLayout />}>
-            <Route path="staff/table-management" element={<TableManagementStaff />}/> 
-            <Route path="staff/payment-history" element={<PaymentHistoryStaff />}/> 
-            <Route path="staff/table-registrations" element={<BookingListStaff />}/> 
-            <Route path="staff/table-registration-detail/:bookingId" element={<BookingDetailStaff />}/> 
-          </Route>
-        </Route>
-
-        {/* Route Của Customer */}
-        <Route element={<ProtectedCustomerRoute />}>
-          <Route path="/" element={<CustomerLayout />}>
-            <Route index element={<HomePage />} /> 
-            <Route path="home" element={<HomePage />} />
-            <Route path="bookingtable" element={<BookingTable/>} />
-            <Route path="bookingdrink" element={<BookingDrink/>} />
-            <Route path="bar-detail/:barId" element={<BarDetail />} />
-            <Route path="profile/:accountId" element={<ProfilePage />} />
-            <Route path="booking-history/:accountId" element={<BookingHistory />} />
-            <Route path="booking-detail/:bookingId" element={<BookingDetailPage />} />
-            <Route path="payment-history/:accountId" element={<CustomerPaymentHistory />} />
-            <Route path="drink-list" element={<DrinkList />} /> 
-            <Route path="drink-detail" element={<DrinkDetailCustomer />}/> 
-            <Route path="customer" element={<BookingTable />}/> 
-            <Route path="payment" element={<PaymentPage />}/> 
-            <Route path="payment-detail" element={<PaymentDetail />}/> 
-            <Route path="event" element={<Event />}/> 
-            <Route path="event/:eventId" element={<EventDetailCustomer />}/> 
-            <Route path="bar-branch" element={<BarBranch />}/>
-
-            {/* Trạng thái trang khi thanh toán */}
-            <Route path="payment-success/:paymentId" element={<Success />}/> 
-            <Route path="payment-failed/:paymentId" element={<Failed />}/> 
-            <Route path="payment-error/:paymentId" element={<Error />}/> 
-          </Route>
-        </Route>
-
-        {/* Route Trang Hệ thống và lỗi */}
-        <Route path="/404" element={<Page404/>} />
-        <Route path="*" element={<Navigate to="/404" replace />} />
-        <Route path="login" element={<Login />}/>
-        <Route path="register" element={<Registration />}/>
+      {/* Route Của Manager */}
+      <Route element={<ProtectedManagerRoute />}>
+        <Route path="/" element={<ManagerLayout />}>
+        {/* Thức uống */}
+        <Route path="manager/managerDrinkCategory" element={<DrinkCategories />}/>  
+        <Route path="manager/managerDrinkCategory/managerDrink/:cateId" element={<ManagerDrink />}/>
+        <Route path="manager/managerDrink/DrinkDetail/:drinkId" element={<DrinkDetail />}/>
+        <Route path="manager/managerDrink/addDrink" element={<AddDrink />}/>
+        <Route path="manager/emotional/drinkBaseEmo" element={<ManagerDrinkBasedEmotional />}/> 
         
-      </Routes>
-    </BrowserRouter>
-  </React.StrictMode>
+        {/* Feedback */}
+        <Route path="manager/feedback" element={<FeedbackManager />}/> 
+        <Route path="manager/feedback/detail/:feedbackId" element={<FeedbackDetailManager />}/> 
+
+        {/* quan li Staff */}
+        <Route path="manager/staff" element={<StaffManagement />}/> 
+        <Route path="manager/staff-creation" element={<StaffCreation />}/> 
+        <Route path="manager/staff-detail/:id" element={<StaffDetail />}/> 
+        
+        {/* quan li loaij bàn */}
+        <Route path="manager/table-type-management" element={<TableTypeManagement />}/> 
+        <Route path="manager/table-management" element={<TableManagementManager />}/> 
+        
+        <Route path="manager/table-registrations" element={<BookingListManager />}/> 
+        <Route path="manager/table-registration-detail/:bookingId" element={<BookingDetailManager />}/> 
+
+        {/* quan li payment history */}
+        <Route path="manager/payment-history" element={<PaymentHistoryManager />}/> 
+
+        {/* quan li event */}
+        <Route path="manager/event-management" element={<EventManagement />}/> 
+        <Route path="manager/event-management/add-event" element={<AddEvent />}/> 
+        <Route path="manager/event-management/event-detail/:eventId" element={<EventDetail />}/>
+        </Route>
+      </Route>
+
+      {/* Route Của Staff */}
+      <Route element={<ProtectedStaffRoute />}>
+        <Route path="/" element={<StaffLayout />}>
+          <Route path="staff/table-management" element={<TableManagementStaff />}/> 
+          <Route path="staff/payment-history" element={<PaymentHistoryStaff />}/> 
+          <Route path="staff/table-registrations" element={<BookingListStaff />}/> 
+          <Route path="staff/table-registration-detail/:bookingId" element={<BookingDetailStaff />}/> 
+        </Route>
+      </Route>
+
+      {/* Route Của Customer */}
+      <Route element={<ProtectedCustomerRoute />}>
+        <Route path="/" element={<CustomerLayout />}>
+          <Route index element={<HomePage />} /> 
+          <Route path="home" element={<HomePage />} />
+          <Route path="bookingtable" element={<BookingTable/>} />
+          <Route path="bookingdrink" element={<BookingDrink/>} />
+          <Route path="bar-detail/:barId" element={<BarDetail />} />
+          <Route path="profile/:accountId" element={<ProfilePage />} />
+          <Route path="booking-history/:accountId" element={<BookingHistory />} />
+          <Route path="booking-detail/:bookingId" element={<BookingDetailPage />} />
+          <Route path="payment-history/:accountId" element={<CustomerPaymentHistory />} />
+          <Route path="drink-list" element={<DrinkList />} /> 
+          <Route path="drink-detail" element={<DrinkDetailCustomer />}/> 
+          <Route path="customer" element={<BookingTable />}/> 
+          <Route path="payment" element={<PaymentPage />}/> 
+          <Route path="payment-detail" element={<PaymentDetail />}/> 
+          <Route path="event" element={<Event />}/> 
+          <Route path="event/:eventId" element={<EventDetailCustomer />}/> 
+          <Route path="bar-branch" element={<BarBranch />}/>
+
+          {/* Trạng thái trang khi thanh toán */}
+          <Route path="payment-success/:paymentId" element={<Success />}/> 
+          <Route path="payment-failed/:paymentId" element={<Failed />}/> 
+          <Route path="payment-error/:paymentId" element={<Error />}/> 
+        </Route>
+      </Route>
+
+      {/* Route Trang Hệ thống và lỗi */}
+      <Route path="/404" element={<Page404/>} />
+      <Route path="*" element={<Navigate to="/404" replace />} />
+      <Route path="login" element={<Login />}/>
+      <Route path="register" element={<Registration />}/>
+      
+    </Routes>
+  </BrowserRouter>
 );

@@ -107,23 +107,35 @@ const ManagerManagement = () => {
     const location = useLocation();
 
     useEffect(() => {
+        let isSubscribed = true;
+
         const fetchManagers = async () => {
             setIsLoading(true);
             try {
                 const response = await getManagerAccounts(pageSize, pageIndex);
-                setManagers(response.data.data.items);
-                setFilteredManagers(response.data.data.items);
-                setTotalManagers(response.data.data.total);
+                if (response?.data?.data && isSubscribed) {
+                    setManagers(response.data.data.items);
+                    setFilteredManagers(response.data.data.items);
+                    setTotalManagers(response.data.data.total);
+                }
             } catch (error) {
-                console.error("Error fetching managers:", error);
-                message.error("Không thể tải danh sách quản lý.");
+                if (isSubscribed) {
+                    console.error("Error fetching managers:", error);
+                    message.error("Không thể tải danh sách quản lý.");
+                }
             } finally {
-                setIsLoading(false);
+                if (isSubscribed) {
+                    setIsLoading(false);
+                }
             }
         };
 
         fetchManagers();
-    }, [pageIndex, pageSize]);
+
+        return () => {
+            isSubscribed = false;
+        };
+    }, [pageIndex]);
 
     useEffect(() => {
         if (location.state?.successMessage) {

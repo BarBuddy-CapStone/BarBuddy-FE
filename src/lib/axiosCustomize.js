@@ -45,8 +45,10 @@ instance.interceptors.response.use(
         // Thực hiện lại request cũ với token mới
         return instance(originalRequest);
       } catch (refreshError) {
-        // Nếu refresh token thất bại, logout
+        // Nếu refresh token thất bại
         useAuthStore.getState().logout();
+        sessionStorage.clear(); // Xóa toàn bộ session storage
+        window.location.href = '/'; // Redirect về trang home
         return Promise.reject(refreshError);
       }
     }
