@@ -266,18 +266,20 @@ const TableSelection = (
     backgroundColor: 
       isCurrentUserHolding ? '#D2691E' :
       isHeld ? '#FFA500' :
-      status === 0 || status === 2 ? '#FFA500' :
+      status === 0 ? '#FFA500' :
+      status === 2 ? '#FFA500' :
       '#D3D3D3',
     color: '#fff',
     '&:hover': {
       backgroundColor: 
         isCurrentUserHolding ? '#A0522D' :
         isHeld ? '#FF8C00' :
-        status === 0 || status === 2 ? '#FF8C00' :
+        status === 0 ? '#FF8C00' :
+        status === 2 ? '#FF8C00' :
         '#C0C0C0',
     },
     '&:disabled': {
-      backgroundColor: status === 1 ? '#A9A9A9' : '#FFA500',
+      backgroundColor: status === 1 || status === 3 ? '#A9A9A9' : '#FFA500',
       color: '#fff',
       opacity: 0.7,
     },
@@ -306,6 +308,7 @@ const TableSelection = (
       backgroundColor: 
         isCurrentUserHolding ? '#D2691E' :
         isHeld ? '#FFA500' :
+        table.status === 0 ? '#FFA500' :
         table.status === 1 ? '#D3D3D3' :
         '#FFA500',
       cursor: isTableDisabled(table) ? 'not-allowed' : 'pointer',

@@ -127,11 +127,6 @@ const BookingTable = () => {
   }, [barId, selectedDate]);
 
   const mergeTables = (apiTables, holdTables, currentDate, currentTime) => {
-    if (!apiTables || !Array.isArray(apiTables)) {
-      console.warn("No API tables data or invalid format");
-      return [];
-    }
-
     return apiTables.map(apiTable => {
       const matchingHoldTable = holdTables?.find(holdTable => 
         holdTable.tableId === apiTable.tableId &&
@@ -142,7 +137,7 @@ const BookingTable = () => {
       if (matchingHoldTable) {
         return {
           ...apiTable,
-          status: 2, // Đã được hold
+          status: 2,
           isHeld: true,
           holderId: matchingHoldTable.accountId,
           holdExpiry: matchingHoldTable.holdExpiry,
@@ -152,7 +147,7 @@ const BookingTable = () => {
       }
       return { 
         ...apiTable, 
-        status: apiTable.status || 1,
+        status: apiTable.status !== undefined ? apiTable.status : 1,
         isHeld: false 
       };
     });
