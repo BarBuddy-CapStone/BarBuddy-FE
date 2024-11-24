@@ -16,14 +16,11 @@ import {
 } from "@mui/material";
 import React, { Fragment, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "src/lib";
-import MenuIcon from "@mui/icons-material/Menu";
-import { Login, Registration, ForgetPassword } from "src/pages";
 import { toast } from "react-toastify";
 import { useAuthStore } from "src/lib";
 import { getNotificationByAccountId, markNotificationsAsRead } from "src/lib/service/notificationService"; // Import hàm
 import { timeAgo } from "src/lib/Utils/Utils";
-import { Login, Registration } from "src/pages";
+import { Login, Registration, ForgetPassword } from "src/pages";
 
 const CustomerHeader = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -150,7 +147,6 @@ const CustomerHeader = () => {
   };
 
   const isNotificationOpen = Boolean(notificationAnchorEl);
-
   // Thêm component LoadingOverlay
   const LoadingOverlay = () => (
     <div 
@@ -175,13 +171,20 @@ const CustomerHeader = () => {
       </Typography>
     </div>
   );
+
   const handleOpenForgetPassword = () => {
-    setOpenForgetPassword(true);
     setOpenLogin(false);
-    setOpenRegister(false);
+    setOpenForgetPassword(true);
   };
 
-  const handleCloseForgetPassword = () => setOpenForgetPassword(false);
+  const handleCloseForgetPassword = () => {
+    setOpenForgetPassword(false);
+  };
+
+  const handleSwitchToLogin = () => {
+    setOpenForgetPassword(false);
+    setOpenLogin(true);
+  };
 
   return (
     <Fragment>
@@ -541,7 +544,7 @@ const CustomerHeader = () => {
       >
         <ForgetPassword
           onClose={handleCloseForgetPassword}
-          onSwitchToLogin={handleOpenLogin}
+          onSwitchToLogin={handleSwitchToLogin}
         />
       </Dialog>
     </Fragment>

@@ -1,10 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { login, googleLogin } from "../../../lib/service/authenService"; // Nhập hàm login
-import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "src/lib"; // Nhập useAuthStore
-import { Button, CircularProgress, Alert } from "@mui/material"; // Import MUI Button, CircularProgress, and Alert
-import "react-toastify/dist/ReactToastify.css";
-import { toast } from "react-toastify";
+import { Alert, Button, CircularProgress } from "@mui/material"; // Import MUI Button, CircularProgress, and Alert
 import { jwtDecode } from "jwt-decode"; // Import jwt-decode
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
