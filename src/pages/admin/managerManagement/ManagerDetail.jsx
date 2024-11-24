@@ -83,8 +83,8 @@ export default function ManagerDetail() {
         const fetchData = async () => {
             try {
                 const barsResponse = await getAllBarsNoPage();
-                if (barsResponse?.data?.data?.barResponses) {
-                    setBars(barsResponse.data.data.barResponses);
+                if (barsResponse?.data?.data?.onlyBarIdNameResponses) {
+                    setBars(barsResponse.data.data.onlyBarIdNameResponses);
                 } else {
                     console.error('Invalid bars data:', barsResponse);
                     setBars([]);

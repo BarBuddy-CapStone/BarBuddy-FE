@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
-import { getManagerAccounts } from 'src/lib/service/adminService';
-import { message } from 'antd';
-import Pagination from '@mui/material/Pagination';
 import { CircularProgress } from '@mui/material';
+import Pagination from '@mui/material/Pagination';
+import { message } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { getManagerAccounts } from 'src/lib/service/adminService';
 
 function getStatusClass(status) {
     switch (status) {
@@ -98,12 +98,12 @@ const ManagerTableRow = ({ manager, isEven, onViewDetails }) => {
 
 const ManagerManagement = () => {
     const [pageIndex, setPageIndex] = useState(1);
-    const [pageSize, setPageSize] = useState(5);
+    const [pageSize] = useState(6);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
     const [managers, setManagers] = useState([]);
     const [filteredManagers, setFilteredManagers] = useState([]);
-    const [totalManagers, setTotalManagers] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
     const location = useLocation();
 
     useEffect(() => {
@@ -116,7 +116,7 @@ const ManagerManagement = () => {
                 if (response?.data?.data && isSubscribed) {
                     setManagers(response.data.data.items);
                     setFilteredManagers(response.data.data.items);
-                    setTotalManagers(response.data.data.total);
+                    setTotalItems(response.data.data.total);
                 }
             } catch (error) {
                 if (isSubscribed) {
@@ -135,7 +135,7 @@ const ManagerManagement = () => {
         return () => {
             isSubscribed = false;
         };
-    }, [pageIndex]);
+    }, [pageIndex, pageSize]);
 
     useEffect(() => {
         if (location.state?.successMessage) {
@@ -204,7 +204,7 @@ const ManagerManagement = () => {
                 {!isLoading && filteredManagers.length > 0 && (
                     <div className="flex justify-center mt-6">
                         <Pagination
-                            count={Math.ceil(totalManagers / pageSize)}
+                            count={Math.ceil(totalItems / pageSize)}
                             page={pageIndex}
                             onChange={handlePageChange}
                             color="primary"

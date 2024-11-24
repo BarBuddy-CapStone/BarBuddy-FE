@@ -62,8 +62,10 @@ function TableManagementStaff() {
       
       try {
         const response = await getTableTypeOfBar(barId);
-        if (response?.data?.data) {
-          setTableTypes(response.data.data);
+        if (response?.data?.data?.tableTypeResponses) {
+          setTableTypes(response.data.data.tableTypeResponses);
+        } else {
+          setTableTypes([]);
         }
       } catch (error) {
         console.error("Lỗi khi lấy danh sách loại bàn:", error);

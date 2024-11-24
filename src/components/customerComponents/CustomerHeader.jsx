@@ -1,28 +1,26 @@
-import React, { useState, Fragment, useEffect } from "react";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import MenuIcon from "@mui/icons-material/Menu";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import {
   AppBar,
-  Toolbar,
-  IconButton,
-  Typography,
-  Box,
-  MenuItem,
-  Menu,
-  Dialog,
   Badge,
-  Popover, // Thêm Popover
-  Button,
+  Box,
   CircularProgress,
+  Dialog,
+  IconButton,
+  Menu,
+  MenuItem,
+  Popover,
+  Toolbar,
+  Typography
 } from "@mui/material";
-import AccountCircle from "@mui/icons-material/AccountCircle";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+import React, { Fragment, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "src/lib";
-import MenuIcon from "@mui/icons-material/Menu";
-import { Login, Registration } from "src/pages";
 import { toast } from "react-toastify";
-import { getNotificationByAccountId } from "src/lib/service/notificationService"; // Import hàm
+import { useAuthStore } from "src/lib";
+import { getNotificationByAccountId, markNotificationsAsRead } from "src/lib/service/notificationService"; // Import hàm
 import { timeAgo } from "src/lib/Utils/Utils";
-import { markNotificationsAsRead } from "src/lib/service/notificationService";
+import { Login, Registration } from "src/pages";
 
 const CustomerHeader = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -87,15 +85,16 @@ const CustomerHeader = () => {
     try {
       await logout();
       handleMenuClose();
-      // Đảm bảo xóa dữ liệu trước khi reload
-      sessionStorage.clear(); // Xóa tất cả dữ liệu trong sessionStorage
-      // Thêm delay để hiển thị loading spinner
+      
+      // Hiển thị loading overlay trong 1 giây
       await new Promise(resolve => setTimeout(resolve, 1000));
-      window.location.href = '/'; // Chuyển về trang chủ
+      
+      // Xóa dữ liệu và chuyển hướng
+      sessionStorage.clear();
+      window.location.href = '/';
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Có lỗi xảy ra khi đăng xuất");
-    } finally {
       setIsLoggingOut(false);
     }
   };
@@ -147,8 +146,35 @@ const CustomerHeader = () => {
 
   const isNotificationOpen = Boolean(notificationAnchorEl);
 
+  // Thêm component LoadingOverlay
+  const LoadingOverlay = () => (
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999,
+        flexDirection: 'column',
+        gap: '20px'
+      }}
+    >
+      <CircularProgress size={60} sx={{ color: '#FFA500' }} />
+      <Typography sx={{ color: 'white', fontSize: '1.2rem' }}>
+        Đang đăng xuất...
+      </Typography>
+    </div>
+  );
+
   return (
     <Fragment>
+      {isLoggingOut && <LoadingOverlay />}
+      
       <AppBar
         position="sticky"
         sx={{ backgroundColor: "#333", padding: { xs: 1, sm: 2 }, zIndex: 49 }}
@@ -423,9 +449,20 @@ const CustomerHeader = () => {
                   <MenuItem onClick={() => { navigate(`/profile/${accountId}`); handleMenuClose(); }}>
                     Hồ sơ
                   </MenuItem>
-                  <MenuItem onClick={handleLogout} disabled={isLoggingOut}>
+                  <MenuItem 
+                    onClick={handleLogout} 
+                    disabled={isLoggingOut}
+                    sx={{
+                      display: 'flex',
+                      gap: '8px',
+                      color: isLoggingOut ? 'gray' : 'inherit'
+                    }}
+                  >
                     {isLoggingOut ? (
-                      <CircularProgress size={24} />
+                      <>
+                        <CircularProgress size={20} />
+                        Đang đăng xuất...
+                      </>
                     ) : (
                       "Đăng xuất"
                     )}

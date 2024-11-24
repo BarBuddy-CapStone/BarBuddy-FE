@@ -1,11 +1,37 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { message } from 'antd';
 import { useDropzone } from 'react-dropzone';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CloseIcon from '@mui/icons-material/Close';
 import { createEvent } from 'src/lib/service/eventManagerService';
+import { 
+    TextField, 
+    Button, 
+    FormControl, 
+    InputLabel, 
+    Select, 
+    MenuItem,
+    Checkbox,
+    FormGroup,
+    FormControlLabel,
+    InputAdornment,
+    CircularProgress
+} from '@mui/material';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+
+// Thêm hàm format và parse tiền
+const formatCurrency = (value) => {
+  const number = parseFloat(value);
+  if (isNaN(number)) return '';
+  return number.toLocaleString('vi-VN');
+};
+
+const parseCurrency = (value) => {
+  return value.replace(/[^\d]/g, '');
+};
 
 const AddEvent = () => {
   const navigate = useNavigate();
@@ -29,10 +55,19 @@ const AddEvent = () => {
     }
   });
   const [errors, setErrors] = useState({});
+  const [maxPriceDisplay, setMaxPriceDisplay] = useState('');
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (name, value) => {
     setEventData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'eventType') {
+        setEventData(prev => ({
+            ...prev,
+            specificDates: [],  // Reset ngày cụ thể
+            weeklyDays: [],     // Reset ngày trong tuần
+            [name]: value
+        }));
+    }
   };
 
   const handleDateChange = (e) => {
@@ -97,13 +132,25 @@ const AddEvent = () => {
   };
 
   const handleVoucherChange = (field, value) => {
-    setEventData(prev => ({
-      ...prev,
-      eventVoucherRequest: {
-        ...prev.eventVoucherRequest,
-        [field]: value
-      }
-    }));
+    if (field === 'maxPrice') {
+      const numericValue = parseCurrency(value);
+      setEventData(prev => ({
+        ...prev,
+        eventVoucherRequest: {
+          ...prev.eventVoucherRequest,
+          maxPrice: numericValue
+        }
+      }));
+      setMaxPriceDisplay(formatCurrency(numericValue));
+    } else {
+      setEventData(prev => ({
+        ...prev,
+        eventVoucherRequest: {
+          ...prev.eventVoucherRequest,
+          [field]: value
+        }
+      }));
+    }
   };
 
   const validateForm = () => {
@@ -189,287 +236,209 @@ const AddEvent = () => {
             const response = await createEvent(eventRequest);
             
             if (response.data.statusCode === 200) {
-                toast.success('Thêm sự kiện thành công!');
+                message.success(response.data.message);
                 navigate('/manager/event-management');
             } else {
-                toast.error('Có lỗi xảy ra khi thêm sự kiện!');
+                message.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm sự kiện!');
             }
         } catch (error) {
             console.error('Error creating event:', error);
-            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm sự kiện!');
+            message.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm sự kiện!');
         } finally {
             setLoading(false);
         }
     }
   };
 
-  const renderVoucherForm = () => (
-    <div className="mb-6 bg-gray-50 p-6 rounded-lg">
-      <h3 className="text-lg font-semibold mb-4">Thông tin Voucher</h3>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Tên Voucher
-          </label>
-          <input
-            type="text"
-            value={eventData.eventVoucherRequest.eventVoucherName}
-            onChange={(e) => handleVoucherChange('eventVoucherName', e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          />
-          {errors.eventVoucherName && <p className="text-red-500 text-xs italic">{errors.eventVoucherName}</p>}
-        </div>
-
-        <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Mã Voucher (10 ký tự)
-          </label>
-          <input
-            type="text"
-            maxLength={10}
-            value={eventData.eventVoucherRequest.voucherCode}
-            onChange={(e) => handleVoucherChange('voucherCode', e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          />
-          {errors.voucherCode && <p className="text-red-500 text-xs italic">{errors.voucherCode}</p>}
-        </div>
-
-        <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Giảm giá (%)
-          </label>
-          <input
-            type="number"
-            min="0"
-            max="100"
-            value={eventData.eventVoucherRequest.discount}
-            onChange={(e) => handleVoucherChange('discount', e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          />
-          {errors.discount && <p className="text-red-500 text-xs italic">{errors.discount}</p>}
-        </div>
-
-        <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Giảm tối đa (VNĐ)
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={eventData.eventVoucherRequest.maxPrice}
-            onChange={(e) => handleVoucherChange('maxPrice', e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          />
-          {errors.maxPrice && <p className="text-red-500 text-xs italic">{errors.maxPrice}</p>}
-        </div>
-
-        <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Số lượng
-          </label>
-          <input
-            type="number"
-            min="1"
-            value={eventData.eventVoucherRequest.quantity}
-            onChange={(e) => handleVoucherChange('quantity', e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          />
-          {errors.quantity && <p className="text-red-500 text-xs italic">{errors.quantity}</p>}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
-    <main className="flex flex-col items-start p-4 sm:p-8 bg-white w-full">
+    <main className="flex flex-col items-start p-4 sm:p-8 bg-white w-full max-w-6xl mx-auto">
       <div className="flex items-center mb-6 w-full">
-        <button
+        <Button
+          startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/manager/event-management')}
-          className="mr-4 text-gray-600 hover:text-gray-800"
+          variant="text"
+          color="inherit"
         >
-          <ArrowBackIcon />
-        </button>
-        <h1 className="text-2xl font-bold">Thêm Sự Kiện Mới</h1>
+          Quay lại
+        </Button>
       </div>
-      <form className="w-full" onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="eventName">
-            Tên Sự Kiện
-          </label>
-          <input
-            type="text"
-            id="eventName"
-            name="eventName"
-            value={eventData.eventName}
-            onChange={handleInputChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+
+      <h1 className="text-2xl font-bold mb-6 text-center w-full">Thêm Sự Kiện Mới</h1>
+
+      <form onSubmit={handleSubmit} className="w-full space-y-6">
+        <TextField
+          size="medium"
+          fullWidth
+          label="Tên Sự Kiện"
+          value={eventData.eventName}
+          onChange={(e) => handleInputChange('eventName', e.target.value)}
+          error={!!errors.eventName}
+          helperText={errors.eventName}
+        />
+
+        <TextField
+          size="medium"
+          fullWidth
+          label="Mô Tả Sự Kiện"
+          multiline
+          rows={4}
+          value={eventData.description}
+          onChange={(e) => handleInputChange('description', e.target.value)}
+          error={!!errors.description}
+          helperText={errors.description}
+        />
+
+        <FormControl fullWidth size="small">
+          <InputLabel>Loại Sự Kiện</InputLabel>
+          <Select
+            value={eventData.eventType}
+            onChange={(e) => handleInputChange('eventType', e.target.value)}
+            label="Loại Sự Kiện"
+          >
+            <MenuItem value="specific">Ngày cụ thể</MenuItem>
+            <MenuItem value="weekly">Hàng tuần</MenuItem>
+          </Select>
+        </FormControl>
+
+        {eventData.eventType === 'specific' ? (
+          <TextField
+            type="date"
+            fullWidth
+            label="Chọn Ngày"
+            InputLabelProps={{ shrink: true }}
+            onChange={handleDateChange}
+            error={!!errors.specificDates}
+            helperText={errors.specificDates}
           />
-          {errors.eventName && <p className="text-red-500 text-xs italic">{errors.eventName}</p>}
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
-            Mô Tả Sự Kiện
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={eventData.description}
-            onChange={handleInputChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32"
-          />
-          {errors.description && <p className="text-red-500 text-xs italic">{errors.description}</p>}
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Loại Sự Kiện
-          </label>
-          <div>
-            <label className="inline-flex items-center mr-6">
-              <input
-                type="radio"
-                name="eventType"
-                value="specific"
-                checked={eventData.eventType === 'specific'}
-                onChange={handleInputChange}
-                className="form-radio"
-              />
-              <span className="ml-2">Ngày cụ thể</span>
-            </label>
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                name="eventType"
-                value="weekly"
-                checked={eventData.eventType === 'weekly'}
-                onChange={handleInputChange}
-                className="form-radio"
-              />
-              <span className="ml-2">Hàng tuần</span>
-            </label>
-          </div>
-        </div>
-
-        {eventData.eventType === 'specific' && (
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Chọn Ngày
-            </label>
-            <input
-              type="date"
-              onChange={handleDateChange}
-              min={new Date().toISOString().split('T')[0]}
-              className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            />
-            <div className="mt-2 flex flex-wrap">
-              {eventData.specificDates.map((date, index) => (
-                <span key={index} className="inline-flex items-center bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-                  {date}
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteDate(date)}
-                    className="ml-2 text-red-500 hover:text-red-700 focus:outline-none"
-                  >
-                    <CloseIcon fontSize="small" />
-                  </button>
-                </span>
-              ))}
-            </div>
-            {errors.specificDates && <p className="text-red-500 text-xs italic">{errors.specificDates}</p>}
-          </div>
-        )}
-
-        {eventData.eventType === 'weekly' && (
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Chọn Ngày Trong Tuần
-            </label>
-            <div className="flex flex-wrap">
-              {['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'].map((day, index) => (
-                <label key={index} className="inline-flex items-center mr-6 mb-2">
-                  <input
-                    type="checkbox"
+        ) : (
+          <FormGroup row>
+            {['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'].map((day, index) => (
+              <FormControlLabel
+                key={index}
+                control={
+                  <Checkbox
                     checked={eventData.weeklyDays.includes(day)}
                     onChange={() => handleWeeklyDayChange(day)}
-                    className="form-checkbox"
                   />
-                  <span className="ml-2">{day}</span>
-                </label>
-              ))}
-            </div>
-            {errors.weeklyDays && <p className="text-red-500 text-xs italic">{errors.weeklyDays}</p>}
-          </div>
+                }
+                label={day}
+              />
+            ))}
+          </FormGroup>
         )}
 
-        <div className="mb-4 flex flex-wrap items-center">
-          <div className="w-full sm:w-auto mr-4 mb-2 sm:mb-0">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="startTime">
-              Giờ Bắt Đầu
-            </label>
-            <input
-              type="time"
-              id="startTime"
-              name="startTime"
-              value={eventData.startTime}
-              onChange={handleInputChange}
-              className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <div className="flex gap-4">
+            <TimePicker
+              label="Giờ bắt đầu"
+              value={eventData.startTime ? dayjs(eventData.startTime, 'HH:mm') : null}
+              onChange={(newValue) => handleInputChange('startTime', newValue?.format('HH:mm'))}
             />
-            {errors.startTime && <p className="text-red-500 text-xs italic mt-1">{errors.startTime}</p>}
+            <TimePicker
+              label="Giờ kết thúc"
+              value={eventData.endTime ? dayjs(eventData.endTime, 'HH:mm') : null}
+              onChange={(newValue) => handleInputChange('endTime', newValue?.format('HH:mm'))}
+            />
           </div>
-          <div className="w-full sm:w-auto">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="endTime">
-              Giờ Kết Thúc
-            </label>
-            <input
-              type="time"
-              id="endTime"
-              name="endTime"
-              value={eventData.endTime}
-              onChange={handleInputChange}
-              className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        </LocalizationProvider>
+
+        {/* Voucher Section */}
+        <div className="bg-gray-50 p-6 rounded-lg space-y-4">
+          <h3 className="text-lg font-semibold">Thông tin Voucher</h3>
+          <TextField
+            size="small"
+            fullWidth
+            label="Tên Voucher"
+            value={eventData.eventVoucherRequest.eventVoucherName}
+            onChange={(e) => handleVoucherChange('eventVoucherName', e.target.value)}
+            error={!!errors.eventVoucherName}
+            helperText={errors.eventVoucherName}
+          />
+
+          <TextField
+            size="small"
+            fullWidth
+            label="Mã Voucher"
+            value={eventData.eventVoucherRequest.voucherCode}
+            onChange={(e) => handleVoucherChange('voucherCode', e.target.value)}
+            error={!!errors.voucherCode}
+            helperText={errors.voucherCode}
+            inputProps={{ maxLength: 10 }}
+          />
+
+          <div className="grid grid-cols-3 gap-4">
+            <TextField
+              size="small"
+              label="Giảm giá (%)"
+              value={eventData.eventVoucherRequest.discount}
+              onChange={(e) => handleVoucherChange('discount', e.target.value)}
+              error={!!errors.discount}
+              helperText={errors.discount}
+              type="number"
+              InputProps={{
+                endAdornment: <InputAdornment position="end">%</InputAdornment>,
+              }}
             />
-            {errors.endTime && <p className="text-red-500 text-xs italic mt-1">{errors.endTime}</p>}
+
+            <TextField
+              size="small"
+              label="Giảm tối đa"
+              value={maxPriceDisplay}
+              onChange={(e) => handleVoucherChange('maxPrice', e.target.value)}
+              error={!!errors.maxPrice}
+              helperText={errors.maxPrice}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">VNĐ</InputAdornment>,
+              }}
+            />
+
+            <TextField
+              size="small"
+              label="Số lượng"
+              value={eventData.eventVoucherRequest.quantity}
+              onChange={(e) => handleVoucherChange('quantity', e.target.value)}
+              error={!!errors.quantity}
+              helperText={errors.quantity}
+              type="number"
+            />
           </div>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Thêm Hình Ảnh
-          </label>
-          <div {...getRootProps()} className="dropzone border-2 border-dashed border-gray-300 p-4 rounded-lg text-center cursor-pointer">
+        {/* Image Upload Section */}
+        <div className="space-y-4">
+          <div {...getRootProps()} className="border-2 border-dashed border-gray-300 p-8 rounded-lg text-center cursor-pointer hover:border-blue-500 transition-colors">
             <input {...getInputProps()} />
-            <p>Kéo và thả hình ảnh vào đây, hoặc click để chọn hình</p>
-            <p className="text-sm text-gray-500">Chỉ chấp nhận file ảnh JPEG, JPG, PNG hoặc GIF, kích thước tối đa 5MB</p>
+            <p className="text-base">Kéo và thả hình ảnh vào đây, hoặc click để chọn hình</p>
+            <p className="text-sm text-gray-500 mt-2">Chỉ chấp nhận file ảnh JPEG, JPG, PNG hoặc GIF, kích thước tối đa 5MB</p>
           </div>
-          {errors.images && <p className="text-red-500 text-xs italic mt-1">{errors.images}</p>}
+          {errors.images && <p className="text-red-500 text-sm">{errors.images}</p>}
+          <div className="flex flex-wrap gap-4">
+            {eventData.images.map((image, index) => (
+              <div key={index} className="relative">
+                <img src={image.src} alt={`preview ${index}`} className="h-24 w-24 object-cover rounded" />
+                <button
+                  type="button"
+                  onClick={() => handleDelete(index)}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 text-sm"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="mb-4 flex flex-wrap">
-          {eventData.images.map((image, index) => (
-            <div key={index} className="relative m-2">
-              <img src={image.src} alt={`preview ${index}`} className="h-20 w-20 object-cover rounded" />
-              <button
-                type="button"
-                onClick={() => handleDelete(index)}
-                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-              >
-                &times;
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {renderVoucherForm()}
-
-        <div className="flex justify-end mt-6">
-          <button
+        <div className="flex justify-end pt-4">
+          <Button
+            variant="contained"
+            color="primary"
             type="submit"
-            className="bg-sky-900 hover:bg-sky-800 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition duration-300 ease-in-out"
             disabled={loading}
+            size="large"
+            startIcon={loading && <CircularProgress size={20} color="inherit" />}
           >
             {loading ? 'Đang xử lý...' : 'Tạo Sự Kiện'}
-          </button>
+          </Button>
         </div>
       </form>
     </main>

@@ -163,8 +163,10 @@ const BookingTableInfo = ({
     const fetchTableTypes = async () => {
       try {
         const response = await getTableTypeOfBar(barId);
-        if (response.status === 200) {
-          setTableTypes(response.data.data);
+        if (response?.data?.data?.tableTypeResponses) {
+          setTableTypes(response.data.data.tableTypeResponses);
+        } else {
+          setTableTypes([]);
         }
       } catch (error) {
         console.error("Error fetching table types:", error);
@@ -172,7 +174,7 @@ const BookingTableInfo = ({
     };
 
     fetchTableTypes();
-  }, []);
+  }, [barId]);
 
   const generateTimeOptions = (start, end, date) => {
     if (!start || !end) {

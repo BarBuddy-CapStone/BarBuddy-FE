@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getStaffById, updateStaff } from 'src/lib/service/staffService';
 import { message } from 'antd';
 import useValidateAccountForm from 'src/lib/hooks/useValidateAccountForm';
+import { getAllBarsNoPage } from 'src/lib/service/barManagerService';
 
 const ProfileField = ({ label, value, onChange, isDropdown, options }) => (
     <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
@@ -71,13 +72,23 @@ export default function StaffDetail() {
     const [isLoading, setIsLoading] = useState(true);
     const [staffImage, setStaffImage] = useState("");
     const [imageUrl, setImageUrl] = useState("");
+    const [bars, setBars] = useState([]);
 
     useEffect(() => {
-        const fetchStaffDetail = async () => {
-            setIsLoading(true);
+        const fetchData = async () => {
             try {
+                // Fetch bars
+                const barsResponse = await getAllBarsNoPage();
+                if (barsResponse?.data?.data?.onlyBarIdNameResponses) {
+                    setBars(barsResponse.data.data.onlyBarIdNameResponses);
+                } else {
+                    console.error('Invalid bars data:', barsResponse);
+                    setBars([]);
+                    message.error("Không thể tải danh sách bar");
+                }
+
+                // Fetch staff detail
                 const response = await getStaffById(id);
-                console.log("Staff Detail Response:", response); // Debug log
                 if (response.data.statusCode === 200) {
                     const staffData = response.data.data;
                     setStaffDetail(staffData);
@@ -88,28 +99,22 @@ export default function StaffDetail() {
                         dob: new Date(staffData.dob).toISOString().split('T')[0],
                         barId: staffData.barId,
                         status: staffData.status,
-                        bar: staffData.bar,
-                        image: staffData.image // Lấy image từ staffData
+                        image: staffData.image
                     });
-                    setImageUrl(staffData.image); // Set image URL từ API response
+                    setImageUrl(staffData.image);
                 } else {
                     message.error("Không thể tải thông tin nhân viên");
                 }
             } catch (error) {
-                console.error("Failed to fetch staff detail:", error);
-                message.error("Đã xảy ra lỗi khi tải thông tin nhân viên");
-            } finally {
-                setIsLoading(false);
+                console.error("Failed to fetch data:", error);
+                message.error("Đã xảy ra lỗi khi tải thông tin");
             }
         };
 
         if (id) {
-            fetchStaffDetail();
-        } else {
-            message.error("Không tìm thấy ID nhân viên");
-            navigate("/manager/staff");
+            fetchData();
         }
-    }, [id, navigate]);
+    }, [id]);
 
     const handleBack = () => {
         navigate("/manager/staff");
@@ -230,7 +235,7 @@ export default function StaffDetail() {
                             value={formData.barId}
                             onChange={(e) => setFormData({ ...formData, barId: e.target.value })}
                             isDropdown={true}
-                            options={formData.bar}
+                            options={bars}
                         />
                         
                         <StatusToggle status={formData.status} onToggle={handleToggleStatus} />

@@ -61,11 +61,11 @@ const AccountForm = () => {
     useEffect(() => {
         const fetchBars = async () => {
             try {
-                const response = await getAllBarsNoPage(); // Sử dụng hàm mới
+                const response = await getAllBarsNoPage();
                 console.log('API Response:', response);
 
-                if (response?.data?.data?.barResponses) {
-                    const barsList = response.data.data.barResponses;
+                if (response?.data?.data?.onlyBarIdNameResponses) {
+                    const barsList = response.data.data.onlyBarIdNameResponses;
                     setBars(barsList);
                     if (barsList.length > 0) {
                         setFormData(prev => ({

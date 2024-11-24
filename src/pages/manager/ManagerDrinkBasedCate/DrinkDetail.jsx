@@ -1,14 +1,14 @@
-import { CircularProgress, TextField, Select, MenuItem, FormControl, InputLabel, FormHelperText, Chip, Button, InputAdornment, Checkbox } from "@mui/material";
+import { ChevronLeft } from '@mui/icons-material';
+import { Button, Chip, CircularProgress, FormControl, FormHelperText, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 import React, { Fragment, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Notification } from "src/components";
-import { getAllBar } from "src/lib/service/barManagerService";
-import { getAllDrinkCate } from "src/lib/service/drinkCateService";
+import { getAllDrinkCate, getOneDrinkCate } from "src/lib/service/drinkCateService";
 import { getAllEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
 import { getOneDrink, updateDrink } from "src/lib/service/managerDrinksService";
-import { ChevronLeft } from '@mui/icons-material';
+import { message } from 'antd';
 
 const InputField = ({ label, value, onChange, name, type, errorMessage, multiline, rows }) => (
     <TextField
@@ -148,6 +148,16 @@ function DrinkDetail() {
         setCateId(id);
     }, [location]);
 
+    useEffect(() => {
+        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        if (userInfo?.identityId) {
+            setFormData(prev => ({
+                ...prev,
+                barId: userInfo.identityId
+            }));
+        }
+    }, []);
+
     const handleStatusChange = (value) => {
         setFormData((prevData) => ({
             ...prevData,
@@ -184,49 +194,82 @@ function DrinkDetail() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const dataBar = await getAllBar();
-                const dataDrinkCate = await getAllDrinkCate();
-                const getDrink = await getOneDrink(drinkId);
-                const dataEmosCate = await getAllEmotionCategory();
-                const drinkData = getDrink.data.data;
-
-                setDataEmoCate(dataEmosCate.data.data)
-                setDataBar(dataBar.data.data);
-                setDataDrinkCate(dataDrinkCate.data.data);
-                setDataDrink(drinkData);
-                setEmotions(dataEmosCate.data.data);
-
-                setFormData({
-                    drinkName: drinkData.drinkName,
-                    drinkCategoryId: drinkData.drinkCategoryResponse.drinksCategoryId || '',
-                    barId: dataBar.data.data.find(bar => bar.barName === drinkData.barName)?.barId || '',
-                    description: drinkData.description,
-                    price: drinkData.price.toString(),
-                    status: drinkData.status,
-                });
-                if (drinkData.images) {
-                    setUploadedImages(drinkData?.images.split(',').map((url) => ({
-                        src: url.trim(),
-                    })));
-                }
-                if (drinkData.emotionsDrink) {
-                    setEmotionChecked(drinkData.emotionsDrink.map(emotion => ({
-                        emotionalDrinksCategoryId: emotion.emotionalDrinksCategoryId,
-                        categoryName: emotion.categoryName
-                    })));
+                // Fetch emotions
+                const emotionsResponse = await getAllEmotionCategory();
+                if (emotionsResponse?.data?.data?.emotionCategoryResponses) {
+                    setEmotions(emotionsResponse.data.data.emotionCategoryResponses);
+                } else {
+                    console.error('Invalid emotions data:', emotionsResponse);
+                    setEmotions([]);
                 }
 
-                // Lấy cateId từ drinkData
-                const categoryId = drinkData.drinkCategoryResponse.drinksCategoryId;
-                setCateId(categoryId);
+                // Fetch drink categories
+                const drinkCatesResponse = await getAllDrinkCate(1, 100);
+                if (drinkCatesResponse?.data?.data?.drinkCategoryResponses) {
+                    setDataDrinkCate(drinkCatesResponse.data.data.drinkCategoryResponses);
+                } else {
+                    console.error('Invalid drink categories data:', drinkCatesResponse);
+                    setDataDrinkCate([]);
+                }
 
+                // Fetch drink detail
+                const drinkResponse = await getOneDrink(drinkId);
+                if (drinkResponse?.data?.data) {
+                    const drinkData = drinkResponse.data.data;
+                    setDataDrink(drinkData);
+                    setFormData({
+                        drinkName: drinkData.drinkName,
+                        drinkCategoryId: drinkData.drinkCategoryResponse.drinksCategoryId,
+                        description: drinkData.description,
+                        price: drinkData.price.toString(),
+                        status: drinkData.status
+                    });
+
+                    if (drinkData.images) {
+                        setUploadedImages(drinkData.images.split(',').map((url) => ({
+                            src: url.trim()
+                        })));
+                    }
+
+                    // Set emotions
+                    if (drinkData.emotionsDrink) {
+                        setEmotionChecked(drinkData.emotionsDrink.map(emotion => ({
+                            emotionalDrinksCategoryId: emotion.emotionalDrinksCategoryId,
+                            categoryName: emotion.categoryName
+                        })));
+                    }
+                }
             } catch (error) {
                 console.error('Error fetching data:', error);
+                message.error('Có lỗi xảy ra khi tải dữ liệu');
             }
         };
 
         fetchData();
     }, [drinkId]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Lấy thông tin drink category từ cateId trong URL
+                if (cateId) {
+                    const response = await getOneDrinkCate(cateId);
+                    if (response?.data?.data) {
+                        const category = response.data.data;
+                        setDataDrinkCate([category]); // Set vào mảng để dùng cho dropdown
+                        setFormData((prevData) => ({
+                            ...prevData,
+                            drinkCategoryId: category.drinksCategoryId
+                        }));
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                message.error('Không thể tải thông tin loại đồ uống');
+            }
+        };
+        fetchData();
+    }, [cateId]);
 
     const onDrop = (acceptedFiles) => {
         const newImages = acceptedFiles.map(file => ({
@@ -250,59 +293,67 @@ function DrinkDetail() {
     };
 
     const handleUpdateConfirm = async () => {
-
-        if (!validateForm()) {
-            console.log("Form validation failed");
-            setIsPopupConfirm(false);
-            return;
-        }
-
+        if (!validateForm()) return;
         setIsLoading(true);
-        setIsPopupConfirm(false);
+        try {
+            const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+            const barId = userInfo?.identityId;
 
-        const formDatas = new FormData();
-        formDatas.append('barId', formData.barId);
-        formDatas.append('drinkCategoryId', formData.drinkCategoryId);
-        formDatas.append('drinkName', formData.drinkName);
-        formDatas.append('description', formData.description);
-        formDatas.append('price', formData.price);
-        formDatas.append('status', formData.status);
+            if (!barId) {
+                throw new Error('Không tìm thấy thông tin quán bar');
+            }
 
-        if (emotionChecked.length > 0) {
-            emotionChecked.forEach(emotion => {
-                formDatas.append("drinkBaseEmo", emotion.emotionalDrinksCategoryId)
-            })
-        } else {
-            setIsLoading(false)
-            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
-        }
-        if (uploadedImages.length > 0) {
-            uploadedImages.forEach(image => {
-                if (image.file && image.src) {
-                    formDatas.append('images', image.file);
-                    if (image.src.startsWith('http')) {
-                        formDatas.append('oldImages', image.src);
-                    }
-                } else if (!image.file && image.src) {
-                    formDatas.append('oldImages', image.src);
-                } else if (image.file && !image.src) {
-                    formDatas.append('images', image.file);
-                }
-            });
-        } else {
+            // Chuyển emotionChecked thành chuỗi các ID cách nhau bởi dấu phẩy
+            const drinkBaseEmo = emotionChecked.map(emotion => 
+                emotion.emotionalDrinksCategoryId.toString()
+            ).join(',');
+
+            // Tách riêng oldImages và images mới
+            const oldImages = uploadedImages
+                .filter(img => !img.file) // Lọc ra những ảnh không có file (ảnh cũ)
+                .map(img => img.src)
+                .join(',');
+
+            // Xử lý ảnh mới
+            const newImagePromises = uploadedImages
+                .filter(img => img.file) // Lọc ra những ảnh có file (ảnh mới)
+                .map(image => 
+                    new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            const base64String = reader.result.split(',')[1];
+                            resolve(base64String);
+                        };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(image.file);
+                    })
+                );
+
+            const newImagesBase64 = await Promise.all(newImagePromises);
+            const newImages = newImagesBase64.join(',');
+
+            const drinkData = {
+                ...formData,
+                barId: barId,
+                drinkBaseEmo: drinkBaseEmo,
+                oldImages: oldImages, // Thêm oldImages vào request
+                images: newImages    // Chỉ gửi ảnh mới trong field images
+            };
+
+            const response = await updateDrink(drinkId, drinkData);
+            if (response.data.statusCode === 200) {
+                message.success(response.data.message);
+                const categoryId = response.data.data.drinkCategoryResponse.drinksCategoryId;
+                navigate(`/manager/managerDrinkCategory/managerDrink/${categoryId}`);
+            }
+        } catch (error) {
+            console.error('Error updating drink:', error);
+            message.error(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật đồ uống');
+        } finally {
             setIsLoading(false);
-            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
-        }
-        var response = await updateDrink(drinkId, formDatas)
-        if (response.status === 200) {
-            setIsLoading(false);
-            toast.success("Cập nhật thành công!");
             setIsPopupConfirm(false);
-        } else {
-            setIsPopupConfirm(false);
-            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
         }
-    }
+    };
 
     const handleGoBack = () => {
         if (cateId) {
@@ -315,11 +366,21 @@ function DrinkDetail() {
 
     const validateForm = () => {
         let newErrors = {};
-        if (!formData.drinkName) newErrors.drinkName = 'Tên đồ uống không được để trống';
+        
+        // Validate drinkName (7-50 ký tự)
+        if (!formData.drinkName) {
+            newErrors.drinkName = 'Tên đồ uống không được để trống';
+        } else if (formData.drinkName.length < 7) {
+            newErrors.drinkName = 'Tên đồ uống phải có ít nhất 7 ký tự';
+        } else if (formData.drinkName.length > 50) {
+            newErrors.drinkName = 'Tên đồ uống không được vượt quá 50 ký tự';
+        }
+
         if (!formData.price) newErrors.price = 'Giá không được để trống';
         if (!formData.description) newErrors.description = 'Mô tả không được để trống';
         if (!formData.drinkCategoryId) newErrors.drinkCategoryId = 'Vui lòng chọn loại đồ uống';
         if (emotionChecked.length === 0) newErrors.emotion = 'Cảm xúc chưa được thêm';
+        
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -335,21 +396,27 @@ function DrinkDetail() {
 
     const handleEmotionChange = (event) => {
         const selectedEmotionId = event.target.value;
-        const selectedEmotion = emotions.find(emotion => emotion.emotionalDrinksCategoryId === selectedEmotionId);
-        if (selectedEmotion && !emotionChecked.some(e => e.emotionalDrinksCategoryId === selectedEmotionId)) {
+        const selectedEmotion = emotions.find(emotion => 
+            emotion.emotionalDrinksCategoryId === selectedEmotionId
+        );
+        if (selectedEmotion) {
             setEmotionChecked(prev => [...prev, selectedEmotion]);
             setSelectedEmotion('');
         }
     };
 
     const handleDeleteEmotion = (emotionToDelete) => {
-        setEmotionChecked(prev => prev.filter(emotion => emotion.emotionalDrinksCategoryId !== emotionToDelete.emotionalDrinksCategoryId));
+        setEmotionChecked(prev => 
+            prev.filter(emotion => 
+                emotion.emotionalDrinksCategoryId !== emotionToDelete.emotionalDrinksCategoryId
+            )
+        );
     };
 
     // Lọc ra các cảm xúc chưa được chọn để hiển thị trong dropdown
-    const availableEmotions = emotions.filter(emotion => 
+    const availableEmotions = Array.isArray(emotions) ? emotions.filter(emotion => 
         !emotionChecked.some(checked => checked.emotionalDrinksCategoryId === emotion.emotionalDrinksCategoryId)
-    );
+    ) : [];
 
     return (
         <main className="flex flex-col items-start p-8 bg-white w-full">

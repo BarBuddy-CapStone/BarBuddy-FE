@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { login, googleLogin } from "../../../lib/service/authenService"; // Nhập hàm login
-import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "src/lib"; // Nhập useAuthStore
-import { Button, CircularProgress, Alert } from "@mui/material"; // Import MUI Button, CircularProgress, and Alert
-import "react-toastify/dist/ReactToastify.css";
-import { toast } from "react-toastify";
+import { Alert, Button, CircularProgress } from "@mui/material"; // Import MUI Button, CircularProgress, and Alert
 import { jwtDecode } from "jwt-decode"; // Import jwt-decode
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useAuthStore } from "src/lib"; // Nhập useAuthStore
+import { googleLogin, login } from "../../../lib/service/authenService"; // Nhập hàm login
 // Import icon Google (ví dụ sử dụng Material-UI icons)
-import GoogleIcon from "@mui/icons-material/Google";
 import Registration from "../registration/Registration";
 
 function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
@@ -122,7 +121,10 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
 
         // Giải mã JWT token
         const decodedToken = jwtDecode(userData.accessToken);
-        const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+        const userRole =
+          decodedToken[
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+          ];
 
         toast.success("Đăng nhập thành công!");
         onLoginSuccess(userData);
@@ -139,13 +141,11 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
             window.location.reload();
             break;
           case "STAFF":
-            navigate("/staff/table-management");
+            navigate("/staff/table-registrations");
             window.location.reload();
             break;
           case "CUSTOMER":
-            setTimeout(() => {
-              window.location.reload();
-            }, 1000);
+            window.location.reload();
             break;
           default:
             navigate("/home");

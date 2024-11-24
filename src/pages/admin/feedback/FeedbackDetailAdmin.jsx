@@ -1,6 +1,6 @@
-import React, { useState } from "react";
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Switch from '@mui/material/Switch'; // Import the Switch component from MUI
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Notification } from 'src/components'; // Import Notification properly
 

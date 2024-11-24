@@ -1,14 +1,14 @@
-import { CircularProgress, TextField, Select, MenuItem, FormControl, InputLabel, FormHelperText, Chip, Button, Checkbox, InputAdornment } from "@mui/material";
-import React, { Fragment, useCallback, useEffect, useState, useRef } from "react";
+import { ChevronLeft } from '@mui/icons-material';
+import { Button, Checkbox, Chip, CircularProgress, FormControl, FormHelperText, InputAdornment, InputLabel, MenuItem, Select, TextField } from "@mui/material";
+import React, { Fragment, useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Notification } from "src/components";
-import { getAllBar } from "src/lib/service/barManagerService";
-import { getAllDrinkCate } from "src/lib/service/drinkCateService";
+import { getAllDrinkCate, getOneDrinkCate } from "src/lib/service/drinkCateService";
 import { getAllEmotionCategory } from "src/lib/service/EmotionDrinkCategoryService";
 import { addDrink } from "src/lib/service/managerDrinksService";
-import { ChevronLeft } from '@mui/icons-material';
+import { message } from 'antd';
 
 const InputField = ({ label, value, onChange, name, type, errorMessage }) => (
     <TextField
@@ -96,7 +96,7 @@ const PriceInput = ({ value, onChange, error, setError }) => {
             setError('price', 'Giá tiền không thể là 0');
             onChange('');
         } else if (numericInput.startsWith('0')) {
-            setError('price', 'Giá tiền không thể bắt đầu bằng số 0');
+            setError('price', 'Giá tin không thể bắt đầu bằng số 0');
             onChange(numericInput.slice(1));
         } else {
             setError('price', '');
@@ -139,8 +139,10 @@ function AddDrink() {
     const [formData, setFormData] = useState({
         drinkName: '',
         drinkCategoryId: '',
+        barId: '',
         description: '',
         price: '',
+        drinkBaseEmo: '',
         status: true,
         images: []
     });
@@ -160,6 +162,16 @@ function AddDrink() {
             }));
         }
     }, [location])
+
+    useEffect(() => {
+        const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+        if (userInfo?.identityId) {
+            setFormData(prev => ({
+                ...prev,
+                barId: userInfo.identityId
+            }));
+        }
+    }, []);
 
     const handleStatusChange = (value) => {
         setFormData((prevData) => ({
@@ -276,29 +288,44 @@ function AddDrink() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const dataBar = await getAllBar();
-            const dataDrinkCates = await getAllDrinkCate();
-            const dataEmosCate = await getAllEmotionCategory();
-            setDataEmoCate(dataEmosCate.data.data)
-            setDataBar(dataBar.data.data);
-            setDataDrinkCate(dataDrinkCates.data.data);
+            try {
+                // Lấy thông tin drink category từ cateId trong URL
+                if (cateId) {
+                    const response = await getOneDrinkCate(cateId);
+                    if (response?.data?.data) {
+                        const category = response.data.data;
+                        setDataDrinkCate([category]); // Set vào mảng để dùng cho dropdown
+                        setFormData((prevData) => ({
+                            ...prevData,
+                            drinkCategoryId: category.drinksCategoryId
+                        }));
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                message.error('Không thể tải thông tin loại đồ uống');
+            }
         };
         fetchData();
-        if (dataDrinkCate?.length > 0) {
-            setFormData((prevData) => ({
-                ...prevData,
-                drinkCategoryId: dataDrinkCate[0].drinksCategoryId
-            }));
-        }
-    }, []);
+    }, [cateId]);
 
     const validateForm = () => {
         let newErrors = {};
-        if (!formData.drinkName) newErrors.drinkName = 'Tên đồ uống không được để trống';
+        
+        // Validate drinkName (7-50 ký tự)
+        if (!formData.drinkName) {
+            newErrors.drinkName = 'Tên đồ uống không được để trống';
+        } else if (formData.drinkName.length < 7) {
+            newErrors.drinkName = 'Tên đồ uống phải có ít nhất 7 ký tự';
+        } else if (formData.drinkName.length > 50) {
+            newErrors.drinkName = 'Tên đồ uống không được vượt quá 50 ký tự';
+        }
+
         if (!formData.price) newErrors.price = 'Giá không được để trống';
         if (!formData.description) newErrors.description = 'Mô tả không được để trống';
         if (formData.drinkCategoryId === "") newErrors.drinkCategoryId = 'Loại đồ uống không được để trống';
         if (emotionChecked.length === 0) newErrors.emotion = 'Cảm xúc không chưa được thêm';
+        
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -324,43 +351,46 @@ function AddDrink() {
     };
 
     const handleAddConfirm = async () => {
-        if (!validateForm()) {
-            return;
-        }
-
+        if (!validateForm()) return;
         setIsLoading(true);
-        setIsPopupConfirm(false);
-
-        const formDatas = new FormData();
-        formDatas.append('drinkCategoryId', formData.drinkCategoryId);
-        formDatas.append('drinkName', formData.drinkName);
-        formDatas.append('description', formData.description);
-        formDatas.append('price', formData.price); // Giá trị price đã là chuỗi số không có dấu chấm
-        formDatas.append('status', formData.status);
-
-        if (uploadedImages.length > 0) {
-            uploadedImages.forEach(image => {
-                formDatas.append('images', image.file);
-            });
-        }
-        emotionChecked.forEach(emotion => {
-            formDatas.append('drinkBaseEmo', emotion.emotionalDrinksCategoryId);
-        });
-
         try {
-            const response = await addDrink(formDatas);
-            if (response.status === 200) {
-                toast.success("Tạo đồ uống thành công!");
-                if (cateId) {
-                    navigate(`/manager/managerDrinkCategory/managerDrink/${cateId}`);
-                } else {
-                    navigate('/manager/managerDrinkCategory');
+            const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+            const barId = userInfo?.identityId;
+
+            if (!barId) {
+                throw new Error('Không tìm thấy thông tin quán bar');
+            }
+
+            const drinkBaseEmo = emotionChecked.map(emotion => 
+                emotion.emotionalDrinksCategoryId.toString()
+            ).join(',');
+
+            // Tạo FormData để gửi file
+            const formDataToSend = new FormData();
+            formDataToSend.append('drinkName', formData.drinkName);
+            formDataToSend.append('drinkCategoryId', formData.drinkCategoryId);
+            formDataToSend.append('barId', barId);
+            formDataToSend.append('description', formData.description);
+            formDataToSend.append('price', formData.price);
+            formDataToSend.append('drinkBaseEmo', drinkBaseEmo);
+            formDataToSend.append('status', formData.status);
+
+            // Thêm các file ảnh vào FormData
+            uploadedImages.forEach((image, index) => {
+                if (image.file) {
+                    formDataToSend.append('images', image.file);
                 }
-            } else {
-                toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+            });
+
+            const response = await addDrink(formDataToSend);
+            if (response.data.statusCode === 200) {
+                message.success(response.data.message);
+                const categoryId = response.data.data.drinkCategoryResponse.drinksCategoryId;
+                navigate(`/manager/managerDrinkCategory/managerDrink/${categoryId}`);
             }
         } catch (error) {
-            toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+            console.error('Error adding drink:', error);
+            message.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm đồ uống');
         } finally {
             setIsLoading(false);
             setIsPopupConfirm(false);
@@ -383,9 +413,15 @@ function AddDrink() {
         const fetchEmotions = async () => {
             try {
                 const response = await getAllEmotionCategory();
-                setEmotions(response.data.data);
+                if (response?.data?.data?.emotionCategoryResponses) {
+                    setEmotions(response.data.data.emotionCategoryResponses);
+                } else {
+                    console.error('Invalid emotions data structure:', response);
+                    setEmotions([]);
+                }
             } catch (error) {
                 console.error("Error fetching emotions:", error);
+                setEmotions([]);
             }
         };
         fetchEmotions();
@@ -414,9 +450,9 @@ function AddDrink() {
     };
 
     // Lọc ra các cảm xúc chưa được chọn để hiển thị trong dropdown
-    const availableEmotions = emotions.filter(emotion => 
+    const availableEmotions = Array.isArray(emotions) ? emotions.filter(emotion => 
         !emotionChecked.some(checked => checked.emotionalDrinksCategoryId === emotion.emotionalDrinksCategoryId)
-    );
+    ) : [];
 
     return (
         <main className="flex flex-col items-start p-8 bg-white w-full">

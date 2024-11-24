@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { message } from 'antd';
-import { CircularProgress, TextField, Button, InputAdornment } from "@mui/material";
+import { CircularProgress, TextField, Button, InputAdornment, Pagination } from "@mui/material";
 import { Search, Add } from "@mui/icons-material";
 import { getAllTableTypesManager, addTableType, updateTableType, deleteTableType, getTableTypeOfBar } from 'src/lib/service/tableTypeService';
 
@@ -14,10 +14,10 @@ const TableTypeManagement = () => {
   const [resetFormTrigger, setResetFormTrigger] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
-
-  useEffect(() => {
-    fetchTableTypes();
-  }, []); 
+  const [shouldRefresh, setShouldRefresh] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize] = useState(6);
 
   const fetchTableTypes = useCallback(async () => {
     setLoading(true);
@@ -34,20 +34,40 @@ const TableTypeManagement = () => {
         throw new Error('Không tìm thấy ID quán bar');
       }
 
-      const response = await getTableTypeOfBar(barId);
-      const tableTypesData = response.data.data.map((tableType) => ({
-        ...tableType,
-        editIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb',
-        deleteIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e',
-      }));
-      setTableTypes(tableTypesData);
+      const response = await getTableTypeOfBar(barId, page, pageSize, searchTerm);
+      if (response?.data?.data?.tableTypeResponses) {
+        const tableTypesData = response.data.data.tableTypeResponses.map((tableType) => ({
+          ...tableType,
+          TableTypeNam: tableType.typeName,
+          editIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/85692fa89ec6efbe236367c333447229988de5c950127aab2c346b9cdd885bdb',
+          deleteIcon: 'https://cdn.builder.io/api/v1/image/assets/TEMP/12c72d419b305d862ab6fa5862b71d422877c54c8665826d40efd0e2e2d1840e',
+        }));
+        setTableTypes(tableTypesData);
+        setTotalPages(response.data.data.totalPages);
+      } else {
+        setTableTypes([]);
+        setTotalPages(1);
+      }
     } catch (error) {
       console.error('Error fetching table types:', error);
       message.error('Lỗi khi tải danh sách loại bàn: ' + error.message);
+      setTableTypes([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, pageSize, searchTerm]);
+
+  useEffect(() => {
+    if (shouldRefresh) {
+      fetchTableTypes();
+      setShouldRefresh(false);
+    }
+  }, [shouldRefresh, fetchTableTypes]);
+
+  useEffect(() => {
+    fetchTableTypes();
+  }, [fetchTableTypes]);
 
   const handlePopup = (isOpen, type = null) => {
     setIsPopupOpen(isOpen);
@@ -65,7 +85,7 @@ const TableTypeManagement = () => {
     try {
       await deleteTableType(selectedTableType.tableTypeId);
       message.success('Đã xóa loại bàn thành công');
-      await fetchTableTypes();
+      setShouldRefresh(true);
     } catch (error) {
       console.error('Error deleting table type:', error);
       if (error.response?.status === 400) {
@@ -83,9 +103,9 @@ const TableTypeManagement = () => {
     try {
       await addTableType(tableTypeData);
       message.success('Đã thêm loại bàn thành công');
-      await fetchTableTypes(); // Fetch lại data sau khi thêm
       setResetFormTrigger(true);
       handlePopup(false);
+      setShouldRefresh(true);
     } catch (error) {
       console.error('Error adding table type:', error);
       message.error('Có lỗi xảy ra khi thêm loại bàn');
@@ -101,6 +121,10 @@ const TableTypeManagement = () => {
   const filteredTableTypes = tableTypes.filter((tableType) =>
     tableType.typeName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
 
   return (
     <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
@@ -122,12 +146,28 @@ const TableTypeManagement = () => {
               <p className="text-red-500 text-lg font-semibold">Không có loại bàn</p>
             </div>
           ) : (
-            <TableTypeList
-              tableTypes={filteredTableTypes}
-              onOpenDeletePopup={(tableType) => handleDeletePopup(true, tableType)}
-              onTableTypeUpdated={fetchTableTypes}
-              notify={message}
-            />
+            <>
+              <TableTypeList
+                tableTypes={filteredTableTypes}
+                onOpenDeletePopup={(tableType) => handleDeletePopup(true, tableType)}
+                onTableTypeUpdated={fetchTableTypes}
+                notify={message}
+                setShouldRefresh={setShouldRefresh}
+              />
+              <div className="flex justify-center mt-4">
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handlePageChange}
+                  color="primary"
+                  size="large"
+                  showFirstButton
+                  showLastButton
+                  siblingCount={1}
+                  boundaryCount={1}
+                />
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -188,7 +228,7 @@ BelowHeader.propTypes = {
   onSearch: PropTypes.func.isRequired,
 };
 
-const TableTypeList = ({ tableTypes, onOpenDeletePopup, onTableTypeUpdated, notify }) => {
+const TableTypeList = ({ tableTypes, onOpenDeletePopup, onTableTypeUpdated, notify, setShouldRefresh }) => {
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [selectedTableType, setSelectedTableType] = useState(null);
 
@@ -221,6 +261,7 @@ const TableTypeList = ({ tableTypes, onOpenDeletePopup, onTableTypeUpdated, noti
           tableType={selectedTableType}
           onTableTypeUpdated={onTableTypeUpdated}
           handleNotification={notify}
+          setShouldRefresh={setShouldRefresh}
         />
       )}
     </section>
@@ -232,11 +273,14 @@ TableTypeList.propTypes = {
   onOpenDeletePopup: PropTypes.func.isRequired,
   onTableTypeUpdated: PropTypes.func.isRequired,
   notify: PropTypes.func.isRequired,
+  setShouldRefresh: PropTypes.func.isRequired
 };
 
 const TableTypeCard = ({ typeName, minimumPrice, minimumGuest, maximumGuest, description, editIcon, deleteIcon, onEdit, onDelete }) => {
   const formattedPrice = minimumPrice.toLocaleString('vi-VN');
-  const guestCapacity = minimumGuest === maximumGuest ? `${maximumGuest} khách hàng` : `${minimumGuest} - ${maximumGuest} khách hàng`;
+  const guestCapacity = minimumGuest === maximumGuest ? 
+    `${maximumGuest} khách hàng` : 
+    `${minimumGuest} - ${maximumGuest} khách hàng`;
 
   return (
     <div className="flex flex-col px-4 py-5 w-full rounded-xl bg-neutral-200 bg-opacity-50 shadow-md text-base">
@@ -302,7 +346,7 @@ const DeleteTableTypePopup = ({ isOpen, onClose, onDelete, tableType }) => {
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-[480px]">
         <h2 className="text-2xl font-bold mb-4">Xác nhận xóa</h2>
-        <p>Bạn có chắc chắn muốn xóa loại bàn: <strong>{tableType?.title}</strong>?</p>
+        <p>Bạn có chắc chắn muốn xóa loại bàn: <strong>{tableType?.TableTypeNam}</strong>?</p>
         <div className="flex justify-between mt-6">
           <button type="button" className="bg-gray-400 text-white py-3 w-48 rounded-full" onClick={onClose}>
             Hủy bỏ
@@ -472,7 +516,7 @@ const AddTableTypePopup = ({ isOpen, onClose, handleAddTableType, resetFormTrigg
                 inputProps: { min: 1, max: 99 },
                 endAdornment: <InputAdornment position="end">khách</InputAdornment>,
               }}
-              placeholder="Nhập số lượng t���i thiểu"
+              placeholder="Nhập số lượng tối thiểu"
             />
           </div>
           <div className="mb-4">
@@ -539,7 +583,7 @@ AddTableTypePopup.propTypes = {
   setResetFormTrigger: PropTypes.func.isRequired,
 };
 
-const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, handleNotification }) => {
+const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, handleNotification, setShouldRefresh }) => {
   const [typeName, setTypeName] = useState('');
   const [description, setDescription] = useState('');
   const [minimumGuest, setMinimumGuest] = useState('');
@@ -607,8 +651,8 @@ const EditTableTypePopup = ({ isOpen, onClose, tableType, onTableTypeUpdated, ha
       });
 
       message.success('Thông tin loại bàn đã được cập nhật thành công');
-      await onTableTypeUpdated();
       onClose();
+      setShouldRefresh(true);
     } catch (error) {
       console.error('Error updating table type:', error);
       if (error.response?.status === 400) {
@@ -731,6 +775,7 @@ EditTableTypePopup.propTypes = {
   tableType: PropTypes.object.isRequired,
   onTableTypeUpdated: PropTypes.func.isRequired,
   handleNotification: PropTypes.func.isRequired,
+  setShouldRefresh: PropTypes.func.isRequired
 };
 
 export default TableTypeManagement;

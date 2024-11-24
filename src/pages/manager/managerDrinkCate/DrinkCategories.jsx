@@ -63,24 +63,29 @@ const DrinkCategories = () => {
         setLoading(true);
         setNoData(false);
         try {
+            console.log('Fetching with:', { page, pageSize, search });
             const response = await getAllDrinkCate(page, pageSize, search);
-            if (response?.data?.data?.length > 0) {
-                setDrinkCateList(response.data.data);
-                setTotalItems(response.data.totalItems || response.data.data.length);
+            console.log('Response:', response.data);
+
+            if (response?.data?.data?.drinkCategoryResponses?.length > 0) {
+                setDrinkCateList(response.data.data.drinkCategoryResponses);
+                setTotalItems(response.data.data.totalItems);
+                setNoData(false);
             } else {
-                setNoData(true);
-                setDrinkCateList([]);
+                const totalPages = Math.ceil(response.data.data.totalItems / pageSize);
+                if (page > 1 && page > totalPages) {
+                    setCurrentPage(page - 1);
+                } else {
+                    setNoData(true);
+                    setDrinkCateList([]);
+                }
             }
         } catch (error) {
-            if (error.response && error.response.status === 404) {
-                setNoData(true);
-                setDrinkCateList([]);
-            } else {
-                console.log(error);
-            }
-        } finally {
-            setLoading(false);
+            console.error('Error:', error);
+            setNoData(true);
+            setDrinkCateList([]);
         }
+        setLoading(false);
     }, [pageSize]);
 
     useEffect(() => {

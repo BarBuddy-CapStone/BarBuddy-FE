@@ -100,8 +100,8 @@ const CustomerManagement = () => {
     const [customers, setCustomers] = useState([]);
     const [filteredCustomers, setFilteredCustomers] = useState([]);
     const [pageIndex, setPageIndex] = useState(1);
-    const [pageSize] = useState(5);
-    const [totalCustomers, setTotalCustomers] = useState(0);
+    const [pageSize] = useState(6);
+    const [totalItems, setTotalItems] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -115,18 +115,18 @@ const CustomerManagement = () => {
                 if (response?.data?.data?.items) {
                     setCustomers(response.data.data.items);
                     setFilteredCustomers(response.data.data.items);
-                    setTotalCustomers(response.data.data.total);
+                    setTotalItems(response.data.data.total);
                 } else {
                     setCustomers([]);
                     setFilteredCustomers([]);
-                    setTotalCustomers(0);
+                    setTotalItems(0);
                 }
             } catch (error) {
                 console.error("Error fetching customers:", error);
                 message.error("Không thể tải danh sách khách hàng.");
                 setCustomers([]);
                 setFilteredCustomers([]);
-                setTotalCustomers(0);
+                setTotalItems(0);
             } finally {
                 setIsLoading(false);
             }
@@ -201,7 +201,7 @@ const CustomerManagement = () => {
                 {!isLoading && filteredCustomers.length > 0 && (
                     <div className="flex justify-center mt-6">
                         <Pagination
-                            count={Math.ceil(totalCustomers / pageSize)}
+                            count={Math.ceil(totalItems / pageSize)}
                             page={pageIndex}
                             onChange={handlePageChange}
                             color="primary"

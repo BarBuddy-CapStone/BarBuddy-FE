@@ -244,12 +244,28 @@ const formatDate = (date, dayOfWeek) => {
   }
 };
 
+// Thêm hàm format tiền VND
+const formatCurrency = (value) => {
+  const number = parseFloat(value);
+  if (isNaN(number)) return '';
+  return number.toLocaleString('vi-VN');
+};
+
+// Thêm hàm parse giá trị tiền từ format VND về số
+const parseCurrency = (value) => {
+  return value.replace(/[^\d]/g, '');
+};
+
 const EventCard = ({ eventId, eventName, image, timeSlots, barsName, voucher }) => {
   const formattedBars = barsName.length > 1 
     ? `${barsName[0]} và ${barsName.length - 1} quán khác`
     : barsName[0];
 
   const navigate = useNavigate();
+
+  // Format giá voucher khi hiển thị
+  const formattedMaxPrice = voucher ? formatCurrency(voucher.maxPrice) : '0';
+
   return (
     <div className="flex flex-col w-full rounded-xl bg-neutral-200 bg-opacity-50 shadow-md text-base overflow-hidden">
       <img src={image} alt={eventName} className="w-full h-48 object-cover" />
@@ -278,7 +294,7 @@ const EventCard = ({ eventId, eventName, image, timeSlots, barsName, voucher }) 
           {voucher && (
             <div className="mt-2 p-2 bg-green-100 rounded-md">
               <p className="text-sm font-semibold text-green-700">
-                Voucher: {voucher.eventVoucherName} - Giảm {voucher.discount}%
+                Voucher: {voucher.eventVoucherName} - Giảm {voucher.discount}% (Tối đa {formattedMaxPrice} VNĐ)
               </p>
             </div>
           )}

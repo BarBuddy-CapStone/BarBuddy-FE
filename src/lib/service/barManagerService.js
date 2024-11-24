@@ -5,7 +5,7 @@ const getAllBar = async (pageIndex = 1, pageSize = 6, search = '') => {
 }
 
 const getAllBarsNoPage = async () => {
-  return await axios.get(`/api/v1/Bar/admin/barmanager?PageSize=1000`);
+  return await axios.get(`api/v1/Bar/customer/getBarByAdminManager?PageIndex=1&PageSize=100`);
 }
 
 const getBarProfile = async (barId) => {

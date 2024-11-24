@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { Pagination, Stack, Button, CircularProgress, Switch } from "@mui/material";
 import ChevronRight from "@mui/icons-material/ChevronRight";
-import { useNavigate } from "react-router-dom";
 import Star from "@mui/icons-material/Star";
 import StarOutline from "@mui/icons-material/StarOutline";
+import { Button, CircularProgress, Pagination, Stack, Switch } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
 import { getAllFeedbackByAdmin, UpdateStatusFeedBack } from "../../../lib/service/FeedbackService";
 import { getAllBar } from "../../../lib/service/barManagerService";
-import { toast } from 'react-toastify';
 
 const FeedbackAdmin = () => {
   const navigate = useNavigate();
   const [feedbackData, setFeedbackData] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 6;
 
   // State for filter
   const [selectedBranch, setSelectedBranch] = useState(null);
@@ -81,10 +81,18 @@ const FeedbackAdmin = () => {
     setLoading(true);
     try {
       const response = await getAllFeedbackByAdmin(selectedBranch, selectedStatus, currentPage, itemsPerPage);
-      setFeedbackData(response.data.response);
-      setTotalPages(response.data.totalPage);
+      if (response?.data?.data?.response) {
+        setFeedbackData(response.data.data.response.adminFeedbackResponses);
+        setTotalPages(response.data.data.response.totalPages);
+      } else {
+        setFeedbackData([]);
+        setTotalPages(1);
+      }
     } catch (error) {
       console.error("Error fetching feedback data:", error);
+      toast.error("Không thể tải danh sách đánh giá");
+      setFeedbackData([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -233,14 +241,16 @@ const FeedbackAdmin = () => {
         )}
 
         {/* Pagination */}
-        <Stack spacing={2} direction="row" justifyContent="center" alignItems="center" sx={{ mt: 3 }}>
-          <Pagination
-            count={totalPages}
-            page={currentPage}
-            onChange={(event, value) => setCurrentPage(value)}
-            color="primary"
-          />
-        </Stack>
+        {!loading && feedbackData.length > 0 && (
+          <Stack spacing={2} direction="row" justifyContent="center" alignItems="center" sx={{ mt: 3 }}>
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={(event, value) => setCurrentPage(value)}
+              color="primary"
+            />
+          </Stack>
+        )}
       </div>
 
       {/* Popup for feedback details */}
