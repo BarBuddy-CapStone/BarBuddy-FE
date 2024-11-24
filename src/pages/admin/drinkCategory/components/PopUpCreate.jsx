@@ -30,7 +30,7 @@ const Button = ({ children, variant, disabled, ...props }) => (
   </button>
 );
 
-const PopUpCreate = ({ onClose, setLoading, refreshList }) => {
+const PopUpCreate = ({ onClose, setLoading }) => {
   const [formData, setFormData] = useState({ categoryName: '', description: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,7 +66,6 @@ const PopUpCreate = ({ onClose, setLoading, refreshList }) => {
       if (response.status === 200) {
         message.success(response.data.message || "Created Successfully");
         onClose();
-        refreshList();
       }
     } catch (error) {
       if (error.response?.status === 400) {

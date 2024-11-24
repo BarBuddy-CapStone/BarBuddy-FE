@@ -1,7 +1,11 @@
 import axios from "../axiosCustomize";
 
-const getAllBar = async () => {
-  return await axios.get(`api/v1/Bar/admin/barmanager`)
+const getAllBar = async (pageIndex = 1, pageSize = 6, search = '') => {
+  return await axios.get(`/api/v1/Bar/admin/barmanager?PageIndex=${pageIndex}&PageSize=${pageSize}&Search=${search}`);
+}
+
+const getAllBarsNoPage = async () => {
+  return await axios.get(`/api/v1/Bar/admin/barmanager?PageSize=1000`);
 }
 
 const getBarProfile = async (barId) => {
@@ -66,6 +70,7 @@ export const updateBar = async (data) => {
 
 export {
   getAllBar,
+  getAllBarsNoPage,
   getBarProfile,
   addBar,
   getBarDetail

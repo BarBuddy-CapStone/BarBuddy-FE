@@ -48,44 +48,51 @@ function EmotionalCategory() {
   const [currentDeleteCategory, setCurrentDeleteCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const pageSize = 6;
   const debouncedSearchTerm = useDebounce(searchTerm);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchEmotionCategories = useCallback(async (search = '') => {
+  const fetchEmotionCategories = useCallback(async (search = '', page = currentPage) => {
     setIsLoading(true);
     setEmotionCategories([]);
     try {
-      const response = await getAllEmotionCategory(currentPage, pageSize, search);
-      if (response?.data?.data?.length > 0) {
-        setEmotionCategories(response.data.data);
-        setTotalItems(response.data.totalItems || response.data.data.length);
+      const response = await getAllEmotionCategory(page, undefined, search);
+      console.log('API Response:', response);
+
+      if (response?.data?.data?.emotionCategoryResponses) {
+        setEmotionCategories(response.data.data.emotionCategoryResponses);
+        setTotalItems(response.data.data.totalItems);
+        setTotalPages(response.data.data.totalPages);
       } else {
+        console.error('Invalid response structure:', response);
         setEmotionCategories([]);
+        setTotalItems(0);
+        setTotalPages(1);
       }
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        setEmotionCategories([]);
-      } else {
-        console.error("Error fetching emotion categories:", error);
-        message.error("Có lỗi xảy ra khi tải danh sách danh mục cảm xúc.");
-      }
+      console.error("Error fetching emotion categories:", error);
+      message.error("Có lỗi xảy ra khi tải danh sách danh mục cảm xúc.");
+      setEmotionCategories([]);
+      setTotalItems(0);
+      setTotalPages(1);
     } finally {
       setIsLoading(false);
     }
   }, [currentPage]);
 
   useEffect(() => {
-    fetchEmotionCategories(debouncedSearchTerm);
-  }, [debouncedSearchTerm, fetchEmotionCategories]);
+    fetchEmotionCategories(debouncedSearchTerm, currentPage);
+  }, [debouncedSearchTerm, currentPage, fetchEmotionCategories]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setCurrentPage(1);
   };
 
   const handleAddSuccess = useCallback(async () => {
     setIsAdding(false);
+    setCurrentPage(1);
     await fetchEmotionCategories(searchTerm);
   }, [fetchEmotionCategories, searchTerm]);
 
@@ -106,7 +113,10 @@ function EmotionalCategory() {
 
   const handleDeleteSuccess = async () => {
     setIsDeleting(false);
-    await fetchEmotionCategories(searchTerm);
+    if (emotionCategories.length === 1 && currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+    await fetchEmotionCategories(searchTerm, currentPage);
   };
 
   const handlePageChange = (event, value) => {
@@ -145,7 +155,7 @@ function EmotionalCategory() {
             <div className="flex justify-center items-center h-32">
               <CircularProgress />
             </div>
-          ) : emotionCategories.length === 0 ? (
+          ) : !Array.isArray(emotionCategories) || emotionCategories.length === 0 ? (
             <div className="flex justify-center items-center h-32">
               <p className="text-red-500 text-lg font-semibold">
                 Không tìm thấy danh mục cảm xúc!
@@ -165,7 +175,7 @@ function EmotionalCategory() {
               </div>
               <div className="flex justify-center mt-4">
                 <Pagination
-                  count={Math.ceil(totalItems / pageSize)}
+                  count={totalPages}
                   page={currentPage}
                   onChange={handlePageChange}
                   color="primary"

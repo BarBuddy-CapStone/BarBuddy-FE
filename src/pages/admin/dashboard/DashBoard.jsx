@@ -40,10 +40,15 @@ const formatCurrency = (amount) => {
   }).format(amount).replace('₫', 'VND');
 };
 
+// Thêm hàm helper để lấy ngày đầu năm 2024
+const getStartOf2024 = () => {
+  return '2024-01-01';
+};
+
 const Dashboard = () => {
-  // Khởi tạo startDate với ngày hiện tại theo UTC+7
-  const [startDate, setStartDate] = useState(formatDateToUTC7());
-  const [endDate, setEndDate] = useState("");
+  // Khởi tạo startDate là ngày 1/1/2024 và endDate là ngày hiện tại UTC+7
+  const [startDate, setStartDate] = useState(getStartOf2024());
+  const [endDate, setEndDate] = useState(formatDateToUTC7());
   const [barId, setBarId] = useState("");
   const [revenue, setRevenue] = useState(0);
   const [barList, setBarList] = useState([]);
@@ -112,9 +117,11 @@ const Dashboard = () => {
     };
 
     fetchBarList();
-    fetchAllRevenue(); // Gọi API mới
+    fetchAllRevenue();
+    // Gọi fetchRevenue với ngày mặc định
     fetchRevenue({
-      fromTime: formatDateToUTC7()
+      fromTime: getStartOf2024(),
+      toTime: formatDateToUTC7()
     });
   }, []);
 

@@ -79,8 +79,8 @@ const ManagerTableRow = ({ manager, isEven, onViewDetails }) => {
             <td className="px-4 py-6 text-center align-middle">{manager.bar?.barName || 'N/A'}</td>
             <td className="px-4 py-6 text-center align-middle">
                 <div className="flex justify-center">
-                    <span className={`inline-flex items-center justify-center min-w-[120px] px-4 py-2 rounded-full text-white font-medium ${statusClass}`}>
-                        {manager.status === 1 ? "Hoạt Động" : "Không Hoạt Động"}
+                    <span className={`inline-flex items-center justify-center w-[100px] px-3 py-1 rounded-full text-white text-sm font-medium ${statusClass}`}>
+                        {manager.status === 1 ? "Hoạt Động" : "Không HĐ"}
                     </span>
                 </div>
             </td>

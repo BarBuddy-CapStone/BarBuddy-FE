@@ -29,9 +29,15 @@ const FeedbackAdmin = () => {
     const fetchBarBranches = async () => {
       try {
         const response = await getAllBar();
-        setBranches(response.data.data);
+        if (Array.isArray(response?.data?.data)) {
+          setBranches(response.data.data);
+        } else {
+          console.error('Data received is not an array:', response.data);
+          setBranches([]);
+        }
       } catch (error) {
         console.error('Error fetching bar branches:', error);
+        setBranches([]);
       }
     };
 
@@ -127,8 +133,10 @@ const FeedbackAdmin = () => {
               className="px-3 py-1 bg-white rounded-md border border-black shadow-sm text-sm transition-all duration-150 ease-in-out hover:bg-gray-100 active:bg-gray-200 focus:outline-none"
             >
               <option value="all">Tất cả chi nhánh</option>
-              {branches.map((branch) => (
-                <option key={branch.barId} value={branch.barId}>{branch.barName}</option>
+              {Array.isArray(branches) && branches.map((branch) => (
+                <option key={branch.barId} value={branch.barId}>
+                  {branch.barName}
+                </option>
               ))}
             </select>
           </div>

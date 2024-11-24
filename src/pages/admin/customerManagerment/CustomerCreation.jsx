@@ -66,23 +66,33 @@ const AccountForm = () => {
 
     const handleConfirm = async () => {
         try {
-            // Tạo customerData với đầy đủ thông tin bao gồm cả image
             const customerData = {
                 email: formData.email,
                 fullname: formData.fullname,
                 phone: formData.phone,
                 dob: formData.dob,
                 status: 0,
-                image: imageUrl // Thêm imageUrl vào data gửi đi
+                image: imageUrl
             };
             
-            await createCustomer(customerData);
-            navigate("/admin/customers", { 
-                state: { successMessage: "Tạo tài khoản thành công!" } 
-            });
+            const response = await createCustomer(customerData);
+            if (response.data.statusCode === 200) {
+                message.success(response.data.message || "Tạo tài khoản thành công!");
+                navigate("/admin/customers", { 
+                    state: { successMessage: response.data.message || "Tạo tài khoản thành công!" } 
+                });
+            } else {
+                message.error(response.data.message || "Tạo tài khoản thất bại!");
+            }
         } catch (error) {
-            message.error("Có lỗi xảy ra khi tạo tài khoản!");
+            console.error('Error creating customer:', error);
+            if (error.response?.status === 400) {
+                message.error(error.response.data.message || "Dữ liệu không hợp lệ");
+            } else {
+                message.error(error.response?.data?.message || "Có lỗi xảy ra khi tạo tài khoản!");
+            }
         }
+        setIsPopupOpen(false);
     };
 
     const handleClosePopup = () => {
@@ -107,16 +117,15 @@ const AccountForm = () => {
 
     return (
         <>
-            <form className="flex gap-8" onSubmit={handleSubmit}>
+            <form className="flex gap-5 max-md:flex-col" onSubmit={handleSubmit}>
                 {/* Phần ảnh bên trái */}
-                <div className="w-1/4">
-                    <div className="relative w-48 h-48"> {/* Thêm kích thước cố định */}
+                <aside className="flex flex-col w-[30%] max-md:ml-0 max-md:w-full">
+                    <div className="relative">
                         <img
                             src={imageUrl}
                             alt="User profile"
-                            className="w-full h-full rounded-full object-cover"
+                            className="object-cover w-48 h-48 rounded-full"
                         />
-                        {/* Sửa lại vị trí và style của nút upload để giống CustomerDetail */}
                         <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
                             <input
                                 type="file"
@@ -129,28 +138,30 @@ const AccountForm = () => {
                             </svg>
                         </label>
                     </div>
-                </div>
+                </aside>
 
                 {/* Phần form bên phải */}
-                <div className="flex-1 space-y-4">
-                    {formFields.map((field) => (
-                        <FormField
-                            key={field.name}
-                            {...field}
-                            value={formData[field.name]}
-                            onChange={handleChange}
-                            error={errors[field.name]}
-                        />
-                    ))}
-                    <div className="flex justify-end mt-8">
-                        <button
-                            type="submit"
-                            className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
-                        >
-                            Thêm
-                        </button>
+                <section className="flex flex-col ml-5 w-[82%] max-md:ml-0 max-md:w-full">
+                    <div className="flex flex-col w-full text-sm max-md:max-w-full">
+                        {formFields.map((field) => (
+                            <FormField
+                                key={field.name}
+                                {...field}
+                                value={formData[field.name]}
+                                onChange={handleChange}
+                                error={errors[field.name]}
+                            />
+                        ))}
+                        <div className="flex justify-end mt-4">
+                            <button
+                                type="submit"
+                                className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                            >
+                                Thêm
+                            </button>
+                        </div>
                     </div>
-                </div>
+                </section>
             </form>
             {isPopupOpen && (
                 <Popup 
@@ -163,38 +174,26 @@ const AccountForm = () => {
     );
 };
 
-const FormField = ({ label, name, type, value, onChange, placeholder, pattern, error }) => {
-    return (
-        <div className="flex flex-col gap-2">
-            <label htmlFor={name} className="font-medium text-gray-700">
-                {label}
-            </label>
-            <TextField
+const FormField = ({ label, name, type, value, onChange, placeholder, pattern, error }) => (
+    <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
+        <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full flex-shrink-0">
+            {label}
+        </div>
+        <div className="w-[742px] max-w-full max-md:w-full flex-grow">
+            <input
+                type={type}
                 id={name}
                 name={name}
-                type={type}
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                inputProps={{
-                    pattern: pattern
-                }}
-                fullWidth
-                variant="outlined"
-                size="medium"
-                error={!!error}
-                helperText={error}
-                InputProps={{
-                    endAdornment: type === "tel" && (
-                        <InputAdornment position="end">
-                            VN (+84)
-                        </InputAdornment>
-                    )
-                }}
+                pattern={pattern}
+                className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
             />
+            {error && <span className="text-red-500 text-sm mt-1">{error}</span>}
         </div>
-    );
-};
+    </div>
+);
 
 FormField.propTypes = {
     label: PropTypes.string.isRequired,

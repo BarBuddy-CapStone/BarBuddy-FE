@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getManagerDetail, updateManagerDetail, getBars } from 'src/lib/service/adminService';
+import { getManagerDetail, updateManagerDetail } from 'src/lib/service/adminService';
 import { message } from 'antd';
 import useValidateAccountForm from 'src/lib/hooks/useValidateAccountForm';
 import dayjs from 'dayjs';
+import { getAllBarsNoPage } from 'src/lib/service/barManagerService';
 
 const ProfileField = ({ label, value, onChange, type = "text", readOnly = false, options = [] }) => (
     <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
@@ -18,9 +19,9 @@ const ProfileField = ({ label, value, onChange, type = "text", readOnly = false,
                     onChange={onChange}
                     disabled={readOnly}
                 >
-                    {options.map((option) => (
-                        <option key={option.barId} value={option.barId}>
-                            {option.barName}
+                    {options.map((bar) => (
+                        <option key={bar.barId} value={bar.barId}>
+                            {bar.barName}
                         </option>
                     ))}
                 </select>
@@ -81,9 +82,13 @@ export default function ManagerDetail() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const barsResponse = await getBars();
-                if (barsResponse.data.statusCode === 200) {
-                    setBars(barsResponse.data.data);
+                const barsResponse = await getAllBarsNoPage();
+                if (barsResponse?.data?.data?.barResponses) {
+                    setBars(barsResponse.data.data.barResponses);
+                } else {
+                    console.error('Invalid bars data:', barsResponse);
+                    setBars([]);
+                    message.error("Không thể tải danh sách bar");
                 }
 
                 const response = await getManagerDetail(accountId);

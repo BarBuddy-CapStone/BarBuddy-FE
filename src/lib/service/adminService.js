@@ -1,6 +1,6 @@
 import axios from "../axiosCustomize";
 
-export const getCustomerAccounts = async (pageSize = 100, pageIndex = 1) => {
+export const getCustomerAccounts = async (pageSize = 6, pageIndex = 1) => {
     return await axios.get(`api/v1/customer-accounts?pageSize=${pageSize}&pageIndex=${pageIndex}`);
 };
 

@@ -22,7 +22,7 @@ const Button = ({ children, type, variant, onClick, disabled }) => {
   );
 };
 
-function PopupConfirmDelete({ onClose, data, setLoading, refreshList }) {
+function PopupConfirmDelete({ onClose, data, setLoading }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,7 +45,6 @@ function PopupConfirmDelete({ onClose, data, setLoading, refreshList }) {
         setIsVisible(false);
         setTimeout(() => {
           onClose();
-          refreshList();
         }, 300);
       }
     } catch (error) {

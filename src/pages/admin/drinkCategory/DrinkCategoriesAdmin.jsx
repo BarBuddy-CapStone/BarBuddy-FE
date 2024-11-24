@@ -5,7 +5,7 @@ import { Add, Edit, Delete, Search } from '@mui/icons-material';
 import {PopUpCreate, PopUpUpdate, PopupConfirmDelete} from 'src/pages';
 import useDebounce from 'src/lib/hooks/useDebounce';
 
-const CategoryCard = ({ category, setLoading, refreshList }) => {
+const CategoryCard = ({ category, setLoading }) => {
     const [isPopupUpdate, setIsPopupUpdate] = useState(false);
     const [isPopupDelete, setIsPopupDelete] = useState(false);
 
@@ -15,12 +15,10 @@ const CategoryCard = ({ category, setLoading, refreshList }) => {
 
     const handleCloseUpdatePopup = () => {
         setIsPopupUpdate(false);
-        refreshList();
     };
 
     const handleCloseDeletePopup = () => {
         setIsPopupDelete(false);
-        refreshList();
     };
 
     return (
@@ -56,7 +54,6 @@ const CategoryCard = ({ category, setLoading, refreshList }) => {
                     onClose={handleCloseDeletePopup}
                     data={category}
                     setLoading={setLoading} 
-                    refreshList={refreshList}
                 />
             )}
         </div>
@@ -68,38 +65,43 @@ const DrinkCategoriesAdmin = () => {
     const [isPopupCreate, setIsPopupCreate] = useState(false);
     const [loading, setLoading] = useState(false);
     const [noData, setNoData] = useState(false);
-    const [currentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const pageSize = 6;
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm);
 
-    const fetchdataDrCate = async (search = '') => {
+    const fetchdataDrCate = async (search = '', page = currentPage) => {
         setLoading(true);
         setNoData(false);
         try {
-            const response = await getAllDrinkCate(currentPage, pageSize, search);
-            if (response?.data?.data?.length > 0) {
-                setDrinkCateList(response.data.data);
-                setTotalItems(response.data.totalItems || response.data.data.length);
+            console.log('Fetching with:', { page, pageSize, search });
+            const response = await getAllDrinkCate(page, pageSize, search);
+            console.log('Response:', response.data);
+
+            if (response?.data?.data?.drinkCategoryResponses?.length > 0) {
+                setDrinkCateList(response.data.data.drinkCategoryResponses);
+                setTotalItems(response.data.data.totalItems);
+                setNoData(false);
             } else {
-                setNoData(true);
+                const totalPages = Math.ceil(response.data.data.totalItems / pageSize);
+                if (page > 1 && page > totalPages) {
+                    setCurrentPage(page - 1);
+                } else {
+                    setNoData(true);
+                    setDrinkCateList([]);
+                }
             }
         } catch (error) {
-            if (error.response && error.response.status === 404) {
-                setNoData(true);
-            } else {
-                console.log(error);
-            }
+            console.error('Error:', error);
+            setNoData(true);
+            setDrinkCateList([]);
         }
         setLoading(false);
     };
 
-    useEffect(() => {
-        fetchdataDrCate(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
-
     const handlePageChange = (event, value) => {
+        console.log('Changing to page:', value);
         setCurrentPage(value);
     };
 
@@ -109,12 +111,20 @@ const DrinkCategoriesAdmin = () => {
 
     const handleCloseAddPopup = () => {
         setIsPopupCreate(false);
-        fetchdataDrCate(currentPage);
+        setCurrentPage(1);
     };
 
     const handleSearch = (e) => {
         setSearchTerm(e.target.value);
+        setCurrentPage(1);
     };
+
+    useEffect(() => {
+        fetchdataDrCate(debouncedSearchTerm, currentPage);
+    }, [debouncedSearchTerm, currentPage]);
+
+    const totalPages = Math.ceil(totalItems / pageSize);
+    console.log('Total pages:', totalPages);
 
     return (
         <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
@@ -159,14 +169,13 @@ const DrinkCategoriesAdmin = () => {
                                     <CategoryCard
                                         key={category.drinksCategoryId}
                                         category={category}
-                                        refreshList={() => fetchdataDrCate(currentPage)}
                                         setLoading={setLoading}
                                     />
                                 ))}
                             </div>
                             <div className="flex justify-center mt-4">
                                 <Pagination
-                                    count={Math.ceil(totalItems / pageSize)}
+                                    count={totalPages}
                                     page={currentPage}
                                     onChange={handlePageChange}
                                     color="primary"
@@ -182,8 +191,7 @@ const DrinkCategoriesAdmin = () => {
             {isPopupCreate && (
                 <PopUpCreate 
                     onClose={handleCloseAddPopup} 
-                    setLoading={setLoading} 
-                    refreshList={() => fetchdataDrCate(currentPage)} 
+                    setLoading={setLoading}
                 />
             )}
         </main>

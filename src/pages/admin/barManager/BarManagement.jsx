@@ -13,23 +13,33 @@ function BarManagement() {
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(6);
 
   useEffect(() => {
-    fetchBarData();
-  }, [currentPage]);
+    fetchBarData(search);
+  }, [currentPage, pageSize, search]);
 
-  const fetchBarData = async () => {
+  const fetchBarData = async (searchTerm = '') => {
     try {
       setLoading(true);
-      const response = await getAllBar(currentPage, pageSize);
-      if (response?.data?.data) {
-        setBarData(response.data.data);
-        setTotalPages(Math.ceil(response.data.data.length / pageSize));
+      const response = await getAllBar(currentPage, pageSize, searchTerm);
+      console.log('API Response:', response);
+      
+      if (response?.data?.data?.barResponses) {
+        setBarData(response.data.data.barResponses);
+        setTotalPages(response.data.data.totalPages);
+        console.log('Current Page:', currentPage);
+        console.log('Total Pages:', response.data.data.totalPages);
+        console.log('Items per page:', response.data.data.pageSize);
+      } else {
+        setBarData([]);
+        setTotalPages(1);
       }
     } catch (error) {
       console.error("Error fetching bar data:", error);
       message.error("Có lỗi xảy ra khi tải dữ liệu");
+      setBarData([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -41,6 +51,7 @@ function BarManagement() {
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
+    setCurrentPage(1);
   };
 
   const handleFilterChange = (e) => {
@@ -55,15 +66,7 @@ function BarManagement() {
     setCurrentPage(value);
   };
 
-  const filteredBars = barData.filter(bar => {
-    const matchesSearch = bar.barName.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = filterStatus === 'ALL' 
-      ? true 
-      : filterStatus === 'Active' 
-        ? bar.status 
-        : !bar.status;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredBars = barData;
 
   return (
     <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">

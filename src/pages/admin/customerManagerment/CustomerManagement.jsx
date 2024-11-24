@@ -68,8 +68,8 @@ const CustomerTableRow = ({ customer, isEven, onViewDetails }) => {
             <td className="px-4 py-6 text-center align-middle">{new Date(customer.createdAt).toLocaleDateString('vi-VN')}</td>
             <td className="px-4 py-6 text-center align-middle">
                 <div className="flex justify-center">
-                    <span className={`inline-flex items-center justify-center min-w-[120px] px-4 py-2 rounded-full text-white font-medium ${statusClass}`}>
-                        {customer.status === 1 ? "Hoạt Động" : "Không Hoạt Động"}
+                    <span className={`inline-flex items-center justify-center w-[100px] px-3 py-1 rounded-full text-white text-sm font-medium ${statusClass}`}>
+                        {customer.status === 1 ? "Hoạt Động" : "Không HĐ"}
                     </span>
                 </div>
             </td>
@@ -100,32 +100,47 @@ const CustomerManagement = () => {
     const [customers, setCustomers] = useState([]);
     const [filteredCustomers, setFilteredCustomers] = useState([]);
     const [pageIndex, setPageIndex] = useState(1);
-    const [pageSize, setPageSize] = useState(5);
+    const [pageSize] = useState(5);
     const [totalCustomers, setTotalCustomers] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
-    const location = useLocation();
 
     useEffect(() => {
         const fetchCustomers = async () => {
             setIsLoading(true);
             try {
                 const response = await getCustomerAccounts(pageSize, pageIndex);
-                setCustomers(response.data.data.items);
-                setFilteredCustomers(response.data.data.items);
-                setTotalCustomers(response.data.data.total);
+                console.log('API Response:', response);
+
+                if (response?.data?.data?.items) {
+                    setCustomers(response.data.data.items);
+                    setFilteredCustomers(response.data.data.items);
+                    setTotalCustomers(response.data.data.total);
+                } else {
+                    setCustomers([]);
+                    setFilteredCustomers([]);
+                    setTotalCustomers(0);
+                }
             } catch (error) {
                 console.error("Error fetching customers:", error);
                 message.error("Không thể tải danh sách khách hàng.");
+                setCustomers([]);
+                setFilteredCustomers([]);
+                setTotalCustomers(0);
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchCustomers();
-    }, [pageIndex, pageSize]); // Chỉ gọi lại khi pageIndex hoặc pageSize thay đổi
+    }, [pageIndex, pageSize]);
 
     const handleSearch = (searchTerm) => {
+        if (!searchTerm.trim()) {
+            setFilteredCustomers(customers);
+            return;
+        }
+        
         const filtered = customers.filter(customer =>
             customer.fullname.toLowerCase().includes(searchTerm.toLowerCase())
         );

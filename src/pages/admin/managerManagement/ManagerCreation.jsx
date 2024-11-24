@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
-import { createManager } from 'src/lib/service/adminService'; // Thêm import hàm createManager
+import { createManager, getBars } from 'src/lib/service/adminService'; // Thêm getBars
 import useValidateAccountForm from '../../../lib/hooks/useValidateAccountForm'; // Import hook validate
 import { TextField, InputAdornment } from '@mui/material';
 import PropTypes from 'prop-types';
+import { getAllBarsNoPage } from 'src/lib/service/barManagerService'; // Import hàm mới
 
 const formFields = [
     { 
@@ -30,6 +31,12 @@ const formFields = [
         label: "Ngày sinh", 
         name: "dob", // Đổi từ birthDate thành dob theo API
         type: "date"
+    },
+    {
+        label: "Bar",
+        name: "barId",
+        type: "select",
+        placeholder: "Chọn bar"
     }
 ];
 
@@ -42,12 +49,43 @@ const AccountForm = () => {
         email: "",
         dob: "", // Đổi từ birthDate thành dob
         status: 0, // Thêm status mặc định là 0
-        image: "" // Thêm image mặc định là rỗng
+        image: "", // Thêm image mặc định là rỗng
+        barId: "" // Thêm barId vào formData
     });
     const [isPopupOpen, setIsPopupOpen] = useState(false); // Thêm state cho Popup
     const [errors, setErrors] = useState({}); // Thêm state để lưu trữ lỗi
     const [imageUrl, setImageUrl] = useState("https://cdn.builder.io/api/v1/image/assets/TEMP/d61fbfce841ecc9d25137354a868eca4d9a5b3f3a4e622afcda63d7cca503674");
     const [imageFile, setImageFile] = useState(null);
+    const [bars, setBars] = useState([]);
+
+    useEffect(() => {
+        const fetchBars = async () => {
+            try {
+                const response = await getAllBarsNoPage(); // Sử dụng hàm mới
+                console.log('API Response:', response);
+
+                if (response?.data?.data?.barResponses) {
+                    const barsList = response.data.data.barResponses;
+                    setBars(barsList);
+                    if (barsList.length > 0) {
+                        setFormData(prev => ({
+                            ...prev,
+                            barId: barsList[0].barId
+                        }));
+                    }
+                } else {
+                    console.error('Invalid bars data structure:', response);
+                    setBars([]);
+                    message.error("Không thể tải danh sách bar");
+                }
+            } catch (error) {
+                console.error("Failed to fetch bars:", error);
+                setBars([]);
+                message.error("Không thể tải danh sách bar");
+            }
+        };
+        fetchBars();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -73,7 +111,7 @@ const AccountForm = () => {
                 dob: formData.dob,
                 status: 0,
                 image: imageUrl,
-                barId: "550e8400-e29b-41d4-a716-446655440000"
+                barId: formData.barId
             };
             
             const response = await createManager(managerData);
@@ -113,16 +151,15 @@ const AccountForm = () => {
 
     return (
         <>
-            <form className="flex gap-8" onSubmit={handleSubmit}>
-                {/* Phần ảnh bên trái */}
-                <div className="w-1/4">
-                    <div className="relative w-48 h-48"> {/* Thêm kích thước cố định */}
+            <form className="flex gap-5 max-md:flex-col" onSubmit={handleSubmit}>
+                {/* Phần ảnh bên trái - điều chỉnh width và responsive */}
+                <aside className="flex flex-col w-[30%] max-md:ml-0 max-md:w-full">
+                    <div className="relative">
                         <img
                             src={imageUrl}
                             alt="User profile"
-                            className="w-full h-full rounded-full object-cover"
+                            className="object-cover w-48 h-48 rounded-full"
                         />
-                        {/* Sửa lại vị trí và style của nút upload để giống CustomerDetail */}
                         <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
                             <input
                                 type="file"
@@ -135,28 +172,35 @@ const AccountForm = () => {
                             </svg>
                         </label>
                     </div>
-                </div>
+                </aside>
 
-                {/* Phần form bên phải */}
-                <div className="flex-1 space-y-4">
-                    {formFields.map((field) => (
-                        <FormField
-                            key={field.name}
-                            {...field}
-                            value={formData[field.name]}
-                            onChange={handleChange}
-                            error={errors[field.name]}
-                        />
-                    ))}
-                    <div className="flex justify-end mt-8">
-                        <button
-                            type="submit"
-                            className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
-                        >
-                            Thêm
-                        </button>
+                {/* Phần form bên phải - điều chỉnh min-height và margin */}
+                <section className="flex flex-col ml-5 w-[82%] max-md:ml-0 max-md:w-full">
+                    <div className="flex flex-col w-full text-sm max-md:max-w-full">
+                        {formFields.map((field) => (
+                            <FormField
+                                key={field.name}
+                                {...field}
+                                value={formData[field.name]}
+                                onChange={handleChange}
+                                error={errors[field.name]}
+                                options={field.type === 'select' ? bars.map(bar => ({
+                                    value: bar.barId,
+                                    label: bar.barName || 'Unnamed Bar'
+                                })) : []}
+                            />
+                        ))}
+                        {/* Di chuyển nút Thêm vào trong div này và điều chỉnh margin */}
+                        <div className="flex justify-end mt-4">
+                            <button
+                                type="submit"
+                                className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                            >
+                                Thêm
+                            </button>
+                        </div>
                     </div>
-                </div>
+                </section>
             </form>
             {isPopupOpen && (
                 <Popup 
@@ -169,38 +213,42 @@ const AccountForm = () => {
     );
 };
 
-const FormField = ({ label, name, type, value, onChange, placeholder, pattern, error }) => {
-    return (
-        <div className="flex flex-col gap-2">
-            <label htmlFor={name} className="font-medium text-gray-700">
-                {label}
-            </label>
-            <TextField
-                id={name}
-                name={name}
-                type={type}
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                inputProps={{
-                    pattern: pattern
-                }}
-                fullWidth
-                variant="outlined"
-                size="medium"
-                error={!!error}
-                helperText={error}
-                InputProps={{
-                    endAdornment: type === "tel" && (
-                        <InputAdornment position="end">
-                            VN (+84)
-                        </InputAdornment>
-                    )
-                }}
-            />
+const FormField = ({ label, name, type, value, onChange, placeholder, pattern, error, options }) => (
+    <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
+        <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full flex-shrink-0">
+            {label}
         </div>
-    );
-};
+        <div className="w-[742px] max-w-full max-md:w-full flex-grow">
+            {type === 'select' ? (
+                <select
+                    id={name}
+                    name={name}
+                    value={value}
+                    onChange={onChange}
+                    className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
+                >
+                    {options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            ) : (
+                <input
+                    type={type}
+                    id={name}
+                    name={name}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    pattern={pattern}
+                    className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
+                />
+            )}
+            {error && <span className="text-red-500 text-sm mt-1">{error}</span>}
+        </div>
+    </div>
+);
 
 FormField.propTypes = {
     label: PropTypes.string.isRequired,
@@ -210,7 +258,8 @@ FormField.propTypes = {
     onChange: PropTypes.func.isRequired,
     placeholder: PropTypes.string,
     pattern: PropTypes.string,
-    error: PropTypes.string // Thêm error vào PropTypes
+    error: PropTypes.string,
+    options: PropTypes.array
 };
 
 const Popup = ({ message, onClose, onConfirm }) => (
@@ -236,18 +285,16 @@ export default function ManagerCreation() {
     return (
         <main className="flex flex-col px-4 md:px-8 lg:px-16 py-8 w-full max-w-7xl mx-auto">
             <header className="flex items-center justify-between mb-8">
-                <button
+                <button 
                     onClick={handleBack}
                     className="text-3xl font-bold hover:text-gray-700 transition-colors"
                 >
                     &#8592;
                 </button>
-                <h1 className="text-3xl font-bold text-center flex-grow">THÊM TÀI KHOẢN QUẢN LÝ</h1>
+                <h1 className="font-bold text-center flex-grow">THÊM TÀI KHOẢN QUẢN LÝ</h1>
                 <div className="w-8"></div>
             </header>
-            <div className="w-full max-w-6xl mx-auto">
-                <AccountForm />
-            </div>
+            <AccountForm />
         </main>
     );
 }

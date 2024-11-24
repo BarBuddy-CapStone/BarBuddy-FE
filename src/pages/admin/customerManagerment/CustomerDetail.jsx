@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { getCustomerDetail, updateCustomerDetail } from 'src/lib/service/adminService'; // Import hàm gọi API
 import { message } from 'antd'; // Thêm import message từ antd
 import useValidateAccountForm from 'src/lib/hooks/useValidateAccountForm'; // Nhập hook xác thực
+import LoadingSpinner from 'src/components/commonComponents/LoadingSpinner';
 
 const ProfileField = ({ label, value, onChange, type = "text" }) => ( // Thêm type với giá trị mặc định là "text"
     <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
@@ -61,23 +62,34 @@ export default function CustomerDetail() {
     const [errors, setErrors] = useState({}); // Thêm state để lưu trữ lỗi
     const [updateSuccess, setUpdateSuccess] = useState(false); // Thêm state để theo dõi việc cập nhật thành công
     const [imageUrl, setImageUrl] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchCustomerDetail = async () => {
-            const response = await getCustomerDetail(accountId);
-            setCustomerData(response.data.data);
-            setFormData({
-                email: response.data.data.email,
-                fullname: response.data.data.fullname,
-                phone: response.data.data.phone,
-                dob: new Date(response.data.data.dob).toISOString().split('T')[0],
-                status: response.data.data.status,
-                image: response.data.data.image // Thêm image vào formData
-            });
-            setImageUrl(response.data.data.image); // Set image URL
+            setIsLoading(true);
+            try {
+                const response = await getCustomerDetail(accountId);
+                setCustomerData(response.data.data);
+                setFormData({
+                    email: response.data.data.email,
+                    fullname: response.data.data.fullname,
+                    phone: response.data.data.phone,
+                    dob: new Date(response.data.data.dob).toISOString().split('T')[0],
+                    status: response.data.data.status,
+                    image: response.data.data.image
+                });
+                setImageUrl(response.data.data.image);
+            } catch (error) {
+                console.error("Failed to fetch data:", error);
+                message.error("Đã xảy ra lỗi khi tải thông tin");
+            } finally {
+                setIsLoading(false);
+            }
         };
 
-        fetchCustomerDetail();
+        if (accountId) {
+            fetchCustomerDetail();
+        }
     }, [accountId]);
 
     const handleBack = () => {
@@ -151,6 +163,7 @@ export default function CustomerDetail() {
 
     return (
         <main className="flex flex-col px-4 md:px-8 lg:px-16 py-8 w-full max-w-7xl mx-auto">
+            <LoadingSpinner open={isLoading} />
             <header className="flex items-center justify-between mb-8">
                 <button 
                     onClick={handleBack}
@@ -184,7 +197,7 @@ export default function CustomerDetail() {
                     </div>
                 </aside>
                 <section className="flex flex-col ml-5 w-[82%] max-md:ml-0 max-md:w-full">
-                    <div className="flex flex-col w-full text-sm min-h-[454px] max-md:max-w-full">
+                    <div className="flex flex-col w-full text-sm max-md:max-w-full">
                         {errors.fullname && <span className="text-center my-2 text-red-500">{errors.fullname}</span>} {/* Hiển thị lỗi */}
                         <ProfileField label="Họ và tên" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
                         
@@ -198,13 +211,17 @@ export default function CustomerDetail() {
                         <ProfileField label="Ngày sinh" value={formData.dob} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} type="date" /> 
                         
                         <StatusToggle status={formData.status} onToggle={handleToggleStatus} /> {/* Thêm nút trạng thái */}
+
+                        <div className="flex justify-end mt-4">
+                            <button
+                                onClick={handleUpdate}
+                                className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                            >
+                                Cập nhật
+                            </button>
+                        </div>
                     </div>
                 </section>
-            </div>
-            <div className="mt-8 flex justify-end">
-                <button onClick={handleUpdate} className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
-                    Cập nhật
-                </button>
             </div>
             {showPopup && <Popup message={popupMessage} onClose={handleClosePopup} onConfirm={onConfirm} />}
         </main>

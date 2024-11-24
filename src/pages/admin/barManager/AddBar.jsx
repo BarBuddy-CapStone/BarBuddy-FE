@@ -82,8 +82,21 @@ const TimeSelector = ({ label, value, onChange, errorMessage }) => {
 const DiscountField = ({ value, onChange, type, name, errorMessage }) => (
     <div className="mb-2">
         <div className="flex items-center">
-            <InputFieldv2
-                errorMessage={errorMessage} label="Chiết khấu" name={name} type={type} value={value} onChange={onChange}
+            <TextField
+                fullWidth
+                size="small"
+                label="Chiết khấu"
+                variant="outlined"
+                type="number"
+                name={name}
+                value={value}
+                onChange={onChange}
+                error={!!errorMessage}
+                helperText={errorMessage}
+                margin="normal"
+                InputProps={{
+                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                }}
             />
         </div>
         <p className="mt-1 text-xs text-gray-500">
@@ -575,7 +588,7 @@ const AddBar = () => {
                     <InputFieldv2 errorMessage={errors.address} name="address" label="Địa chỉ" type="text" value={formData.address} onChange={handleInputChange} />
                     <InputFieldv2 errorMessage={errors.phoneNumber} name="phoneNumber" label="Số điện thoại" type="tel" value={formData.phoneNumber} onChange={handleInputChange} />
                     <InputFieldv2 errorMessage={errors.description} name="description" label="Mô tả" type="text" value={formData.description} onChange={handleInputChange}/>
-                    <InputFieldv2 errorMessage={errors.timeSlot} name="timeSlot" label="Time Slot" type="number" value={formData.timeSlot} onChange={handleInputChange}/>
+                    <InputFieldv2 errorMessage={errors.timeSlot} name="timeSlot" label="Thời gian tồn tại của slot" type="number" value={formData.timeSlot} onChange={handleInputChange}/>
                     <DiscountField errorMessage={errors.discount} name="discount" type="number" value={formData.discount} onChange={handleInputChange} />
                 </div>
 
