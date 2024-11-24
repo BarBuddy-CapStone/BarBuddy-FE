@@ -77,6 +77,8 @@ export default function StaffDetail() {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                setIsLoading(true);
+                
                 // Fetch bars
                 const barsResponse = await getAllBarsNoPage();
                 if (barsResponse?.data?.data?.onlyBarIdNameResponses) {
@@ -97,7 +99,7 @@ export default function StaffDetail() {
                         fullname: staffData.fullname,
                         phone: staffData.phone,
                         dob: new Date(staffData.dob).toISOString().split('T')[0],
-                        barId: staffData.barId,
+                        barId: staffData.bar.barId,
                         status: staffData.status,
                         image: staffData.image
                     });
@@ -108,6 +110,8 @@ export default function StaffDetail() {
             } catch (error) {
                 console.error("Failed to fetch data:", error);
                 message.error("Đã xảy ra lỗi khi tải thông tin");
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -174,79 +178,98 @@ export default function StaffDetail() {
         }
     };
 
+    const renderBarField = () => (
+        <ProfileField
+            label="Chi nhánh"
+            value={formData.barId}
+            onChange={(e) => setFormData({ ...formData, barId: e.target.value })}
+            isDropdown={true}
+            options={{
+                barId: staffDetail?.bar?.barId,
+                barName: staffDetail?.bar?.barName
+            }}
+        />
+    );
+
     if (isLoading) return <div>Đang tải...</div>;
     if (!staffDetail) return <div>Không tìm thấy thông tin nhân viên</div>;
 
     return (
         <main className="flex flex-col px-4 md:px-8 lg:px-16 py-8 w-full max-w-7xl mx-auto">
-            <header className="flex items-center justify-between mb-8">
-                <button
-                    onClick={handleBack}
-                    className="text-3xl font-bold hover:text-gray-700 transition-colors"
-                >
-                    &#8592;
-                </button>
-                <h1 className="font-bold text-center flex-grow">THÔNG TIN TÀI KHOẢN STAFF</h1>
-                <div className="w-8"></div>
-            </header>
-            <div className="flex gap-5 max-md:flex-col">
-                <aside className="flex flex-col w-[30%] max-md:ml-0 max-md:w-full">
-                    <div className="relative">
-                        <img
-                            src={imageUrl || "https://via.placeholder.com/200"} // Sử dụng imageUrl từ API
-                            alt={formData.fullname}
-                            className="object-cover w-48 h-48 rounded-full"
-                        />
-                        {/* Thêm nút upload ảnh */}
-                        <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleImageChange}
-                            />
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                            </svg>
-                        </label>
+            {isLoading ? (
+                <div className="flex justify-center items-center h-screen">
+                    <div>Đang tải...</div>
+                </div>
+            ) : (
+                <>
+                    <header className="flex items-center justify-between mb-8">
+                        <button
+                            onClick={handleBack}
+                            className="text-3xl font-bold hover:text-gray-700 transition-colors"
+                        >
+                            &#8592;
+                        </button>
+                        <h1 className="font-bold text-center flex-grow">THÔNG TIN TÀI KHOẢN STAFF</h1>
+                        <div className="w-8"></div>
+                    </header>
+                    <div className="flex gap-5 max-md:flex-col">
+                        <aside className="flex flex-col w-[30%] max-md:ml-0 max-md:w-full">
+                            <div className="relative">
+                                <img
+                                    src={imageUrl || "https://via.placeholder.com/200"} // Sử dụng imageUrl từ API
+                                    alt={formData.fullname}
+                                    className="object-cover w-48 h-48 rounded-full"
+                                />
+                                {/* Thêm nút upload ảnh */}
+                                <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleImageChange}
+                                    />
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                    </svg>
+                                </label>
+                            </div>
+                        </aside>
+                        <section className="flex flex-col ml-5 w-[82%] max-md:ml-0 max-md:w-full">
+                            <div className="flex flex-col w-full text-sm max-md:max-w-full">
+                                {errors.fullname && <span className="text-center my-2 text-red-500">{errors.fullname}</span>}
+                                <ProfileField label="Họ và tên" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
+                                
+                                {errors.phone && <span className="text-center my-2 text-red-500">{errors.phone}</span>}
+                                <ProfileField label="Số điện thoại" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                                
+                                {errors.email && <span className="text-center my-2 text-red-500">{errors.email}</span>}
+                                <ProfileField label="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                                
+                                {errors.dob && <span className="text-center my-2 text-red-500">{errors.dob}</span>}
+                                <ProfileField
+                                    label="Ngày sinh"
+                                    value={formData.dob}
+                                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                                    isDropdown={false}
+                                />
+                                
+                                {renderBarField()}
+                                
+                                <StatusToggle status={formData.status} onToggle={handleToggleStatus} />
+
+                                <div className="flex justify-end mt-4">
+                                    <button
+                                        onClick={handleUpdate}
+                                        className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                                    >
+                                        Cập nhật
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
                     </div>
-                </aside>
-                <section className="flex flex-col ml-5 w-[82%] max-md:ml-0 max-md:w-full">
-                    <div className="flex flex-col w-full text-sm min-h-[454px] max-md:max-w-full">
-                        {errors.fullname && <span className="text-center my-2 text-red-500">{errors.fullname}</span>}
-                        <ProfileField label="Họ và tên" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
-                        
-                        {errors.phone && <span className="text-center my-2 text-red-500">{errors.phone}</span>}
-                        <ProfileField label="Số điện thoại" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-                        
-                        {errors.email && <span className="text-center my-2 text-red-500">{errors.email}</span>}
-                        <ProfileField label="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-                        
-                        {errors.dob && <span className="text-center my-2 text-red-500">{errors.dob}</span>}
-                        <ProfileField
-                            label="Ngày sinh"
-                            value={formData.dob}
-                            onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                            isDropdown={false}
-                        />
-                        
-                        <ProfileField
-                            label="Chi nhánh"
-                            value={formData.barId}
-                            onChange={(e) => setFormData({ ...formData, barId: e.target.value })}
-                            isDropdown={true}
-                            options={bars}
-                        />
-                        
-                        <StatusToggle status={formData.status} onToggle={handleToggleStatus} />
-                    </div>
-                </section>
-            </div>
-            <div className="mt-8 flex justify-end">
-                <button onClick={handleUpdate} className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
-                    Cập nhật
-                </button>
-            </div>
+                </>
+            )}
             {showPopup && <Popup message={popupMessage} onConfirm={handleConfirmUpdate} onCancel={handleClosePopup} />}
         </main>
     );

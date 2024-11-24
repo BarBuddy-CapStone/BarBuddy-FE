@@ -1,34 +1,32 @@
 import React, { useState } from "react";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { headerConstants } from "src/lib";
 import { IconButton, Menu, MenuItem, Badge, Avatar, CircularProgress, Backdrop, Typography } from "@mui/material";
 import useAuthStore from "src/lib/hooks/useUserStore";
 import { toast } from "react-toastify";
 
-const getTitlePath = (pathName, params) => {
-  // Tách đường dẫn thành các phần
-  const pathParts = pathName.split('/').filter(Boolean);
+const getTitlePath = (pathName) => {
+  // Sử dụng regex để match các pattern có chứa ID
+  const bookingDetailPattern = /^\/staff\/table-registration-detail\/[^/]+$/;
 
-  switch (pathParts[1]) {
-    case "table-management":
-      if (pathParts[2] === "table" && params.tableTypeId) {
-        return `${headerConstants.headerStaff.table}`;
-      }
+  switch (true) {
+    // Quản lý bàn
+    case pathName === "/staff/table-management":
       return headerConstants.headerStaff.table;
 
-    case "table-registrations":
-      return headerConstants.headerStaff.table_booking_list;
-
-    case "payment-history":
+    // Lịch sử thanh toán
+    case pathName === "/staff/payment-history":
       return headerConstants.headerStaff.payment_history;
 
-    case "table-registration-detail":
-      if (params.bookingId) {
-        return `${headerConstants.headerStaff.table_booking_detail}`;
-      }
+    // Quản lý đặt bàn
+    case pathName === "/staff/table-registrations":
       return headerConstants.headerStaff.table_booking_list;
+
+    // Chi tiết đặt bàn
+    case bookingDetailPattern.test(pathName):
+      return headerConstants.headerStaff.table_booking_detail;
 
     default:
       return "Nhân Viên";
@@ -38,8 +36,7 @@ const getTitlePath = (pathName, params) => {
 const StaffHeader = ({ className, onMenuClick, isSidebarOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const params = useParams();
-  const title = getTitlePath(location.pathname, params);
+  const title = getTitlePath(location.pathname);
   const { userInfo, logout } = useAuthStore();
   const [anchorEl, setAnchorEl] = useState(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -97,7 +94,6 @@ const StaffHeader = ({ className, onMenuClick, isSidebarOpen }) => {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={handleMenuClose}>Hồ sơ</MenuItem>
             <MenuItem onClick={handleLogout} disabled={isLoggingOut}>
               {isLoggingOut ? (
                 <CircularProgress size={24} />

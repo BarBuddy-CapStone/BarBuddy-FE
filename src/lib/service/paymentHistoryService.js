@@ -5,8 +5,8 @@ class PaymentHistoryService {
     return await axios.get('api/PaymentHistory', { params });
   }
 
-  static async getBarBranches() {
-    return await axios.get('api/v1/Bar/admin/barmanager');
+  static async getAllBarsNoPage() {
+    return await axios.get('api/v1/Bar/customer/getBarByAdminManager?PageIndex=1&PageSize=100');
   }
 
   static async getAllPaymentsByCustomerId(accountId, status, pageIndex, pageSize) {

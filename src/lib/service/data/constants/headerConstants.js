@@ -3,30 +3,30 @@ const headerConstants = {
   dasboard: "Thống Kê",
   managerBarBranch: "QUẢN LÝ CHI NHÁNH BAR",
   payment: "QUẢN LÝ GIAO DỊCH",
-  tableType: "QUẢN LÝ BÀN",
   customer: "QUẢN LÝ TÀI KHOẢN KHÁCH HÀNG",
-  staff: "QUẢN LÝ TÀI KHOẢN NHÂN VIÊN",
+  manager: "QUẢN LÝ TÀI KHOẢN QUẢN LÍ",
   emotional: "QUẢN LÝ DANH MỤC CẢM XÚC",
-  drink: "QUẢN LÝ THỨC UỐNG",
   feedback: "QUẢN LÝ ĐÁNH GIÁ",
-  eventManagement: "QUẢN LÝ SỰ KIỆN",
+  drinkCategory: "QUẢN LÝ THỂ LOẠI THỨC UỐNG",
 
   headerManager: {
-    drinkCategory: "QUẢN LÝ DANH MỤC THỨC UỐNG",
-    drink: "QUẢN LÝ THỨC UỐNG"
+    staff: "QUẢN LÝ TÀI KHOẢN NHÂN VIÊN",
+    drink: "QUẢN LÝ THỨC UỐNG",
+    booking: "QUẢN LÍ DANH SÁCH ĐẶT BÀN",
+    event: "QUẢN LÝ SỰ KIỆN",
+    table: "QUẢN LÝ BÀN",
+    tableType: "QUẢN LÝ LOẠI BÀN",
+    payment: "LỊCH SỬ THANH TOÁN",
+    feedback: "QUẢN LÝ ĐÁNH GIÁ",
   },
 
   // Header của Staff
   headerStaff: {
-    table: "QUẢN LÝ BÀN",
     table_booking_list: "DANH SÁCH ĐẶT BÀN",
     table_booking_detail: "CHI TIẾT ĐẶT BÀN",
-    payment_history: "THANH TOÁN"
+    table: "QUẢN LÝ BÀN",
+    payment_history: "LỊCH SỬ THANH TOÁN"
   },
-  
-  headerCustomer: {
-    homepage: "Trang Chủ"
-  }
 };
 
 export default headerConstants;

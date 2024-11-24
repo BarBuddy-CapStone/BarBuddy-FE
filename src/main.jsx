@@ -82,7 +82,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="admin/feedback/detail/:feedbackId" element={<FeedbackDetailAdmin />}/> 
           <Route path="admin/customers" element={<CustomerManagement />}/> 
           <Route path="admin/customer-creation" element={<CustomerCreation />}/> 
-          <Route path="admin/customer-detail" element={<CustomerDetail />}/> 
+          <Route path="admin/customer-detail/:accountId" element={<CustomerDetail />}/> 
           <Route path="admin/managers" element={<ManagerManagement />}/> 
           <Route path="admin/manager-creation" element={<ManagerCreation />}/> 
           <Route path="admin/manager-detail/:accountId" element={<ManagerDetail />}/> 

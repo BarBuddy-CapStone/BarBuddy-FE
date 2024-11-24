@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { getCustomerDetail, updateCustomerDetail } from 'src/lib/service/adminService'; // Import hàm gọi API
 import { message } from 'antd'; // Thêm import message từ antd
 import useValidateAccountForm from 'src/lib/hooks/useValidateAccountForm'; // Nhập hook xác thực
@@ -52,8 +52,7 @@ const Popup = ({ message, onClose, onConfirm }) => (
 
 export default function CustomerDetail() {
     const navigate = useNavigate();
-    const location = useLocation();
-    const accountId = new URLSearchParams(location.search).get('accountId'); // Lấy accountId từ URL
+    const { accountId } = useParams(); // Lấy ID từ URL params thay vì query params
     const [customerData, setCustomerData] = useState(null);
     const [showPopup, setShowPopup] = useState(false); // State để quản lý hiển thị popup
     const [formData, setFormData] = useState({}); // State để quản lý dữ liệu form

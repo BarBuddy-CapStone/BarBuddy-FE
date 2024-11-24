@@ -152,7 +152,7 @@ const CustomerManagement = () => {
     };
 
     const handleViewDetail = (id) => {
-        navigate(`/admin/customer-detail?accountId=${id}`);
+        navigate(`/admin/customer-detail/${id}`);
     };
 
     return (

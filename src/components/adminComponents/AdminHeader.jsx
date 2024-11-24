@@ -1,44 +1,63 @@
-import React, { useState } from "react";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuIcon from "@mui/icons-material/Menu";
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+import {
+  Avatar,
+  Backdrop,
+  Badge,
+  CircularProgress,
+  IconButton,
+  Menu,
+  MenuItem,
+  Typography,
+} from "@mui/material";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { headerConstants } from "src/lib";
-import { IconButton, Menu, MenuItem, Badge, Avatar, CircularProgress, Backdrop, Typography } from "@mui/material";
-import useAuthStore from "src/lib/hooks/useUserStore";
 import { toast } from "react-toastify";
+import { headerConstants } from "src/lib";
+import useAuthStore from "src/lib/hooks/useUserStore";
 
 const getTitlePath = (pathName) => {
-  switch (pathName) {
-    case "/admin/dashboard":
+  const managerDetailPattern = /^\/admin\/manager-detail\/[^/]+$/;
+  const customerDetailPattern = /^\/admin\/customer-detail\/[^/]+$/;
+  const feedbackDetailPattern = /^\/admin\/feedbackdetail\/[^/]+$/;
+
+  switch (true) {
+    case pathName === "/admin/dashboard":
       return headerConstants.dasboard;
 
-    case "/admin/barmanager":
-      return headerConstants.managerBarBranch;
-    case "/admin/addbar":
-      return headerConstants.managerBarBranch;
-    case "/admin/barProfile":
+    case pathName === "/admin/barmanager":
+    case pathName === "/admin/addbar":
+    case pathName === "/admin/barProfile":
       return headerConstants.managerBarBranch;
 
-    case "/admin/table-type-management":
+    // ManagerAccount - bao gồm cả list và detail
+    //admin/manager-creation
+    case pathName === "/admin/managers":
+    case pathName === "/admin/manager-creation":
+    case managerDetailPattern.test(pathName):
+      return headerConstants.manager;
+
+    case pathName === "/admin/table-type-management":
       return headerConstants.tableType;
 
-    case "/admin/payment-history":
+    case pathName === "/admin/drink-categories":
+      return headerConstants.drinkCategory;
+
+    case pathName === "/admin/payment-history":
       return headerConstants.payment;
 
-    case "/admin/customers":
-      return headerConstants.customer;
-    case "/admin/customer-creation":
-      return headerConstants.customer;
-    case "/admin/customer-detail":
+    // Customer - bao gồm cả list và detail
+    case pathName === "/admin/customers":
+    case pathName === "/admin/customer-creation":
+    case customerDetailPattern.test(pathName):
       return headerConstants.customer;
 
-    case "/admin/emotional":
+    case pathName === "/admin/emotional":
       return headerConstants.emotional;
 
-    case "/admin/feedback":
-      return headerConstants.feedback;
-
-    case "/admin/feedbackdetail":
+    // Feedback - bao gồm cả list và detail
+    case pathName === "/admin/feedback":
+    case feedbackDetailPattern.test(pathName):
       return headerConstants.feedback;
 
     default:
@@ -68,8 +87,8 @@ const AdminHeader = ({ className, onMenuClick, isSidebarOpen }) => {
       await logout();
       handleMenuClose();
       sessionStorage.clear();
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      window.location.href = '/';
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Có lỗi xảy ra khi đăng xuất");
@@ -82,8 +101,8 @@ const AdminHeader = ({ className, onMenuClick, isSidebarOpen }) => {
     <>
       <header className={`flex justify-between items-center p-4 ${className}`}>
         <div className="flex items-center">
-          <button 
-            className="mr-4 md:hidden" 
+          <button
+            className="mr-4 md:hidden"
             onClick={onMenuClick}
             aria-label="Toggle menu"
           >
@@ -107,24 +126,19 @@ const AdminHeader = ({ className, onMenuClick, isSidebarOpen }) => {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={handleMenuClose}>Hồ sơ</MenuItem>
             <MenuItem onClick={handleLogout} disabled={isLoggingOut}>
-              {isLoggingOut ? (
-                <CircularProgress size={24} />
-              ) : (
-                "Đăng xuất"
-              )}
+              {isLoggingOut ? <CircularProgress size={24} /> : "Đăng xuất"}
             </MenuItem>
           </Menu>
         </div>
       </header>
       <Backdrop
-        sx={{ 
-          color: '#fff', 
+        sx={{
+          color: "#fff",
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2 
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
         }}
         open={isLoggingOut}
       >

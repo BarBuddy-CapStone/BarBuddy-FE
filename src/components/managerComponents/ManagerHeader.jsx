@@ -8,16 +8,47 @@ import useAuthStore from "src/lib/hooks/useUserStore";
 import { toast } from "react-toastify";
 
 const getTitlePath = (pathName) => {
-  switch (pathName) {
-    case "/manager/emotional":
-      return headerConstants.emotional;
+  const drinkDetailPattern = /^\/manager\/managerDrink\/DrinkDetail\/[^/]+$/;
+  const staffDetailPattern = /^\/manager\/staff-detail\/[^/]+$/;
+  const bookingDetailPattern = /^\/manager\/table-registration-detail\/[^/]+$/;
+  const eventDetailPattern = /^\/manager\/event-management\/event-detail\/[^/]+$/;
 
-    case "/manager/managerDrinkCategory":
-      return headerConstants.drink;
-    case "/manager/managerDrinkCategory/managerDrink":
-      return headerConstants.drink;
-    case "/manager/managerDrink/DrinkDetail":
-      return headerConstants.drink;
+  switch (true) {
+    case pathName === "/manager/managerDrinkCategory":
+    case pathName.includes("/manager/managerDrinkCategory/managerDrink/"):
+    case drinkDetailPattern.test(pathName):
+    case pathName === "/manager/managerDrink/addDrink":
+    case pathName === "/manager/emotional/drinkBaseEmo":
+      return headerConstants.headerManager.drink;
+
+    case pathName === "/manager/feedback":
+    case pathName.includes("/manager/feedback/detail/"):
+      return headerConstants.headerManager.feedback;
+
+    case pathName === "/manager/staff":
+    case pathName === "/manager/staff-creation":
+    case staffDetailPattern.test(pathName):
+      return headerConstants.headerManager.staff;
+
+    case pathName === "/manager/table-type-management":
+      return headerConstants.headerManager.tableType;
+    case pathName === "/manager/table-management":
+      return headerConstants.headerManager.table;
+
+    case pathName === "/manager/table-registrations":
+    case bookingDetailPattern.test(pathName):
+      return headerConstants.headerManager.booking;
+
+    case pathName === "/manager/payment-history":
+      return headerConstants.headerManager.payment;
+
+    case pathName === "/manager/event-management":
+    case pathName === "/manager/event-management/add-event":
+    case eventDetailPattern.test(pathName):
+      return headerConstants.headerManager.event;
+
+    case pathName === "/manager/managerDrinkCategory":
+      return headerConstants.headerManager.drinkCategory;
 
     default:
       return "Manager";
@@ -85,7 +116,6 @@ const ManagerHeader = ({ className, onMenuClick, isSidebarOpen }) => {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={handleMenuClose}>Hồ sơ</MenuItem>
             <MenuItem onClick={handleLogout} disabled={isLoggingOut}>
               {isLoggingOut ? (
                 <CircularProgress size={24} />

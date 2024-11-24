@@ -63,12 +63,20 @@ function PaymentHistoryAdmin() {
   // Fetch bar branches
   useEffect(() => {
     const fetchBarBranches = async () => {
-      try {
-        const response = await PaymentHistoryService.getBarBranches();
-        setBarBranches(response.data.data);
-      } catch (error) {
-        console.error('Error fetching bar branches:', error);
-      }
+        try {
+            const response = await PaymentHistoryService.getAllBarsNoPage();
+            // Kiểm tra và đảm bảo response.data.data.onlyBarIdNameResponses là một mảng
+            if (Array.isArray(response?.data?.data?.onlyBarIdNameResponses)) {
+                // Không cần format lại vì API đã trả về đúng format cần dùng
+                setBarBranches(response.data.data.onlyBarIdNameResponses);
+            } else {
+                console.error('Invalid bar branches data:', response);
+                setBarBranches([]); // Set empty array as fallback
+            }
+        } catch (error) {
+            console.error('Error fetching bar branches:', error);
+            setBarBranches([]); // Set empty array on error
+        }
     };
 
     fetchBarBranches();
@@ -278,8 +286,10 @@ function SearchForm({ barBranches, onSearch }) {
             className="flex-1 px-3 py-1.5 bg-neutral-200 rounded-md border border-neutral-200 w-full"
           >
             <option value="null">Tất cả</option>
-            {barBranches.map(branch => (
-              <option key={branch.barId} value={branch.barId}>{branch.barName}</option>
+            {Array.isArray(barBranches) && barBranches.map(branch => (
+                <option key={branch.barId} value={branch.barId}>
+                    {branch.barName}
+                </option>
             ))}
           </select>
         </div>

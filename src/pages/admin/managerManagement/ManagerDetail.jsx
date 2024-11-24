@@ -1,9 +1,8 @@
+import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getManagerDetail, updateManagerDetail } from 'src/lib/service/adminService';
-import { message } from 'antd';
 import useValidateAccountForm from 'src/lib/hooks/useValidateAccountForm';
-import dayjs from 'dayjs';
+import { getManagerDetail, updateManagerDetail } from 'src/lib/service/adminService';
 import { getAllBarsNoPage } from 'src/lib/service/barManagerService';
 
 const ProfileField = ({ label, value, onChange, type = "text", readOnly = false, options = [] }) => (
@@ -223,7 +222,7 @@ export default function ManagerDetail() {
                     </div>
                 </aside>
                 <section className="flex flex-col ml-5 w-[82%] max-md:ml-0 max-md:w-full">
-                    <div className="flex flex-col w-full text-sm min-h-[454px] max-md:max-w-full">
+                    <div className="flex flex-col w-full text-sm max-md:max-w-full">
                         {errors.fullname && <span className="text-center my-2 text-red-500">{errors.fullname}</span>}
                         <ProfileField label="Họ và tên" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
                         
@@ -245,16 +244,17 @@ export default function ManagerDetail() {
                         />
                         
                         <StatusToggle status={formData.status} onToggle={handleToggleStatus} />
+
+                        <div className="flex justify-end mt-4">
+                            <button
+                                onClick={handleUpdate}
+                                className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                            >
+                                Cập nhật
+                            </button>
+                        </div>
                     </div>
                 </section>
-            </div>
-            <div className="mt-8 flex justify-end">
-                <button
-                    onClick={handleUpdate}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
-                >
-                    Cập nhật
-                </button>
             </div>
             {showPopup && <Popup message={popupMessage} onClose={handleClosePopup} onConfirm={onConfirm} />}
         </main>
