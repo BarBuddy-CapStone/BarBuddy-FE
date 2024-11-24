@@ -102,6 +102,14 @@ const StaffHeader = ({ className, onMenuClick, isSidebarOpen }) => {
               )}
             </MenuItem>
           </Menu>
+          <div className="hidden md:flex flex-col items-end mr-4">
+            <span className="text-sm font-medium text-gray-700">
+              Welcome {userInfo?.fullname}
+            </span>
+            <span className="text-xs text-gray-500">
+              tại chi nhánh {userInfo?.barName}
+            </span>
+          </div>
         </div>
       </header>
       <Backdrop
