@@ -39,6 +39,7 @@ import EventDetail from "./customer/event/EventDetailCustomer";
 // (auth)
 import Login from "./(auth)/login/Login";
 import Registration from "./(auth)/registration/Registration";
+import ForgetPassword from "./(auth)/forgetPassword/ForgetPassword";
 
 export {
   EditEmotionCategory,
@@ -61,6 +62,7 @@ export {
   EmotionRecommendationDialog,
   Login,
   Registration,
+  ForgetPassword,
   FilterSectionManager,
   BookingTableManager,
   PopUpCreate,

@@ -35,3 +35,16 @@ export const logout = async (refreshToken) => {
   }
 };
 
+
+export const resetPassword = async (email) => {
+  try {
+    return await axios.post("api/authen/reset-password", JSON.stringify(email), {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+

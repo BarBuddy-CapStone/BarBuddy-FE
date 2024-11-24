@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { login, googleLogin } from "../../../lib/service/authenService"; // Nhập hàm login
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "src/lib"; // Nhập useAuthStore
@@ -9,8 +9,9 @@ import { jwtDecode } from "jwt-decode"; // Import jwt-decode
 // Import icon Google (ví dụ sử dụng Material-UI icons)
 import GoogleIcon from "@mui/icons-material/Google";
 import Registration from "../registration/Registration";
+import { useGoogleSignIn } from 'src/hooks/useGoogleSignIn';
 
-function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
+function Login({ onClose, onSwitchToRegister, onSwitchToForgetPassword, onLoginSuccess }) {
   const [email, setEmail] = useState(""); // Trạng thái cho email
   const [password, setPassword] = useState(""); // Trạng thái cho mật khẩu
   const [loading, setLoading] = useState(false); // State for loading spinner
@@ -20,51 +21,13 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [currentPopup, setCurrentPopup] = useState("login");
 
-  useEffect(() => {
-    const loadGoogleScript = () => {
-      const script = document.createElement("script");
-      script.src = "https://accounts.google.com/gsi/client";
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-      script.onload = initializeGoogleSignIn;
-    };
-
-    const initializeGoogleSignIn = () => {
-      window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_LOGIN_API,
-        callback: handleGoogleResponse,
-      });
-
-      // Hiển thị pop-up nhỏ tự động
-      window.google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        }
-      });
-
-      // Render nút đăng nhập Google với theme sáng hơn
-      window.google.accounts.id.renderButton(
-        document.getElementById("googleSignInDiv"),
-        {
-          theme: "filled_black", // hoặc "filled_blue"
-          size: "large",
-          width: "100%",
-          text: "signin_with",
-          shape: "pill",
-        }
-      );
-    };
-
-    loadGoogleScript();
-  }, []);
-
-  const handleGoogleResponse = async (response) => {
+  // Memoize handleGoogleResponse với useCallback
+  const handleGoogleResponse = useCallback(async (response) => {
     try {
       setGoogleLoading(true);
       setError(null);
 
       const token = response.credential;
-
       const googleLoginResponse = await googleLogin(token);
 
       if (googleLoginResponse.data.statusCode === 200) {
@@ -72,21 +35,17 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
         loginStore.login(userData.accessToken, userData);
 
         const decodedToken = jwtDecode(userData.accessToken);
-        const userRole =
-          decodedToken[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-          ];
+        const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
         toast.success("Đăng nhập Google thành công!");
         onLoginSuccess(userData);
         onClose();
 
-        // Chuyển hướng dựa trên vai trò
         switch (userRole) {
           case "ADMIN":
             navigate("/admin/dashboard");
             break;
-          case "MANAGER": // Thêm case cho MANAGER
+          case "MANAGER":
             navigate("/manager/managerDrinkCategory");
             break;
           case "STAFF":
@@ -108,7 +67,10 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
     } finally {
       setGoogleLoading(false);
     }
-  };
+  }, [loginStore, navigate, onClose, onLoginSuccess]); // Thêm dependencies
+
+  // Gọi useGoogleSignIn ở đầu component, sau các useState
+  useGoogleSignIn('google-signin-login', handleGoogleResponse);
 
   // Function to handle login
   const handleLogin = async () => {
@@ -240,7 +202,12 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
           </div>
 
           <div className="flex gap-5 justify-between mt-6 w-full max-md:mr-1 max-md:max-w-full">
-            <button className="text-gray-400">Quên mật khẩu ?</button>
+            <button 
+              className="text-gray-400 hover:text-orange-400"
+              onClick={onSwitchToForgetPassword}
+            >
+              Quên mật khẩu?
+            </button>
             <div className="flex gap-0.5">
               <div className="grow text-gray-400">Bạn chưa có tài khoản ?</div>
               <button
@@ -297,7 +264,10 @@ function Login({ onClose, onSwitchToRegister, onLoginSuccess }) {
 
                 {/* Container cho nút đăng nhập Google */}
                 <div className="google-btn-container w-full flex justify-center items-center">
-                  <div id="googleSignInDiv" className="google-btn"></div>
+                  <div 
+                    id="google-signin-login" 
+                    className="google-btn"
+                  />
                 </div>
               </>
             )}

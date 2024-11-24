@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { verifyOtp } from '../../lib/service/authenService'; // Import hàm verifyOtp
 import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
+import { toast } from 'react-toastify'; // Import toast
 
 const OtpPopup = ({ onClose, email, onSuccess }) => { // Thêm onSuccess vào props
   const [otp, setOtp] = useState(['', '', '', '', '', '']); // State cho các ô OTP
@@ -21,24 +22,29 @@ const OtpPopup = ({ onClose, email, onSuccess }) => { // Thêm onSuccess vào pr
   };
 
   const handleSubmit = async () => {
-    const otpString = otp.join(''); // Chuyển đổi mảng OTP thành chuỗi
+    const otpString = otp.join('');
+    if (otpString.length !== 6) {
+      toast.error("Vui lòng nhập đủ 6 số OTP");
+      return;
+    }
+
     const data = {
       email,
       otp: otpString,
     };
 
-    setLoading(true); // Bắt đầu loading
+    setLoading(true);
     try {
-      const response = await verifyOtp(data); // Gọi API xác nhận OTP
+      const response = await verifyOtp(data);
       if (response.status === 200) {
-        // Xử lý thành công
-        onSuccess(); // Gọi hàm onSuccess để chuyển sang Login
+        toast.success("Xác thực OTP thành công!");
+        onSuccess();
       }
     } catch (error) {
-      // Xử lý lỗi
       console.error('Xác nhận OTP thất bại', error);
+      toast.error("Xác thực OTP thất bại! Vui lòng thử lại");
     } finally {
-      setLoading(false); // Kết thúc loading
+      setLoading(false);
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { register, googleLogin } from '../../../lib/service/authenService';
 import OtpPopup from 'src/components/popupOtp/OtpPopup';
 import Login from 'src/pages/(auth)/login/Login';
@@ -7,6 +7,7 @@ import { useAuthStore } from "src/lib";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { jwtDecode } from 'jwt-decode';
+import { useGoogleSignIn } from 'src/hooks/useGoogleSignIn';
 
 const Registration = ({ onClose, onSwitchToLogin }) => {
   const [email, setEmail] = useState('');
@@ -15,9 +16,6 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [dob, setDob] = useState('');
-  const [showOtpPopup, setShowOtpPopup] = useState(false);
-  const [showLoginPopup, setShowLoginPopup] = useState(false);
-  const [showRegistrationPopup, setShowRegistrationPopup] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -25,48 +23,7 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
   const navigate = useNavigate();
   const [currentPopup, setCurrentPopup] = useState('registration'); // Trạng thái duy nhất để quản lý pop-up
 
-  useEffect(() => {
-    const loadGoogleScript = () => {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-      script.onload = initializeGoogleSignIn;
-    };
-
-    const initializeGoogleSignIn = () => {
-      window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_LOGIN_API,
-        callback: handleGoogleResponse
-      });
-      
-      // Hiển thị pop-up nhỏ tự động
-      window.google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          console.log('One Tap không được hiển thị');
-        }
-      });
-
-      // Render nút đăng nhập Google
-      window.google.accounts.id.renderButton(
-        document.getElementById("googleSignInDiv"),
-        { 
-          theme: "filled_black",
-          size: "large",
-          width: "100%",
-          text: "signup_with",
-          shape: "pill",
-          logo_alignment: "center",
-          type: "standard"
-        }
-      );
-    };
-
-    loadGoogleScript();
-  }, []);
-
-  const handleGoogleResponse = async (response) => {
+  const handleGoogleResponse = useCallback(async (response) => {
     try {
       setGoogleLoading(true);
       setErrors({});
@@ -107,7 +64,9 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
     } finally {
       setGoogleLoading(false);
     }
-  };
+  }, [loginStore, navigate, onClose, setErrors, setGoogleLoading]);
+
+  useGoogleSignIn('google-signin-register', handleGoogleResponse);
 
   const handleSwitchToRegister = () => {
     setCurrentPopup('registration');
@@ -148,30 +107,36 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
     try {
       const response = await register(data);
       if (response.status === 200) {
-        setShowRegistrationPopup(false);
-        setShowOtpPopup(true);
+        setCurrentPopup('otp');
       } else {
         console.error('Đăng ký thất bại:', response);
+        toast.error("Đăng ký thất bại! Vui lòng thử lại.");
       }
     } catch (error) {
       console.error('Lỗi khi đăng ký:', error);
+      toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleOtpSuccess = () => {
-    setShowOtpPopup(false);
-    setShowLoginPopup(true);
+    setCurrentPopup('login');
   };
 
   return (
     <div>
-      {currentPopup === 'otp' && <OtpPopup onClose={() => setCurrentPopup('login')} email={email} onSuccess={handleOtpSuccess} />}
+      {currentPopup === 'otp' && (
+        <OtpPopup 
+          onClose={() => setCurrentPopup('registration')} 
+          email={email} 
+          onSuccess={handleOtpSuccess}
+        />
+      )}
       {currentPopup === 'login' && (
         <Login 
-          onClose={() => setCurrentPopup('default')} 
-          onSwitchToRegister={handleSwitchToRegister} // Đảm bảo hàm này được truyền vào
+          onClose={onClose}
+          onSwitchToRegister={() => setCurrentPopup('registration')}
         />
       )}
       {currentPopup === 'registration' && (
@@ -280,7 +245,7 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
 
             {/* Container cho nút đăng nhập Google */}
             <div className="w-full flex justify-center items-center mt-4">
-              <div id="googleSignInDiv" className="google-btn"></div>
+              <div id="google-signin-register" className="google-btn"></div>
             </div>
           </div>
 

@@ -18,7 +18,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "src/lib";
 import MenuIcon from "@mui/icons-material/Menu";
-import { Login, Registration } from "src/pages";
+import { Login, Registration, ForgetPassword } from "src/pages";
 import { toast } from "react-toastify";
 import { getNotificationByAccountId } from "src/lib/service/notificationService"; // Import hàm
 import { timeAgo } from "src/lib/Utils/Utils";
@@ -40,6 +40,8 @@ const CustomerHeader = () => {
   const [notifications, setNotifications] = useState([]); // State lưu trữ thông báo
 
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const [openForgetPassword, setOpenForgetPassword] = useState(false);
 
   useEffect(() => {
     const storedUserInfo = sessionStorage.getItem('userInfo');
@@ -146,6 +148,14 @@ const CustomerHeader = () => {
   };
 
   const isNotificationOpen = Boolean(notificationAnchorEl);
+
+  const handleOpenForgetPassword = () => {
+    setOpenForgetPassword(true);
+    setOpenLogin(false);
+    setOpenRegister(false);
+  };
+
+  const handleCloseForgetPassword = () => setOpenForgetPassword(false);
 
   return (
     <Fragment>
@@ -459,7 +469,8 @@ const CustomerHeader = () => {
         <Login 
           onClose={handleCloseLogin} 
           onLoginSuccess={handleLoginSuccess} 
-          onSwitchToRegister={handleOpenRegister} // Thêm hàm chuyển đổi
+          onSwitchToRegister={handleOpenRegister}
+          onSwitchToForgetPassword={handleOpenForgetPassword}
         />
       </Dialog>
 
@@ -475,7 +486,23 @@ const CustomerHeader = () => {
       >
         <Registration 
           onClose={handleCloseRegister} 
-          onSwitchToLogin={handleOpenLogin} // Thêm hàm chuyển đổi
+          onSwitchToLogin={handleOpenLogin}
+        />
+      </Dialog>
+
+      <Dialog
+        open={openForgetPassword}
+        onClose={handleCloseForgetPassword}
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            backgroundColor: "#333",
+          },
+        }}
+      >
+        <ForgetPassword
+          onClose={handleCloseForgetPassword}
+          onSwitchToLogin={handleOpenLogin}
         />
       </Dialog>
     </Fragment>
