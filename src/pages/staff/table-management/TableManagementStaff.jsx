@@ -281,7 +281,16 @@ function TableHeader({
 
   const handleSearchChange = (event) => {
     setSearchInput(event.target.value);
-    onSearch(event.target.value);
+  };
+
+  const handleSearchClick = () => {
+    onSearch(searchInput);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchClick();
+    }
   };
 
   return (
@@ -308,10 +317,17 @@ function TableHeader({
           <input
             type="text"
             placeholder="Tìm kiếm bàn..."
+            value={searchInput}
             onChange={handleSearchChange}
+            onKeyPress={handleKeyPress}
             className="px-4 py-2 pr-10 border rounded-full w-full"
           />
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <button 
+            onClick={handleSearchClick}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <Search />
+          </button>
         </div>
       </div>
     </div>
