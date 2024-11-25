@@ -4,9 +4,9 @@ import StarOutline from "@mui/icons-material/StarOutline";
 import { Button, CircularProgress, Pagination, Stack, Switch } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from 'react-toastify';
+import { message } from 'antd';
 import { getAllFeedbackByAdmin, UpdateStatusFeedBack } from "../../../lib/service/FeedbackService";
-import { getAllBar } from "../../../lib/service/barManagerService";
+import { getAllBarsNoPage } from "../../../lib/service/barManagerService";
 
 const FeedbackAdmin = () => {
   const navigate = useNavigate();
@@ -28,9 +28,9 @@ const FeedbackAdmin = () => {
   useEffect(() => {
     const fetchBarBranches = async () => {
       try {
-        const response = await getAllBar();
-        if (Array.isArray(response?.data?.data)) {
-          setBranches(response.data.data);
+        const response = await getAllBarsNoPage();
+        if (response?.data?.data?.onlyBarIdNameResponses) {
+          setBranches(response.data.data.onlyBarIdNameResponses);
         } else {
           console.error('Data received is not an array:', response.data);
           setBranches([]);
@@ -81,7 +81,7 @@ const FeedbackAdmin = () => {
     setLoading(true);
     try {
       const response = await getAllFeedbackByAdmin(selectedBranch, selectedStatus, currentPage, itemsPerPage);
-      if (response?.data?.data?.response) {
+      if (response?.data?.data?.response?.adminFeedbackResponses) {
         setFeedbackData(response.data.data.response.adminFeedbackResponses);
         setTotalPages(response.data.data.response.totalPages);
       } else {
@@ -90,7 +90,7 @@ const FeedbackAdmin = () => {
       }
     } catch (error) {
       console.error("Error fetching feedback data:", error);
-      toast.error("Không thể tải danh sách đánh giá");
+      message.error(error.response?.data?.message || "Không thể tải danh sách đánh giá");
       setFeedbackData([]);
       setTotalPages(1);
     } finally {
@@ -109,17 +109,17 @@ const FeedbackAdmin = () => {
       setUpdating(true);
       try {
         const currentStatus = !selectedFeedback.isDeleted;
-        await UpdateStatusFeedBack(selectedFeedback.feedbackId, !currentStatus);
+        const response = await UpdateStatusFeedBack(selectedFeedback.feedbackId, !currentStatus);
         setSelectedFeedback((prev) => ({
           ...prev,
           isDeleted: !currentStatus,
         }));
-        toast.success("Trạng thái đã được cập nhật thành công!");
+        message.success(response?.data?.message || "Trạng thái đã được cập nhật thành công!");
 
         fetchFeedback();
       } catch (error) {
         console.error("Error updating feedback status:", error);
-        toast.error("Cập nhật trạng thái thất bại!");
+        message.error(error.response?.data?.message || "Cập nhật trạng thái thất bại!");
       } finally {
         setUpdating(false);
       }

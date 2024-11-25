@@ -113,6 +113,10 @@ const DrinkCategories = () => {
         setCurrentPage(newPage);
     };
 
+    const handleSearchClick = () => {
+        fetchdataDrCate(searchTerm, currentPage);
+    };
+
     return (
         <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">
             <div className="flex flex-col gap-0 max-md:flex-col">
@@ -125,7 +129,12 @@ const DrinkCategories = () => {
                             onChange={handleSearch}
                             className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <button 
+                            onClick={handleSearchClick}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                            <Search />
+                        </button>
                     </div>
                 </div>
 

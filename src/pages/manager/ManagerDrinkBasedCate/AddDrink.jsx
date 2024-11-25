@@ -362,8 +362,8 @@ function AddDrink() {
             }
 
             const drinkBaseEmo = emotionChecked.map(emotion => 
-                emotion.emotionalDrinksCategoryId.toString()
-            ).join(',');
+                emotion.emotionalDrinksCategoryId
+            );
 
             // Tạo FormData để gửi file
             const formDataToSend = new FormData();
@@ -372,7 +372,9 @@ function AddDrink() {
             formDataToSend.append('barId', barId);
             formDataToSend.append('description', formData.description);
             formDataToSend.append('price', formData.price);
-            formDataToSend.append('drinkBaseEmo', drinkBaseEmo);
+            drinkBaseEmo.forEach((id, index) => {
+                formDataToSend.append(`drinkBaseEmo[${index}]`, id);
+            });
             formDataToSend.append('status', formData.status);
 
             // Thêm các file ảnh vào FormData

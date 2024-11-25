@@ -89,11 +89,11 @@ const QRScanner = ({ isOpen, onClose, onScanSuccess }) => {
 
   return (
     <Modal
-      title="Quét mã QR"
+      title="Quét mã QR tìm kiếm đơn đặt bàn"
       open={isOpen}
       onCancel={handleClose}
       footer={null}
-      width={400}
+      width={500}
     >
       <div className="qr-scanner-container">
         {error && (

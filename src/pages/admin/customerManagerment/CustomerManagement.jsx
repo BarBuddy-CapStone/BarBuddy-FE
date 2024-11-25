@@ -112,10 +112,10 @@ const CustomerManagement = () => {
                 const response = await getCustomerAccounts(pageSize, pageIndex);
                 console.log('API Response:', response);
 
-                if (response?.data?.data?.items) {
-                    setCustomers(response.data.data.items);
-                    setFilteredCustomers(response.data.data.items);
-                    setTotalItems(response.data.data.total);
+                if (response?.data?.data?.customerAccounts) {
+                    setCustomers(response.data.data.customerAccounts);
+                    setFilteredCustomers(response.data.data.customerAccounts);
+                    setTotalItems(response.data.data.totalItems);
                 } else {
                     setCustomers([]);
                     setFilteredCustomers([]);

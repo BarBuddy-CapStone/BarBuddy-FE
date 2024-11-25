@@ -303,20 +303,20 @@ function DrinkDetail() {
                 throw new Error('Không tìm thấy thông tin quán bar');
             }
 
-            // Chuyển emotionChecked thành chuỗi các ID cách nhau bởi dấu phẩy
+            // Thay đổi: Chuyển emotionChecked thành mảng các ID thay vì chuỗi
             const drinkBaseEmo = emotionChecked.map(emotion => 
-                emotion.emotionalDrinksCategoryId.toString()
-            ).join(',');
+                emotion.emotionalDrinksCategoryId
+            );
 
             // Tách riêng oldImages và images mới
             const oldImages = uploadedImages
-                .filter(img => !img.file) // Lọc ra những ảnh không có file (ảnh cũ)
+                .filter(img => !img.file)
                 .map(img => img.src)
                 .join(',');
 
             // Xử lý ảnh mới
             const newImagePromises = uploadedImages
-                .filter(img => img.file) // Lọc ra những ảnh có file (ảnh mới)
+                .filter(img => img.file)
                 .map(image => 
                     new Promise((resolve, reject) => {
                         const reader = new FileReader();
@@ -335,9 +335,9 @@ function DrinkDetail() {
             const drinkData = {
                 ...formData,
                 barId: barId,
-                drinkBaseEmo: drinkBaseEmo,
-                oldImages: oldImages, // Thêm oldImages vào request
-                images: newImages    // Chỉ gửi ảnh mới trong field images
+                drinkBaseEmo: drinkBaseEmo, // Gửi mảng ID thay vì chuỗi
+                oldImages: oldImages,
+                images: newImages
             };
 
             const response = await updateDrink(drinkId, drinkData);

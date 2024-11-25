@@ -115,13 +115,18 @@ const ManagerDrink = () => {
     const [dataDrink, setDataDrink] = useState([]);
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
         const fetchApiDrink = async () => {
             try {
                 setLoading(true);
                 const response = await getDrinkBasedCateByID(cateId);
-                setDataDrink(response?.data?.data || []);
+                if (response?.data?.data) {
+                    setDataDrink(response.data.data.drinkResponses || []);
+                    setTotalPages(response.data.data.totalPages);
+                }
             } catch (error) {
                 console.error("Error fetching drinks:", error);
             } finally {
@@ -148,6 +153,10 @@ const ManagerDrink = () => {
         return true;
     });
 
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
     return (
         <main className="flex overflow-hidden flex-col">
             <Header title={headerTitle} onFilterChange={handleFilterChange} />
@@ -162,7 +171,7 @@ const ManagerDrink = () => {
                             {filteredDrinks.length > 0 ? (
                                 filteredDrinks.map((data, index) => (
                                     <Item
-                                        key={index}
+                                        key={data.drinkId}
                                         {...data}
                                         drinksCategoryName={data?.drinkCategoryResponse?.drinksCategoryName}
                                         bgColor={index % 2 === 0 ? "bg-white" : "bg-stone-50"}
@@ -177,9 +186,20 @@ const ManagerDrink = () => {
                     </div>
                 )}
             </div>
-            <div className="flex justify-end mt-6">
-                <Pagination count={5} size="small" shape="rounded" />
-            </div>
+            {!loading && filteredDrinks.length > 0 && (
+                <div className="flex justify-center mt-6 mb-6">
+                    <Pagination
+                        count={totalPages}
+                        page={currentPage}
+                        onChange={handlePageChange}
+                        color="primary"
+                        size="small"
+                        shape="rounded"
+                        showFirstButton
+                        showLastButton
+                    />
+                </div>
+            )}
         </main>
     );
 };

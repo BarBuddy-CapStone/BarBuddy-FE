@@ -12,21 +12,8 @@ const getAllFeedbackByID = async (id) => {
   return await axios.get(`api/feedback/${id}`);
 };
 
-const getAllFeedBackForManager = async (barId = null, pageIndex = 1, pageSize = 10) => {
-  // const config = {
-  //   headers: {
-  //     Authorization: `Bearer ${token}`,
-  //   },
-  // };
-  let url = `api/feedback/manager`;
-  
-  if (barId) {
-    url += `?BarId=${barId}&PageIndex=${pageIndex}&PageSize=${pageSize}`;
-  } else {
-    url += `?PageIndex=${pageIndex}&PageSize=${pageSize}`;
-  }
-
-  return await axios.get(url);
+const getAllFeedBackForManager = async (barId, pageIndex, pageSize, search) => {
+  return await axios.get(`api/feedback/manager?BarId=${barId}&PageIndex=${pageIndex}&PageSize=${pageSize}${search ? `&Search=${search}` : ''}`);
 };
 
 const getAllFeedbackByBookingID = async (bookingId) => {

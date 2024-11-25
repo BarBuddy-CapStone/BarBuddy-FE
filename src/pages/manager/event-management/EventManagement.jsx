@@ -161,46 +161,56 @@ const EventManagement = () => {
   );
 };
 
-const BelowHeader = ({ searchInput, onSearchChange, onSearch, navigate, selectedDay, onDayChange }) => (
-  <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mx-4 my-6">
-    <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full lg:w-auto">
-      <div className="relative flex-grow">
-        <input
-          type="text"
-          placeholder="Tìm kiếm sự kiện..."
-          value={searchInput}
-          onChange={onSearchChange}
-          className="w-full px-4 py-2 pr-10 border border-sky-900 rounded-full"
-        />
-        <SearchIcon 
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" 
-          onClick={onSearch}
-        />
+const BelowHeader = ({ searchInput, onSearchChange, onSearch, navigate, selectedDay, onDayChange }) => {
+  // Thêm hàm xử lý click search
+  const handleSearchClick = () => {
+    onSearch();
+  };
+
+  return (
+    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mx-4 my-6">
+      <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full lg:w-auto">
+        <div className="relative flex-grow">
+          <input
+            type="text"
+            placeholder="Tìm kiếm sự kiện..."
+            value={searchInput}
+            onChange={onSearchChange}
+            className="w-full px-4 py-2 pr-10 border border-sky-900 rounded-full"
+          />
+          {/* Thay đổi từ icon thành button có hiệu ứng hover */}
+          <button 
+            onClick={handleSearchClick}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <SearchIcon />
+          </button>
+        </div>
+        <select
+          value={selectedDay}
+          onChange={onDayChange}
+          className="w-full sm:w-64 px-4 py-2 border border-sky-900 rounded-full"
+        >
+          <option value="">Tất cả các ngày</option>
+          <option value="Chủ Nhật">Chủ Nhật</option>
+          <option value="Thứ 2">Thứ 2</option>
+          <option value="Thứ 3">Thứ 3</option>
+          <option value="Thứ 4">Thứ 4</option>
+          <option value="Thứ 5">Thứ 5</option>
+          <option value="Thứ 6">Thứ 6</option>
+          <option value="Thứ 7">Thứ 7</option>
+        </select>
       </div>
-      <select
-        value={selectedDay}
-        onChange={onDayChange}
-        className="w-full sm:w-64 px-4 py-2 border border-sky-900 rounded-full"
+      <button
+        className="flex items-center justify-center gap-2 px-6 py-2 text-base text-black bg-white rounded-full border border-sky-900 shadow hover:bg-gray-100 transition-colors duration-200 w-full sm:w-auto"
+        onClick={() => navigate('/manager/event-management/add-event')}
       >
-        <option value="">Tất cả các ngày</option>
-        <option value="Chủ Nhật">Chủ Nhật</option>
-        <option value="Thứ 2">Thứ 2</option>
-        <option value="Thứ 3">Thứ 3</option>
-        <option value="Thứ 4">Thứ 4</option>
-        <option value="Thứ 5">Thứ 5</option>
-        <option value="Thứ 6">Thứ 6</option>
-        <option value="Thứ 7">Thứ 7</option>
-      </select>
+        <Add className="w-5 h-5" />
+        <span>Thêm sự kiện</span>
+      </button>
     </div>
-    <button
-      className="flex items-center justify-center gap-2 px-6 py-2 text-base text-black bg-white rounded-full border border-sky-900 shadow hover:bg-gray-100 transition-colors duration-200 w-full sm:w-auto"
-      onClick={() => navigate('/manager/event-management/add-event')}
-    >
-      <Add className="w-5 h-5" />
-      <span>Thêm sự kiện</span>
-    </button>
-  </div>
-);
+  );
+};
 
 const EventList = ({ events }) => {
   const uniqueEvents = Object.values(events.reduce((acc, event) => {

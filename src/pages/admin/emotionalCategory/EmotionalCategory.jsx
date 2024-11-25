@@ -6,7 +6,6 @@ import { message } from "antd";
 import AddEmotionCategory from "./components/AddEmotionCategory";
 import EditEmotionCategory from "./components/EditEmotionCategory";
 import DeleteEmotionCategory from "./components/DeleteEmotionCategory";
-import useDebounce from "src/lib/hooks/useDebounce";
 
 function EmotionCategoryCard({ category, onEdit, onDelete }) {
   return (
@@ -50,7 +49,6 @@ function EmotionalCategory() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const debouncedSearchTerm = useDebounce(searchTerm);
   const [totalPages, setTotalPages] = useState(1);
 
   const fetchEmotionCategories = useCallback(async (search = '', page = currentPage) => {
@@ -72,7 +70,7 @@ function EmotionalCategory() {
       }
     } catch (error) {
       console.error("Error fetching emotion categories:", error);
-      message.error("Có lỗi xảy ra khi tải danh sách danh mục cảm xúc.");
+      message.error(error.response?.data?.message || "Không tìm thấy danh mục cảm xúc!");
       setEmotionCategories([]);
       setTotalItems(0);
       setTotalPages(1);
@@ -82,12 +80,15 @@ function EmotionalCategory() {
   }, [currentPage]);
 
   useEffect(() => {
-    fetchEmotionCategories(debouncedSearchTerm, currentPage);
-  }, [debouncedSearchTerm, currentPage, fetchEmotionCategories]);
+    fetchEmotionCategories('', currentPage);
+  }, [currentPage]);
+
+  const handleSearchClick = () => {
+    fetchEmotionCategories(searchTerm, currentPage);
+  };
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1);
   };
 
   const handleAddSuccess = useCallback(async () => {
@@ -135,7 +136,12 @@ function EmotionalCategory() {
               onChange={handleSearch}
               className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <button 
+              onClick={handleSearchClick}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <Search />
+            </button>
           </div>
           <button
             className="flex items-center gap-2 px-6 py-2 text-base text-black bg-white rounded-full border border-sky-900 shadow hover:bg-gray-100 transition-colors duration-200"

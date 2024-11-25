@@ -200,6 +200,15 @@ function SearchForm({ barBranches, onSearch }) {
 
   const isAnyFieldFilled = transactionDate || selectedBranch !== 'null' || customerName || phoneNumber || email;
 
+  // Thêm useEffect để set ngày hiện tại khi component mount
+  useEffect(() => {
+    // Lấy ngày hiện tại theo UTC+7
+    const now = new Date();
+    const utc7Date = new Date(now.getTime() + (7 * 60 * 60 * 1000)); // Thêm 7 giờ
+    const formattedDate = utc7Date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+    setTransactionDate(formattedDate);
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSearching(true);

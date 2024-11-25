@@ -114,9 +114,9 @@ const ManagerManagement = () => {
             try {
                 const response = await getManagerAccounts(pageSize, pageIndex);
                 if (response?.data?.data && isSubscribed) {
-                    setManagers(response.data.data.items);
-                    setFilteredManagers(response.data.data.items);
-                    setTotalItems(response.data.data.total);
+                    setManagers(response.data.data.managerAccountResponses);
+                    setFilteredManagers(response.data.data.managerAccountResponses);
+                    setTotalItems(response.data.data.totalItems);
                 }
             } catch (error) {
                 if (isSubscribed) {

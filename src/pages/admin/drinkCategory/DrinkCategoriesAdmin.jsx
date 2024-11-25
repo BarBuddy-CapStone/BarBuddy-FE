@@ -3,7 +3,6 @@ import { getAllDrinkCate } from 'src/lib/service/drinkCateService';
 import { CircularProgress, Pagination } from '@mui/material';
 import { Add, Edit, Delete, Search } from '@mui/icons-material';
 import {PopUpCreate, PopUpUpdate, PopupConfirmDelete} from 'src/pages';
-import useDebounce from 'src/lib/hooks/useDebounce';
 
 const CategoryCard = ({ category, setLoading }) => {
     const [isPopupUpdate, setIsPopupUpdate] = useState(false);
@@ -69,7 +68,6 @@ const DrinkCategoriesAdmin = () => {
     const [totalItems, setTotalItems] = useState(0);
     const pageSize = 6;
     const [searchTerm, setSearchTerm] = useState('');
-    const debouncedSearchTerm = useDebounce(searchTerm);
 
     const fetchdataDrCate = async (search = '', page = currentPage) => {
         setLoading(true);
@@ -114,14 +112,17 @@ const DrinkCategoriesAdmin = () => {
         setCurrentPage(1);
     };
 
+    const handleSearchClick = () => {
+        fetchdataDrCate(searchTerm, currentPage);
+    };
+
     const handleSearch = (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1);
     };
 
     useEffect(() => {
-        fetchdataDrCate(debouncedSearchTerm, currentPage);
-    }, [debouncedSearchTerm, currentPage]);
+        fetchdataDrCate('', currentPage);
+    }, [currentPage]);
 
     const totalPages = Math.ceil(totalItems / pageSize);
     console.log('Total pages:', totalPages);
@@ -138,7 +139,12 @@ const DrinkCategoriesAdmin = () => {
                             onChange={handleSearch}
                             className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <button 
+                            onClick={handleSearchClick}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                            <Search />
+                        </button>
                     </div>
                     <button
                         onClick={handleAddCategory}

@@ -194,32 +194,40 @@ const TableTypeManagement = () => {
   );
 };
 
-const BelowHeader = ({ onAddTableType, searchInput, onSearchChange, onSearch }) => (
-  <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mx-4 mt-6">
-    <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full lg:w-auto">
-      <div className="relative flex-grow">
-        <input
-          type="text"
-          placeholder="Tìm kiếm loại bàn..."
-          value={searchInput}
-          onChange={onSearchChange}
-          className="w-full px-4 py-2 pr-10 border border-sky-900 rounded-full"
-        />
-        <Search 
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" 
-          onClick={onSearch}
-        />
+const BelowHeader = ({ onAddTableType, searchInput, onSearchChange, onSearch }) => {
+  const handleSearchClick = () => {
+    onSearch();
+  };
+
+  return (
+    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mx-4 mt-6">
+      <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full lg:w-auto">
+        <div className="relative flex-grow">
+          <input
+            type="text"
+            placeholder="Tìm kiếm loại bàn..."
+            value={searchInput}
+            onChange={onSearchChange}
+            className="w-full px-4 py-2 pr-10 border border-sky-900 rounded-full"
+          />
+          <button 
+            onClick={handleSearchClick}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <Search />
+          </button>
+        </div>
       </div>
+      <button
+        onClick={onAddTableType}
+        className="flex items-center justify-center gap-2 px-6 py-2 text-base text-black bg-white rounded-full border border-sky-900 shadow hover:bg-gray-100 transition-colors duration-200 w-full sm:w-auto"
+      >
+        <Add className="w-5 h-5" />
+        <span>Thêm loại bàn</span>
+      </button>
     </div>
-    <button
-      onClick={onAddTableType}
-      className="flex items-center justify-center gap-2 px-6 py-2 text-base text-black bg-white rounded-full border border-sky-900 shadow hover:bg-gray-100 transition-colors duration-200 w-full sm:w-auto"
-    >
-      <Add className="w-5 h-5" />
-      <span>Thêm loại bàn</span>
-    </button>
-  </div>
-);
+  );
+};
 
 BelowHeader.propTypes = {
   onAddTableType: PropTypes.func.isRequired,
