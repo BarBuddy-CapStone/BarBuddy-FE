@@ -49,41 +49,42 @@ const convertDayOfWeek = (dayjs) => {
   return day === 0 ? 7 : day; // Chuyển Chủ nhật từ 0 thành 7
 };
 
-const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate, barId, setFilteredTables, setSelectedTables }) => {
+const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate, barId, setFilteredTables, setSelectedTables, timeSlot }) => {
   const [selectedTime, setSelectedTime] = useState("");
   const [timeOptions, setTimeOptions] = useState([]);
 
-  // Sửa lại hàm generateTimeOptions
-  const generateTimeOptions = (date) => {
-    if (!barTimeResponses || barTimeResponses.length === 0) return [];
+  const generateTimeOptions = (startTime, endTime, selectedDate) => {
+    if (!startTime || !endTime || !selectedDate) return [];
 
     const options = [];
-    const currentDate = dayjs(date);
+    const currentDate = dayjs(selectedDate);
     const now = dayjs();
-    const dayOfWeek = convertDayOfWeek(currentDate);
-
-    const barTime = barTimeResponses.find(time => time.dayOfWeek === dayOfWeek);
-    if (!barTime) return [];
 
     let currentTime = currentDate
-      .hour(parseInt(barTime.startTime.split(":")[0]))
-      .minute(parseInt(barTime.startTime.split(":")[1]));
+      .hour(parseInt(startTime.split(":")[0]))
+      .minute(parseInt(startTime.split(":")[1]));
     
     let endTimeObj = currentDate
-      .hour(parseInt(barTime.endTime.split(":")[0]))
-      .minute(parseInt(barTime.endTime.split(":")[1]));
+      .hour(parseInt(endTime.split(":")[0]))
+      .minute(parseInt(endTime.split(":")[1]));
 
+    // Xử lý trường hợp endTime là ngày hôm sau
     if (endTimeObj.isBefore(currentTime)) {
       endTimeObj = endTimeObj.add(1, "day");
     }
 
+    // Nếu là ngày hiện tại, bắt đầu từ giờ tiếp theo
     if (currentDate.isSame(now, "day")) {
       currentTime = now.add(1, "hour").startOf("hour");
     }
 
-    while (currentTime.isBefore(endTimeObj)) {
+    // TimeSlot chính là số giờ cách nhau giữa các slot
+    const slotDuration = timeSlot || 1; // Mặc định là 1 giờ nếu không có timeSlot
+
+    // Thêm các slot theo khoảng cách timeSlot cho đến khi vượt quá endTime
+    while (currentTime.isBefore(endTimeObj) || currentTime.isSame(endTimeObj)) {
       options.push(currentTime.format("HH:mm"));
-      currentTime = currentTime.add(1, "hour");
+      currentTime = currentTime.add(slotDuration, "hour");
     }
 
     return options;
@@ -91,11 +92,7 @@ const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate, barId, 
 
   useEffect(() => {
     if (startTime && endTime && selectedDate) {
-      const newTimeOptions = generateTimeOptions(
-        startTime,
-        endTime,
-        selectedDate
-      );
+      const newTimeOptions = generateTimeOptions(startTime, endTime, selectedDate);
       setTimeOptions(newTimeOptions);
 
       if (newTimeOptions.length > 0 && !selectedTime) {
@@ -106,7 +103,7 @@ const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate, barId, 
         onTimeChange("");
       }
     }
-  }, [startTime, endTime, selectedDate]);
+  }, [startTime, endTime, selectedDate, timeSlot]);
 
   const handleTimeChange = (event) => {
     const newTime = event.target.value;

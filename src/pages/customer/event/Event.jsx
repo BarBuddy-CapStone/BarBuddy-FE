@@ -38,6 +38,66 @@ const Event = () => {
     setCurrentPage(value);
   };
 
+  const getDayOfWeekText = (dayOfWeek) => {
+    const days = [
+      'Chủ nhật',
+      'Thứ 2', 
+      'Thứ 3',
+      'Thứ 4',
+      'Thứ 5',
+      'Thứ 6',
+      'Thứ 7'
+    ];
+    return days[dayOfWeek];
+  };
+
+  const sortEventTimes = (times) => {
+    return times.sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  const renderEventTime = (time) => {
+    if (time.date) {
+      return (
+        <div className="flex items-center text-gray-400 text-sm">
+          <AccessTime className="w-4 h-4 mr-2" />
+          <span className="text-yellow-500 mr-2">
+            Diễn ra vào ngày {formatDate(time.date)}:
+          </span>
+          <span>
+            <span className="text-yellow-500">Bắt đầu: </span>
+            {time.startTime.slice(0, 5)}
+            <span className="text-yellow-500 ml-2">Kết thúc: </span>
+            {time.endTime.slice(0, 5)}
+          </span>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex items-center text-gray-400 text-sm">
+          <AccessTime className="w-4 h-4 mr-2" />
+          <span className="text-yellow-500 mr-2">
+            {getDayOfWeekText(time.dayOfWeek)} hằng tuần:
+          </span>
+          <span>
+            <span className="text-yellow-500">Bắt đầu: </span>
+            {time.startTime.slice(0, 5)}
+            <span className="text-yellow-500 ml-2">Kết thúc: </span>
+            {time.endTime.slice(0, 5)}
+          </span>
+        </div>
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -97,12 +157,13 @@ const Event = () => {
                   {event.description}
                 </p>
 
-                {event.eventTimeResponses.map((time, index) => (
-                  <div key={index} className="flex items-center text-gray-400 text-sm mb-2">
-                    <AccessTime className="w-4 h-4 mr-2" />
-                    {`${time.startTime.slice(0, 5)} - ${time.endTime.slice(0, 5)}`}
-                  </div>
-                ))}
+                <div className="space-y-2">
+                  {sortEventTimes(event.eventTimeResponses).map((time, index) => (
+                    <React.Fragment key={index}>
+                      {renderEventTime(time)}
+                    </React.Fragment>
+                  ))}
+                </div>
 
                 {event.eventVoucherResponse && (
                   <div className="mt-3 bg-yellow-500/10 p-3 rounded">

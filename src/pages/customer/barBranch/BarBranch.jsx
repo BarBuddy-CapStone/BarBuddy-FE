@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { Button, Pagination } from "@mui/material";
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import { getAllBar } from "src/lib/service/customerService";
-import { Button, Pagination, PaginationItem, TextField } from "@mui/material";
 import { LoadingSpinner } from 'src/components';
+import { getAllBar } from "src/lib/service/customerService";
 
 const BranchCard = React.memo(({ branch, onClick, selectedDate }) => {
   const rating = branch.feedBacks.length > 0

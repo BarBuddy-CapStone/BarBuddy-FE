@@ -1,18 +1,17 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getBarById } from '../../../lib/service/customerService';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import WatchLaterIcon from '@mui/icons-material/WatchLater';
-import StarIcon from '@mui/icons-material/Star';
+import { ArrowBackIos, ArrowForward, ArrowForwardIos } from '@mui/icons-material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { LoadingSpinner, ImageGallery } from 'src/components';
-import { GoongMap } from 'src/lib';
-import { getEventByBarId } from '../../../lib/service/eventManagerService';
-import { ArrowForward, ArrowBack, ArrowForwardIos, ArrowBackIos } from '@mui/icons-material';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import StarIcon from '@mui/icons-material/Star';
+import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import Pagination from '@mui/material/Pagination';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ImageGallery, LoadingSpinner } from 'src/components';
+import { GoongMap } from 'src/lib';
 import { getAllDrinkByBarId } from 'src/lib/service/managerDrinksService';
 import Login from 'src/pages/(auth)/login/Login';
-import { toast } from 'react-toastify';
+import { getBarById } from '../../../lib/service/customerService';
+import { getEventByBarId } from '../../../lib/service/eventManagerService';
 
 // Component hiển thị danh sách đánh giá
 const FeedbackList = React.memo(({ feedbacks }) => {

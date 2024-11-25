@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
-import { CircularProgress, Pagination, Stack } from "@mui/material";
-import { toast } from 'react-toastify';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import { Add } from '@mui/icons-material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import SearchIcon from '@mui/icons-material/Search'; // Thêm import cho icon Search
+import { CircularProgress, Pagination, Stack } from "@mui/material";
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Add } from '@mui/icons-material';
+import { toast } from 'react-toastify';
 import { getEventByBarId } from '../../../lib/service/eventManagerService';
 
 const EventManagement = () => {

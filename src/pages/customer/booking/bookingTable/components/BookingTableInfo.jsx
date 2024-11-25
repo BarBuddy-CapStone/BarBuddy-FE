@@ -1,29 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import TableBarIcon from "@mui/icons-material/TableBar";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import InfoIcon from "@mui/icons-material/Info";
+import TableBarIcon from "@mui/icons-material/TableBar";
 import {
-  TextField,
-  InputAdornment,
   Button,
+  FormControl,
+  InputAdornment,
   Menu,
   MenuItem,
-  FormControl,
-  InputLabel,
+  TextField
 } from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { styled } from "@mui/material/styles";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import viLocale from "date-fns/locale/vi";
-import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
-import { getTableTypeOfBar } from "src/lib/service/tableTypeService";
-import { getAllHoldTable } from "src/lib/service/BookingTableService";
-import useAuthStore from "src/lib/hooks/useUserStore";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import useAuthStore from "src/lib/hooks/useUserStore";
+import { getAllHoldTable } from "src/lib/service/BookingTableService";
+import { getTableTypeOfBar } from "src/lib/service/tableTypeService";
 
 // CustomTextField for Date and Type
 const CustomTextField = styled(TextField)(({ theme }) => ({

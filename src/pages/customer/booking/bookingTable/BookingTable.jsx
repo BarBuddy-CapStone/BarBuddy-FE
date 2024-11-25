@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { getBarById, getBarTableById } from "src/lib/service/customerService";
-import { filterBookingTable, holdTable, releaseTable, getAllHoldTable, releaseTableList } from "src/lib/service/BookingTableService";
-import CustomerForm from './components/CustomerForm';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import dayjs from "dayjs";
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { hubConnection, releaseTableListSignalR, releaseTableSignalR } from 'src/lib/Third-party/signalR/hubConnection';
-import useAuthStore from 'src/lib/hooks/useUserStore';
-import { LoadingSpinner } from 'src/components';
+import React, { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { LoadingSpinner } from 'src/components';
+import { hubConnection, releaseTableSignalR } from 'src/lib/Third-party/signalR/hubConnection';
+import useAuthStore from 'src/lib/hooks/useUserStore';
+import { filterBookingTable, getAllHoldTable, releaseTable } from "src/lib/service/BookingTableService";
+import { getBarById, getBarTableById } from "src/lib/service/customerService";
+import CustomerForm from './components/CustomerForm';
 
 import {
   BookingTableInfo,
@@ -41,6 +39,7 @@ const BookingTable = () => {
   const [selectedTablesMap, setSelectedTablesMap] = useState({});
   const [allHoldTables, setAllHoldTables] = useState([]);
   const [note, setNote] = useState("");
+  const [barTimeSlot, setBarTimeSlot] = useState(1);
 
   const uniqueTablesByDateAndTime = selectedTables.filter((seleTable, index, self) =>
     index === self.findIndex((t) => (
@@ -98,6 +97,8 @@ const BookingTable = () => {
             }));
           }
         }
+
+        setBarTimeSlot(responseBarDetail.data.data.timeSlot);
       }
     } catch (error) {
       console.error("Error fetching table data:", error);
@@ -541,7 +542,7 @@ const BookingTable = () => {
         <DialogContent>
           {!selectedTableTypeId
             ? "Vui lòng chn loại bàn trước khi tìm kim."
-            : "Không có bàn nào phù hợp với thời gian bạn đã chọn. Vui lòng chọn thời gian khác hoặc loại bàn khác."}
+            : "Không có bàn nào phù hợp với thời gian bạn đã chọn. Vui l��ng chọn thời gian khác hoặc loại bàn khác."}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClosePopup} color="primary">

@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify"; // Import toast
-import { useAuthStore } from "src/lib"; // Import the Auth Store
 import {
-  TextField,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  TextField,
 } from "@mui/material"; // Import MUI TextField and Button
-import { boookingtableNow } from "src/lib/service/BookingTableService"; // Import the API function
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // Import toast
 import { LoadingSpinner } from "src/components";
+import { useAuthStore } from "src/lib"; // Import the Auth Store
+import { boookingtableNow } from "src/lib/service/BookingTableService"; // Import the API function
 
 const CustomerForm = ({
   selectedTables,

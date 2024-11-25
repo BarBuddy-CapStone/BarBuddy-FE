@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getEventByEventId, updateEvent, deleteEvent } from '../../../lib/service/eventManagerService';
-import { Card, Row, Col, Spin, Tag, Table, Button, Space, Form, Input, InputNumber, TimePicker, DatePicker, message, Radio, Upload, Modal } from 'antd';
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import { MinusCircleOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Card, Col, DatePicker, Form, Input, InputNumber, message, Modal, Radio, Row, Space, Spin, Table, Tag, TimePicker, Upload } from 'antd';
 import Select from 'antd/lib/select';
 import moment from 'moment';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { deleteEvent, getEventByEventId, updateEvent } from '../../../lib/service/eventManagerService';
 
 const parseImageUrls = (imageString) => {
   if (!imageString) return [];
@@ -52,20 +52,25 @@ export default function EventDetail() {
     fetchEventDetail();
   }, [eventId]);
 
+  const isEveryDay = (timeResponses) => {
+    if (!timeResponses || timeResponses.length !== 7) return false;
+    const days = timeResponses.map(t => t.dayOfWeek).sort((a, b) => a - b);
+    return days.every((day, index) => day === index);
+  };
+
   const timeColumns = [
     {
-      title: (record) => {
-        const hasDateRecords = event.eventTimeResponses.some(time => time.date !== null);
-        return hasDateRecords ? 'Thời gian diễn ra sự kiện' : 'Thứ trong tuần';
-      },
+      title: 'Thời gian',
       dataIndex: 'dayOfWeek',
       key: 'dayOfWeek',
-      render: (day, record) => {
+      render: (day, record, index) => {
+        if (index === 0 && isEveryDay(event.eventTimeResponses)) {
+          return 'Mỗi ngày trong tuần';
+        }
+        
         if (record.date !== null) {
-          // Nếu có date, hiển thị date
           return new Date(record.date).toLocaleDateString('vi-VN');
         } else {
-          // Nếu không có date, hiển thị thứ trong tuần
           const days = {
             0: 'Chủ nhật',
             1: 'Thứ hai',
@@ -75,21 +80,36 @@ export default function EventDetail() {
             5: 'Thứ sáu',
             6: 'Thứ bảy'
           };
-          return days[day] || day;
+          return `${days[day]} hằng tuần`;
         }
       }
     },
     {
       title: 'Giờ bắt đầu',
       dataIndex: 'startTime',
-      key: 'startTime'
+      key: 'startTime',
+      render: (time) => time.slice(0, 5)
     },
     {
       title: 'Giờ kết thúc',
       dataIndex: 'endTime',
-      key: 'endTime'
+      key: 'endTime',
+      render: (time) => time.slice(0, 5)
     }
   ];
+
+  const getTableData = () => {
+    if (isEveryDay(event.eventTimeResponses)) {
+      return [{
+        ...event.eventTimeResponses[0],
+        key: 'everyday'
+      }];
+    }
+    return event.eventTimeResponses.map((time, index) => ({
+      ...time,
+      key: index
+    }));
+  };
 
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) => 
@@ -601,10 +621,7 @@ export default function EventDetail() {
               <Card type="inner" title="Lịch trình sự kiện">
                 <Table 
                   columns={timeColumns} 
-                  dataSource={event.eventTimeResponses.map((time, index) => ({
-                    ...time,
-                    key: index
-                  }))} 
+                  dataSource={getTableData()} 
                   pagination={false}
                 />
               </Card>

@@ -1,10 +1,13 @@
 import React from 'react';
 import { Dialog, DialogContent, CircularProgress, Typography } from '@mui/material';
+import PropTypes from 'prop-types';
 
 const LoadingSpinner = ({ open }) => {
+  const isOpen = Boolean(open);
+
   return (
     <Dialog
-      open={open}
+      open={isOpen}
       PaperProps={{
         style: {
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -23,6 +26,14 @@ const LoadingSpinner = ({ open }) => {
       </DialogContent>
     </Dialog>
   );
+};
+
+LoadingSpinner.propTypes = {
+  open: PropTypes.bool
+};
+
+LoadingSpinner.defaultProps = {
+  open: false
 };
 
 export default LoadingSpinner;

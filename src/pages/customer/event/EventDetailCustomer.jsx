@@ -44,6 +44,41 @@ const EventDetailCustomer = () => {
     }
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  const renderEventTime = (time) => {
+    if (time.date) {
+      return (
+        <div className="flex items-center gap-2">
+          <AccessTime className="text-yellow-500" />
+          <div>
+            <p className="text-sm text-yellow-500">Thời gian</p>
+            <p>Diễn ra vào ngày {formatDate(time.date)}</p>
+            <p>{time.startTime.slice(0, 5)} - {time.endTime.slice(0, 5)}</p>
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex items-center gap-2">
+          <AccessTime className="text-yellow-500" />
+          <div>
+            <p className="text-sm text-yellow-500">Thời gian</p>
+            <p>{getDayOfWeek(time.dayOfWeek)} hằng tuần</p>
+            <p>{time.startTime.slice(0, 5)} - {time.endTime.slice(0, 5)}</p>
+          </div>
+        </div>
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -100,13 +135,9 @@ const EventDetailCustomer = () => {
                 </div>
 
                 {event.eventTimeResponses.map((time, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <AccessTime className="text-yellow-500" />
-                    <div>
-                      <p className="text-sm text-yellow-500">Thời gian</p>
-                      <p>{getDayOfWeek(time.dayOfWeek)}, {time.startTime.slice(0, 5)} - {time.endTime.slice(0, 5)}</p>
-                    </div>
-                  </div>
+                  <React.Fragment key={index}>
+                    {renderEventTime(time)}
+                  </React.Fragment>
                 ))}
               </div>
             </div>

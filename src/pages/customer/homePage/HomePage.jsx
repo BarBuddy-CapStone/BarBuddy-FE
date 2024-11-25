@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { getAllBar, getAllBarAvailable, getAllBarForMap } from "src/lib/service/customerService";
-import { Add, ArrowForward, Search, ArrowBackIos, ArrowForwardIos, AccessTime } from "@mui/icons-material";
-import { getAllDrinkCustomer } from "src/lib/service/managerDrinksService";
-import { Button, Pagination, PaginationItem, TextField } from "@mui/material";
-import { LoadingSpinner } from 'src/components';
+import { AccessTime, ArrowBackIos, ArrowForward, ArrowForwardIos } from "@mui/icons-material";
+import { Button, Pagination, PaginationItem } from "@mui/material";
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import debounce from 'lodash/debounce';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { LoadingSpinner } from 'src/components';
 import { GoongMap } from 'src/lib';
+import { getAllBar, getAllBarAvailable, getAllBarForMap } from "src/lib/service/customerService";
 import { getEventAllBar } from '../../../lib/service/eventManagerService';
 
 
@@ -127,6 +127,66 @@ const EventSlider = React.memo(({ onEventClick }) => {
     setCurrentSlide(0);
   };
 
+  // Thêm hàm format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  // Thêm hàm xử lý dayOfWeek
+  const getDayOfWeekText = (dayOfWeek) => {
+    const days = [
+      'Chủ nhật',
+      'Thứ 2', 
+      'Thứ 3',
+      'Thứ 4',
+      'Thứ 5',
+      'Thứ 6',
+      'Thứ 7'
+    ];
+    return days[dayOfWeek];
+  };
+
+  // Thêm hàm kiểm tra xem có phải diễn ra mỗi ngày không
+  const isEveryDay = (timeResponses) => {
+    if (!timeResponses || timeResponses.length !== 7) return false;
+    const days = timeResponses.map(t => t.dayOfWeek).sort((a, b) => a - b);
+    return days.every((day, index) => day === index);
+  };
+
+  // Sửa lại hàm render thời gian
+  const renderEventTime = (times) => {
+    if (times[0].date) {
+      return (
+        <div className="flex items-center text-gray-400 text-sm">
+          <AccessTime className="w-4 h-4 mr-2" />
+          <span>Diễn ra vào ngày {formatDate(times[0].date)}</span>
+        </div>
+      );
+    } else {
+      // Kiểm tra nếu sự kiện diễn ra mỗi ngày
+      if (isEveryDay(times)) {
+        return (
+          <div className="flex items-center text-gray-400 text-sm">
+            <AccessTime className="w-4 h-4 mr-2" />
+            <span>Mỗi ngày trong tuần</span>
+          </div>
+        );
+      }
+      // Nếu không phải mỗi ngày thì hiển thị theo thứ
+      return (
+        <div className="flex items-center text-gray-400 text-sm">
+          <AccessTime className="w-4 h-4 mr-2" />
+          <span>{getDayOfWeekText(times[0].dayOfWeek)} hằng tuần</span>
+        </div>
+      );
+    }
+  };
+
   if (loading) return (
     <section className="w-full rounded-lg flex flex-col bg-neutral-800 mb-6 p-6">
       <div className="flex justify-center items-center h-64">
@@ -193,12 +253,7 @@ const EventSlider = React.memo(({ onEventClick }) => {
                       {event.description}
                     </p>
                     
-                    {event.eventTimeResponses.map((time, index) => (
-                      <div key={index} className="flex items-center text-gray-400 text-sm">
-                        <AccessTime className="w-4 h-4 mr-2" />
-                        {`${time.startTime.slice(0, 5)} - ${time.endTime.slice(0, 5)}`}
-                      </div>
-                    ))}
+                    {renderEventTime(event.eventTimeResponses)}
 
                     {event.eventVoucherResponse && (
                       <div className="mt-2 bg-yellow-500/10 p-2 rounded">
@@ -537,21 +592,53 @@ function HomePage() {
   const [mapBranches, setMapBranches] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const [isMapLoading, setIsMapLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchMapBranches = async () => {
+  // Thêm useRef để track mounted state
+  const isMounted = useRef(true);
+  
+  // Thêm debounce cho việc fetch map data
+  const debouncedFetchMap = useCallback(
+    debounce(async () => {
+      if (!isMounted.current) return;
+
       try {
         const response = await getAllBarForMap();
-        if (response.data.statusCode === 200) {
+        if (response.data.statusCode === 200 && isMounted.current) {
           console.log("Fetched map branches:", response.data.data);
           setMapBranches(response.data.data);
         }
       } catch (error) {
-        console.error("Error fetching map branches:", error);
+        if (error.response?.data?.error?.code === 'OVER_RATE_LIMIT') {
+          // Nếu bị rate limit, thử lại sau 2 giây
+          setTimeout(() => {
+            if (isMounted.current) {
+              debouncedFetchMap();
+            }
+          }, 2000);
+        } else {
+          console.error("Error fetching map branches:", error);
+        }
+      } finally {
+        if (isMounted.current) {
+          setIsMapLoading(false);
+        }
       }
+    }, 1000), // Debounce 1 giây
+    []
+  );
+
+  useEffect(() => {
+    // Set isMounted khi component mount
+    isMounted.current = true;
+    debouncedFetchMap();
+
+    // Cleanup function
+    return () => {
+      isMounted.current = false;
+      debouncedFetchMap.cancel(); // Cancel debounce nếu component unmount
     };
-    fetchMapBranches();
-  }, []);
+  }, [debouncedFetchMap]);
 
   const handleBarClick = useCallback((barId) => {
     setIsLoading(true);
@@ -585,7 +672,13 @@ function HomePage() {
                 </div>
               </div>
               <div className="w-full h-[300px] rounded-lg overflow-hidden border border-gray-700">
-                <GoongMap branches={mapBranches} />
+                {isMapLoading ? (
+                  <div className="w-full h-full flex items-center justify-center bg-neutral-900">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-yellow-500"></div>
+                  </div>
+                ) : (
+                  <GoongMap branches={mapBranches} />
+                )}
               </div>
               <div className="mt-3 text-xs text-gray-400 text-center">
                 Nhấn vào marker để xem thông tin chi tiết
@@ -615,7 +708,7 @@ function HomePage() {
                   scrollbarColor: '#f59e0b #1f2937'
                 }}
               >
-                <style jsx>{`
+                <style>{`
                   div::-webkit-scrollbar {
                     display: none;
                   }
