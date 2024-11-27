@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { BookingDrinkInfo, DrinkSelection, DrinkSidebar, Filter } from "src/pages";
+import { BookingDrinkInfo, DrinkEmotionalSelection, DrinkSelection, DrinkSidebar, Filter } from "src/pages";
 import { getAllDrinkByBarId, getDrinkRecommendation } from 'src/lib/service/managerDrinksService';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from 'src/lib/hooks/useUserStore';
 import { Button, Dialog, CircularProgress, DialogContent, Typography, IconButton } from '@mui/material';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import { EmotionRecommendationDialog } from 'src/pages';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 const BookingDrink = () => {
   const navigate = useNavigate();
@@ -55,7 +58,12 @@ const BookingDrink = () => {
       }
     };
     fetchDrinks();
+    initDataForGemini();
   }, []);
+
+  const initDataForGemini = () => {
+
+  }
 
   const handleIncrease = (drink) => {
     setDrinks(prevDrinks =>
@@ -158,17 +166,64 @@ const BookingDrink = () => {
 
     setIsLoadingRecommendation(true);
     setErrorMessage('');
+
     try {
-      const response = (await getDrinkRecommendation(emotionText, barInfo.id)).data;
-      if (response.data) {
-        setFilteredDrinks(response.data.drinkList.map(drink => ({ ...drink, quantity: 0 })));
-        setCurrentEmotion(response.data.emotion);
-        setShowEmotionDialog(false);
-        setEmotionText('');
-      }
+      // Map drinks data
+      const drinksData = drinks.map(drink => ({
+        drinkName: drink.drinkName,
+        drinkDescription: drink.description,
+        emotionsDrink: drink.emotionsDrink.map(emotion => emotion.categoryName)
+      }));
+
+      // Khởi tạo chat session
+      const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({
+        model: "gemini-pro",
+      });
+
+      const generationConfig = {
+        temperature: 1,
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 8192,
+      };
+
+      const chatSession = model.startChat({
+        generationConfig,
+        history: [
+          {
+            role: "user",
+            parts: [{text: `Đây là danh sách đồ uống: ${JSON.stringify(drinksData)}`}],
+          },
+          {
+            role: "model",
+            parts: [{text: "Tôi đã hiểu danh sách đồ uống của quán. Tôi sẽ đóng vai một bartender để gợi ý đồ uống phù hợp với cảm xúc của khách hàng. Tôi sẽ trả về kết quả theo format JSON với drinkRecommendation:[{drinkName, reason}]"}],
+          },
+        ],
+      });
+
+      // Gửi cảm xúc của khách và nhận recommendation
+      const result = await chatSession.sendMessage(`Cảm xúc của tôi là: ${emotionText}`);
+      const response = result.response.text();
+
+      // Xử lý response string
+      const jsonString = response.replace(/```json\n|\n```/g, '').trim();
+      const recommendations = JSON.parse(jsonString);
+      
+      // Thêm reason trực tiếp vào drink object
+      const recommendedDrinksList = recommendations.drinkRecommendation.map(rec => {
+        const drink = drinks.find(d => d.drinkName === rec.drinkName);
+        return drink ? { ...drink, quantity: 0, reason: rec.reason } : null;
+      }).filter(Boolean);
+
+      setFilteredDrinks(recommendedDrinksList);
+      setCurrentEmotion(emotionText);
+      setShowEmotionDialog(false);
+      setEmotionText('');
+
     } catch (error) {
-      console.error("Error getting drink recommendations:", error);
-      setErrorMessage('Không tìm thấy đồ uống phù hợp với cảm xúc này');
+      console.error('Error getting drink recommendations:', error);
+      setErrorMessage('Có lỗi xảy ra khi gợi ý đồ uống. Vui lòng thử lại sau');
     } finally {
       setIsLoadingRecommendation(false);
     }
