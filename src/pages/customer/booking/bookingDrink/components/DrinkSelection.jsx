@@ -43,7 +43,7 @@ const DrinkSelection = ({ drinks, onIncrease, onDecrease, emotion }) => {
           {currentDrinks.map((drink) => (
             <article 
               key={drink.drinkId} 
-              className="w-full max-w-[280px] h-[400px] rounded-xl"
+              className="w-full max-w-[280px] h-auto rounded-xl"
             >
               <div className="flex flex-col items-center px-5 py-3.5 w-full h-full rounded-md bg-neutral-700 max-md:px-5">
                 <div className="w-full h-48 rounded-md overflow-hidden">
@@ -60,7 +60,15 @@ const DrinkSelection = ({ drinks, onIncrease, onDecrease, emotion }) => {
                 <p className="mt-4 text-base leading-snug text-amber-400 text-center">
                   {parseInt(drink.price).toLocaleString()} VND
                 </p>
-                <div className="flex gap-2 mt-5 w-24 text-lg text-black justify-center">
+                {drink.reason && (
+                  <div className="mt-4 p-3 bg-neutral-600 rounded-md w-full">
+                    <p className="text-sm text-zinc-100 text-left">
+                      <span className="font-semibold text-amber-400">Lý do gợi ý:</span>{' '}
+                      {drink.reason}
+                    </p>
+                  </div>
+                )}
+                <div className="flex gap-2 mt-5 w-24 text-lg text-black justify-center mb-3">
                   <button
                     className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
                     onClick={() => onDecrease(drink)}

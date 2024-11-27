@@ -97,8 +97,7 @@ function PaymentProcessing({ totalAmount, discountAmount, finalAmount, discount,
         setVoucherError('Mã voucher không hợp lệ hoặc không áp dụng được cho thời gian này');
       }
     } catch (error) {
-      console.error('Voucher error:', error);
-      setVoucherError('Đã có lỗi xảy ra khi kiểm tra voucher');
+      setVoucherError(error.response.data.message || 'Đã có lỗi xảy ra khi kiểm tra voucher');
     } finally {
       setIsCheckingVoucher(false);
     }
