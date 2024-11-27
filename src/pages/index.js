@@ -13,7 +13,7 @@ import BookingTableInfo from "./customer/booking/bookingTable/components/Booking
 import CustomerForm from "./customer/booking/bookingTable/components/CustomerForm";
 import TableSelection from "./customer/booking/bookingTable/components/TableSelection";
 import TimeSelection from "./customer/booking/bookingTable/components/TimeSelection";
-import TableSidebar from "./customer/booking/bookingTable/components/TableSidebar"; 
+import TableSidebar from "./customer/booking/bookingTable/components/TableSidebar";
 import SelectedList from "./customer/booking/bookingTable/components/SelectedList";
 
 // BookingDrink Components
@@ -25,7 +25,7 @@ import SelectedItems from "./customer/booking/bookingDrink/components/SelectedIt
 import BarDetail from "./customer/booking/bookingTable/components/BarDetails";
 import EmotionRecommendationDialog from "./customer/booking/bookingDrink/components/EmotionRecommendationDialog";
 
-// Staff Table-registration 
+// Staff Table-registration
 import FilterSection from "./staff/table-registration/components/FilterSection";
 import BookingTable from "./staff/table-registration/components/BookingTable";
 
@@ -69,5 +69,5 @@ export {
   PopUpUpdate,
   PopupConfirmDelete,
   Event,
-  EventDetail
+  EventDetail,
 };

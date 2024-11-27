@@ -10,7 +10,24 @@ import LoadingSpinner from "./commonComponents/LoadingSpinner";
 import ManagerHeader from "./managerComponents/ManagerHeader";
 import ManagerSidebar from "./managerComponents/ManagerSidebar";
 import QRScanner from "./commonComponents/QRScanner";
-import ImageGallery from './ImageGallery/ImageGallery';
+import ImageGallery from "./ImageGallery/ImageGallery";
+import DrinkWarningPopup from "./commonComponents/Customer/BookingDrink/DrinkWarningPopup";
+import CancelBookingPopup from "./commonComponents/Customer/BookingDrink/CancelBookingPopup";
 
-
-export { AdminHeader, StaffHeader, AdminSidebar ,StaffSidebar, CustomerHeader, CustomerFooter, Notification, ScrollToTopButton, LoadingSpinner, ManagerHeader, ManagerSidebar, QRScanner, ImageGallery };
+export {
+  AdminHeader,
+  StaffHeader,
+  AdminSidebar,
+  StaffSidebar,
+  CustomerHeader,
+  CustomerFooter,
+  Notification,
+  ScrollToTopButton,
+  LoadingSpinner,
+  ManagerHeader,
+  ManagerSidebar,
+  QRScanner,
+  ImageGallery,
+  CancelBookingPopup,
+  DrinkWarningPopup,
+};

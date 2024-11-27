@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { BookingDrinkInfo, DrinkEmotionalSelection, DrinkSelection, DrinkSidebar, Filter } from "src/pages";
-import { getAllDrinkByBarId, getDrinkRecommendation } from 'src/lib/service/managerDrinksService';
-import { useLocation, useNavigate } from 'react-router-dom';
-import useAuthStore from 'src/lib/hooks/useUserStore';
-import { Button, Dialog, CircularProgress, DialogContent, Typography, IconButton } from '@mui/material';
-import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
-import { EmotionRecommendationDialog } from 'src/pages';
-import DrinkWarningPopup from 'src/components/commonComponents/DrinkWarningPopup';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
+import { Button, CircularProgress, Dialog, DialogContent, Typography } from '@mui/material';
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from 'react-router-dom';
+import { CancelBookingPopup, DrinkWarningPopup } from 'src/components';
+import useAuthStore from 'src/lib/hooks/useUserStore';
+import { getAllDrinkByBarId } from 'src/lib/service/managerDrinksService';
+import { BookingDrinkInfo, DrinkSelection, DrinkSidebar, EmotionRecommendationDialog, Filter } from "src/pages";
+import { releaseTableList } from 'src/lib/service/BookingTableService';
+import { toast } from 'react-toastify';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -26,6 +27,8 @@ const BookingDrink = () => {
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
   const [currentEmotion, setCurrentEmotion] = useState('');
   const [showWarning, setShowWarning] = useState(true);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const { token } = useAuthStore();
 
   const location = useLocation();
   const { barInfo, selectedTables, customerInfo } = location.state || {};
@@ -153,11 +156,39 @@ const BookingDrink = () => {
   };
 
   const handleCancelBooking = () => {
+    setShowCancelConfirm(true);
+  };
+
+  const handleConfirmCancel = async () => {
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const data = {
+        barId: barInfo.id,
+        date: selectedTables[0].date,
+        time: selectedTables[0].time,
+        table: selectedTables.map(table => ({
+          tableId: table.tableId,
+          time: table.time
+        }))
+      };
+
+      const response = await releaseTableList(token, data);
+      
+      if (response.data.statusCode === 200) {
+        toast.success("Hủy đặt bàn thành công");
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      } else {
+        throw new Error("Có lỗi xảy ra");
+      }
+    } catch (error) {
+      console.error("Error canceling booking:", error);
+      toast.error("Có lỗi xảy ra khi hủy đặt bàn");
+    } finally {
       setIsLoading(false);
-      navigate("/");
-    }, 2000);
+      setShowCancelConfirm(false);
+    }
   };
 
   const handleGetRecommendation = async () => {
@@ -334,6 +365,13 @@ const BookingDrink = () => {
       <DrinkWarningPopup 
         open={showWarning} 
         onClose={handleCloseWarning}
+      />
+
+      <CancelBookingPopup 
+        open={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={handleConfirmCancel}
+        isLoading={isLoading}
       />
     </div>
   );
