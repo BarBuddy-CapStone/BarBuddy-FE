@@ -6,6 +6,7 @@ import useAuthStore from 'src/lib/hooks/useUserStore';
 import { Button, Dialog, CircularProgress, DialogContent, Typography, IconButton } from '@mui/material';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import { EmotionRecommendationDialog } from 'src/pages';
+import DrinkWarningPopup from 'src/components/commonComponents/DrinkWarningPopup';
 
 const BookingDrink = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const BookingDrink = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
   const [currentEmotion, setCurrentEmotion] = useState('');
+  const [showWarning, setShowWarning] = useState(true);
 
   const location = useLocation();
   const { barInfo, selectedTables, customerInfo } = location.state || {};
@@ -184,6 +186,10 @@ const BookingDrink = () => {
     setErrorMessage('');
   };
 
+  const handleCloseWarning = () => {
+    setShowWarning(false);
+  };
+
   return (
     <div className="flex flex-col lg:flex-row w-full max-w-screen-xl mx-auto px-4">
       <div className="w-full lg:w-3/4 pr-0 lg:pr-4">
@@ -269,6 +275,11 @@ const BookingDrink = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <DrinkWarningPopup 
+        open={showWarning} 
+        onClose={handleCloseWarning}
+      />
     </div>
   );
 };
