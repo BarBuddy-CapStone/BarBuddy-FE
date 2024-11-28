@@ -1,57 +1,17 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { InputAdornment, MenuItem, TextField } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import dayjs from "dayjs"; // Import dayjs for date manipulation
+import { Menu, MenuItem } from "@mui/material";
+import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 
-const CustomTextField = styled(TextField)(({ theme }) => ({
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "5px",
-    "& fieldset": {
-      borderColor: "white",
-    },
-    "&:hover fieldset": {
-      borderColor: "#FFA500",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "#FFA500",
-    },
-  },
-  "& .MuiInputBase-input": {
-    color: "white",
-    paddingLeft: "0",
-  },
-  "& .MuiSvgIcon-root": {
-    color: "#FFA500",
-  },
-  "& .MuiInputAdornment-root": {
-    marginRight: "8px",
-  },
-}));
-
-// Custom styles for Menu and MenuItems
-const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
-  color: "#FFA500",
-  "&.Mui-selected": {
-    backgroundColor: "#333333",
-    color: "#FFA500",
-  },
-  "&.Mui-selected:hover": {
-    backgroundColor: "#555555",
-  },
-}));
-
-// Thêm hàm helper để chuyển đổi dayOfWeek
-const convertDayOfWeek = (dayjs) => {
-  // dayjs.day() trả về: 0 (CN), 1 (T2), 2 (T3), 3 (T4), 4 (T5), 5 (T6), 6 (T7)
-  // Cần chuyển thành: 1 (T2), 2 (T3), 3 (T4), 4 (T5), 5 (T6), 6 (T7), 7 (CN)
-  const day = dayjs.day();
-  return day === 0 ? 7 : day; // Chuyển Chủ nhật từ 0 thành 7
-};
-
-const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate, barId, setFilteredTables, setSelectedTables, timeSlot }) => {
-  const [selectedTime, setSelectedTime] = useState("");
+const TimeSelection = ({
+  startTime,
+  endTime,
+  onTimeChange,
+  selectedDate,
+  selectedTime,
+}) => {
   const [timeOptions, setTimeOptions] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const generateTimeOptions = (startTime, endTime, selectedDate) => {
     if (!startTime || !endTime || !selectedDate) return [];
@@ -63,28 +23,22 @@ const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate, barId, 
     let currentTime = currentDate
       .hour(parseInt(startTime.split(":")[0]))
       .minute(parseInt(startTime.split(":")[1]));
-    
+
     let endTimeObj = currentDate
       .hour(parseInt(endTime.split(":")[0]))
       .minute(parseInt(endTime.split(":")[1]));
 
-    // Xử lý trường hợp endTime là ngày hôm sau
     if (endTimeObj.isBefore(currentTime)) {
       endTimeObj = endTimeObj.add(1, "day");
     }
 
-    // Nếu là ngày hiện tại, bắt đầu từ giờ tiếp theo
     if (currentDate.isSame(now, "day")) {
       currentTime = now.add(1, "hour").startOf("hour");
     }
 
-    // TimeSlot chính là số giờ cách nhau giữa các slot
-    const slotDuration = timeSlot || 1; // Mặc định là 1 giờ nếu không có timeSlot
-
-    // Thêm các slot theo khoảng cách timeSlot cho đến khi vượt quá endTime
-    while (currentTime.isBefore(endTimeObj) || currentTime.isSame(endTimeObj)) {
+    while (currentTime.isBefore(endTimeObj)) {
       options.push(currentTime.format("HH:mm"));
-      currentTime = currentTime.add(slotDuration, "hour");
+      currentTime = currentTime.add(1, "hour");
     }
 
     return options;
@@ -92,49 +46,96 @@ const TimeSelection = ({ startTime, endTime, onTimeChange, selectedDate, barId, 
 
   useEffect(() => {
     if (startTime && endTime && selectedDate) {
-      const newTimeOptions = generateTimeOptions(startTime, endTime, selectedDate);
+      const newTimeOptions = generateTimeOptions(
+        startTime,
+        endTime,
+        selectedDate
+      );
       setTimeOptions(newTimeOptions);
-
-      if (newTimeOptions.length > 0 && !selectedTime) {
-        setSelectedTime(newTimeOptions[0]);
-        onTimeChange(newTimeOptions[0]);
-      } else if (newTimeOptions.length === 0) {
-        setSelectedTime("");
-        onTimeChange("");
-      }
     }
-  }, [startTime, endTime, selectedDate, timeSlot]);
+  }, [startTime, endTime, selectedDate]);
 
-  const handleTimeChange = (event) => {
-    const newTime = event.target.value;
-    setSelectedTime(newTime);
-    onTimeChange(newTime);
+  const handleTimeChange = (time) => {
+    onTimeChange(time);
+    setAnchorEl(null);
+  };
+
+  const handleClick = (event) => {
+    const target = event.currentTarget;
+    const rect = target.getBoundingClientRect();
+    setAnchorEl({ target, rect });
   };
 
   return (
-    <div className="mt-4">
-      <h3 className="text-lg leading-none mb-4 text-amber-400">
-        Chọn thời gian
-      </h3>
-      <CustomTextField
-        select
-        value={selectedTime}
-        onChange={handleTimeChange}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <AccessTimeIcon />
-            </InputAdornment>
-          ),
+    <div
+      className="relative"
+      style={{ flex: "1 1 0", minWidth: "120px", maxWidth: "200px" }}
+    >
+      <button
+        onClick={handleClick}
+        className="w-full h-[56px] px-4 py-2 bg-transparent border border-white rounded-lg text-white flex items-center justify-between hover:border-amber-400 focus:border-amber-400"
+      >
+        <div className="flex items-center min-w-0">
+          <AccessTimeIcon
+            style={{ color: "#FFA500", marginRight: "8px", flexShrink: 0 }}
+          />
+          <span className="truncate">{selectedTime || "Chọn giờ"}</span>
+        </div>
+        <span
+          style={{
+            width: 0,
+            height: 0,
+            borderLeft: "5px solid transparent",
+            borderRight: "5px solid transparent",
+            borderTop: "5px solid #FFA500",
+            marginLeft: "8px",
+            flexShrink: 0,
+          }}
+        />
+      </button>
+
+      <Menu
+        anchorEl={anchorEl?.target}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        PaperProps={{
+          style: {
+            backgroundColor: "#2D2D2D",
+            borderRadius: "8px",
+            marginTop: "8px",
+            minWidth: anchorEl?.rect?.width,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+          },
         }}
-        sx={{ width: "200px" }}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
       >
         {timeOptions.map((time) => (
-          <CustomMenuItem key={time} value={time}>
+          <MenuItem
+            key={time}
+            onClick={() => handleTimeChange(time)}
+            style={{
+              color: "#FFA500",
+              padding: "10px 16px",
+              borderBottom: "1px solid #404040",
+              "&:last-child": {
+                borderBottom: "none",
+              },
+              "&:hover": {
+                backgroundColor: "#3D3D3D",
+              },
+            }}
+          >
             {time}
-          </CustomMenuItem>
+          </MenuItem>
         ))}
-      </CustomTextField>
+      </Menu>
     </div>
   );
 };

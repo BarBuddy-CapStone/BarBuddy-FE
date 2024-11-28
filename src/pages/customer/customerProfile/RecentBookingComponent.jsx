@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from "react";
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CircularProgress from '@mui/material/CircularProgress';
+import { addHours, isBefore } from "date-fns";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import LoadingSpinner from "../../../components/commonComponents/LoadingSpinner"; // Import LoadingSpinner
 import BookingService from "../../../lib/service/bookingService";
 import {
-  getAllFeedbackByBookingID,
-  createFeedBack
+  createFeedBack,
+  getAllFeedbackByBookingID
 } from "../../../lib/service/FeedbackService";
-import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-import CircularProgress from '@mui/material/CircularProgress';
-import { addHours, isBefore, parseISO } from "date-fns";
-import LoadingSpinner from "../../../components/commonComponents/LoadingSpinner"; // Import LoadingSpinner
 
 function BookingHistory({ accountId }) {
   const [bookings, setBookings] = useState([]);
@@ -26,6 +27,9 @@ function BookingHistory({ accountId }) {
   const [loadingRating, setLoadingRating] = useState(false);
   const [loadingCancel, setLoadingCancel] = useState(false);
   const [isLoadingCancel, setIsLoadingCancel] = useState(false); // Thêm state cho LoadingSpinner
+  const [showWarningPopup, setShowWarningPopup] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const [agreeButtonEnabled, setAgreeButtonEnabled] = useState(false);
 
   const navigate = useNavigate();
 
@@ -45,6 +49,21 @@ function BookingHistory({ accountId }) {
       fetchBookings();
     }
   }, [accountId]);
+
+  useEffect(() => {
+    let timer;
+    if (showWarningPopup && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+    }
+    if (countdown === 0) {
+      setAgreeButtonEnabled(true);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [showWarningPopup, countdown]);
 
   const handleCancelBooking = async (bookingId) => {
     setIsLoadingCancel(true); // Bắt đầu hiển thị LoadingSpinner
@@ -67,7 +86,9 @@ function BookingHistory({ accountId }) {
 
   const confirmCancelBooking = (bookingId) => {
     setSelectedBookingId(bookingId);
-    setShowConfirm(true);
+    setShowWarningPopup(true);
+    setCountdown(5);
+    setAgreeButtonEnabled(false);
   };
 
   const handleCloseConfirm = () => {
@@ -140,6 +161,18 @@ function BookingHistory({ accountId }) {
     } finally {
       setLoadingRating(false);
     }
+  };
+
+  const handleAgreeWarning = () => {
+    setShowWarningPopup(false);
+    setShowConfirm(true);
+  };
+
+  const handleCloseWarning = () => {
+    setShowWarningPopup(false);
+    setSelectedBookingId(null);
+    setCountdown(5);
+    setAgreeButtonEnabled(false);
   };
 
   if (loading) {
@@ -332,23 +365,31 @@ function BookingHistory({ accountId }) {
 
       {showConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-neutral-800 p-8 w-96 rounded-md shadow-2xl border border-neutral-800">
-            <h2 className="text-lg mb-6 text-amber-400 text-center">
-              Xác nhận hủy đặt bàn?
-            </h2>
-            <div className="flex justify-between space-x-4">
+          <div className="bg-neutral-800 p-6 w-[400px] rounded-lg shadow-2xl border border-neutral-700">
+            <div className="flex flex-col items-center mb-4">
+              <WarningAmberIcon className="text-amber-400 mb-2" sx={{ fontSize: 32 }} />
+              <h2 className="text-lg text-amber-400 font-medium">
+                Xác nhận hủy đặt bàn?
+              </h2>
+            </div>
+            <div className="border-t border-neutral-700 my-4" />
+            <div className="flex justify-end gap-3 mt-6">
               <button
-                className="px-6 py-3 w-full bg-gray-300 text-black rounded-full hover:bg-gray-400 transition duration-200"
+                className="px-5 py-2 bg-neutral-700 text-gray-300 rounded-full hover:bg-neutral-600 transition duration-200 min-w-[100px] text-sm font-medium"
                 onClick={handleCloseConfirm}
               >
                 Hủy
               </button>
               <button
-                className="px-6 py-3 w-full bg-amber-400 text-neutral-800 rounded-full hover:bg-amber-300 transition duration-200"
+                className="px-5 py-2 bg-amber-400 text-neutral-900 rounded-full hover:bg-amber-500 transition duration-200 min-w-[100px] text-sm font-medium flex items-center justify-center"
                 onClick={() => handleCancelBooking(selectedBookingId)}
                 disabled={isLoadingCancel}
               >
-                {isLoadingCancel ? "Đang hủy..." : "Xác nhận hủy"}
+                {isLoadingCancel ? (
+                  <CircularProgress size={20} thickness={5} sx={{ color: 'black' }} />
+                ) : (
+                  "Xác nhận"
+                )}
               </button>
             </div>
           </div>
@@ -456,6 +497,47 @@ function BookingHistory({ accountId }) {
                   <CircularProgress size={20} style={{ color: 'black' }} />
                 ) : (
                   "Gửi đánh giá"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWarningPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-neutral-800 p-8 w-[500px] rounded-md shadow-2xl border border-neutral-800">
+            <div className="flex flex-col items-center mb-4">
+              <WarningAmberIcon className="text-amber-400 mb-2" sx={{ fontSize: 40 }} />
+              <h2 className="text-xl text-amber-400 text-center font-semibold">
+                Cảnh báo hủy đặt bàn
+              </h2>
+            </div>
+            <div className="border-t border-amber-500 mb-4" />
+            <p className="text-gray-300 mb-6 text-center">
+              Liệu bạn có muốn hủy bàn? Nếu hủy bàn thì bạn sẽ không được hoàn lại tổng số tiền đã thanh toán theo điều khoản của BarBuddy.
+            </p>
+            <div className="flex justify-between space-x-4">
+              <button
+                className="px-6 py-3 w-full bg-gray-300 text-black rounded-full hover:bg-gray-400 transition duration-200"
+                onClick={handleCloseWarning}
+              >
+                Đóng
+              </button>
+              <button
+                className={`px-6 py-3 w-full ${
+                  agreeButtonEnabled 
+                    ? 'bg-amber-400 hover:bg-amber-500' 
+                    : 'bg-gray-400 cursor-not-allowed'
+                } text-black rounded-full transition duration-200 relative`}
+                onClick={handleAgreeWarning}
+                disabled={!agreeButtonEnabled}
+              >
+                <span>Tôi đồng ý</span>
+                {!agreeButtonEnabled && (
+                  <span className="absolute top-1/2 -translate-y-1/2 right-4">
+                    ({countdown}s)
+                  </span>
                 )}
               </button>
             </div>

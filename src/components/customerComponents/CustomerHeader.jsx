@@ -221,7 +221,7 @@ const CustomerHeader = () => {
             >
               Trang chủ
             </Link>
-            <Link
+            {/* <Link
               to="/contact"
               style={{
                 color: "#FFF",
@@ -232,7 +232,7 @@ const CustomerHeader = () => {
               }}
             >
               Liên hệ
-            </Link>
+            </Link> */}
 
             {!isLoggedIn ? (
               <>

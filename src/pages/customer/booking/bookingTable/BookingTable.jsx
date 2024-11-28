@@ -8,6 +8,12 @@ import useAuthStore from 'src/lib/hooks/useUserStore';
 import { filterBookingTable, getAllHoldTable, releaseTable } from "src/lib/service/BookingTableService";
 import { getBarById, getBarTableById } from "src/lib/service/customerService";
 import CustomerForm from './components/CustomerForm';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import {
   BookingTableInfo,
@@ -19,6 +25,7 @@ const BookingTable = () => {
   const { state } = useLocation();
   const { barId } = state || {};
   const navigate = useNavigate();
+  const { userInfo } = useAuthStore();
 
   const [allTables, setAllTables] = useState([]);
   const [filteredTables, setFilteredTables] = useState([]);
@@ -34,12 +41,13 @@ const BookingTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [allFilteredTables, setAllFilteredTables] = useState({});
-  const { token, userInfo } = useAuthStore();
+  const { token } = useAuthStore();
 
   const [selectedTablesMap, setSelectedTablesMap] = useState({});
   const [allHoldTables, setAllHoldTables] = useState([]);
   const [note, setNote] = useState("");
   const [barTimeSlot, setBarTimeSlot] = useState(1);
+  const [showPhoneWarning, setShowPhoneWarning] = useState(false);
 
   const uniqueTablesByDateAndTime = selectedTables.filter((seleTable, index, self) =>
     index === self.findIndex((t) => (
@@ -484,6 +492,26 @@ const BookingTable = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!userInfo?.phone) {
+      setShowPhoneWarning(true);
+    }
+  }, [userInfo]);
+
+  const handleCloseWarning = () => {
+    setShowPhoneWarning(false);
+  };
+
+  const handleNavigateToProfile = () => {
+    navigate(`/profile/${userInfo?.accountId}`, { 
+      state: { 
+        returnPath: `/bookingtable`,
+        returnState: { barId },
+        showPhoneUpdate: true 
+      } 
+    });
+  };
+
   return (
     <div className="flex overflow-hidden flex-col bg-zinc-900">
       <main className="self-center mt-4 mx-4 w-full max-w-[1100px]">
@@ -542,7 +570,7 @@ const BookingTable = () => {
         <DialogContent>
           {!selectedTableTypeId
             ? "Vui lòng chn loại bàn trước khi tìm kim."
-            : "Không có bàn nào phù hợp với thời gian bạn đã chọn. Vui l��ng chọn thời gian khác hoặc loại bàn khác."}
+            : "Không có bàn nào phù hợp với thời gian bạn đã chọn. Vui lng chọn thời gian khác hoặc loại bàn khác."}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClosePopup} color="primary">
@@ -550,6 +578,48 @@ const BookingTable = () => {
           </Button>
         </DialogActions>
       </Dialog> */}
+      <Dialog
+        open={showPhoneWarning}
+        onClose={handleCloseWarning}
+        PaperProps={{
+          style: {
+            backgroundColor: '#262626',
+            borderRadius: '12px',
+            border: '1px solid #404040',
+            maxWidth: '400px',
+            width: '90%'
+          }
+        }}
+      >
+        <div className="p-6">
+          <div className="flex flex-col items-center mb-4">
+            <WarningAmberIcon className="text-amber-400 mb-2" sx={{ fontSize: 40 }} />
+            <DialogTitle className="text-amber-400 font-medium text-center p-0">
+              Thông báo bổ sung thông tin
+            </DialogTitle>
+          </div>
+          
+          <DialogContent className="text-gray-300 text-center p-0 mb-6">
+            Tài khoản của bạn chưa có số điện thoại. Vui lòng cập nhật số điện thoại để tiếp tục đặt bàn.
+          </DialogContent>
+
+          <DialogActions className="p-0 flex justify-center gap-3">
+            <Button
+              onClick={handleCloseWarning}
+              className="px-5 py-2 bg-neutral-700 text-gray-300 rounded-full hover:bg-neutral-600 transition duration-200 min-w-[100px] text-sm font-medium normal-case"
+            >
+              Để sau
+            </Button>
+            <Button
+              onClick={handleNavigateToProfile}
+              className="px-5 py-2 bg-amber-400 text-neutral-900 rounded-full hover:bg-amber-500 transition duration-200 min-w-[100px] text-sm font-medium normal-case"
+            >
+              Cập nhật ngay
+            </Button>
+          </DialogActions>
+        </div>
+      </Dialog>
+
       <LoadingSpinner open={isLoading} />
     </div>
   );

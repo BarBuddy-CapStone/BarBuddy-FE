@@ -2,8 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import AccountService from "../../../lib/service/accountService";
 import { toast } from "react-toastify";
 import CircularProgress from '@mui/material/CircularProgress';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from 'src/lib';
 
 function PersonalInfo({ accountId }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { updateUserInfo, logout, userInfo } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -58,25 +63,51 @@ function PersonalInfo({ accountId }) {
   };
 
   const handleSave = async () => {
-    setValidationErrors({}); // Reset errors
+    setValidationErrors({});
     try {
       const data = {
         fullname: formData.fullName,
         phone: formData.phoneNumber,
         dob: formData.birthDate,
       };
-      await AccountService.updateCustomerProfile(accountId, data);
-      setIsEditing(false); // Thoát khỏi chế độ chỉnh sửa khi thành công
 
-      // Cập nhật lại dữ liệu ban đầu sau khi lưu thành công
-      setInitialData(formData);
+      const response = await AccountService.updateCustomerProfile(accountId, data);
+      console.log("Update response:", response.data);
 
-      toast.success("Cập nhật thông tin thành công!", {
-        position: "top-right",
-      });
+      if (response.data && response.data.statusCode === 200) {
+        setIsEditing(false);
+        setInitialData(formData);
+
+        if (!userInfo?.phone && formData.phoneNumber) {
+          toast.success("Cập nhật thông tin thành công! Vui lòng đăng nhập lại.", {
+            position: "top-right",
+            autoClose: 2000
+          });
+
+          setTimeout(async () => {
+            await logout();
+            navigate('/login');
+          }, 2000);
+        } else {
+          toast.success("Cập nhật thông tin thành công!", {
+            position: "top-right",
+            autoClose: 2000
+          });
+        }
+      }
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.errors) {
+      console.error("Update error:", err);
+      if (err.response?.data?.errors) {
         setValidationErrors(err.response.data.errors);
+        toast.error(Object.values(err.response.data.errors)[0][0], {
+          position: "top-right",
+          autoClose: 2000
+        });
+      } else {
+        toast.error("Cập nhật thông tin thất bại!", {
+          position: "top-right",
+          autoClose: 2000
+        });
       }
     }
   };
@@ -86,7 +117,6 @@ function PersonalInfo({ accountId }) {
   };
 
   const handleCancel = () => {
-    // Khôi phục lại dữ liệu ban đầu
     setFormData(initialData);
     setIsEditing(false);
     setValidationErrors({});
@@ -95,19 +125,18 @@ function PersonalInfo({ accountId }) {
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setUploading(true); // Bắt đầu hiệu ứng loading
+      setUploading(true);
       const formData = new FormData();
-      formData.append("Image", file); // Gửi file với tên 'Image'
+      formData.append("Image", file);
 
       try {
         const response = await AccountService.updateCustomerAvatar(
           accountId,
           formData
         );
-        // Cập nhật URL avatar mới từ response.data.url
         setFormData((prevData) => ({
           ...prevData,
-          image: response.url, // Cập nhật URL ảnh từ response
+          image: response.url,
         }));
         toast.success("Cập nhật ảnh đại diện thành công!", {
           position: "top-right",
@@ -117,7 +146,7 @@ function PersonalInfo({ accountId }) {
           position: "top-right",
         });
       } finally {
-        setUploading(false); // Kết thúc hiệu ứng loading
+        setUploading(false);
       }
     }
   };

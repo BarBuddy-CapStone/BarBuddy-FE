@@ -1,4 +1,3 @@
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import InfoIcon from "@mui/icons-material/Info";
@@ -9,7 +8,7 @@ import {
   InputAdornment,
   Menu,
   MenuItem,
-  TextField
+  TextField,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -23,6 +22,7 @@ import { toast } from "react-toastify";
 import useAuthStore from "src/lib/hooks/useUserStore";
 import { getAllHoldTable } from "src/lib/service/BookingTableService";
 import { getTableTypeOfBar } from "src/lib/service/tableTypeService";
+import TimeSelection from "./TimeSelection";
 
 // CustomTextField for Date and Type
 const CustomTextField = styled(TextField)(({ theme }) => ({
@@ -349,32 +349,13 @@ const BookingTableInfo = ({
               />
             </FormControl>
 
-            <FormControl
-              sx={{ flex: "1 1 0", minWidth: "120px", maxWidth: "200px" }}
-            >
-              <CustomTextField
-                select
-                label="Giờ"
-                value={selectedTime}
-                onChange={(e) => onTimeChange(e.target.value)}
-                variant="outlined"
-                fullWidth
-                disabled={!startTime || !endTime}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <AccessTimeIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              >
-                {timeOptions.map((time) => (
-                  <CustomMenuItem key={time} value={time}>
-                    {time}
-                  </CustomMenuItem>
-                ))}
-              </CustomTextField>
-            </FormControl>
+            <TimeSelection
+              startTime={startTime}
+              endTime={endTime}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              onTimeChange={onTimeChange}
+            />
 
             <div
               className="relative"

@@ -1,19 +1,46 @@
+import FacebookIcon from '@mui/icons-material/Facebook';
 import React from "react";
 import { Link } from "react-router-dom";
-import { Typography } from "@mui/material";
 
 const CustomerFooter = () => {
   return (
-    <footer className="flex flex-col justify-center items-center px-4 py-3 w-full bg-neutral-800">
-      <Typography variant="h6" color="#FFA500">
-        Bar Buddy
-      </Typography>
-      <nav className="flex gap-4 text-xs text-white mt-1">
-        <Link to="/services">Dịch vụ</Link>
-        <Link to="/about">About Us</Link>
-        <Link to="/contact">Liên hệ</Link>
-      </nav>
-      <div className="flex gap-2 mt-2">{/* Social Media Icons */}</div>
+    <footer className="bg-neutral-900 text-white py-8">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Về chúng tôi - Cột trái */}
+          <div className="flex flex-col">
+            <h3 className="text-yellow-500 font-semibold font-notoSansSC mb-4">VỀ CHÚNG TÔI</h3>
+            <ul className="space-y-2 font-notoSansSC text-gray-300">
+              <li><Link to="/about-us" className="hover:text-yellow-500 transition-colors duration-200">Giới thiệu</Link></li>
+              <li><Link to="/" className="hover:text-yellow-500 transition-colors duration-200">Bảo mật thông tin</Link></li>
+              <li><Link to="/" className="hover:text-yellow-500 transition-colors duration-200">Điều khoản sử dụng</Link></li>
+            </ul>
+          </div>
+
+          {/* Thông tin liên hệ - Cột phải */}
+          <div className="flex flex-col">
+            <h3 className="text-yellow-500 font-semibold font-notoSansSC mb-4">THÔNG TIN LIÊN HỆ</h3>
+            <ul className="space-y-2 font-notoSansSC text-gray-300">
+              <li>Email: barbuddy@gmail.com</li>
+              <li>Hotline: 0982502200</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Social Media & Copyright */}
+        <div className="mt-8 pt-4 border-t border-neutral-700">
+          <div className="flex justify-center space-x-4 mb-4">
+            <a href="#" className="text-gray-300 hover:text-yellow-500 transition-colors duration-200">
+              <FacebookIcon />
+            </a>
+          </div>
+          <div className="text-center text-sm font-notoSansSC">
+            <p className="text-yellow-500 font-medium mb-2">THƯỞNG THỨC CÓ TRÁCH NHIỆM</p>
+            <p className="text-gray-300 mb-2">Dịch vụ không dành cho người dưới 18 tuổi và phụ nữ đang mang thai.</p>
+            <p className="text-gray-300">Bản quyền © 2024 BAR BUDDY - Trao Niềm Tin Nhận Tài Lộc</p>
+          </div>
+        </div>
+      </div>
     </footer>
   );
 };

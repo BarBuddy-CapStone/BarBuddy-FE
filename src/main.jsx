@@ -69,6 +69,7 @@ import EventDetail from "./pages/manager/event-management/EventDetail";
 import Event from "./pages/customer/event/Event";
 import EventDetailCustomer from "./pages/customer/event/EventDetailCustomer";
 import BarBranch from "./pages/customer/barBranch/BarBranch";
+import AboutUs from "./pages/customer/aboutUs/AboutUs";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -166,6 +167,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="event/:eventId" element={<EventDetailCustomer />}/> 
           <Route path="bar-branch" element={<BarBranch />}/>
 
+          {/* Route Trang Home */}
+        <Route path="about-us" element={<AboutUs />}/>
+
           {/* Trạng thái trang khi thanh toán */}
           <Route path="payment-success/:paymentId" element={<Success />}/> 
           <Route path="payment-failed/:paymentId" element={<Failed />}/> 
@@ -178,6 +182,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="*" element={<Navigate to="/404" replace />} />
       <Route path="login" element={<Login />}/>
       <Route path="register" element={<Registration />}/>
+
+      
       
     </Routes>
   </BrowserRouter>

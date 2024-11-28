@@ -45,6 +45,11 @@ const useAuthStore = create((set, get) => {
         set({ isLoggedIn: false, userInfo: {}, token: null });
       }
     },
+    setUserInfo: (info) => set({ userInfo: info }),
+    setToken: (token) => set({ token }),
+    updateUserInfo: (newInfo) => set((state) => ({
+      userInfo: { ...state.userInfo, ...newInfo }
+    })),
   };
 });
 
