@@ -70,6 +70,8 @@ import Event from "./pages/customer/event/Event";
 import EventDetailCustomer from "./pages/customer/event/EventDetailCustomer";
 import BarBranch from "./pages/customer/barBranch/BarBranch";
 import AboutUs from "./pages/customer/aboutUs/AboutUs";
+import BookingListAdmin from "./pages/admin/table-registration/BookingListAdmin";
+import BookingDetailAdmin from "./pages/admin/table-registration/BookingDetailAdmin";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -94,6 +96,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="admin/event-management" element={<EventManagement />}/>
           <Route path="admin/event-management/add-event" element={<AddEvent />} />
           <Route path="admin/drink-categories" element={<DrinkCategoriesAdmin />}/>
+          <Route path="admin/table-registrations" element={<BookingListAdmin />}/> 
+          <Route path="admin/table-registration-detail/:bookingId" element={<BookingDetailAdmin />}/> 
 
           {/* Emotional */}
         <Route path="admin/emotional" element={<EmotionalCategory />}/>

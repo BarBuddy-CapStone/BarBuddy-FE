@@ -8,7 +8,9 @@ const headerConstants = {
   emotional: "QUẢN LÝ DANH MỤC CẢM XÚC",
   feedback: "QUẢN LÝ ĐÁNH GIÁ",
   drinkCategory: "QUẢN LÝ THỂ LOẠI THỨC UỐNG",
-
+  booking: "QUẢN LÍ DANH SÁCH ĐẶT BÀN",
+  payment: "QUẢN LÝ GIAO DỊCH",
+  
   headerManager: {
     staff: "QUẢN LÝ TÀI KHOẢN NHÂN VIÊN",
     drink: "QUẢN LÝ THỨC UỐNG",

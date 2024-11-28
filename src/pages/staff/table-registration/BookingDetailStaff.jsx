@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import BookingService from 'src/lib/service/bookingService';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { IconButton, CircularProgress } from '@mui/material';
@@ -8,27 +8,64 @@ import { message, Modal } from 'antd';
 const BookingDetailStaff = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
-
-  const [Booking, setBooking] = useState(null);
+  const location = useLocation();
+  
+  const [booking, setBooking] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [additionalFee, setAdditionalFee] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
+      if (!bookingId || initialLoadDone.current) return;
+      
+      console.log("Fetching booking details...");
+      console.log("Location state:", location.state);
+      
       try {
+        setIsLoading(true);
         const response = await BookingService.getBookingDetailByStaff(bookingId);
-        console.log("API Response:", response);
-
+        
         if (response.data && response.data.data) {
           const bookingData = response.data.data;
           setBooking(bookingData);
           setSelectedStatus(bookingData.status.toString());
           setAdditionalFee(bookingData.additionalFee || 0);
+          
+          if (location.state?.fromQR && !initialLoadDone.current) {
+            message.success('Đã tìm thấy thông tin đơn đặt bàn!');
+            
+            Modal.confirm({
+              title: 'Xác nhận check-in',
+              content: `Xác nhận check-in cho đơn đặt bàn ${bookingData.bookingCode} của khách hàng ${bookingData.customerName}?`,
+              okText: 'Xác nhận',
+              cancelText: 'Hủy',
+              onOk: async () => {
+                try {
+                  await BookingService.updateServingScan(bookingId);
+                  setBooking(prev => ({
+                    ...prev,
+                    status: 2
+                  }));
+                  setSelectedStatus("2");
+                  message.success('Check-in thành công!');
+                } catch (error) {
+                  console.error("Lỗi khi check-in:", error);
+                  message.error('Không thể thực hiện check-in. Vui lòng thử lại sau.');
+                }
+              },
+            });
+          }
         }
       } catch (error) {
         console.error("Lỗi khi lấy thông tin đặt bàn:", error);
         message.error("Không thể lấy thông tin đặt bàn. Vui lòng thử lại sau.");
+        navigate('/staff/table-registrations');
+      } finally {
+        setIsLoading(false);
+        initialLoadDone.current = true;
       }
     };
 
@@ -38,7 +75,7 @@ const BookingDetailStaff = () => {
   const handleSave = async () => {
     setIsUpdating(true);
     try {
-      const currentStatus = Booking.status;
+      const currentStatus = booking.status;
       const newStatus = parseInt(selectedStatus);
 
       if (currentStatus === 1) {
@@ -55,6 +92,14 @@ const BookingDetailStaff = () => {
         Modal.error({
           title: 'Không thể cập nhật',
           content: 'Không thể chuyển trực tiếp từ trạng thái Đang chờ sang Hoàn thành.',
+        });
+        return;
+      }
+
+      if (currentStatus === 2 &&  (newStatus === 0 || newStatus === 1)) {
+        Modal.error({
+          title: 'Không thể cập nhật',
+          content: 'Trạng thái Đang phục vụ chỉ được điều chỉnh lên hoàn thành',
         });
         return;
       }
@@ -162,12 +207,16 @@ const BookingDetailStaff = () => {
     setAdditionalFee(value);
   };
 
-  if (!Booking) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <CircularProgress />
       </div>
     );
+  }
+
+  if (!booking) {
+    return <div>Không tìm thấy thông tin đặt bàn</div>;
   }
 
   return (
@@ -176,7 +225,7 @@ const BookingDetailStaff = () => {
         <IconButton onClick={handleGoBack} aria-label="quay lại">
           <ArrowBackIcon />
         </IconButton>
-        <h1 className="text-3xl font-bold text-center flex-grow">CHI TIẾT YÊU CẦU ĐẶT BÀN {Booking.bookingCode}</h1>
+        <h1 className="text-3xl font-bold text-center flex-grow">CHI TIẾT YÊU CẦU ĐẶT BÀN {booking.bookingCode}</h1>
         <div className="w-10"></div>
       </div>
 
@@ -204,7 +253,7 @@ const BookingDetailStaff = () => {
               <input
                 type="text"
                 className="p-2 border rounded-md"
-                value={Booking.bookingCode}
+                value={booking.bookingCode}
                 readOnly
               />
             </div>
@@ -214,7 +263,7 @@ const BookingDetailStaff = () => {
               <input
                 type="text"
                 className="p-2 border rounded-md"
-                value={Booking.customerName}
+                value={booking.customerName}
                 readOnly
               />
             </div>
@@ -224,7 +273,7 @@ const BookingDetailStaff = () => {
               <input
                 type="text"
                 className="p-2 border rounded-md"
-                value={Booking.customerPhone}
+                value={booking.customerPhone}
                 readOnly
               />
             </div>
@@ -234,7 +283,7 @@ const BookingDetailStaff = () => {
               <input
                 type="email"
                 className="p-2 border rounded-md"
-                value={Booking.customerEmail}
+                value={booking.customerEmail}
                 readOnly
               />
             </div>
@@ -244,7 +293,7 @@ const BookingDetailStaff = () => {
               <input
                 type="text"
                 className="p-2 border rounded-md"
-                value={Booking.note}
+                value={booking.note}
                 readOnly
               />
             </div>
@@ -254,7 +303,7 @@ const BookingDetailStaff = () => {
               <input
                 type="text"
                 className="p-2 border rounded-md"
-                value={new Date(Booking.bookingDate).toLocaleDateString('vi-VN')}
+                value={new Date(booking.bookingDate).toLocaleDateString('vi-VN')}
                 readOnly
               />
             </div>
@@ -264,7 +313,7 @@ const BookingDetailStaff = () => {
               <input
                 type="text"
                 className="p-2 border rounded-md"
-                value={Booking.bookingTime}
+                value={booking.bookingTime}
                 readOnly
               />
             </div>
@@ -304,8 +353,8 @@ const BookingDetailStaff = () => {
         <div className="w-1/3">
           <div className="bg-gray-100 p-4 rounded-lg mb-4">
             <h2 className="text-xl font-bold mb-4">Bàn đã đặt trước</h2>
-            {Booking.bookingTableList && Booking.bookingTableList.length > 0 ? (
-              Booking.bookingTableList.map((table, index) => (
+            {booking.bookingTableList && booking.bookingTableList.length > 0 ? (
+              booking.bookingTableList.map((table, index) => (
                 <div key={index} className="bg-white p-2 rounded mb-2">
                   <p>ID: {table.tableName}</p>
                   <p>Loại bàn: {table.tableTypeName}</p>
@@ -318,9 +367,9 @@ const BookingDetailStaff = () => {
 
           <div className="bg-gray-100 p-4 rounded-lg">
             <h2 className="text-xl font-bold mb-4">Thức uống đã đặt trước</h2>
-            {Booking.bookingDrinksList && Booking.bookingDrinksList.length > 0 ? (
+            {booking.bookingDrinksList && booking.bookingDrinksList.length > 0 ? (
               <>
-                {Booking.bookingDrinksList.map((drink, index) => (
+                {booking.bookingDrinksList.map((drink, index) => (
                   <div key={index} className="flex justify-between items-center mb-2 bg-white p-2 rounded">
                     <div className="flex items-center">
                       <img src={drink.image} alt={drink.drinkName} className="w-10 h-10 mr-2 rounded" />
@@ -333,7 +382,7 @@ const BookingDetailStaff = () => {
                   </div>
                 ))}
                 <div className="mt-4 text-right font-bold">
-                  Tổng số tiền: {Booking.bookingDrinksList.reduce((total, drink) => total + drink.actualPrice * drink.quantity, 0).toLocaleString('vi-VN')} VND
+                  Tổng số tiền: {booking.bookingDrinksList.reduce((total, drink) => total + drink.actualPrice * drink.quantity, 0).toLocaleString('vi-VN')} VND
                 </div>
               </>
             ) : (

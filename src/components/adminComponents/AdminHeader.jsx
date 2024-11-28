@@ -20,6 +20,8 @@ const getTitlePath = (pathName) => {
   const managerDetailPattern = /^\/admin\/manager-detail\/[^/]+$/;
   const customerDetailPattern = /^\/admin\/customer-detail\/[^/]+$/;
   const feedbackDetailPattern = /^\/admin\/feedbackdetail\/[^/]+$/;
+  const bookingDetailPattern = /^\/admin\/table-registrations\/[^/]+$/;
+  const paymentDetailPattern = /^\/admin\/payment-history\/[^/]+$/;
 
   switch (true) {
     case pathName === "/admin/dashboard":
@@ -59,6 +61,14 @@ const getTitlePath = (pathName) => {
     case pathName === "/admin/feedback":
     case feedbackDetailPattern.test(pathName):
       return headerConstants.feedback;
+
+    case pathName === "/admin/table-registrations":
+    case bookingDetailPattern.test(pathName):
+      return headerConstants.booking;
+
+    case pathName === "/admin/payment-history":
+    case paymentDetailPattern.test(pathName):
+      return headerConstants.payment;
 
     default:
       return "Admin";
