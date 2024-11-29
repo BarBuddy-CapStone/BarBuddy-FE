@@ -1,26 +1,14 @@
+import React, { useState, useEffect } from "react";
+import { BookingDrinkInfo, DrinkSelection, DrinkSidebar, Filter, EmotionRecommendationDialog } from "src/pages";
+import { getAllDrinkByBarId } from 'src/lib/service/managerDrinksService';
+import { useLocation, useNavigate } from 'react-router-dom';
+import useAuthStore from 'src/lib/hooks/useUserStore';
+import { Button, Dialog, CircularProgress, DialogContent, Typography, IconButton } from '@mui/material';
+import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import {
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogContent,
-  Typography,
-} from "@mui/material";
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { CancelBookingPopup, DrinkWarningPopup } from "src/components";
-import useAuthStore from "src/lib/hooks/useUserStore";
 import { releaseTableList } from "src/lib/service/BookingTableService";
-import { getAllDrinkByBarId } from "src/lib/service/managerDrinksService";
-import {
-  BookingDrinkInfo,
-  DrinkSelection,
-  DrinkSidebar,
-  EmotionRecommendationDialog,
-  Filter,
-} from "src/pages";
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -223,7 +211,9 @@ const BookingDrink = () => {
     }
   };
 
-  const handleGetRecommendation = async () => {
+  const MAX_RETRIES = 3;
+
+  const handleGetRecommendation = async (retryCount = 0) => {
     if (!emotionText.trim()) {
       setErrorMessage("Vui lòng nhập cảm xúc của bạn");
       return;
@@ -300,8 +290,15 @@ const BookingDrink = () => {
       setShowEmotionDialog(false);
       setEmotionText("");
     } catch (error) {
-      console.error("Error getting drink recommendations:", error);
-      setErrorMessage("Có lỗi xảy ra khi gợi ý đồ uống. Vui lòng thử lại sau");
+      console.error('Error getting drink recommendations:', error);
+      
+      if (retryCount < MAX_RETRIES - 1) {
+        // Thử lại sau 1 giây
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return handleGetRecommendation(retryCount + 1);
+      } else {
+        setErrorMessage(`Có lỗi xảy ra khi gợi ý đồ uống sau ${MAX_RETRIES} lần thử. Vui lòng thử lại sau`);
+      }
     } finally {
       setIsLoadingRecommendation(false);
     }

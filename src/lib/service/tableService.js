@@ -16,8 +16,8 @@ class TableService {
     return response;
   }
 
-  static async getTablesOfBar(barId, tableTypeId, status, pageIndex, pageSize) {
-    let url = `api/Table/tables-of-bar?BarId=${barId}&PageIndex=${pageIndex}&PageSize=${pageSize}`;
+  static async getTablesOfBar(barId, tableTypeId, status, pageIndex, pageSize, requestDate, requestTime) {
+    let url = `api/Table/tables-of-bar?BarId=${barId}&PageIndex=${pageIndex}&PageSize=${pageSize}&RequestDate=${requestDate}&RequestTime=${requestTime}`;
     
     if (tableTypeId) {
       url += `&TableTypeId=${tableTypeId}`;
