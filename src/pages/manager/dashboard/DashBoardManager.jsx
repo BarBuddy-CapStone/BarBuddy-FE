@@ -1,22 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Line } from "react-chartjs-2";
-import { useNavigate } from "react-router-dom";
 import {
-  Chart as ChartJS,
   CategoryScale,
+  Chart as ChartJS,
+  Legend,
   LinearScale,
-  PointElement,
   LineElement,
+  PointElement,
   Title,
   Tooltip,
-  Legend,
-} from "chart.js";
-import {
-  revenueDashboard,
-  getAllRevenue,
-} from "../../../lib/service/adminService";
-import { message } from "antd";
-import { getAllBarsNoPage } from "src/lib/service/barManagerService";
+} from 'chart.js';
+import React, { useEffect, useRef, useState } from "react";
+import { Line } from 'react-chartjs-2';
+import { useNavigate } from 'react-router-dom';
+import { getAllRevenue, revenueDashboard } from "../../../lib/service/adminService";
+import { getAllBarsNoPage } from "../../../lib/service/barManagerService";
 
 ChartJS.register(
   CategoryScale,
@@ -33,31 +29,29 @@ const formatDateToUTC7 = (date) => {
   const d = date || new Date();
   // Thêm 7 giờ để chuyển về UTC+7
   d.setHours(d.getHours() + 7);
-  return d.toISOString().split("T")[0]; // Lấy phần ngày yyyy-mm-dd
+  return d.toISOString().split('T')[0]; // Lấy phần ngày yyyy-mm-dd
 };
 
 // Sửa hàm helper để format tiền VND
 const formatCurrency = (amount) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  })
-    .format(amount)
-    .replace("₫", "VND");
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(amount).replace('₫', 'VND');
 };
 
 // Thêm hàm helper để lấy ngày đầu năm 2024
 const getStartOf2024 = () => {
-  return "2024-01-01";
+  return '2024-01-01';
 };
 
-const Dashboard = () => {
+const DashBoardManager = () => {
   // Khởi tạo startDate là ngày 1/1/2024 và endDate là ngày hiện tại UTC+7
   const [startDate, setStartDate] = useState(getStartOf2024());
   const [endDate, setEndDate] = useState(formatDateToUTC7());
   const [barId, setBarId] = useState("");
-  const [revenue, setRevenue] = useState(0);
   const [barList, setBarList] = useState([]);
+  const [revenue, setRevenue] = useState(0);
   const navigate = useNavigate();
 
   // Thêm state để lưu dữ liệu biểu đồ
@@ -65,22 +59,22 @@ const Dashboard = () => {
     labels: [],
     datasets: [
       {
-        label: "Doanh thu",
+        label: 'Doanh thu',
         data: [],
-        borderColor: "rgb(75, 192, 192)",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
         tension: 0.3,
-        yAxisID: "y",
+        yAxisID: 'y',
       },
       {
-        label: "Số đơn đặt bàn",
+        label: 'Số đơn đặt bàn',
         data: [],
-        borderColor: "rgb(255, 99, 132)",
-        backgroundColor: "rgba(255, 99, 132, 0.2)",
+        borderColor: 'rgb(255, 99, 132)',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
         tension: 0.3,
-        yAxisID: "y1",
-      },
-    ],
+        yAxisID: 'y1',
+      }
+    ]
   });
 
   // Thêm state mới cho totalBooking
@@ -102,36 +96,41 @@ const Dashboard = () => {
     const fetchInitialData = async () => {
       if (!initialFetchDone.current) {
         try {
-          // Fetch tất cả data cần thiết
-          const [barListResponse, revenueResponse] = await Promise.all([
-            getAllBarsNoPage(),
-            getAllRevenue(),
-          ]);
-
-          // Xử lý response của danh sách bar
+          // Fetch danh sách bar trước
+          const barListResponse = await getAllBarsNoPage();
+          
           if (barListResponse?.data?.data?.onlyBarIdNameResponses) {
-            setBarList(barListResponse.data.data.onlyBarIdNameResponses);
-          }
+            const bars = barListResponse.data.data.onlyBarIdNameResponses;
+            setBarList(bars);
+            
+            // Nếu có bars, lấy barId đầu tiên
+            if (bars.length > 0) {
+              const firstBarId = bars[0].barId;
+              setBarId(firstBarId); // Set selected barId
+              
+              // Fetch revenue data với barId đầu tiên
+              const revenueResponse = await getAllRevenue();
+              
+              if (revenueResponse.data?.data) {
+                const { revenueBranch, totalBooking, totalBarBranch } = revenueResponse.data.data;
+                setTotalRevenue(revenueBranch);
+                setTotalBooking(totalBooking);
+                // setTotalBarBranch(totalBarBranch);
+              }
 
-          if (revenueResponse.data?.data) {
-            const { revenueBranch, totalBooking, totalBarBranch } =
-              revenueResponse.data.data;
-            setTotalRevenue(revenueBranch);
-            setTotalBooking(totalBooking);
-            setTotalBarBranch(totalBarBranch);
+              // Fetch biểu đồ với barId đầu tiên
+              await fetchRevenue({
+                barId: firstBarId,
+                fromTime: getStartOf2024(),
+                toTime: formatDateToUTC7()
+              });
+            }
           }
-
-          // Fetch revenue với ngày mặc định và không có barId
-          await fetchRevenue({
-            barId: "", // Mặc định xem tất cả chi nhánh
-            fromTime: getStartOf2024(),
-            toTime: formatDateToUTC7(),
-          });
 
           initialFetchDone.current = true;
         } catch (error) {
           console.error("Error fetching initial data:", error);
-          message.error("Có lỗi xảy ra khi tải dữ liệu");
+          setApiError("Có lỗi xảy ra khi tải dữ liệu");
         }
       }
     };
@@ -150,43 +149,38 @@ const Dashboard = () => {
         filters.fromTime || startDate,
         filters.toTime || endDate
       );
-
+      
       if (response.data?.data) {
-        const { revenueOfBar, totalBooking, bookingReveueResponses } =
-          response.data.data;
+        const { revenueOfBar, totalBooking, bookingReveueResponses } = response.data.data;
         setRevenue(revenueOfBar);
         setTotalBooking(totalBooking);
 
-        const labels = bookingReveueResponses.map((item) =>
-          new Date(item.date).toLocaleDateString("vi-VN")
+        const labels = bookingReveueResponses.map(item => 
+          new Date(item.date).toLocaleDateString('vi-VN')
         );
-        const revenueData = bookingReveueResponses.map(
-          (item) => item.totalPrice
-        );
-        const bookingData = bookingReveueResponses.map(
-          (item) => item.totalBookingOfDay
-        );
+        const revenueData = bookingReveueResponses.map(item => item.totalPrice);
+        const bookingData = bookingReveueResponses.map(item => item.totalBookingOfDay);
 
         setChartData({
           labels,
           datasets: [
             {
-              label: "Doanh thu (VNĐ)",
+              label: 'Doanh thu (VNĐ)',
               data: revenueData,
-              borderColor: "rgb(75, 192, 192)",
-              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              borderColor: 'rgb(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
               tension: 0.3,
-              yAxisID: "y",
+              yAxisID: 'y',
             },
             {
-              label: "Số đơn đặt bàn",
+              label: 'Số đơn đặt bàn',
               data: bookingData,
-              borderColor: "rgb(255, 99, 132)",
-              backgroundColor: "rgba(255, 99, 132, 0.2)",
+              borderColor: 'rgb(255, 99, 132)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
               tension: 0.3,
-              yAxisID: "y1",
-            },
-          ],
+              yAxisID: 'y1',
+            }
+          ]
         });
       }
     } catch (error) {
@@ -194,7 +188,7 @@ const Dashboard = () => {
       if (error.response?.data?.message) {
         setApiError(error.response.data.message);
       } else {
-        setApiError("Có lỗi xảy ra khi tải dữ liệu");
+        setApiError('Có lỗi xảy ra khi tải dữ liệu');
       }
     }
   };
@@ -220,7 +214,7 @@ const Dashboard = () => {
     fetchRevenue({
       barId: barId,
       fromTime: startDate,
-      toTime: endDate,
+      toTime: endDate
     });
   };
 
@@ -228,101 +222,95 @@ const Dashboard = () => {
   const options = {
     responsive: true,
     interaction: {
-      mode: "index",
+      mode: 'index',
       intersect: false,
     },
     plugins: {
       legend: {
-        position: "top",
+        position: 'top',
       },
       title: {
         display: true,
-        text: "Biểu đồ doanh thu và số đơn đặt bàn",
+        text: 'Biểu đồ doanh thu và số đơn đặt bàn',
       },
       tooltip: {
         callbacks: {
-          label: function (context) {
-            let label = context.dataset.label || "";
+          label: function(context) {
+            let label = context.dataset.label || '';
             if (label) {
-              label += ": ";
+              label += ': ';
             }
-            if (context.datasetIndex === 0) {
-              // Doanh thu
-              label += new Intl.NumberFormat("vi-VN", {
-                style: "currency",
-                currency: "VND",
+            if (context.datasetIndex === 0) { // Doanh thu
+              label += new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
               }).format(context.parsed.y);
-            } else {
-              // Số đơn
-              label += context.parsed.y + " đơn";
+            } else { // Số đơn
+              label += context.parsed.y + ' đơn';
             }
             return label;
-          },
-        },
-      },
+          }
+        }
+      }
     },
     scales: {
       y: {
-        type: "linear",
+        type: 'linear',
         display: true,
-        position: "left",
+        position: 'left',
         title: {
           display: true,
-          text: "Doanh thu (VNĐ)",
+          text: 'Doanh thu (VNĐ)'
         },
         ticks: {
-          callback: function (value) {
-            return new Intl.NumberFormat("vi-VN", {
-              style: "currency",
-              currency: "VND",
+          callback: function(value) {
+            return new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND'
             }).format(value);
-          },
-        },
+          }
+        }
       },
       y1: {
-        type: "linear",
+        type: 'linear',
         display: true,
-        position: "right",
+        position: 'right',
         title: {
           display: true,
-          text: "Số đơn đặt bàn",
+          text: 'Số đơn đặt bàn'
         },
         ticks: {
           stepSize: 1,
-          callback: function (value) {
-            return value + " đơn";
-          },
+          callback: function(value) {
+            return value + ' đơn';
+          }
         },
         grid: {
           drawOnChartArea: false,
         },
       },
-    },
+    }
   };
 
   // Handle navigation
   const handleNavigate = () => {
-    navigate("/admin/payment-history"); // Replace with your desired route
+    navigate('/manager/payment-history'); // Replace with your desired route
   };
 
   return (
     <div className="space-y-8">
       {/* Card thống kê tổng quan */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-2 text-gray-600">
-            Tổng Chi Nhánh
-          </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold mb-2 text-gray-600">Tổng Chi Nhánh</h3>
           <p className="text-3xl font-bold text-blue-600">{totalBarBranch}</p>
-        </div>
-
+        </div> */}
+        
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-600">
-              Tổng doanh thu
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-600">Tổng doanh thu</h3>
             <button
-              onClick={() => navigate("/admin/payment-history")}
+              onClick={() => navigate('/manager/payment-history')}
               className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 bg-white rounded-md border border-blue-500 hover:bg-blue-50 transition-colors"
             >
               <span>Lịch sử giao dịch</span>
@@ -332,22 +320,18 @@ const Dashboard = () => {
             {formatCurrency(totalRevenue)}
           </p>
         </div>
-
+        
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-600">
-              Tổng đơn đặt bàn
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-600">Tổng đơn đặt bàn</h3>
             <button
-              onClick={() => navigate("/admin/table-registrations")}
+              onClick={() => navigate('/manager/table-registrations')}
               className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 bg-white rounded-md border border-blue-500 hover:bg-blue-50 transition-colors"
             >
               <span>Lịch sử đặt bàn</span>
             </button>
           </div>
-          <p className="text-3xl font-bold text-purple-600 mt-2">
-            {totalBooking}
-          </p>
+          <p className="text-3xl font-bold text-purple-600 mt-2">{totalBooking}</p>
         </div>
       </div>
 
@@ -355,9 +339,7 @@ const Dashboard = () => {
       <div className="bg-white rounded-lg shadow-md">
         {/* Header của card */}
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Biểu đồ doanh thu và số đơn đặt bàn
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-800">Biểu đồ doanh thu và số đơn đặt bàn</h2>
         </div>
 
         {/* Phần filter */}
@@ -376,19 +358,16 @@ const Dashboard = () => {
                   fetchRevenue({
                     barId: selectedBarId,
                     fromTime: startDate,
-                    toTime: endDate,
+                    toTime: endDate
                   });
                 }}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">Tất cả chi nhánh</option>
-                {barList &&
-                  barList.length > 0 &&
-                  barList.map((bar) => (
-                    <option key={bar.barId} value={bar.barId}>
-                      {bar.barName}
-                    </option>
-                  ))}
+                {barList && barList.length > 0 && barList.map((bar) => (
+                  <option key={bar.barId} value={bar.barId}>
+                    {bar.barName}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -400,9 +379,7 @@ const Dashboard = () => {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className={`px-3 py-2 border ${
-                  dateError ? "border-red-500" : "border-gray-300"
-                } rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                className={`px-3 py-2 border ${dateError ? 'border-red-500' : 'border-gray-300'} rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                 required
               />
             </div>
@@ -415,9 +392,7 @@ const Dashboard = () => {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className={`px-3 py-2 border ${
-                  dateError ? "border-red-500" : "border-gray-300"
-                } rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                className={`px-3 py-2 border ${dateError ? 'border-red-500' : 'border-gray-300'} rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                 required
               />
             </div>
@@ -459,4 +434,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashBoardManager;

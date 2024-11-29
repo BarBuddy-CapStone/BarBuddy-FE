@@ -45,7 +45,7 @@ function Login({ onClose, onSwitchToRegister, onSwitchToForgetPassword, onLoginS
             navigate("/admin/dashboard");
             break;
           case "MANAGER":
-            navigate("/manager/managerDrinkCategory");
+            navigate("/manager/dashboard");
             break;
           case "STAFF":
             navigate("/staff/table-management");

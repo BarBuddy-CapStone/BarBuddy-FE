@@ -15,7 +15,7 @@ import LiquorIcon from "@mui/icons-material/Liquor";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { BookingService } from "src/lib";
-import CircularProgress from '@mui/material/CircularProgress';
+import CircularProgress from "@mui/material/CircularProgress";
 
 // Function to format date and time
 const formatDateTime = (bookingDate, bookingTime) => {
@@ -76,7 +76,7 @@ function BookingDetailPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <CircularProgress style={{ color: '#FFBF00' }} />
+        <CircularProgress style={{ color: "#FFBF00" }} />
       </div>
     );
   }
@@ -162,7 +162,9 @@ function BookingDetailPage() {
         <div className="border-t border-amber-500 mb-6"></div>
 
         {/* Image Carousel with AutoPlay - Adjusted height */}
-        <div className="mb-6 h-64"> {/* Điều chỉnh chiều cao ở đây */}
+        <div className="mb-6 h-64">
+          {" "}
+          {/* Điều chỉnh chiều cao ở đây */}
           <Carousel
             showArrows={true}
             infiniteLoop={true}
@@ -172,7 +174,9 @@ function BookingDetailPage() {
             onClickItem={(index) => handleImageClick(images[index])}
           >
             {images.map((image, index) => (
-              <div key={index} className="cursor-pointer h-64"> {/* Điều chỉnh chiều cao ở đây */}
+              <div key={index} className="cursor-pointer h-64">
+                {" "}
+                {/* Điều chỉnh chiều cao ở đây */}
                 <img
                   src={image}
                   alt={`Slide ${index}`}
@@ -304,7 +308,9 @@ function BookingDetailPage() {
             <li>Vui lòng tới trước 15 phút để có trải nghiệm tốt nhất.</li>
             <li>Vui lòng mang theo CCCD hoặc giấy tờ tùy thân hợp lệ.</li>
             <li>Đặt bàn sẽ được hoàn thành sau khi khách hàng check-in.</li>
-            <li>Nếu quý khách không thể tới, vui lòng hủy đặt bàn trước 2 tiếng.</li>
+            <li>
+              Nếu quý khách không thể tới, vui lòng hủy đặt bàn trước 2 tiếng.
+            </li>
           </ul>
           <p className="mt-4">
             Giới hạn độ tuổi: <strong className="text-amber-400">18+</strong>
@@ -396,15 +402,15 @@ function BookingDetailPage() {
           },
         }}
       >
-        <DialogTitle 
-          id="note-dialog-title" 
-          style={{ 
-            color: "#FFBF00", 
+        <DialogTitle
+          id="note-dialog-title"
+          style={{
+            color: "#FFBF00",
             borderBottom: "1px solid #FFBF00",
             padding: "16px 24px",
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <span>Ghi chú</span>
@@ -412,20 +418,22 @@ function BookingDetailPage() {
             aria-label="close"
             onClick={handleCloseNoteDialog}
             style={{
-              color: '#FFFFFF',
-              padding: '4px',
+              color: "#FFFFFF",
+              padding: "4px",
             }}
           >
-            <CloseIcon style={{ fontSize: '20px' }} />
+            <CloseIcon style={{ fontSize: "20px" }} />
           </IconButton>
         </DialogTitle>
         <DialogContent style={{ padding: "24px" }}>
-          <p style={{ 
-            color: "#E5E7EB", 
-            fontSize: "16px", 
-            lineHeight: "1.5",
-            whiteSpace: "pre-wrap",
-          }}>
+          <p
+            style={{
+              color: "#E5E7EB",
+              fontSize: "16px",
+              lineHeight: "1.5",
+              whiteSpace: "pre-wrap",
+            }}
+          >
             {note || "Không có ghi chú"}
           </p>
         </DialogContent>

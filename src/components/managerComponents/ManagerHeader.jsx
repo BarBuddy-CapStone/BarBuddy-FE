@@ -14,6 +14,9 @@ const getTitlePath = (pathName) => {
   const eventDetailPattern = /^\/manager\/event-management\/event-detail\/[^/]+$/;
 
   switch (true) {
+    case pathName === "/manager/dashboard":
+      return headerConstants.dasboard;
+
     case pathName === "/manager/managerDrinkCategory":
     case pathName.includes("/manager/managerDrinkCategory/managerDrink/"):
     case drinkDetailPattern.test(pathName):

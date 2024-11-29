@@ -72,6 +72,7 @@ import BarBranch from "./pages/customer/barBranch/BarBranch";
 import AboutUs from "./pages/customer/aboutUs/AboutUs";
 import BookingListAdmin from "./pages/admin/table-registration/BookingListAdmin";
 import BookingDetailAdmin from "./pages/admin/table-registration/BookingDetailAdmin";
+import DashBoardManager from "./pages/manager/dashboard/DashBoardManager";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -107,6 +108,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       {/* Route Của Manager */}
       <Route element={<ProtectedManagerRoute />}>
         <Route path="/" element={<ManagerLayout />}>
+        <Route path="manager/dashboard" element={<DashBoardManager />} />
         {/* Thức uống */}
         <Route path="manager/managerDrinkCategory" element={<DrinkCategories />}/>  
         <Route path="manager/managerDrinkCategory/managerDrink/:cateId" element={<ManagerDrink />}/>

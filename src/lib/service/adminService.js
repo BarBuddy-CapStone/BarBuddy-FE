@@ -99,7 +99,7 @@ export const createManager = async (managerData) => {
 };
 
 export const revenueDashboard = async (barId, fromTime, toTime) => {
-    let url = "api/v1/Bar/admin/dashboard/revenueChart";
+    let url = "api/v1/Bar/dashboard/revenueChart";
     const params = new URLSearchParams();
     
     if (barId) params.append('barId', barId);
@@ -119,5 +119,5 @@ export const getBarNameOnly = async () => {
 
 // Thêm API mới
 export const getAllRevenue = async () => {
-    return await axios.get("api/v1/Bar/admin/dashboard/getAllRevenue");
+    return await axios.get("api/v1/Bar/dashboard/getAllRevenue");
 };
