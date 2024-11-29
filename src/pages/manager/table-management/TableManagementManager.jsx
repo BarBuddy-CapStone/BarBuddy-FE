@@ -39,6 +39,19 @@ function TableManagementManager() {
     tableName: ""
   });
   const [barId, setBarId] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
+  const [selectedTime, setSelectedTime] = useState(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    // Làm tròn lên giờ gần nhất từ 10-23h
+    let defaultHour = hour;
+    if (hour < 10) defaultHour = 10;
+    if (hour >= 23) defaultHour = 23;
+    return `${defaultHour.toString().padStart(2, '0')}:00`;
+  });
 
   useEffect(() => {
     const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
@@ -79,7 +92,9 @@ function TableManagementManager() {
           tableTypeId, 
           null, 
           pageIndex, 
-          pageSize
+          pageSize,
+          selectedDate,
+          selectedTime
         );
 
         setTableData(response.data.data.response);
@@ -93,7 +108,7 @@ function TableManagementManager() {
     };
 
     fetchTables();
-  }, [pageIndex, selectedTableType, barId]);
+  }, [pageIndex, selectedTableType, barId, selectedDate, selectedTime]);
 
   const filteredTableData = tableData.filter((table) => {
     const matchesSearch = table.tableName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -227,6 +242,14 @@ function TableManagementManager() {
     setCurrentPage(newPage);
   };
 
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+
+  const handleTimeChange = (time) => {
+    setSelectedTime(time);
+  };
+
   return (
     <div className="overflow-hidden bg-white">
       <div className="flex gap-5 max-md:flex-col">
@@ -238,6 +261,10 @@ function TableManagementManager() {
               onTableTypeChange={handleTableTypeChange}
               selectedTableType={selectedTableType}
               tableTypes={tableTypes}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              onDateChange={handleDateChange}
+              onTimeChange={handleTimeChange}
             />
 
             <section className="w-full mt-10">
@@ -398,8 +425,28 @@ function TableManagementManager() {
   );
 }
 
-function TableHeader({ openModal, onSearch, onTableTypeChange, selectedTableType, tableTypes }) {
+function TableHeader({ 
+  openModal, 
+  onSearch, 
+  onTableTypeChange, 
+  selectedTableType, 
+  tableTypes,
+  selectedDate,
+  selectedTime,
+  onDateChange,
+  onTimeChange 
+}) {
   const navigate = useNavigate();
+
+  // Tạo ngày hiện tại để làm min date
+  const today = new Date();
+  const minDate = today.toISOString().split('T')[0];
+
+  // Tạo mảng các giờ có thể chọn (cách nhau 1 giờ)
+  const availableHours = [];
+  for (let hour = 10; hour <= 23; hour++) {
+    availableHours.push(`${hour.toString().padStart(2, '0')}:00`);
+  }
 
   const handleSearchChange = (event) => {
     onSearch(event.target.value);
@@ -416,6 +463,28 @@ function TableHeader({ openModal, onSearch, onTableTypeChange, selectedTableType
       </div>
 
       <div className="flex-grow flex justify-center gap-4">
+        <input
+          type="date"
+          value={selectedDate || ''}
+          onChange={(e) => onDateChange(e.target.value)}
+          min={minDate} // Không cho chọn ngày cũ
+          className="px-4 py-2 border rounded-full w-40"
+        />
+
+        {/* Thay thế input time bằng select */}
+        <select
+          value={selectedTime || ''}
+          onChange={(e) => onTimeChange(e.target.value)}
+          className="px-4 py-2 border rounded-full w-32"
+        >
+          <option value="">Chọn giờ</option>
+          {availableHours.map((hour) => (
+            <option key={hour} value={hour}>
+              {hour}
+            </option>
+          ))}
+        </select>
+
         <select
           className="px-4 py-2 border rounded-full w-48"
           value={selectedTableType}
@@ -429,7 +498,7 @@ function TableHeader({ openModal, onSearch, onTableTypeChange, selectedTableType
           ))}
         </select>
 
-        <div className="relative w-1/2 max-w-sm">
+        <div className="relative w-64">
           <input
             type="text"
             placeholder="Tìm kiếm bàn..."
@@ -467,6 +536,10 @@ TableHeader.propTypes = {
   onTableTypeChange: PropTypes.func.isRequired,
   selectedTableType: PropTypes.string.isRequired,
   tableTypes: PropTypes.array.isRequired,
+  selectedDate: PropTypes.string,
+  selectedTime: PropTypes.string,
+  onDateChange: PropTypes.func.isRequired,
+  onTimeChange: PropTypes.func.isRequired,
 };
 
 function TableRow({
@@ -486,8 +559,8 @@ function TableRow({
     ? "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-orange-50 border-b border-gray-200 text-sm min-h-[60px] break-words items-center"
     : "grid grid-cols-8 gap-4 px-5 py-4 w-full bg-white border-b border-orange-200 text-sm min-h-[60px] break-words items-center";
 
-  const statusText = status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : "Đã đặt trước";
-  const statusClass = status === 0 ? "bg-green-500" : status === 1 ? "bg-yellow-500" : "bg-red-500";
+  const statusText = status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : status === 2 ? "Đã đặt trước" : "Không khả dụng";
+  const statusClass = status === 0 ? "bg-green-500" : status === 1 ? "bg-yellow-500" : status === 2 ? "bg-blue-500" : "bg-red-500";
 
   return (
     <div className={rowClass}>

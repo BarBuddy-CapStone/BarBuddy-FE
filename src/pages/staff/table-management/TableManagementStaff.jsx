@@ -28,6 +28,19 @@ function TableManagementStaff() {
   const [selectedTableType, setSelectedTableType] = useState("all");
   const [tableTypes, setTableTypes] = useState([]);
   const [newStatus, setNewStatus] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
+  const [selectedTime, setSelectedTime] = useState(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    // Làm tròn lên giờ gần nhất từ 10-23h
+    let defaultHour = hour;
+    if (hour < 10) defaultHour = 10;
+    if (hour >= 23) defaultHour = 23;
+    return `${defaultHour.toString().padStart(2, '0')}:00`;
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +55,9 @@ function TableManagementStaff() {
           tableTypeId,
           null,
           pageIndex,
-          pageSize
+          pageSize,
+          selectedDate,
+          selectedTime
         );
         setTableData(response.data.data.response);
         setTotalPages(response.data.data.totalPage);
@@ -54,7 +69,7 @@ function TableManagementStaff() {
       }
     };
     fetchData();
-  }, [pageIndex, selectedTableType, barId]);
+  }, [pageIndex, selectedTableType, barId, selectedDate, selectedTime]);
 
   useEffect(() => {
     const fetchTableTypes = async () => {
@@ -142,6 +157,14 @@ function TableManagementStaff() {
     }
   };
 
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+
+  const handleTimeChange = (time) => {
+    setSelectedTime(time);
+  };
+
   return (
     <div className="overflow-hidden bg-white">
       <div className="flex gap-5 max-md:flex-col">
@@ -152,6 +175,10 @@ function TableManagementStaff() {
               onTableTypeChange={setSelectedTableType}
               selectedTableType={selectedTableType}
               tableTypes={tableTypes || []}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              onDateChange={handleDateChange}
+              onTimeChange={handleTimeChange}
             />
 
             <section className="w-full mt-10">
@@ -232,7 +259,7 @@ function TableManagementStaff() {
                     <button
                       className={`w-full p-2 rounded ${
                         newStatus === 2
-                          ? "bg-red-500 text-white"
+                          ? "bg-blue-500 text-white"
                           : "bg-gray-100"
                       }`}
                       onClick={() => setNewStatus(2)}
@@ -275,7 +302,11 @@ function TableHeader({
   onSearch,
   onTableTypeChange,
   selectedTableType,
-  tableTypes = []
+  tableTypes = [],
+  selectedDate,
+  selectedTime,
+  onDateChange,
+  onTimeChange
 }) {
   const [searchInput, setSearchInput] = useState("");
 
@@ -293,6 +324,14 @@ function TableHeader({
     }
   };
 
+  const today = new Date();
+  const minDate = today.toISOString().split('T')[0];
+
+  const availableHours = [];
+  for (let hour = 10; hour <= 23; hour++) {
+    availableHours.push(`${hour.toString().padStart(2, '0')}:00`);
+  }
+
   return (
     <div className="flex justify-between items-center mt-8 w-full text-black">
       <div className="flex items-center gap-4 text-2xl font-bold">
@@ -300,6 +339,27 @@ function TableHeader({
       </div>
 
       <div className="flex-grow flex justify-center gap-4">
+        <input
+          type="date"
+          value={selectedDate || ''}
+          onChange={(e) => onDateChange(e.target.value)}
+          min={minDate}
+          className="px-4 py-2 border rounded-full w-40"
+        />
+
+        <select
+          value={selectedTime || ''}
+          onChange={(e) => onTimeChange(e.target.value)}
+          className="px-4 py-2 border rounded-full w-32"
+        >
+          <option value="">Chọn giờ</option>
+          {availableHours.map((hour) => (
+            <option key={hour} value={hour}>
+              {hour}
+            </option>
+          ))}
+        </select>
+
         <select
           className="px-4 py-2 border rounded-full w-48"
           value={selectedTableType}
@@ -313,7 +373,7 @@ function TableHeader({
           ))}
         </select>
 
-        <div className="relative w-1/2 max-w-sm">
+        <div className="relative w-64">
           <input
             type="text"
             placeholder="Tìm kiếm bàn..."
@@ -339,6 +399,10 @@ TableHeader.propTypes = {
   onTableTypeChange: PropTypes.func.isRequired,
   selectedTableType: PropTypes.string.isRequired,
   tableTypes: PropTypes.array.isRequired,
+  selectedDate: PropTypes.string,
+  selectedTime: PropTypes.string,
+  onDateChange: PropTypes.func.isRequired,
+  onTimeChange: PropTypes.func.isRequired,
 };
 
 function TableRow({
@@ -353,18 +417,16 @@ function TableRow({
   index,
   onStatusClick,
 }) {
-  const rowClass = isEven
-    ? "grid grid-cols-7 gap-4 px-5 py-4 w-full bg-orange-50 border-b border-gray-200 text-sm min-h-[60px] break-words items-center cursor-pointer hover:bg-orange-100"
-    : "grid grid-cols-7 gap-4 px-5 py-4 w-full bg-white border-b border-orange-200 text-sm min-h-[60px] break-words items-center cursor-pointer hover:bg-gray-50";
+  const rowClass = `${
+    isEven
+      ? "grid grid-cols-7 gap-4 px-5 py-4 w-full bg-orange-50 border-b border-gray-200"
+      : "grid grid-cols-7 gap-4 px-5 py-4 w-full bg-white border-b border-orange-200"
+  } text-sm min-h-[60px] break-words items-center ${
+    status === 3 ? "" : "cursor-pointer hover:bg-orange-100"
+  }`;
 
-  const statusText =
-    status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : "Đã đặt trước";
-  const statusClass =
-    status === 0
-      ? "bg-green-500"
-      : status === 1
-      ? "bg-yellow-500"
-      : "bg-red-500";
+  const statusText = status === 0 ? "Còn trống" : status === 1 ? "Đang phục vụ" : status === 2 ? "Đã đặt trước" : "Không khả dụng";
+  const statusClass = status === 0 ? "bg-green-500" : status === 1 ? "bg-yellow-500" : status === 2 ? "bg-blue-500" : "bg-red-500";
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -374,8 +436,14 @@ function TableRow({
     }).format(amount);
   };
 
+  const handleClick = () => {
+    if (status !== 3) {
+      onStatusClick();
+    }
+  };
+
   return (
-    <div className={rowClass} onClick={onStatusClick}>
+    <div className={rowClass} onClick={handleClick}>
       <div className="text-center font-normal">{index + 1}</div>
       <div className="text-center font-normal">{tableName}</div>
       <div className="text-center font-normal">{tableTypeName}</div>
