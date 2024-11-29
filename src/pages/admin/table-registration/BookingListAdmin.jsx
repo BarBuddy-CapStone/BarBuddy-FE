@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react"; 
-import { FilterSection, BookingTable } from "src/pages";
-import BookingService from "src/lib/service/bookingService"; 
-import Pagination from '@mui/material/Pagination'; 
-import { message } from 'antd';
-import {QRScanner} from 'src/components';
-import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
-import { IconButton } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import BookingService from "src/lib/service/bookingService";
+import Pagination from "@mui/material/Pagination";
+import { message } from "antd";
+import { BookingTableAdmin, FilterSectionAdmin } from "src/pages";
+import { QRScanner } from "src/components";
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import { IconButton } from "@mui/material";
 
-function BookingListStaff() {
+function BookingListAdmin() {
   const navigate = useNavigate();
 
   const getCurrentDate = () => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   };
 
   const [filter, setFilter] = useState({
@@ -21,36 +21,59 @@ function BookingListStaff() {
     email: "",
     status: "All",
     bookingDate: getCurrentDate(),
-    checkInTime: "Cả ngày"
+    checkInTime: "Cả ngày",
   });
-  const [bookings, setBookings] = useState([]); 
-  const [timeRange, setTimeRange] = useState({ startTime: "", endTime: "" }); 
-  const [currentPage, setCurrentPage] = useState(1); 
-  const [totalPages, setTotalPages] = useState(1); 
-  const [loading, setLoading] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [pageSize] = useState(10);
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
-  const [initialLoad, setInitialLoad] = useState(true);
+
+  const isMounted = useRef(false);
+  const initialFetchDone = useRef(false);
+  const isScanning = useRef(false);
+
+  useEffect(() => {
+    if (!initialFetchDone.current) {
+      setLoading(true);
+      fetchBookings(filter, currentPage).finally(() => {
+        setLoading(false);
+        initialFetchDone.current = true;
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isMounted.current) {
+      setLoading(true);
+      fetchBookings(filter, currentPage).finally(() => {
+        setLoading(false);
+      });
+    } else {
+      isMounted.current = true;
+    }
+  }, [currentPage]);
 
   const handleFilterChange = async (newFilter) => {
     setFilter(newFilter);
     setCurrentPage(1);
-    await fetchBookings(newFilter, 1);
+    setLoading(true);
+    await fetchBookings(newFilter, 1).finally(() => {
+      setLoading(false);
+    });
   };
 
   const fetchBookings = async (currentFilter, page) => {
-    setLoading(true);
-    const userInfo = JSON.parse(sessionStorage.getItem('userInfo')); 
-    const barId = userInfo ? userInfo.identityId : null; 
-
     try {
-      const response = await BookingService.getAllBookingsByStaff(
-        barId, 
+      const response = await BookingService.getAllBookingsByAdmin(
         currentFilter.name || null,
         currentFilter.email || null,
         currentFilter.phone || null,
         currentFilter.bookingDate || null,
-        currentFilter.checkInTime === "Cả ngày" ? null : currentFilter.checkInTime,
+        currentFilter.checkInTime === "Cả ngày"
+          ? null
+          : currentFilter.checkInTime,
         currentFilter.status === "All" ? null : parseInt(currentFilter.status),
         page,
         pageSize
@@ -59,12 +82,6 @@ function BookingListStaff() {
       if (response.data && response.data.data) {
         setBookings(response.data.data.response || []);
         setTotalPages(response.data.data.totalPage || 1);
-        if (response.data.data.startTime && response.data.data.endTime) {
-          setTimeRange({ 
-            startTime: response.data.data.startTime, 
-            endTime: response.data.data.endTime 
-          });
-        }
       } else {
         setBookings([]);
         setTotalPages(1);
@@ -74,23 +91,8 @@ function BookingListStaff() {
       message.error("Có lỗi xảy ra khi tải dữ liệu");
       setBookings([]);
       setTotalPages(1);
-    } finally {
-      setLoading(false);
-      setInitialLoad(false);
     }
   };
-
-  useEffect(() => {
-    if (initialLoad) {
-      fetchBookings(filter, currentPage);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!initialLoad) {
-      fetchBookings(filter, currentPage);
-    }
-  }, [currentPage]);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
@@ -99,7 +101,7 @@ function BookingListStaff() {
   const handleScanSuccess = async (scannedQRCode) => {
     try {
       const bookingId = scannedQRCode;
-      navigate(`/staff/table-registration-detail/${bookingId}`, {
+      navigate(`/admin/table-registration-detail/${bookingId}`, {
         state: { fromQR: true }
       });
       setIsQRScannerOpen(false);
@@ -118,7 +120,7 @@ function BookingListStaff() {
             </h1>
 
             <div className="flex justify-end mb-4">
-              <IconButton 
+              <IconButton
                 onClick={() => setIsQRScannerOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
                 size="large"
@@ -127,24 +129,23 @@ function BookingListStaff() {
               </IconButton>
             </div>
 
-            <QRScanner 
+            <QRScanner
               isOpen={isQRScannerOpen}
               onClose={() => setIsQRScannerOpen(false)}
               onScanSuccess={handleScanSuccess}
             />
 
-            <FilterSection 
-              onFilterChange={handleFilterChange} 
-              timeRange={timeRange} 
-              initialDate={getCurrentDate()} 
+            <FilterSectionAdmin
+              onFilterChange={handleFilterChange}
+              initialDate={getCurrentDate()}
             />
-            
-            <BookingTable 
-              filter={filter} 
-              bookings={bookings} 
-              loading={loading} 
-            /> 
-            
+
+            <BookingTableAdmin
+              filter={filter}
+              bookings={bookings}
+              loading={loading}
+            />
+
             {bookings.length > 0 && (
               <div className="flex justify-center pt-4">
                 <Pagination
@@ -164,4 +165,4 @@ function BookingListStaff() {
   );
 }
 
-export default BookingListStaff;
+export default BookingListAdmin;

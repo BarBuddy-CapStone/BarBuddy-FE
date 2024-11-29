@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Line } from 'react-chartjs-2';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -90,40 +90,44 @@ const Dashboard = () => {
   // Thêm state để quản lý lỗi API
   const [apiError, setApiError] = useState("");
 
+  const initialFetchDone = useRef(false);
+
   useEffect(() => {
-    const fetchBarList = async () => {
-      try {
-        const response = await getBarNameOnly();
-        if (response.data?.data) {
-          setBarList(response.data.data);
+    const fetchInitialData = async () => {
+      if (!initialFetchDone.current) {
+        try {
+          // Fetch tất cả data cần thiết
+          const [barListResponse, revenueResponse] = await Promise.all([
+            getBarNameOnly(),
+            getAllRevenue(),
+          ]);
+
+          if (barListResponse.data?.data) {
+            setBarList(barListResponse.data.data);
+          }
+
+          if (revenueResponse.data?.data) {
+            const { revenueBranch, totalBooking, totalBarBranch } = revenueResponse.data.data;
+            setTotalRevenue(revenueBranch);
+            setTotalBooking(totalBooking);
+            setTotalBarBranch(totalBarBranch);
+          }
+
+          // Fetch revenue với ngày mặc định
+          await fetchRevenue({
+            fromTime: getStartOf2024(),
+            toTime: formatDateToUTC7()
+          });
+
+          initialFetchDone.current = true;
+        } catch (error) {
+          console.error("Error fetching initial data:", error);
         }
-      } catch (error) {
-        console.error("Error fetching bar list:", error);
       }
     };
 
-    const fetchAllRevenue = async () => {
-      try {
-        const response = await getAllRevenue();
-        if (response.data?.data) {
-          const { revenueBranch, totalBooking, totalBarBranch } = response.data.data;
-          setTotalRevenue(revenueBranch);
-          setTotalBooking(totalBooking);
-          setTotalBarBranch(totalBarBranch);
-        }
-      } catch (error) {
-        console.error("Error fetching all revenue:", error);
-      }
-    };
-
-    fetchBarList();
-    fetchAllRevenue();
-    // Gọi fetchRevenue với ngày mặc định
-    fetchRevenue({
-      fromTime: getStartOf2024(),
-      toTime: formatDateToUTC7()
-    });
-  }, []);
+    fetchInitialData();
+  }, []); // Empty dependency array
 
   const fetchRevenue = async (filters = {}) => {
     try {
@@ -292,11 +296,12 @@ const Dashboard = () => {
           <h3 className="text-lg font-semibold mb-2 text-gray-600">Tổng Chi Nhánh</h3>
           <p className="text-3xl font-bold text-blue-600">{totalBarBranch}</p>
         </div>
+        
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-gray-600">Tổng doanh thu</h3>
             <button
-              onClick={handleNavigate}
+              onClick={() => navigate('/admin/payment-history')}
               className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 bg-white rounded-md border border-blue-500 hover:bg-blue-50 transition-colors"
             >
               <span>Lịch sử giao dịch</span>
@@ -306,9 +311,18 @@ const Dashboard = () => {
             {formatCurrency(totalRevenue)}
           </p>
         </div>
+        
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-2 text-gray-600">Tổng đơn đặt bàn</h3>
-          <p className="text-3xl font-bold text-purple-600">{totalBooking}</p>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-600">Tổng đơn đặt bàn</h3>
+            <button
+              onClick={() => navigate('/admin/table-registrations')}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 bg-white rounded-md border border-blue-500 hover:bg-blue-50 transition-colors"
+            >
+              <span>Lịch sử đặt bàn</span>
+            </button>
+          </div>
+          <p className="text-3xl font-bold text-purple-600 mt-2">{totalBooking}</p>
         </div>
       </div>
 

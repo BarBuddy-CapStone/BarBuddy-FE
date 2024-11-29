@@ -8,18 +8,24 @@ import Loading from "../commonComponents/loading/Loading";
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const sidebarRef = useRef(null);
   const location = useLocation();
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     // Show loading when route changes
     setIsLoading(true);
     
     // Hide loading after content is ready
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 400); 
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [location.pathname]);
