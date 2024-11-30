@@ -12,6 +12,7 @@ import { getAllDrinkByBarId } from 'src/lib/service/managerDrinksService';
 import Login from 'src/pages/(auth)/login/Login';
 import { getBarById } from '../../../lib/service/customerService';
 import { getEventByBarId } from '../../../lib/service/eventManagerService';
+import Cookies from 'js-cookie';
 
 // Component hiển thị danh sách đánh giá
 const FeedbackList = React.memo(({ feedbacks }) => {
@@ -381,7 +382,7 @@ const BarDetail = () => {
     const handleBooking = () => {
         if (!barDetails.isAnyTableAvailable) return;
 
-        const authToken = sessionStorage.getItem('authToken');
+        const authToken = Cookies.get('authToken');
         if (!authToken) {
             setShowLoginPopup(true);
             return;
