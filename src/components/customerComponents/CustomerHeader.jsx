@@ -14,6 +14,7 @@ import {
   Toolbar,
   Typography
 } from "@mui/material";
+import Cookies from "js-cookie";
 import React, { Fragment, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -42,7 +43,7 @@ const CustomerHeader = () => {
   const [openForgetPassword, setOpenForgetPassword] = useState(false);
 
   useEffect(() => {
-    const storedUserInfo = sessionStorage.getItem('userInfo');
+    const storedUserInfo = Cookies.get('userInfo');
     if (storedUserInfo) {
       const userInfoParsed = JSON.parse(storedUserInfo);
       setAccountId(userInfoParsed.accountId);

@@ -375,15 +375,22 @@ const BarDetail = () => {
         navigate("/home");
     }, [navigate]);
 
-    const handleLoginSuccess = (userData) => {
+    const handleLoginSuccess = () => {
         setShowLoginPopup(false);
+        // Sau khi login thành công, kiểm tra lại cookie
+        const userInfoFromCookie = Cookies.get('userInfo');
+        if (userInfoFromCookie) {
+            navigate('/bookingtable', { state: { barId } });
+        }
     };
 
     const handleBooking = () => {
         if (!barDetails.isAnyTableAvailable) return;
 
-        const authToken = Cookies.get('authToken');
-        if (!authToken) {
+        // Thay vì check session, kiểm tra userInfo từ cookie
+        const userInfoFromCookie = Cookies.get('userInfo');
+        
+        if (!userInfoFromCookie) {
             setShowLoginPopup(true);
             return;
         }
