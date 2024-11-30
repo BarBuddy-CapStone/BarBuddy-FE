@@ -8,9 +8,14 @@ import { useAuthStore } from "src/lib"; // Nhập useAuthStore
 import { googleLogin, login } from "../../../lib/service/authenService"; // Nhập hàm login
 // Import icon Google (ví dụ sử dụng Material-UI icons)
 import Registration from "../registration/Registration";
-import { useGoogleSignIn } from 'src/hooks/useGoogleSignIn';
+import { useGoogleSignIn } from "src/hooks/useGoogleSignIn";
 
-function Login({ onClose, onSwitchToRegister, onSwitchToForgetPassword, onLoginSuccess }) {
+function Login({
+  onClose,
+  onSwitchToRegister,
+  onSwitchToForgetPassword,
+  onLoginSuccess,
+}) {
   const [email, setEmail] = useState(""); // Trạng thái cho email
   const [password, setPassword] = useState(""); // Trạng thái cho mật khẩu
   const [loading, setLoading] = useState(false); // State for loading spinner
@@ -21,55 +26,61 @@ function Login({ onClose, onSwitchToRegister, onSwitchToForgetPassword, onLoginS
   const [currentPopup, setCurrentPopup] = useState("login");
 
   // Memoize handleGoogleResponse với useCallback
-  const handleGoogleResponse = useCallback(async (response) => {
-    try {
-      setGoogleLoading(true);
-      setError(null);
+  const handleGoogleResponse = useCallback(
+    async (response) => {
+      try {
+        setGoogleLoading(true);
+        setError(null);
 
-      const token = response.credential;
-      const googleLoginResponse = await googleLogin(token);
+        const token = response.credential;
+        const googleLoginResponse = await googleLogin(token);
 
-      if (googleLoginResponse.data.statusCode === 200) {
-        const userData = googleLoginResponse.data.data;
-        loginStore.login(userData.accessToken, userData);
+        if (googleLoginResponse.data.statusCode === 200) {
+          const userData = googleLoginResponse.data.data;
+          loginStore.login(userData.accessToken, userData);
 
-        const decodedToken = jwtDecode(userData.accessToken);
-        const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+          const decodedToken = jwtDecode(userData.accessToken);
+          const userRole =
+            decodedToken[
+              "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            ];
 
-        toast.success("Đăng nhập Google thành công!");
-        onLoginSuccess(userData);
-        onClose();
+          toast.success("Đăng nhập Google thành công!");
+          onLoginSuccess(userData);
+          onClose();
 
-        switch (userRole) {
-          case "ADMIN":
-            navigate("/admin/dashboard");
-            break;
-          case "MANAGER":
-            navigate("/manager/dashboard");
-            break;
-          case "STAFF":
-            navigate("/staff/table-management");
-            break;
-          case "CUSTOMER":
-            setTimeout(() => {
-              window.location.reload();
-            }, 1500);
-            break;
-          default:
-            navigate("/home");
-            break;
+          switch (userRole) {
+            case "ADMIN":
+              navigate("/admin/dashboard");
+              break;
+            case "MANAGER":
+              navigate("/manager/dashboard");
+              break;
+            case "STAFF":
+              navigate("/staff/table-management");
+              break;
+            case "CUSTOMER":
+              setTimeout(() => {
+                window.location.reload();
+              }, 1500);
+              break;
+            default:
+              navigate("/home");
+              break;
+          }
         }
+      } catch (error) {
+        console.error("Lỗi đăng nhập Google:", error);
+        setError("Đăng nhập bằng Google thất bại. Vui lòng thử lại.");
+      } finally {
+        setGoogleLoading(false);
       }
-    } catch (error) {
-      console.error("Lỗi đăng nhập Google:", error);
-      setError("Đăng nhập bằng Google thất bại. Vui lòng thử lại.");
-    } finally {
-      setGoogleLoading(false);
-    }
-  }, [loginStore, navigate, onClose, onLoginSuccess]); // Thêm dependencies
+    },
+    [loginStore, navigate, onClose, onLoginSuccess]
+  ); // Thêm dependencies
 
   // Gọi useGoogleSignIn ở đầu component, sau các useState
-  useGoogleSignIn('google-signin-login', handleGoogleResponse);
+  useGoogleSignIn("google-signin-login", handleGoogleResponse);
 
   // Function to handle login
   const handleLogin = async () => {
@@ -98,8 +109,8 @@ function Login({ onClose, onSwitchToRegister, onSwitchToForgetPassword, onLoginS
             navigate("/admin/dashboard");
             window.location.reload();
             break;
-          case "MANAGER": // Thêm case cho MANAGER
-            navigate("/manager/table-registrations");
+          case "MANAGER":
+            navigate("/manager/dashboard");
             window.location.reload();
             break;
           case "STAFF":
@@ -202,7 +213,7 @@ function Login({ onClose, onSwitchToRegister, onSwitchToForgetPassword, onLoginS
           </div>
 
           <div className="flex gap-5 justify-between mt-6 w-full max-md:mr-1 max-md:max-w-full">
-            <button 
+            <button
               className="text-gray-400 hover:text-orange-400"
               onClick={onSwitchToForgetPassword}
             >
@@ -264,10 +275,7 @@ function Login({ onClose, onSwitchToRegister, onSwitchToForgetPassword, onLoginS
 
                 {/* Container cho nút đăng nhập Google */}
                 <div className="google-btn-container w-full flex justify-center items-center">
-                  <div 
-                    id="google-signin-login" 
-                    className="google-btn"
-                  />
+                  <div id="google-signin-login" className="google-btn" />
                 </div>
               </>
             )}
