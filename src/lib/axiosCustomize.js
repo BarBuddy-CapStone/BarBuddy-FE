@@ -1,6 +1,6 @@
 import axios from "axios";
-import { refreshToken } from "./service/authenService";
 import useAuthStore from "./hooks/useUserStore";
+import { refreshToken } from "./service/authenService";
 
 const instance = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
@@ -9,7 +9,8 @@ const instance = axios.create({
 // Add request interceptor
 instance.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem('authToken');
+    // Lấy token từ cả cookie (cho CUSTOMER) và session storage (cho role hệ thống)
+    const token = useAuthStore.getState().token;
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
@@ -36,7 +37,7 @@ instance.interceptors.response.use(
         const response = await refreshToken(userInfo.refreshToken);
         const { accessToken } = response.data.data;
 
-        // Cập nhật token mới vào store
+        // Cập nhật token mới vào store (sẽ tự động update cookie hoặc session tùy role)
         useAuthStore.getState().updateToken(accessToken);
 
         // Cập nhật token mới vào header của request cũ
@@ -47,7 +48,6 @@ instance.interceptors.response.use(
       } catch (refreshError) {
         // Nếu refresh token thất bại
         useAuthStore.getState().logout();
-        sessionStorage.clear(); // Xóa toàn bộ session storage
         window.location.href = '/'; // Redirect về trang home
         return Promise.reject(refreshError);
       }

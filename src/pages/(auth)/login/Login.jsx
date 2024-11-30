@@ -60,9 +60,8 @@ function Login({
               navigate("/staff/table-management");
               break;
             case "CUSTOMER":
-              setTimeout(() => {
-                window.location.reload();
-              }, 1500);
+              navigate("/home");
+              window.location.reload();
               break;
             default:
               navigate("/home");
@@ -90,14 +89,16 @@ function Login({
       const response = await login({ email, password });
       if (response.data.statusCode === 200) {
         const userData = response.data.data;
-        loginStore.login(userData.accessToken, userData);
-
+        
         // Giải mã JWT token
         const decodedToken = jwtDecode(userData.accessToken);
-        const userRole =
-          decodedToken[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-          ];
+        const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+        
+        // Thêm role vào userData
+        userData.role = userRole;
+        
+        // Login với userData đã có role
+        loginStore.login(userData.accessToken, userData);
 
         toast.success("Đăng nhập thành công!");
         onLoginSuccess(userData);
@@ -118,6 +119,7 @@ function Login({
             window.location.reload();
             break;
           case "CUSTOMER":
+            navigate("/home");
             window.location.reload();
             break;
           default:

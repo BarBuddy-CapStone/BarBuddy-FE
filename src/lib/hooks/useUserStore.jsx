@@ -1,33 +1,94 @@
 import { create } from 'zustand';
 import { logout } from '../service/authenService';
+import Cookies from 'js-cookie';
+import { jwtDecode } from "jwt-decode";
 
 const useAuthStore = create((set, get) => {
-  const storedToken = typeof window !== 'undefined' ? sessionStorage.getItem('authToken') : null;
-  const storedUserInfo = typeof window !== 'undefined' ? sessionStorage.getItem('userInfo') : null;
-  
-  let initialUserInfo = {};
-  try {
-    if (storedUserInfo) {
-      initialUserInfo = JSON.parse(storedUserInfo);
+  // Hàm helper để set cookie cho Customer
+  const setCookieSecurely = (name, value) => {
+    const isHttps = window.location.protocol === 'https:';
+    
+    Cookies.set(name, value, {
+      expires: 7,
+      path: '/',
+      secure: isHttps,
+      sameSite: 'strict'
+    });
+  };
+
+  // Hàm helper để lấy thông tin user từ storage phù hợp
+  const getUserFromStorage = () => {
+    const userFromSession = sessionStorage.getItem('userInfo');
+    const userFromCookie = Cookies.get('userInfo');
+    
+    if (userFromCookie) {
+      try {
+        return JSON.parse(userFromCookie);
+      } catch (error) {
+        console.error('Error parsing cookie:', error);
+        return {};
+      }
     }
-  } catch (error) {
-    console.error("Error parsing JSON userInfo:", error);
+    if (userFromSession) {
+      try {
+        return JSON.parse(userFromSession);
+      } catch (error) {
+        console.error('Error parsing session:', error);
+        return {};
+      }
+    }
+    return {};
+  };
+
+  const getTokenFromStorage = () => {
+    const tokenFromSession = sessionStorage.getItem('authToken');
+    const tokenFromCookie = Cookies.get('authToken');
+    return tokenFromCookie || tokenFromSession || null;
+  };
+
+  // Thêm event listener để lắng nghe thay đổi từ tab khác
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', (e) => {
+      // Khi cookie thay đổi
+      if (e.key === null) {  // null key indicates cookie change
+        const token = getTokenFromStorage();
+        const userInfo = getUserFromStorage();
+        set({ 
+          isLoggedIn: !!token,
+          token,
+          userInfo
+        });
+      }
+    });
   }
 
-  const isLoggedIn = !!storedToken;
-
   return {
-    isLoggedIn,
-    userInfo: initialUserInfo,
-    token: storedToken,
+    isLoggedIn: !!getTokenFromStorage(),
+    userInfo: getUserFromStorage(),
+    token: getTokenFromStorage(),
     login: (token, userInfo) => {
-      sessionStorage.setItem('authToken', token);
-      sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+      // Decode token để lấy role
+      const decodedToken = jwtDecode(token);
+      const role = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+      
+      console.log('Role from token:', role); // Debug
+
+      const isCustomer = role === 'CUSTOMER';
+      
+      if (isCustomer) {
+        console.log('Saving to cookie...'); // Debug
+        setCookieSecurely('authToken', token);
+        setCookieSecurely('userInfo', JSON.stringify(userInfo));
+      } else {
+        console.log('Saving to session...'); // Debug
+        sessionStorage.setItem('authToken', token);
+        sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+      }
+      
       set({ isLoggedIn: true, userInfo, token });
-    },
-    updateToken: (newToken) => {
-      sessionStorage.setItem('authToken', newToken);
-      set({ token: newToken });
+      if (isCustomer) {
+        window.dispatchEvent(new Event('storage'));
+      }
     },
     logout: async () => {
       try {
@@ -35,15 +96,29 @@ const useAuthStore = create((set, get) => {
         if (userInfo?.refreshToken) {
           await logout(userInfo.refreshToken);
         }
+        
+        Cookies.remove('authToken', { path: '/' });
+        Cookies.remove('userInfo', { path: '/' });
         sessionStorage.removeItem('authToken');
         sessionStorage.removeItem('userInfo');
-        set({ isLoggedIn: false, userInfo: {}, token: null });
+        
+        // Trigger storage event cho các tab khác
+        window.dispatchEvent(new Event('storage'));
       } catch (error) {
         console.error("Logout error:", error);
+        Cookies.remove('authToken', { path: '/' });
+        Cookies.remove('userInfo', { path: '/' });
         sessionStorage.removeItem('authToken');
         sessionStorage.removeItem('userInfo');
+        
         set({ isLoggedIn: false, userInfo: {}, token: null });
+        // Trigger storage event cho các tab khác
+        window.dispatchEvent(new Event('storage'));
       }
+    },
+    updateToken: (newToken) => {
+      sessionStorage.setItem('authToken', newToken);
+      set({ token: newToken });
     },
     setUserInfo: (info) => set({ userInfo: info }),
     setToken: (token) => set({ token }),
