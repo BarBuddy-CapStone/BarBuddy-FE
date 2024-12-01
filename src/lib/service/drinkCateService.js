@@ -24,11 +24,16 @@ const getAllDrinkEmo = async (emoId) => {
     return await axios.get(`api/v1/Drink/getDrinkBaedEmo/${emoId}`)
 }
 
+const getDrinkOfBar = async (search = '', cateId = '') => {
+    return await axios.get(`api/v1/Drink/drinkOfBar?Search=${search}&cateId=${cateId}`);
+}
+
 export {
     getAllDrinkCate,
     getOneDrinkCate,
     addDrinkCate,
     updDrinkCate,
     delDrinkCate,
-    getAllDrinkEmo
+    getAllDrinkEmo,
+    getDrinkOfBar
 }

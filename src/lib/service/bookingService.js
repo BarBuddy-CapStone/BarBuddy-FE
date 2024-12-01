@@ -174,6 +174,15 @@ class BookingService {
 
     return await axios.get(url);
   }
+
+  static async addExtraDrink(bookingId, data) {
+    return await axios.post(`api/Booking/extra-drink/${bookingId}`, data);
+  }
+
+  static async updateExtraDrink(bookingId, data) {
+    return await axios.patch(`api/Booking/upd-extra-drink/${bookingId}`, data);
+  }
+
 }
 
 export default BookingService;

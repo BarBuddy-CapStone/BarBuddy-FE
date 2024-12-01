@@ -73,6 +73,8 @@ import AboutUs from "./pages/customer/aboutUs/AboutUs";
 import BookingListAdmin from "./pages/admin/table-registration/BookingListAdmin";
 import BookingDetailAdmin from "./pages/admin/table-registration/BookingDetailAdmin";
 import DashBoardManager from "./pages/manager/dashboard/DashBoardManager";
+import { ExtraDrinkStaff } from "./pages";
+
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -149,6 +151,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="staff/payment-history" element={<PaymentHistoryStaff />}/> 
           <Route path="staff/table-registrations" element={<BookingListStaff />}/> 
           <Route path="staff/table-registration-detail/:bookingId" element={<BookingDetailStaff />}/> 
+          <Route path="staff/extra-drinks/:bookingId" element={<ExtraDrinkStaff />}/>
         </Route>
       </Route>
 

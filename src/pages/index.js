@@ -35,6 +35,9 @@ import FilterSectionManager from "./manager/table-registration/components/Filter
 import BookingTableAdmin from "./admin/table-registration/components/BookingTableAdmin";
 import FilterSectionAdmin from "./admin/table-registration/components/FilterSectionAdmin";
 
+// Staff Extra Drink
+import ExtraDrinkStaff from "./staff/table-registration/components/ExtraDrinkStaff";
+
 // Customer Event
 import Event from "./customer/event/Event";
 import EventDetail from "./customer/event/EventDetailCustomer";
@@ -75,4 +78,5 @@ export {
   EventDetail,
   BookingTableAdmin,
   FilterSectionAdmin,
+  ExtraDrinkStaff,
 };
