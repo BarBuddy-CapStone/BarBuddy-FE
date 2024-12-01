@@ -16,6 +16,7 @@ import EditNoteIcon from "@mui/icons-material/EditNote";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { BookingService } from "src/lib";
 import CircularProgress from "@mui/material/CircularProgress";
+import QrCodeIcon from '@mui/icons-material/QrCode';
 
 // Function to format date and time
 const formatDateTime = (bookingDate, bookingTime) => {
@@ -54,6 +55,7 @@ function BookingDetailPage() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
+  const [isQRDialogOpen, setIsQRDialogOpen] = useState(false);
 
   // Fetch booking details from API
   useEffect(() => {
@@ -128,6 +130,14 @@ function BookingDetailPage() {
     setIsNoteDialogOpen(false);
   };
 
+  const handleOpenQRDialog = () => {
+    setIsQRDialogOpen(true);
+  };
+
+  const handleCloseQRDialog = () => {
+    setIsQRDialogOpen(false);
+  };
+
   return (
     <div
       className={`flex flex-col px-8 mx-16 ${
@@ -153,7 +163,7 @@ function BookingDetailPage() {
               <ArrowBackIcon />
               <span>Quay lại</span>
             </button>
-            <span className="text-amber-400 text-neutral-400">
+            <span className="text-neutral-400">
               {getTimeAgo(bookingData.createAt)}
             </span>
           </div>
@@ -267,6 +277,18 @@ function BookingDetailPage() {
                 className="text-amber-400 hover:underline ml-2"
               >
                 Xem chi tiết
+              </button>
+            </div>
+          </div>
+          <div className="flex items-start">
+            <QrCodeIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Mã QR Check-in:</span>
+              <button
+                onClick={handleOpenQRDialog}
+                className="text-amber-400 hover:underline ml-2"
+              >
+                Xem QR Code
               </button>
             </div>
           </div>
@@ -435,6 +457,55 @@ function BookingDetailPage() {
             }}
           >
             {note || "Không có ghi chú"}
+          </p>
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Dialog */}
+      <Dialog
+        open={isQRDialogOpen}
+        onClose={handleCloseQRDialog}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          style: {
+            backgroundColor: '#27272a',
+            borderRadius: '8px',
+          },
+        }}
+      >
+        <DialogTitle
+          style={{
+            color: '#FFBF00',
+            borderBottom: '1px solid #FFBF00',
+            padding: '16px 24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <span>Mã QR Check-in</span>
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseQRDialog}
+            style={{ color: '#FFFFFF' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent style={{ padding: '24px', textAlign: 'center' }}>
+          <img
+            src={bookingData.qrTicket}
+            alt="QR Ticket"
+            style={{
+              maxWidth: '80%',
+              height: 'auto',
+              margin: '0 auto',
+              borderRadius: '8px',
+            }}
+          />
+          <p style={{ color: '#E5E7EB', marginTop: '16px', fontSize: '14px' }}>
+            Vui lòng xuất trình mã QR này khi check-in tại quầy
           </p>
         </DialogContent>
       </Dialog>

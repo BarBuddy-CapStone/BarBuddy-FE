@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
+import Cookies from 'js-cookie';
 
 const ProtectedCustomerRoute = () => {
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const checkUserRole = () => {
-      const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
+      const userInfo = JSON.parse(Cookies.get("userInfo"));
       if (!userInfo || !userInfo.accessToken) {
         setUserRole("GUEST");
         return;
