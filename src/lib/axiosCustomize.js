@@ -34,10 +34,18 @@ instance.interceptors.response.use(
       try {
         // Lấy refreshToken từ userInfo
         const userInfo = useAuthStore.getState().userInfo;
+        
+        // Kiểm tra nếu không có refreshToken
+        if (!userInfo?.refreshToken) {
+          useAuthStore.getState().clearAuthData();
+          window.location.href = '/';
+          return Promise.reject(error);
+        }
+
         const response = await refreshToken(userInfo.refreshToken);
         const { accessToken } = response.data.data;
 
-        // Cập nhật token mới vào store (sẽ tự động update cookie hoặc session tùy role)
+        // Cập nhật token mới vào store
         useAuthStore.getState().updateToken(accessToken);
 
         // Cập nhật token mới vào header của request cũ
@@ -46,9 +54,9 @@ instance.interceptors.response.use(
         // Thực hiện lại request cũ với token mới
         return instance(originalRequest);
       } catch (refreshError) {
-        // Nếu refresh token thất bại
-        useAuthStore.getState().logout();
-        window.location.href = '/'; // Redirect về trang home
+        // Khi refresh token thất bại, đảm bảo xóa hết data
+        useAuthStore.getState().clearAuthData();
+        window.location.href = '/';
         return Promise.reject(refreshError);
       }
     }

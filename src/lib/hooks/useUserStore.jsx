@@ -96,24 +96,10 @@ const useAuthStore = create((set, get) => {
         if (userInfo?.refreshToken) {
           await logout(userInfo.refreshToken);
         }
-        
-        Cookies.remove('authToken', { path: '/' });
-        Cookies.remove('userInfo', { path: '/' });
-        sessionStorage.removeItem('authToken');
-        sessionStorage.removeItem('userInfo');
-        
-        // Trigger storage event cho các tab khác
-        window.dispatchEvent(new Event('storage'));
+        get().clearAuthData();
       } catch (error) {
         console.error("Logout error:", error);
-        Cookies.remove('authToken', { path: '/' });
-        Cookies.remove('userInfo', { path: '/' });
-        sessionStorage.removeItem('authToken');
-        sessionStorage.removeItem('userInfo');
-        
-        set({ isLoggedIn: false, userInfo: {}, token: null });
-        // Trigger storage event cho các tab khác
-        window.dispatchEvent(new Event('storage'));
+        get().clearAuthData();
       }
     },
     updateToken: (newToken) => {
@@ -125,6 +111,15 @@ const useAuthStore = create((set, get) => {
     updateUserInfo: (newInfo) => set((state) => ({
       userInfo: { ...state.userInfo, ...newInfo }
     })),
+    clearAuthData: () => {
+      Cookies.remove('authToken', { path: '/' });
+      Cookies.remove('userInfo', { path: '/' });
+      sessionStorage.removeItem('authToken');
+      sessionStorage.removeItem('userInfo');
+      
+      set({ isLoggedIn: false, userInfo: {}, token: null });
+      window.dispatchEvent(new Event('storage'));
+    },
   };
 });
 
