@@ -22,6 +22,7 @@ const getTitlePath = (pathName) => {
   const feedbackDetailPattern = /^\/admin\/feedbackdetail\/[^/]+$/;
   const bookingDetailPattern = /^\/admin\/table-registrations\/[^/]+$/;
   const paymentDetailPattern = /^\/admin\/payment-history\/[^/]+$/;
+  const barDetailPattern = /^\/admin\/barProfile\/[^/]+$/;
 
   switch (true) {
     case pathName === "/admin/dashboard":
@@ -30,6 +31,10 @@ const getTitlePath = (pathName) => {
     case pathName === "/admin/barmanager":
     case pathName === "/admin/addbar":
     case pathName === "/admin/barProfile":
+      return headerConstants.managerBarBranch;
+
+    case pathName === "/admin/barProfile":
+      case barDetailPattern.test(pathName):
       return headerConstants.managerBarBranch;
 
     // ManagerAccount - bao gồm cả list và detail

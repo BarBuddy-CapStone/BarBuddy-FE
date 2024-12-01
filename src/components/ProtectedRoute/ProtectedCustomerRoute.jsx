@@ -8,18 +8,25 @@ const ProtectedCustomerRoute = () => {
 
   useEffect(() => {
     const checkUserRole = () => {
-      const userInfo = JSON.parse(Cookies.get("userInfo"));
-      if (!userInfo || !userInfo.accessToken) {
+      const userInfoCookie = Cookies.get("userInfo");
+      
+      if (!userInfoCookie) {
         setUserRole("GUEST");
         return;
       }
 
       try {
+        const userInfo = JSON.parse(userInfoCookie);
+        if (!userInfo || !userInfo.accessToken) {
+          setUserRole("GUEST");
+          return;
+        }
+
         const decodedToken = jwtDecode(userInfo.accessToken);
         const role = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
         setUserRole(role);
       } catch (error) {
-        console.error("Lỗi khi giải mã token:", error);
+        console.error("Lỗi khi xử lý thông tin người dùng:", error);
         setUserRole("GUEST");
       }
     };
