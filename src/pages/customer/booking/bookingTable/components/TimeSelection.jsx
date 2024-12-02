@@ -2,6 +2,10 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { Menu, MenuItem } from "@mui/material";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import useAuthStore from "src/lib/hooks/useUserStore";
+import { releaseTableList } from "src/lib/service/BookingTableService";
+import { releaseTableListSignalR } from "src/lib/Third-party/signalR/hubConnection";
 
 const TimeSelection = ({
   startTime,
@@ -9,7 +13,11 @@ const TimeSelection = ({
   onTimeChange,
   selectedDate,
   selectedTime,
+  selectedTables = [],
+  setSelectedTables,
+  barId,
 }) => {
+  const { token } = useAuthStore();
   const [timeOptions, setTimeOptions] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -55,9 +63,36 @@ const TimeSelection = ({
     }
   }, [startTime, endTime, selectedDate]);
 
-  const handleTimeChange = (time) => {
-    onTimeChange(time);
-    setAnchorEl(null);
+  const handleTimeChange = async (time) => {
+    if (selectedTables.length > 0) {
+      try {
+        const data = {
+          barId: barId,
+          date: dayjs(selectedDate).format("YYYY-MM-DD"),
+          time: selectedTime + ":00",
+          table: selectedTables.map((table) => ({
+            tableId: table.tableId,
+            time: selectedTime + ":00"
+          }))
+        };
+
+        const response = await releaseTableList(token, data);
+        
+        if (response.data.statusCode === 200) {
+          await releaseTableListSignalR(data);
+          setSelectedTables([]);
+          onTimeChange(time);
+          setAnchorEl(null);
+          toast.success("Đã xóa danh sách bàn đã chọn do thay đổi thời gian");
+        }
+      } catch (error) {
+        console.error("Error releasing table list:", error);
+        toast.error("Có lỗi xảy ra khi xóa danh sách bàn");
+      }
+    } else {
+      onTimeChange(time);
+      setAnchorEl(null);
+    }
   };
 
   const handleClick = (event) => {

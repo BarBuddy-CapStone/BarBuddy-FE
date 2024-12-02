@@ -1,5 +1,6 @@
 import { Button } from '@mui/material';
 import dayjs from 'dayjs';
+import Cookies from 'js-cookie';
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import useAuthStore from 'src/lib/hooks/useUserStore';
@@ -115,6 +116,40 @@ const SelectedList = ({ selectedTables, setSelectedTables, barId, selectedDate, 
     if (a.time > b.time) return 1;
     return 0;
   });
+
+  useEffect(() => {
+    const fetchHoldTables = async () => {
+      if (barId && selectedDate && selectedTime) {
+        try {
+          const response = await getAllHoldTable(
+            token,
+            barId,
+            selectedDate,
+            selectedTime
+          );
+
+          if (response.data.statusCode === 200) {
+            const userHoldTables = response.data.data.filter(
+              table => table.accountId === Cookies.get('authToken')
+            );
+            
+            // Cập nhật danh sách bàn đã chọn từ memory cache
+            setSelectedTables(userHoldTables.map(table => ({
+              tableId: table.tableId,
+              tableName: table.tableName,
+              date: table.date,
+              time: table.time,
+              holdExpiry: table.holdExpiry
+            })));
+          }
+        } catch (error) {
+          console.error("Error fetching hold tables:", error);
+        }
+      }
+    };
+
+    fetchHoldTables();
+  }, [selectedTime, selectedDate]);
 
   return (
     <div className={`flex flex-col px-8 pt-4 pb-10 mt-4 w-full text-xs text-white rounded-md bg-neutral-800 shadow-[0px_0px_16px_rgba(0,0,0,0.07)] ${sortedTables.length === 0 ? 'hidden' : ''}`}>

@@ -157,6 +157,7 @@ const BookingTableInfo = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const { token, userInfo } = useAuthStore();
   const [currentHoldCount, setCurrentHoldCount] = useState(0);
+  const [selectedTables, setSelectedTables] = useState([]);
 
   useEffect(() => {
     const fetchTableTypes = async () => {
@@ -355,6 +356,9 @@ const BookingTableInfo = ({
               selectedDate={selectedDate}
               selectedTime={selectedTime}
               onTimeChange={onTimeChange}
+              selectedTables={selectedTables}
+              setSelectedTables={setSelectedTables}
+              barId={barId}
             />
 
             <div

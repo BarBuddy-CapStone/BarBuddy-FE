@@ -21,6 +21,7 @@ const getTitlePath = (pathName) => {
   const customerDetailPattern = /^\/admin\/customer-detail\/[^/]+$/;
   const feedbackDetailPattern = /^\/admin\/feedbackdetail\/[^/]+$/;
   const bookingDetailPattern = /^\/admin\/table-registrations\/[^/]+$/;
+  const bookingDetailsPattern = /^\/admin\/table-registration-detail\/[^/]+$/;
   const paymentDetailPattern = /^\/admin\/payment-history\/[^/]+$/;
   const barDetailPattern = /^\/admin\/barProfile\/[^/]+$/;
 
@@ -34,7 +35,7 @@ const getTitlePath = (pathName) => {
       return headerConstants.managerBarBranch;
 
     case pathName === "/admin/barProfile":
-      case barDetailPattern.test(pathName):
+    case barDetailPattern.test(pathName):
       return headerConstants.managerBarBranch;
 
     // ManagerAccount - bao gồm cả list và detail
@@ -66,6 +67,10 @@ const getTitlePath = (pathName) => {
     case pathName === "/admin/feedback":
     case feedbackDetailPattern.test(pathName):
       return headerConstants.feedback;
+
+    case pathName === "/admin/table-registration-detail":
+    case bookingDetailsPattern.test(pathName):
+      return headerConstants.booking;
 
     case pathName === "/admin/table-registrations":
     case bookingDetailPattern.test(pathName):
@@ -149,9 +154,7 @@ const AdminHeader = ({ className, onMenuClick, isSidebarOpen }) => {
             <span className="text-sm font-medium text-gray-700">
               Welcome {userInfo?.fullname}
             </span>
-            <span className="text-xs text-gray-500">
-              Admin
-            </span>
+            <span className="text-xs text-gray-500">Admin</span>
           </div>
         </div>
       </header>

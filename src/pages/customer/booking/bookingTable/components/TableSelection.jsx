@@ -178,7 +178,14 @@ const TableSelection = (
 
   const handleTableSelect = async (table) => {
     if (currentHoldCount >= 5) {
-      toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.");
+      toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       return;
     }
 
@@ -227,14 +234,42 @@ const TableSelection = (
 
           // Cập nhật số lượng bàn đang giữ
           setCurrentHoldCount(prev => prev + 1);
+
+          // Thêm toast thông báo thành công
+          toast.success(`Đã giữ bàn ${table.tableName} thành công!`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
         }
       } catch (error) {
-        if (error.response?.data?.statusCode === 400 && 
-            error.response?.data?.message?.includes("Bạn chỉ được phép giữ tối đa 5 bàn")) {
-          toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.");
+        if (error.response?.data?.statusCode === 400) {
+          // Xử lý các trường hợp lỗi cụ thể từ backend
+          if (error.response.data.message?.includes("Bạn chỉ được phép giữ tối đa 5 bàn")) {
+            toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.", {
+              position: "top-right",
+              autoClose: 3000,
+            });
+          } else if (error.response.data.message?.includes("Bàn đã được đặt")) {
+            toast.error("Bàn này đã được người khác đặt.", {
+              position: "top-right",
+              autoClose: 3000,
+            });
+          } else {
+            toast.error(error.response.data.message || "Có lỗi xảy ra khi giữ bàn", {
+              position: "top-right",
+              autoClose: 3000,
+            });
+          }
         } else {
           console.error("Error holding table:", error);
-          toast.error("Có lỗi xảy ra khi giữ bàn");
+          toast.error("Có lỗi xảy ra khi giữ bàn", {
+            position: "top-right",
+            autoClose: 3000,
+          });
         }
       }
     }

@@ -3,9 +3,9 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { LoadingSpinner } from 'src/components';
-import { hubConnection, releaseTableSignalR } from 'src/lib/Third-party/signalR/hubConnection';
+import { hubConnection, releaseTableListSignalR, releaseTableSignalR } from 'src/lib/Third-party/signalR/hubConnection';
 import useAuthStore from 'src/lib/hooks/useUserStore';
-import { filterBookingTable, getAllHoldTable, releaseTable } from "src/lib/service/BookingTableService";
+import { filterBookingTable, getAllHoldTable, releaseTable, releaseTableList } from "src/lib/service/BookingTableService";
 import { getBarById, getBarTableById } from "src/lib/service/customerService";
 import CustomerForm from './components/CustomerForm';
 import Dialog from '@mui/material/Dialog';
@@ -304,9 +304,144 @@ const BookingTable = () => {
     }
   };
 
-  const handleTimeChange = (time) => {
-    setSelectedTime(time);
-    setFilteredTables([]);
+  const handleTimeChange = async (time) => {
+    if (selectedTables.length > 0) {
+      try {
+        const data = {
+          barId: barId,
+          date: dayjs(selectedDate).format('YYYY-MM-DD'),
+          time: selectedTime + ":00", 
+          table: selectedTables.map(table => ({
+            tableId: table.tableId,
+            time: table.time
+          }))
+        };
+
+        const response = await releaseTableList(token, data);
+        
+        if (response.data.statusCode === 200) {
+          await releaseTableListSignalR(data);
+          setSelectedTables([]);
+          setSelectedTime(time);
+          
+          // Fetch lại danh sách bàn đã hold từ cache với time mới
+          const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
+          const formattedTime = time + ":00";
+
+          try {
+            const holdTablesResponse = await getAllHoldTable(token, barId, formattedDate, formattedTime);
+            
+            if (holdTablesResponse.data.statusCode === 200) {
+              const holdTables = holdTablesResponse.data.data || [];
+              
+              // Cập nhật lại trạng thái các bàn với dữ liệu mới từ cache
+              setAllFilteredTables(prev => {
+                const currentDateTimeKey = `${formattedDate}-${formattedTime}`;
+                const updatedTables = prev[currentDateTimeKey]?.map(table => {
+                  const holdTable = holdTables.find(ht => ht.tableId === table.tableId);
+                  if (holdTable) {
+                    return {
+                      ...table,
+                      status: 2,
+                      isHeld: true,
+                      holderId: holdTable.accountId,
+                      date: holdTable.date,
+                      time: holdTable.time
+                    };
+                  }
+                  return {
+                    ...table,
+                    status: 1,
+                    isHeld: false,
+                    holderId: null,
+                    date: null,
+                    time: null
+                  };
+                });
+                
+                return {
+                  ...prev,
+                  [currentDateTimeKey]: updatedTables
+                };
+              });
+
+              // Cập nhật filteredTables hiện tại
+              setFilteredTables(prev => 
+                prev.map(table => {
+                  const holdTable = holdTables.find(ht => ht.tableId === table.tableId);
+                  if (holdTable) {
+                    return {
+                      ...table,
+                      status: 2,
+                      isHeld: true,
+                      holderId: holdTable.accountId,
+                      date: holdTable.date,
+                      time: holdTable.time
+                    };
+                  }
+                  return {
+                    ...table,
+                    status: 1,
+                    isHeld: false,
+                    holderId: null,
+                    date: null,
+                    time: null
+                  };
+                })
+              );
+            }
+          } catch (error) {
+            console.error("Error fetching hold tables:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error releasing table list:", error);
+        toast.error("Có lỗi xảy ra khi xóa danh sách bàn");
+      }
+    } else {
+      setSelectedTime(time);
+      
+      // Fetch lại danh sách bàn đã hold từ cache khi chỉ thay đổi time
+      const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
+      const formattedTime = time + ":00";
+
+      try {
+        const holdTablesResponse = await getAllHoldTable(token, barId, formattedDate, formattedTime);
+        
+        if (holdTablesResponse.data.statusCode === 200) {
+          const holdTables = holdTablesResponse.data.data || [];
+          
+          // Cập nhật lại trạng thái các bàn
+          if (filteredTables.length > 0) {
+            setFilteredTables(prev => 
+              prev.map(table => {
+                const holdTable = holdTables.find(ht => ht.tableId === table.tableId);
+                if (holdTable) {
+                  return {
+                    ...table,
+                    status: 2,
+                    isHeld: true,
+                    holderId: holdTable.accountId,
+                    date: holdTable.date,
+                    time: holdTable.time
+                  };
+                }
+                return {
+                  ...table,
+                  status: 1,
+                  isHeld: false,
+                  holderId: null,
+                  date: null,
+                  time: null
+                };
+              })
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching hold tables:", error);
+      }
+    }
   };
 
   const handleDateChange = (date) => {
@@ -528,6 +663,8 @@ const BookingTable = () => {
               onTimeChange={handleTimeChange}
               startTime={startTime}
               endTime={endTime}
+              selectedTables={selectedTables}
+              setSelectedTables={setSelectedTables}
             />
             <TableSelection
               selectedTables={selectedTables}
