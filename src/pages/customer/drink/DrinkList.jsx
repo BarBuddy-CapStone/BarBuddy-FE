@@ -82,7 +82,7 @@ const FilterSection = ({
                 <div className="shrink-0 mt-3 h-px border border-amber-400 border-solid max-md:max-w-full sticky top-12 bg-neutral-800 z-10" />
                 <div className="overflow-y-auto flex-grow custom-scrollbar" style={{ maxHeight: 'calc(100% - 60px)' }}>
                     <div className="flex justify-between items-center mt-4">
-                        <h3 className="text-base leading-none text-amber-400">Danh mục thức uống</h3>
+                        <h3 className="text-base leading-none text-amber-400">Thể Loại thức uống</h3>
                         <div className="flex gap-2">
                             <button onClick={() => setDrinksModalOpen(true)} className="text-amber-400 text-xs hover:text-amber-500">
                                 Xem tất cả
@@ -173,7 +173,7 @@ const FilterSection = ({
             </div>
 
             {isDrinksModalOpen && (
-                <Modal title="Danh mục thức uống" onClose={() => setDrinksModalOpen(false)} onConfirm={handleConfirmDrinks}>
+                <Modal title="Thể Loại thức uống" onClose={() => setDrinksModalOpen(false)} onConfirm={handleConfirmDrinks}>
                     {dataDrinkCate?.map((drink) => (
                         <label key={drink?.drinksCategoryId} className="flex items-center gap-2 mt-2 text-sm">
                             <input

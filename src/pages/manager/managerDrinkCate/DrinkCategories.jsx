@@ -124,7 +124,7 @@ const DrinkCategories = () => {
                     <div className="relative w-[300px]">
                         <input
                             type="text"
-                            placeholder="Tìm kiếm danh mục..."
+                            placeholder="Tìm kiếm thể loại..."
                             value={searchTerm}
                             onChange={handleSearch}
                             className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -139,7 +139,7 @@ const DrinkCategories = () => {
                 </div>
 
                 <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">
-                    Danh Sách Danh Mục Thức Uống
+                    Danh Sách Thể Loại Thức Uống
                 </h2>
 
                 <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">

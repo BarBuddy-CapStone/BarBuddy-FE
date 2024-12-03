@@ -32,18 +32,22 @@ function TableManagementStaff() {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
-  const [selectedTime, setSelectedTime] = useState(() => {
-    const now = new Date();
-    const hour = now.getHours();
-    // Làm tròn lên giờ gần nhất từ 10-23h
-    let defaultHour = hour;
-    if (hour < 10) defaultHour = 10;
-    if (hour >= 23) defaultHour = 23;
-    return `${defaultHour.toString().padStart(2, '0')}:00`;
-  });
+  const [selectedTime, setSelectedTime] = useState('');
+  const [barTimes, setBarTimes] = useState([]);
+  const [timeSlot, setTimeSlot] = useState(1);
 
   useEffect(() => {
-    const fetchData = async () => {
+    if (barTimes.length > 0 && selectedDate) {
+      const selectedDay = new Date(selectedDate).getDay();
+      const barTime = barTimes.find(time => time.dayOfWeek === selectedDay);
+      if (barTime && !selectedTime) {
+        setSelectedTime(barTime.startTime.slice(0, 5));
+      }
+    }
+  }, [barTimes, selectedDate, selectedTime]);
+
+  useEffect(() => {
+    const fetchData = async (date = selectedDate, time = selectedTime) => {
       if (!barId) return;
 
       setIsLoading(true);
@@ -56,11 +60,17 @@ function TableManagementStaff() {
           null,
           pageIndex,
           pageSize,
-          selectedDate,
-          selectedTime
+          date,
+          time
         );
         setTableData(response.data.data.response);
         setTotalPages(response.data.data.totalPage);
+        if (response.data.data.barTimes) {
+          setBarTimes(response.data.data.barTimes);
+        }
+        if (response.data.data.timeSlot) {
+          setTimeSlot(response.data.data.timeSlot);
+        }
       } catch (error) {
         console.error("Lỗi khi lấy danh sách bàn:", error);
         message.error("Có lỗi xảy ra khi tải dữ liệu");
@@ -158,11 +168,32 @@ function TableManagementStaff() {
   };
 
   const handleDateChange = (date) => {
+    if (!isValidDay(date)) {
+      message.error('Quán bar không mở cửa vào ngày này!');
+      return;
+    }
     setSelectedDate(date);
+    
+    // Lấy giờ mở cửa của ngày được chọn
+    const selectedDay = new Date(date).getDay();
+    const barTime = barTimes.find(time => time.dayOfWeek === selectedDay);
+    if (barTime) {
+      const startTime = barTime.startTime.slice(0, 5); // Lấy chỉ giờ và phút (HH:mm)
+      setSelectedTime(startTime); // Set selectedTime
+      
+      // Gọi lại API với giờ mở cửa mới
+      fetchData(date, startTime);
+    }
   };
 
   const handleTimeChange = (time) => {
     setSelectedTime(time);
+  };
+
+  const isValidDay = (date) => {
+    if (!date) return false;
+    const selectedDay = new Date(date).getDay();
+    return barTimes.some(time => time.dayOfWeek === selectedDay);
   };
 
   return (
@@ -179,6 +210,8 @@ function TableManagementStaff() {
               selectedTime={selectedTime}
               onDateChange={handleDateChange}
               onTimeChange={handleTimeChange}
+              barTimes={barTimes}
+              timeSlot={timeSlot}
             />
 
             <section className="w-full mt-10">
@@ -306,7 +339,9 @@ function TableHeader({
   selectedDate,
   selectedTime,
   onDateChange,
-  onTimeChange
+  onTimeChange,
+  barTimes,
+  timeSlot,
 }) {
   const [searchInput, setSearchInput] = useState("");
 
@@ -327,10 +362,35 @@ function TableHeader({
   const today = new Date();
   const minDate = today.toISOString().split('T')[0];
 
-  const availableHours = [];
-  for (let hour = 10; hour <= 23; hour++) {
-    availableHours.push(`${hour.toString().padStart(2, '0')}:00`);
-  }
+  const getAvailableHours = () => {
+    if (!selectedDate) return [];
+    
+    const selectedDay = new Date(selectedDate).getDay();
+    const barTime = barTimes.find(time => time.dayOfWeek === selectedDay);
+    
+    if (!barTime) return [];
+
+    const startHour = parseInt(barTime.startTime.split(':')[0]);
+    const endHour = parseInt(barTime.endTime.split(':')[0]);
+    
+    const hours = [];
+    for (let hour = startHour; hour <= endHour; hour += timeSlot) {
+      hours.push(`${hour.toString().padStart(2, '0')}:00`);
+    }
+    if (!hours.includes(`${endHour.toString().padStart(2, '0')}:00`)) {
+      hours.push(`${endHour.toString().padStart(2, '0')}:00`);
+    }
+    return hours;
+  };
+
+  const getDefaultTime = () => {
+    if (!selectedDate) return '';
+    
+    const selectedDay = new Date(selectedDate).getDay();
+    const barTime = barTimes.find(time => time.dayOfWeek === selectedDay);
+    
+    return barTime ? barTime.startTime.slice(0, 5) : ''; // Lấy chỉ giờ và phút (HH:mm)
+  };
 
   return (
     <div className="flex justify-between items-center mt-8 w-full text-black">
@@ -348,12 +408,12 @@ function TableHeader({
         />
 
         <select
-          value={selectedTime || ''}
+          value={selectedTime || getDefaultTime()}
           onChange={(e) => onTimeChange(e.target.value)}
           className="px-4 py-2 border rounded-full w-32"
+          disabled={!selectedDate}
         >
-          <option value="">Chọn giờ</option>
-          {availableHours.map((hour) => (
+          {getAvailableHours().map((hour) => (
             <option key={hour} value={hour}>
               {hour}
             </option>
@@ -403,6 +463,8 @@ TableHeader.propTypes = {
   selectedTime: PropTypes.string,
   onDateChange: PropTypes.func.isRequired,
   onTimeChange: PropTypes.func.isRequired,
+  barTimes: PropTypes.array.isRequired,
+  timeSlot: PropTypes.number.isRequired,
 };
 
 function TableRow({

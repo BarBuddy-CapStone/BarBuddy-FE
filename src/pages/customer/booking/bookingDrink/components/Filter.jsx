@@ -74,7 +74,7 @@ const Filter = ({
             
             <div className="bg-neutral-700 rounded-lg p-3 mb-3">
                 <div className="flex justify-between items-center mb-2">
-                    <h4 className="text-sm leading-none text-amber-400">Danh mục thức uống</h4>
+                    <h4 className="text-sm leading-none text-amber-400">Thể Loại thức uống</h4>
                     <button onClick={() => setIsDrinksModalOpen(true)} className="text-amber-400 text-xs hover:text-amber-500">
                         Xem tất cả
                     </button>
@@ -162,7 +162,7 @@ const Filter = ({
             <Dialog open={isDrinksModalOpen} onClose={() => setIsDrinksModalOpen(false)} PaperProps={{
                 style: { backgroundColor: '#333', color: 'white' },
             }}>
-                <DialogTitle style={{ color: '#FFA500' }}>Danh mục thức uống</DialogTitle>
+                <DialogTitle style={{ color: '#FFA500' }}>Thể Loại thức uống</DialogTitle>
                 <DialogContent>
                     {uniqueCategories.map((cate) => (
                         <div key={cate.drinksCategoryId} className="flex items-center justify-between mb-2">
