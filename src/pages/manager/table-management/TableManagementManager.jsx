@@ -43,15 +43,25 @@ function TableManagementManager() {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
-  const [selectedTime, setSelectedTime] = useState(() => {
-    const now = new Date();
-    const hour = now.getHours();
-    // Làm tròn lên giờ gần nhất từ 10-23h
-    let defaultHour = hour;
-    if (hour < 10) defaultHour = 10;
-    if (hour >= 23) defaultHour = 23;
-    return `${defaultHour.toString().padStart(2, '0')}:00`;
-  });
+  const [selectedTime, setSelectedTime] = useState('');
+  const [barTimes, setBarTimes] = useState([]);
+  const [timeSlot, setTimeSlot] = useState(1);
+
+  useEffect(() => {
+    if (barTimes.length > 0 && selectedDate) {
+      const selectedDay = new Date(selectedDate).getDay();
+      const barTime = barTimes.find(time => time.dayOfWeek === selectedDay);
+      if (barTime && !selectedTime) {
+        setSelectedTime(barTime.startTime.slice(0, 5));
+      }
+    }
+  }, [barTimes, selectedDate, selectedTime]);
+
+  const isValidDay = (date) => {
+    if (!date) return false;
+    const selectedDay = new Date(date).getDay();
+    return barTimes.some(time => time.dayOfWeek === selectedDay);
+  };
 
   useEffect(() => {
     const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
@@ -80,33 +90,39 @@ function TableManagementManager() {
     fetchTableTypes();
   }, [barId]);
 
-  useEffect(() => {
-    const fetchTables = async () => {
-      if (!barId) return;
-      
-      setIsLoading(true);
-      try {
-        const tableTypeId = selectedTableType === "all" ? null : selectedTableType;
-        const response = await TableService.getTablesOfBar(
-          barId, 
-          tableTypeId, 
-          null, 
-          pageIndex, 
-          pageSize,
-          selectedDate,
-          selectedTime
-        );
+  const fetchTables = async (date = selectedDate, time = selectedTime) => {
+    if (!barId) return;
+    
+    setIsLoading(true);
+    try {
+      const tableTypeId = selectedTableType === "all" ? null : selectedTableType;
+      const response = await TableService.getTablesOfBar(
+        barId, 
+        tableTypeId, 
+        null, 
+        pageIndex, 
+        pageSize,
+        date,
+        time
+      );
 
-        setTableData(response.data.data.response);
-        setTotalPages(response.data.data.totalPage);
-      } catch (error) {
-        console.error("Lỗi khi lấy danh sách bàn:", error);
-        message.error("Có lỗi xảy ra khi tải dữ liệu");
-      } finally {
-        setIsLoading(false);
+      setTableData(response.data.data.response);
+      setTotalPages(response.data.data.totalPage);
+      if (response.data.data.barTimes) {
+        setBarTimes(response.data.data.barTimes);
       }
-    };
+      if (response.data.data.timeSlot) {
+        setTimeSlot(response.data.data.timeSlot);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách bàn:", error);
+      message.error("Có lỗi xảy ra khi tải dữ liệu");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTables();
   }, [pageIndex, selectedTableType, barId, selectedDate, selectedTime]);
 
@@ -243,7 +259,22 @@ function TableManagementManager() {
   };
 
   const handleDateChange = (date) => {
+    if (!isValidDay(date)) {
+      message.error('Quán bar không mở cửa vào ngày này!');
+      return;
+    }
     setSelectedDate(date);
+    
+    // Lấy giờ mở cửa của ngày được chọn
+    const selectedDay = new Date(date).getDay();
+    const barTime = barTimes.find(time => time.dayOfWeek === selectedDay);
+    if (barTime) {
+      const startTime = barTime.startTime.slice(0, 5); // Lấy chỉ giờ và phút (HH:mm)
+      setSelectedTime(startTime); // Set selectedTime
+      
+      // Gọi lại API với giờ mở cửa mới
+      fetchTables(date, startTime);
+    }
   };
 
   const handleTimeChange = (time) => {
@@ -265,6 +296,8 @@ function TableManagementManager() {
               selectedTime={selectedTime}
               onDateChange={handleDateChange}
               onTimeChange={handleTimeChange}
+              barTimes={barTimes}
+              timeSlot={timeSlot}
             />
 
             <section className="w-full mt-10">
@@ -434,19 +467,48 @@ function TableHeader({
   selectedDate,
   selectedTime,
   onDateChange,
-  onTimeChange 
+  onTimeChange,
+  barTimes,
+  timeSlot,
 }) {
   const navigate = useNavigate();
 
-  // Tạo ngày hiện tại để làm min date
+  // Lấy ngày hiện tại
   const today = new Date();
   const minDate = today.toISOString().split('T')[0];
 
-  // Tạo mảng các giờ có thể chọn (cách nhau 1 giờ)
-  const availableHours = [];
-  for (let hour = 10; hour <= 23; hour++) {
-    availableHours.push(`${hour.toString().padStart(2, '0')}:00`);
-  }
+  // Tạo danh sách giờ có thể chọn dựa trên barTimes
+  const getAvailableHours = () => {
+    if (!selectedDate) return [];
+    
+    const selectedDay = new Date(selectedDate).getDay();
+    const barTime = barTimes.find(time => time.dayOfWeek === selectedDay);
+    
+    if (!barTime) return [];
+
+    const startHour = parseInt(barTime.startTime.split(':')[0]);
+    const endHour = parseInt(barTime.endTime.split(':')[0]);
+    
+    const hours = [];
+    for (let hour = startHour; hour <= endHour; hour += timeSlot) {
+      hours.push(`${hour.toString().padStart(2, '0')}:00`);
+    }
+    // Thêm giờ cuối cùng nếu chưa được thêm
+    if (!hours.includes(`${endHour.toString().padStart(2, '0')}:00`)) {
+      hours.push(`${endHour.toString().padStart(2, '0')}:00`);
+    }
+    return hours;
+  };
+
+  // Thêm hàm để lấy giờ mặc định
+  const getDefaultTime = () => {
+    if (!selectedDate) return '';
+    
+    const selectedDay = new Date(selectedDate).getDay();
+    const barTime = barTimes.find(time => time.dayOfWeek === selectedDay);
+    
+    return barTime ? barTime.startTime.slice(0, 5) : ''; // Lấy chỉ giờ và phút (HH:mm)
+  };
 
   const handleSearchChange = (event) => {
     onSearch(event.target.value);
@@ -467,18 +529,17 @@ function TableHeader({
           type="date"
           value={selectedDate || ''}
           onChange={(e) => onDateChange(e.target.value)}
-          min={minDate} // Không cho chọn ngày cũ
+          min={minDate}
           className="px-4 py-2 border rounded-full w-40"
         />
 
-        {/* Thay thế input time bằng select */}
         <select
-          value={selectedTime || ''}
+          value={selectedTime || getDefaultTime()}
           onChange={(e) => onTimeChange(e.target.value)}
           className="px-4 py-2 border rounded-full w-32"
+          disabled={!selectedDate}
         >
-          <option value="">Chọn giờ</option>
-          {availableHours.map((hour) => (
+          {getAvailableHours().map((hour) => (
             <option key={hour} value={hour}>
               {hour}
             </option>
@@ -540,6 +601,8 @@ TableHeader.propTypes = {
   selectedTime: PropTypes.string,
   onDateChange: PropTypes.func.isRequired,
   onTimeChange: PropTypes.func.isRequired,
+  barTimes: PropTypes.array.isRequired,
+  timeSlot: PropTypes.number.isRequired,
 };
 
 function TableRow({

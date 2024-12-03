@@ -156,7 +156,7 @@ const DrinkCategoriesAdmin = () => {
                 </div>
 
                 <h2 className="text-2xl font-notoSansSC font-bold text-blue-600 mb-4 text-center">
-                    Danh Sách Danh Mục Thức Uống
+                    Danh Sách Thể Loại Thức Uống
                 </h2>
 
                 <div className="flex flex-col mb-5 w-full max-md:mt-4 max-md:max-w-full gap-4 p-4">
