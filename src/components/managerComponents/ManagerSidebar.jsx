@@ -1,13 +1,13 @@
-import BadgeIcon from '@mui/icons-material/Badge';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import BookOnlineIcon from '@mui/icons-material/BookOnline';
+import BadgeIcon from "@mui/icons-material/Badge";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import BookOnlineIcon from "@mui/icons-material/BookOnline";
 import CloseIcon from "@mui/icons-material/Close";
-import FeedbackIcon from '@mui/icons-material/Feedback';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import LocalBarIcon from '@mui/icons-material/LocalBar';
-import PaymentIcon from '@mui/icons-material/Payment';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
+import FeedbackIcon from "@mui/icons-material/Feedback";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import LocalActivityIcon from "@mui/icons-material/LocalActivity";
+import LocalBarIcon from "@mui/icons-material/LocalBar";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -20,20 +20,20 @@ const sidebarItems = [
       {
         icon: ReceiptIcon,
         label: "Lịch sử giao dịch",
-        path: "/manager/payment-history"
+        path: "/manager/payment-history",
       },
       {
         icon: BookOnlineIcon,
         label: "Lịch sử đặt bàn",
-        path: "/manager/table-registrations"
-      }
-    ]
+        path: "/manager/table-registrations",
+      },
+    ],
   },
-  // {
-  //   icon: BookOnlineIcon,
-  //   label: "Danh Sách Đặt Bàn",
-  //   path: "/manager/table-registrations",
-  // },
+  {
+    icon: LocalActivityIcon,
+    label: "Sự kiện",
+    path: "/manager/event-management",
+  },
   {
     icon: TableRestaurantIcon,
     label: "Loại bàn",
@@ -76,8 +76,8 @@ function ManagerSidebar({ className, isOpen, onClose }) {
     const findMatchingItem = () => {
       for (const item of sidebarItems) {
         if (item.subItems) {
-          const matchingSubItem = item.subItems.find(subItem => 
-            location.pathname === subItem.path
+          const matchingSubItem = item.subItems.find(
+            (subItem) => location.pathname === subItem.path
           );
           if (matchingSubItem) {
             setActiveItem(item.label);
@@ -140,49 +140,93 @@ function ManagerSidebar({ className, isOpen, onClose }) {
               <div className="rounded-lg overflow-hidden">
                 <div
                   className={`flex items-center justify-between gap-3 px-4 py-3 cursor-pointer transition-all duration-200
-                    ${activeItem === item.label ? "bg-sky-100" : "hover:bg-gray-50"}`}
+                    ${
+                      activeItem === item.label
+                        ? "bg-sky-100"
+                        : "hover:bg-gray-50"
+                    }`}
                   onClick={() => handleItemClick(item)}
                 >
                   <div className="flex items-center gap-3">
-                    <item.icon className={`w-5 h-5 ${activeItem === item.label ? "text-sky-900" : "text-gray-700"}`} />
-                    <span className={activeItem === item.label ? "text-sky-900" : "text-gray-700"}>{item.label}</span>
+                    <item.icon
+                      className={`w-5 h-5 ${
+                        activeItem === item.label
+                          ? "text-sky-900"
+                          : "text-gray-700"
+                      }`}
+                    />
+                    <span
+                      className={
+                        activeItem === item.label
+                          ? "text-sky-900"
+                          : "text-gray-700"
+                      }
+                    >
+                      {item.label}
+                    </span>
                   </div>
                   {item.subItems && (
-                    <div 
+                    <div
                       className="p-1.5 rounded-full transition-all duration-200 cursor-pointer hover:bg-gray-200"
                       onClick={(e) => handleDropdownClick(e, item)}
                     >
-                      <div className={`transform transition-transform duration-200 ${
-                        expandedItem === item.label ? 'rotate-180' : 'rotate-0'
-                      }`}>
-                        <KeyboardArrowDownIcon 
-                          fontSize="small" 
-                          className={activeItem === item.label ? "text-sky-900" : "text-gray-700"}
+                      <div
+                        className={`transform transition-transform duration-200 ${
+                          expandedItem === item.label
+                            ? "rotate-180"
+                            : "rotate-0"
+                        }`}
+                      >
+                        <KeyboardArrowDownIcon
+                          fontSize="small"
+                          className={
+                            activeItem === item.label
+                              ? "text-sky-900"
+                              : "text-gray-700"
+                          }
                         />
                       </div>
                     </div>
                   )}
                 </div>
-                
+
                 {/* Sub-items với animation */}
-                <div className={`overflow-hidden transition-all duration-200 ${
-                  expandedItem === item.label ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
-                }`}>
+                <div
+                  className={`overflow-hidden transition-all duration-200 ${
+                    expandedItem === item.label
+                      ? "max-h-40 opacity-100"
+                      : "max-h-0 opacity-0"
+                  }`}
+                >
                   {item.subItems && (
                     <div className="ml-8 space-y-1 mb-2">
                       {item.subItems.map((subItem, subIndex) => (
                         <div
                           key={subIndex}
                           className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer rounded-lg transition-all duration-200
-                            ${location.pathname === subItem.path ? "bg-sky-50 text-sky-900" : "text-gray-700 hover:bg-gray-50"}`}
+                            ${
+                              location.pathname === subItem.path
+                                ? "bg-sky-50 text-sky-900"
+                                : "text-gray-700 hover:bg-gray-50"
+                            }`}
                           onClick={() => handleSubItemClick(subItem.path)}
                         >
-                          <subItem.icon className={`w-4 h-4 ${
-                            location.pathname === subItem.path ? "text-sky-900" : "text-gray-700"
-                          }`} />
-                          <span className={
-                            location.pathname === subItem.path ? "text-sky-900" : "text-gray-700"
-                          }>{subItem.label}</span>
+                          <subItem.icon
+                            className={`w-4 h-4 ${
+                              location.pathname === subItem.path
+                                ? "text-sky-900"
+                                : "text-gray-700"
+                            }`}
+                          />
+                          <span
+                            className={
+                              location.pathname === subItem.path
+                                ? "text-sky-900"
+                                : "text-gray-700"
+                            }
+                          >
+                            {subItem.label}
+                          </span>
                         </div>
                       ))}
                     </div>
