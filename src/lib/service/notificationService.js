@@ -1,44 +1,101 @@
 import axios from "../axiosCustomize";
 
-export const getNotificationByAccountId = async () => {
-    // Lấy thông tin người dùng từ Session Storage
-    const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
-    const token = userInfo.accessToken;
-    // Kiểm tra nếu userInfo không tồn tại hoặc không có accountId
-    if (!userInfo || !userInfo.accountId || !token) {
-        throw new Error('Không tìm thấy accountId trong Session Storage');
-    }
+// Register device token (for non-logged in users)
+export const registerDeviceToken = async (deviceToken) => {
+  try {
+    console.log('Registering device token for guest:', deviceToken);
+    const response = await axios.post('/api/Fcm/device-token', {
+      deviceToken: deviceToken,
+      platform: 'web'
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
-    const accountId = userInfo.accountId;
-    const config = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-    };
-    
-    return await axios.get(`api/Notification/getAllNoti/${accountId}`, config);
-}
+// Get notifications
+export const getNotifications = async (deviceToken) => {
+  try {
+    console.log('Fetching notifications with token:', deviceToken);
+    const response = await axios.get('/api/Fcm/notifications', {
+      params: {
+        deviceToken: deviceToken
+      }
+    });
+    console.log('Notifications response:', response);
+    return response;
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    throw error;
+  }
+};
 
-export const markNotificationsAsRead = async (accountId) => {
-    const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
-    const token = userInfo.accessToken;
-    
-    if (!userInfo || !token) {
-        throw new Error('Không tìm thấy thông tin xác thực');
-    }
+// Link device token (for logged in users)
+export const linkDeviceToken = async (deviceToken) => {
+  try {
+    console.log('Linking device token for logged in user:', deviceToken);
+    const response = await axios.patch('/api/Fcm/device-token/link', {
+      deviceToken: deviceToken,
+      isLoginOrLogout: true
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
-    const config = {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-    };
+// Unlink device token from account (logout)
+export const unlinkDeviceToken = async (deviceToken) => {
+  try {
+    console.log('Unlinking device token:', deviceToken);
+    const response = await axios.patch('/api/Fcm/device-token/unlink', {
+      deviceToken: deviceToken,
+      isLoginOrLogout: false
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
-    const data = {
-        accountId: accountId
-    };
-    
-    return await axios.patch('api/Notification/isRead', data, config);
+// Mark single notification as read
+export const markAsRead = async (notificationId, deviceToken) => {
+  try {
+    const response = await axios.patch(`/api/Fcm/notification/${notificationId}/mark-as-read`, null, {
+      params: {
+        deviceToken
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Mark all notifications as read
+export const markAllAsRead = async (deviceToken) => {
+  try {
+    const response = await axios.patch('/api/Fcm/notifications/mark-all-as-read', null, {
+      params: {
+        deviceToken
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 

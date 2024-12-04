@@ -119,32 +119,25 @@ const getAllHoldTable = async (token, barId, date, time) => {
     const formattedDate = dayjs(date).format("YYYY/MM/DD");
     const formattedTime = time.includes(':00') ? time : time + ':00';
     
-    const params = {
-      Date: formattedDate,
-      Time: formattedTime
-    };
-
-    console.log("Getting hold tables with params:", { barId, ...params });
-    
-    const response = await axios.get(`api/bookingTable/getHoldTable/${barId}`, {
-      ...config,
-      params: params
+    console.log("getAllHoldTable params before API call:", {
+      barId,
+      date: formattedDate,
+      time: formattedTime,
+      originalTime: time
     });
 
-    console.log("Hold tables response:", response.data);
-    
+    const response = await axios.get(
+      `api/bookingTable/getHoldTable/${barId}?Date=${formattedDate}&Time=${formattedTime}`,
+      config
+    );
+
     return response;
   } catch (error) {
     console.error("Error in getAllHoldTable:", error);
     if (error.response) {
       console.error("Server error details:", error.response.data);
     }
-    return {
-      data: {
-        statusCode: 200,
-        data: []
-      }
-    };
+    throw error;
   }
 };
 

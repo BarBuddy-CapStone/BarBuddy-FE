@@ -12,16 +12,23 @@ import {
   MenuItem,
   Popover,
   Toolbar,
-  Typography
+  Typography,
 } from "@mui/material";
 import Cookies from "js-cookie";
 import React, { Fragment, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useFCMToken } from "src/hooks/useFCMToken";
 import { useAuthStore } from "src/lib";
-import { getNotificationByAccountId, markNotificationsAsRead } from "src/lib/service/notificationService"; // Import hàm
+import {
+  getNotifications,
+  markAllAsRead,
+  markAsRead,
+} from "src/lib/service/notificationService";
 import { timeAgo } from "src/lib/Utils/Utils";
-import { Login, Registration, ForgetPassword } from "src/pages";
+import { ForgetPassword, Login, Registration } from "src/pages";
+
+const baseURL = import.meta.env.VITE_BASE_URL;
 
 const CustomerHeader = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -36,40 +43,20 @@ const CustomerHeader = () => {
   // State cho popup thông báo
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
 
-  const [notifications, setNotifications] = useState([]); // State lưu trữ thông báo
-
+  const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const { fcmToken } = useFCMToken();
 
   const [openForgetPassword, setOpenForgetPassword] = useState(false);
 
   useEffect(() => {
-    const storedUserInfo = Cookies.get('userInfo');
+    const storedUserInfo = Cookies.get("userInfo");
     if (storedUserInfo) {
       const userInfoParsed = JSON.parse(storedUserInfo);
       setAccountId(userInfoParsed.accountId);
     }
   }, []);
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await getNotificationByAccountId();
-        
-        setNotifications(response.data.data.notificationResponses); // Lưu trữ dữ liệu thông báo
-      } catch (error) {
-        console.error("Lỗi khi lấy thông báo:", error);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
-
-  useEffect(() => {
-    if (notifications) {
-      const unreadNotifications = notifications.filter(notif => !notif.isRead);
-      setUnreadCount(unreadNotifications.length);
-    }
-  }, [notifications]);
 
   const handleMenuClick = (event) => {
     if (anchorEl) {
@@ -88,13 +75,13 @@ const CustomerHeader = () => {
     try {
       await logout();
       handleMenuClose();
-      
+
       // Hiển thị loading overlay trong 1 giây
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Xóa dữ liệu và chuyển hướng
       sessionStorage.clear();
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Có lỗi xảy ra khi đăng xuất");
@@ -121,53 +108,95 @@ const CustomerHeader = () => {
     setAnchorEl(null);
   };
 
-  // Mở popup thông báo
-  const handleNotificationClick = async (event) => {
-    setNotificationAnchorEl(event.currentTarget);
-    
-    // Nếu có thông báo chưa đọc, đánh dấu tất cả là đã đọc
-    if (unreadCount > 0 && accountId) {
-      try {
-        await markNotificationsAsRead(accountId);
-        
-        // Cập nhật state local
-        setNotifications(notifications.map(notif => ({
-          ...notif,
-          isRead: true
-        })));
-        setUnreadCount(0);
-      } catch (error) {
-        console.error("Lỗi khi đánh dấu đã đọc:", error);
+  // Sửa lại hàm fetch notifications
+  const fetchNotifications = async () => {
+    if (!fcmToken) {
+      console.log("No FCM token available");
+      return;
+    }
+
+    setIsLoadingNotifications(true);
+    try {
+      console.log("Fetching notifications with token:", fcmToken);
+      const response = await getNotifications(fcmToken);
+      console.log("Notifications response:", response);
+
+      if (response?.data?.statusCode === 200) {
+        console.log("Notifications data:", response.data.data);
+        setNotifications(response.data.data);
+        const unread = response.data.data.filter((n) => !n.isRead).length;
+        console.log("Unread count:", unread);
+        setUnreadCount(unread);
       }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setIsLoadingNotifications(false);
     }
   };
 
-  // Đóng popup thông báo
+  // Sửa lại phần xử lý click notification icon
+  const handleNotificationClick = (event) => {
+    setNotificationAnchorEl(event.currentTarget);
+    fetchNotifications(); // Fetch khi click vào icon
+  };
+
+  const handleNotificationItemClick = async (notification) => {
+    if (!notification.isRead && fcmToken) {
+      try {
+        await markAsRead(notification.id, fcmToken);
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notification.id ? { ...n, isRead: true } : n
+          )
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
+      }
+    }
+
+    if (notification.webDeepLink) {
+      navigate(notification.webDeepLink);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    if (!fcmToken || unreadCount === 0) return;
+
+    try {
+      await markAllAsRead(fcmToken);
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+    }
+  };
+
   const handleNotificationClose = () => {
     setNotificationAnchorEl(null);
   };
 
-  const isNotificationOpen = Boolean(notificationAnchorEl);
   // Thêm component LoadingOverlay
   const LoadingOverlay = () => (
-    <div 
+    <div
       style={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         zIndex: 9999,
-        flexDirection: 'column',
-        gap: '20px'
+        flexDirection: "column",
+        gap: "20px",
       }}
     >
-      <CircularProgress size={60} sx={{ color: '#FFA500' }} />
-      <Typography sx={{ color: 'white', fontSize: '1.2rem' }}>
+      <CircularProgress size={60} sx={{ color: "#FFA500" }} />
+      <Typography sx={{ color: "white", fontSize: "1.2rem" }}>
         Đang đăng xuất...
       </Typography>
     </div>
@@ -190,7 +219,7 @@ const CustomerHeader = () => {
   return (
     <Fragment>
       {isLoggingOut && <LoadingOverlay />}
-      
+
       <AppBar
         position="sticky"
         sx={{ backgroundColor: "#333", padding: { xs: 1, sm: 2 }, zIndex: 49 }}
@@ -273,131 +302,192 @@ const CustomerHeader = () => {
             ) : (
               <Box display="flex" alignItems="center" sx={{ gap: 4 }}>
                 <IconButton color="inherit" onClick={handleNotificationClick}>
-                  <Badge 
-                    badgeContent={unreadCount} 
+                  <Badge
+                    badgeContent={unreadCount}
                     color="error"
                     sx={{
-                      '& .MuiBadge-badge': {
-                        backgroundColor: '#FF4444',
-                        color: 'white',
-                      }
+                      "& .MuiBadge-badge": {
+                        backgroundColor: "#FF4444",
+                        color: "white",
+                      },
                     }}
                   >
-                    <NotificationsIcon 
-                      sx={{ 
-                        color: unreadCount > 0 ? '#FF4444' : 'inherit',
-                        transition: 'color 0.3s ease'
-                      }} 
+                    <NotificationsIcon
+                      sx={{
+                        color: unreadCount > 0 ? "#FFA500" : "#FFF",
+                        transition: "color 0.3s ease",
+                      }}
                     />
                   </Badge>
                 </IconButton>
 
                 <Popover
-                  open={isNotificationOpen}
+                  open={Boolean(notificationAnchorEl)}
                   anchorEl={notificationAnchorEl}
                   onClose={handleNotificationClose}
                   anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right',
+                    vertical: "bottom",
+                    horizontal: "right",
                   }}
                   transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  PaperProps={{
-                    sx: {
-                      borderRadius: '8px',
-                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.2)',
-                      mt: 1,
-                      maxHeight: '80vh',
-                      width: 360,
-                      backgroundColor: '#242526'
-                    }
+                    vertical: "top",
+                    horizontal: "right",
                   }}
                 >
-                  <Box sx={{ p: 2 }}>
-                    <Typography variant="h6" sx={{ color: '#FFF', mb: 2 }}>
-                      Thông báo
-                    </Typography>
-                    <Box sx={{ 
-                      maxHeight: 'calc(80vh - 60px)', 
-                      overflowY: 'auto',
-                      '&::-webkit-scrollbar': {
-                        width: '8px',
-                      },
-                      '&::-webkit-scrollbar-track': {
-                        background: 'transparent',
-                      },
-                      '&::-webkit-scrollbar-thumb': {
-                        background: '#666',
-                        borderRadius: '4px',
-                      },
-                    }}>
-                      {notifications && notifications.length > 0 ? (
-                        notifications.map((notification, index) => (
-                          <Box 
-                            key={index} 
-                            sx={{ 
+                  <Box sx={{ p: 2, width: 320, bgcolor: "#1E1E1E" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 2,
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ color: "#FFF" }}>
+                        Thông báo ({notifications.length})
+                      </Typography>
+                      {unreadCount > 0 && (
+                        <Typography
+                          onClick={handleMarkAllAsRead}
+                          sx={{
+                            color: "#FFA500",
+                            cursor: "pointer",
+                            "&:hover": {
+                              textDecoration: "underline",
+                            },
+                          }}
+                        >
+                          Đánh dấu đã đọc
+                        </Typography>
+                      )}
+                    </Box>
+
+                    <Box sx={{ maxHeight: 400, overflow: "auto" }}>
+                      {isLoadingNotifications ? (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            p: 2,
+                          }}
+                        >
+                          <CircularProgress size={24} />
+                        </Box>
+                      ) : notifications.length > 0 ? (
+                        notifications.map((notification) => (
+                          <Box
+                            key={notification.id}
+                            onClick={() =>
+                              handleNotificationItemClick(notification)
+                            }
+                            sx={{
                               p: 2,
                               mb: 1,
-                              backgroundColor: notification.isRead ? 'transparent' : 'rgba(45, 136, 255, 0.1)',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                              }
+                              cursor: "pointer",
+                              borderRadius: "8px",
+                              backgroundColor: notification.isRead
+                                ? "transparent"
+                                : "rgba(45, 136, 255, 0.1)",
+                              "&:hover": {
+                                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                              },
+                              transition: "background-color 0.2s ease",
                             }}
                           >
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                              <img 
-                                src={notification.image} 
-                                alt=""
-                                style={{
-                                  width: '60px',
-                                  height: '60px',
-                                  borderRadius: '8px',
-                                  objectFit: 'cover'
-                                }}
-                              />
+                            <Box sx={{ display: "flex", gap: 2 }}>
+                              {notification.imageUrl && (
+                                <Box
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (notification.webDeepLink) {
+                                      navigate(notification.webDeepLink);
+                                    }
+                                  }}
+                                  sx={{
+                                    width: 60,
+                                    height: 60,
+                                    flexShrink: 0,
+                                    borderRadius: "8px",
+                                    overflow: "hidden",
+                                    backgroundColor: "rgba(0, 0, 0, 0.1)",
+                                    cursor: notification.webDeepLink
+                                      ? "pointer"
+                                      : "default",
+                                  }}
+                                >
+                                  <img
+                                    src={notification.imageUrl}
+                                    alt=""
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                    }}
+                                    onError={(e) => {
+                                      e.target.style.display = "none";
+                                    }}
+                                  />
+                                </Box>
+                              )}
                               <Box sx={{ flex: 1 }}>
-                                <Typography 
-                                  variant="subtitle2" 
-                                  sx={{ 
-                                    color: '#FFA500',
-                                    fontSize: '0.9rem',
-                                    fontWeight: 'bold'
+                                <Typography
+                                  sx={{
+                                    color: "#FFA500",
+                                    fontSize: "0.9rem",
+                                    fontWeight: "bold",
+                                    mb: 0.5,
                                   }}
                                 >
                                   {notification.title}
                                 </Typography>
-                                <Typography 
-                                  variant="body2" 
-                                  sx={{ 
-                                    color: '#e4e6eb',
-                                    fontSize: '0.8rem',
-                                    mt: 0.5
+                                <Typography
+                                  sx={{
+                                    color: "#e4e6eb",
+                                    fontSize: "0.85rem",
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    lineHeight: 1.4,
                                   }}
                                 >
                                   {notification.message}
                                 </Typography>
-                                <Typography 
-                                  variant="caption" 
-                                  sx={{ 
-                                    color: '#B0B3B8',
-                                    fontSize: '0.75rem',
-                                    display: 'block',
-                                    mt: 0.5
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
+                                    mt: 0.5,
                                   }}
                                 >
-                                  {timeAgo(notification.createdAt)}
-                                </Typography>
+                                  {notification.barName && (
+                                    <Typography
+                                      sx={{
+                                        color: "#FFA500",
+                                        fontSize: "0.75rem",
+                                      }}
+                                    >
+                                      {notification.barName}
+                                    </Typography>
+                                  )}
+                                  <Typography
+                                    sx={{
+                                      color: "#B0B3B8",
+                                      fontSize: "0.75rem",
+                                    }}
+                                  >
+                                    • {timeAgo(notification.createdAt)}
+                                  </Typography>
+                                </Box>
                               </Box>
                             </Box>
                           </Box>
                         ))
                       ) : (
-                        <Typography variant="body2" sx={{ color: '#B0B3B8', textAlign: 'center' }}>
-                          Không có thông báo mới!
+                        <Typography sx={{ textAlign: "center", color: "gray" }}>
+                          Không có thông báo
                         </Typography>
                       )}
                     </Box>
@@ -459,19 +549,24 @@ const CustomerHeader = () => {
                     zIndex: 1300,
                   }}
                   MenuListProps={{
-                    'aria-labelledby': 'basic-button',
+                    "aria-labelledby": "basic-button",
                   }}
                 >
-                  <MenuItem onClick={() => { navigate(`/profile/${accountId}`); handleMenuClose(); }}>
+                  <MenuItem
+                    onClick={() => {
+                      navigate(`/profile/${accountId}`);
+                      handleMenuClose();
+                    }}
+                  >
                     Hồ sơ
                   </MenuItem>
-                  <MenuItem 
-                    onClick={handleLogout} 
+                  <MenuItem
+                    onClick={handleLogout}
                     disabled={isLoggingOut}
                     sx={{
-                      display: 'flex',
-                      gap: '8px',
-                      color: isLoggingOut ? 'gray' : 'inherit'
+                      display: "flex",
+                      gap: "8px",
+                      color: isLoggingOut ? "gray" : "inherit",
                     }}
                   >
                     {isLoggingOut ? (
@@ -509,9 +604,9 @@ const CustomerHeader = () => {
           },
         }}
       >
-        <Login 
-          onClose={handleCloseLogin} 
-          onLoginSuccess={handleLoginSuccess} 
+        <Login
+          onClose={handleCloseLogin}
+          onLoginSuccess={handleLoginSuccess}
           onSwitchToRegister={handleOpenRegister}
           onSwitchToForgetPassword={handleOpenForgetPassword}
         />
@@ -527,8 +622,8 @@ const CustomerHeader = () => {
           },
         }}
       >
-        <Registration 
-          onClose={handleCloseRegister} 
+        <Registration
+          onClose={handleCloseRegister}
           onSwitchToLogin={handleOpenLogin}
         />
       </Dialog>

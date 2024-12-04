@@ -29,7 +29,11 @@ export const refreshToken = async (refreshToken) => {
 
 export const logout = async (refreshToken) => {
   try {
-    return await axios.post("api/authen/logout", refreshToken);
+    return await axios.post("api/authen/logout", JSON.stringify(refreshToken), {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
   } catch (error) {
     throw error;
   }

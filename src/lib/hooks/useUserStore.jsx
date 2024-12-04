@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { logout } from '../service/authenService';
 import Cookies from 'js-cookie';
 import { jwtDecode } from "jwt-decode";
+import { unlinkDeviceToken } from '../service/notificationService';
 
 const useAuthStore = create((set, get) => {
   // Hàm helper để set cookie cho Customer
@@ -93,9 +94,32 @@ const useAuthStore = create((set, get) => {
     logout: async () => {
       try {
         const userInfo = get().userInfo;
+        const token = get().token;
+        
+        // Kiểm tra role từ token
+        const decodedToken = jwtDecode(token);
+        const role = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+        const isCustomer = role === 'CUSTOMER';
+
+        // Xử lý FCM token cho customer
+        if (isCustomer) {
+          const fcmToken = localStorage.getItem('fcmToken');
+          if (fcmToken) {
+            try {
+              await unlinkDeviceToken(fcmToken);
+              localStorage.removeItem('fcmToken');
+            } catch (error) {
+              console.error('Error unlinking device token:', error);
+            }
+          }
+        }
+
+        // Gọi API logout
         if (userInfo?.refreshToken) {
           await logout(userInfo.refreshToken);
         }
+
+        // Clear data
         get().clearAuthData();
       } catch (error) {
         console.error("Logout error:", error);

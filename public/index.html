@@ -1,11 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Thêm stylesheet của Goong Map -->
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BarBuddy</title>
     <link href="https://cdn.goong.io/goong-js/v2.0.0/goong-js.css" rel="stylesheet" />
-    <!-- Các thẻ meta và title khác -->
   </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+            scope: '/'
+          }).then(registration => {
+            console.log('Service Worker registered:', registration.scope);
+          }).catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+        });
+      }
+    </script>
   </body>
 </html> 
