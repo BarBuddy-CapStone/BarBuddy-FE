@@ -43,7 +43,7 @@ export const useFCMToken = () => {
         });
 
         if (currentToken) {
-          console.log('FCM Token generated:', currentToken);
+          //console.log('FCM Token generated:', currentToken);
           localStorage.setItem('fcmToken', currentToken);
           
           if (isLoggedIn) {
@@ -81,16 +81,16 @@ export const useFCMToken = () => {
   const checkPermission = async () => {
     try {
       const permission = await Notification.requestPermission();
-      console.log('Notification permission:', permission);
+      //console.log('Notification permission:', permission);
       
       if (permission === 'granted') {
         // Kiểm tra service worker registration
         const registration = await navigator.serviceWorker.getRegistration();
-        console.log('Service Worker registration:', registration);
+        //console.log('Service Worker registration:', registration);
         
         // Kiểm tra FCM subscription
         const subscription = await registration?.pushManager.getSubscription();
-        console.log('Push subscription:', subscription);
+        //console.log('Push subscription:', subscription);
       }
     } catch (error) {
       console.error('Permission check error:', error);

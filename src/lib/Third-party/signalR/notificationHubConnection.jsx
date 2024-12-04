@@ -29,7 +29,7 @@ const createNotificationConnection = (accountId) => {
 
   // Theo dõi trạng thái kết nối
   connection.onreconnecting((error) => {
-    console.log("Notification Hub Reconnecting:", error);
+    //console.log("Notification Hub Reconnecting:", error);
     notificationEventEmitter.dispatchEvent(
       new CustomEvent("notificationConnectionStateChanged", {
         detail: { state: "reconnecting", error },
@@ -38,7 +38,7 @@ const createNotificationConnection = (accountId) => {
   });
 
   connection.onreconnected((connectionId) => {
-    console.log("Notification Hub Reconnected:", connectionId);
+    //console.log("Notification Hub Reconnected:", connectionId);
     notificationEventEmitter.dispatchEvent(
       new CustomEvent("notificationConnectionStateChanged", {
         detail: { state: "connected", connectionId },
@@ -47,7 +47,7 @@ const createNotificationConnection = (accountId) => {
   });
 
   connection.onclose((error) => {
-    console.log("Notification Hub Connection closed:", error);
+    //console.log("Notification Hub Connection closed:", error);
     notificationEventEmitter.dispatchEvent(
       new CustomEvent("notificationConnectionStateChanged", {
         detail: { state: "disconnected", error },
@@ -57,7 +57,7 @@ const createNotificationConnection = (accountId) => {
 
   // Listen cho sự kiện ReceiveNotification
   connection.on("ReceiveNotification", (notification) => {
-    console.log("Received notification:", notification);
+    //console.log("Received notification:", notification);
 
     // Dispatch event để các component khác có thể lắng nghe
     document.dispatchEvent(
@@ -90,7 +90,7 @@ const startNotificationConnection = async (connection) => {
   try {
     if (connection.state === "Disconnected") {
       await connection.start();
-      console.log("Notification Hub Connected successfully");
+      //console.log("Notification Hub Connected successfully");
       return true;
     }
     return connection.state === "Connected";

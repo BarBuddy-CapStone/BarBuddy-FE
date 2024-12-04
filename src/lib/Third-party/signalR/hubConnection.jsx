@@ -20,25 +20,31 @@ const connection = new signalR.HubConnectionBuilder()
   .build();
 
 // Theo dõi trạng thái kết nối
-connection.onreconnecting(error => {
-  console.log('SignalR Reconnecting:', error);
-  eventEmitter.dispatchEvent(new CustomEvent('connectionStateChanged', { 
-    detail: { state: 'reconnecting', error } 
-  }));
+connection.onreconnecting((error) => {
+  //console.log('SignalR Reconnecting:', error);
+  eventEmitter.dispatchEvent(
+    new CustomEvent("connectionStateChanged", {
+      detail: { state: "reconnecting", error },
+    })
+  );
 });
 
-connection.onreconnected(connectionId => {
-  console.log('SignalR Reconnected:', connectionId);
-  eventEmitter.dispatchEvent(new CustomEvent('connectionStateChanged', { 
-    detail: { state: 'connected', connectionId } 
-  }));
+connection.onreconnected((connectionId) => {
+  //console.log("SignalR Reconnected:", connectionId);
+  eventEmitter.dispatchEvent(
+    new CustomEvent("connectionStateChanged", {
+      detail: { state: "connected", connectionId },
+    })
+  );
 });
 
-connection.onclose(error => {
-  console.log('SignalR Connection closed:', error);
-  eventEmitter.dispatchEvent(new CustomEvent('connectionStateChanged', { 
-    detail: { state: 'disconnected', error } 
-  }));
+connection.onclose((error) => {
+  //console.log("SignalR Connection closed:", error);
+  eventEmitter.dispatchEvent(
+    new CustomEvent("connectionStateChanged", {
+      detail: { state: "disconnected", error },
+    })
+  );
 });
 
 // Khởi tạo kết nối với retry logic
@@ -46,7 +52,7 @@ async function startConnection() {
   try {
     if (connection.state === "Disconnected") {
       await connection.start();
-      console.log("SignalR Connected successfully");
+      //console.log("SignalR Connected successfully");
       return true;
     }
     return connection.state === "Connected";
@@ -64,7 +70,7 @@ async function ensureConnection() {
 
 // Xử lý các sự kiện từ server
 connection.on("TableHoId", (response) => {
-  console.log("TableHoId received:", response);
+  //console.log("TableHoId received:", response);
   document.dispatchEvent(
     new CustomEvent("tableStatusChanged", {
       detail: {
@@ -74,14 +80,14 @@ connection.on("TableHoId", (response) => {
         accountId: response.accountId,
         status: 2,
         date: response.date,
-        time: response.time
-      }
+        time: response.time,
+      },
     })
   );
 });
 
 connection.on("TableReleased", (response) => {
-  console.log("TableReleased received:", response);
+  //console.log("TableReleased received:", response);
   document.dispatchEvent(
     new CustomEvent("tableStatusChanged", {
       detail: {
@@ -91,23 +97,26 @@ connection.on("TableReleased", (response) => {
         accountId: null,
         status: 1,
         date: response.date,
-        time: response.time
-      }
+        time: response.time,
+      },
     })
   );
 });
 
 connection.on("TableListReleased", (response) => {
-  console.log("TableListReleased received:", response);
-  
+  //console.log("TableListReleased received:", response);
+
   if (!response) {
-    console.error("Empty TableListReleased response");
+    //console.error("Empty TableListReleased response");
     return;
   }
 
   try {
     // Tạo một bản ghi log chi tiết về response
-    console.log("Raw TableListReleased response:", JSON.stringify(response, null, 2));
+    // console.log(
+    //   "Raw TableListReleased response:",
+    //   JSON.stringify(response, null, 2)
+    // );
 
     // Xử lý response theo đúng format từ BE
     const processedTable = {
@@ -116,7 +125,7 @@ connection.on("TableListReleased", (response) => {
       status: 1,
       isHeld: false,
       holderId: null,
-      accountId: null
+      accountId: null,
     };
 
     document.dispatchEvent(
@@ -126,8 +135,8 @@ connection.on("TableListReleased", (response) => {
           date: response.date,
           time: response.time,
           accountId: response.accountId,
-          tables: [processedTable] // Wrap single table in array
-        }
+          tables: [processedTable], // Wrap single table in array
+        },
       })
     );
   } catch (error) {
@@ -138,8 +147,8 @@ connection.on("TableListReleased", (response) => {
 // Export các hàm gửi SignalR
 export const releaseTableSignalR = async (data) => {
   try {
-    console.log("Attempting releaseTableSignalR with data:", data);
-    
+    //console.log("Attempting releaseTableSignalR with data:", data);
+
     if (!data || !data.barId || !data.tableId || !data.date || !data.time) {
       console.error("Invalid data format for ReleaseTable:", data);
       return false;
@@ -156,20 +165,19 @@ export const releaseTableSignalR = async (data) => {
       tableId: data.tableId,
       accountId: "00000000-0000-0000-0000-000000000000",
       date: data.date,
-      time: data.time
+      time: data.time,
     };
 
-    console.log("Sending ReleaseTable with formatted data:", formattedData);
-    
+    //console.log("Sending ReleaseTable with formatted data:", formattedData);
+
     try {
       await connection.invoke("ReleaseTable", formattedData);
-      console.log("ReleaseTable sent successfully");
+      //console.log("ReleaseTable sent successfully");
       return true;
     } catch (invokeError) {
       console.error("Error invoking ReleaseTable:", invokeError);
       return false;
     }
-
   } catch (error) {
     console.error("Error in releaseTableSignalR:", error);
     return false;
@@ -178,9 +186,15 @@ export const releaseTableSignalR = async (data) => {
 
 export const releaseTableListSignalR = async (data) => {
   try {
-    console.log("Attempting releaseTableListSignalR with data:", data);
-    
-    if (!data || !data.barId || !data.date || !data.time || !Array.isArray(data.table)) {
+    //console.log("Attempting releaseTableListSignalR with data:", data);
+
+    if (
+      !data ||
+      !data.barId ||
+      !data.date ||
+      !data.time ||
+      !Array.isArray(data.table)
+    ) {
       console.error("Invalid data format for ReleaseListTable:", data);
       return false;
     }
@@ -196,17 +210,16 @@ export const releaseTableListSignalR = async (data) => {
       tableId: data.table[0].tableId,
     };
 
-    console.log("Sending ReleaseListTable with formatted data:", formattedData);
-    
+    //console.log("Sending ReleaseListTable with formatted data:", formattedData);
+
     try {
       await connection.invoke("ReleaseListTable", formattedData);
-      console.log("ReleaseListTable sent successfully");
+      //console.log("ReleaseListTable sent successfully");
       return true;
     } catch (invokeError) {
       console.error("Error invoking ReleaseListTable:", invokeError);
       return false;
     }
-
   } catch (error) {
     console.error("Error in releaseTableListSignalR:", error);
     return false;
