@@ -109,13 +109,13 @@ const TableSelection = (
     };
 
     const handleTableListStatusChange = (event) => {
-      const { tables, barId, date, time } = event.detail;
+      const { tables, barId: eventBarId, date, time } = event.detail;
       console.log("TableSelection received tableListStatusChanged:", {
         tables,
-        barId,
+        eventBarId,
+        currentBarId: barId,
         date,
-        time,
-        currentFilteredTables: filteredTables
+        time
       });
 
       if (!tables || !Array.isArray(tables)) {
@@ -124,9 +124,9 @@ const TableSelection = (
       }
 
       setFilteredTables(prevTables => {
-        const updatedTables = prevTables.map(table => {
-          const updatedTable = tables.find(t => t.tableId === table.tableId);
-          if (updatedTable) {
+        return prevTables.map(table => {
+          const isTableInList = tables.some(t => t.tableId === table.tableId);
+          if (isTableInList) {
             console.log(`Updating table ${table.tableId} status to available`);
             return {
               ...table,
@@ -140,8 +140,6 @@ const TableSelection = (
           }
           return table;
         });
-        console.log("Updated filteredTables:", updatedTables);
-        return updatedTables;
       });
     };
 
@@ -154,7 +152,7 @@ const TableSelection = (
       document.removeEventListener('tableListStatusChanged', handleTableListStatusChange);
       console.log("TableListStatusChanged event listener removed");
     };
-  }, [filteredTables]);
+  }, [barId, filteredTables]);
 
   useEffect(() => {
     const checkHoldTables = async () => {
