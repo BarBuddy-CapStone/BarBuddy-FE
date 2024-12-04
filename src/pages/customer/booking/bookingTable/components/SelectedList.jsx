@@ -1,6 +1,5 @@
 import { Button } from '@mui/material';
 import dayjs from 'dayjs';
-import Cookies from 'js-cookie';
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import useAuthStore from 'src/lib/hooks/useUserStore';
@@ -9,7 +8,7 @@ import { releaseTableListSignalR, releaseTableSignalR } from 'src/lib/Third-part
 
 const SelectedList = ({ selectedTables, setSelectedTables, barId, selectedDate, selectedTime }) => {
   const [countdowns, setCountdowns] = useState({});
-  const { token } = useAuthStore();
+  const { token, userInfo } = useAuthStore();
   const [isReleasingAll, setIsReleasingAll] = useState(false);
 
   // Chỉ update countdown UI
@@ -42,9 +41,10 @@ const SelectedList = ({ selectedTables, setSelectedTables, barId, selectedDate, 
       );
       
       if (expiredTables.length > 0) {
-        setSelectedTables(prev => 
-          prev.filter(table => countdowns[table.tableId] > 0)
-        );
+        // Xóa bàn tự động khi countdown hết
+        expiredTables.forEach(expiredTable => {
+          handleRemove(expiredTable.tableId, expiredTable.date, expiredTable.time);
+        });
       }
     }
   }, [countdowns, isReleasingAll, selectedTables, setSelectedTables]);
@@ -91,16 +91,9 @@ const SelectedList = ({ selectedTables, setSelectedTables, barId, selectedDate, 
       const response = await releaseTableList(token, data);
       
       if (response.data.statusCode === 200) {
+        // Gửi SignalR với cùng format
+        await releaseTableListSignalR(data);
         setSelectedTables([]);
-        
-        const signalRData = {
-          barId: data.barId,
-          date: data.date,
-          time: data.time,
-          table: data.table
-        };
-
-        await releaseTableListSignalR(signalRData);
         toast.success("Đã xóa tất cả bàn thành công");
       }
     } catch (error) {
@@ -118,8 +111,8 @@ const SelectedList = ({ selectedTables, setSelectedTables, barId, selectedDate, 
   });
 
   useEffect(() => {
-    const fetchAllHoldTables = async () => {
-      if (barId && selectedDate && selectedTime) {
+    const fetchHoldTables = async () => {
+      if (barId && selectedDate && selectedTime && userInfo?.accountId) {
         try {
           const response = await getAllHoldTable(
             barId,
@@ -127,7 +120,17 @@ const SelectedList = ({ selectedTables, setSelectedTables, barId, selectedDate, 
             selectedTime
           );
           if (response.data.statusCode === 200) {
-            setAllHoldTables(response.data.data);
+            const userHoldTables = response.data.data.filter(
+              table => table.accountId === userInfo.accountId
+            );
+            
+            setSelectedTables(userHoldTables.map(table => ({
+              tableId: table.tableId,
+              tableName: table.tableName,
+              date: table.date,
+              time: table.time,
+              holdExpiry: table.holdExpiry
+            })));
           }
         } catch (error) {
           console.error("Error fetching all hold tables:", error);
@@ -135,8 +138,8 @@ const SelectedList = ({ selectedTables, setSelectedTables, barId, selectedDate, 
       }
     };
 
-    fetchAllHoldTables();
-  }, [selectedTime, selectedDate]);
+    fetchHoldTables();
+  }, [selectedTime, selectedDate, barId, token, setSelectedTables, userInfo?.accountId]);
 
   return (
     <div className={`flex flex-col px-8 pt-4 pb-10 mt-4 w-full text-xs text-white rounded-md bg-neutral-800 shadow-[0px_0px_16px_rgba(0,0,0,0.07)] ${sortedTables.length === 0 ? 'hidden' : ''}`}>
