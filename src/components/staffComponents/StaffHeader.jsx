@@ -267,44 +267,32 @@ const StaffHeader = ({ className, onMenuClick, isSidebarOpen }) => {
                   }}
                 >
                   <Box sx={{ display: "flex", gap: 2 }}>
-                    {notification.imageUrl && (
-                      <Box
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (notification.webDeepLink) {
-                            navigate(notification.webDeepLink);
-                          }
-                        }}
-                        sx={{
-                          width: 60,
-                          height: 60,
-                          borderRadius: "8px",
-                          overflow: "hidden",
-                          cursor: notification.webDeepLink ? "pointer" : "default",
+                    <Box sx={{ flex: 1 }}>
+                      <Typography 
+                        sx={{ 
+                          color: "#1976d2",
+                          fontWeight: "bold",
+                          fontSize: "0.95rem",
+                          mb: 0.5
                         }}
                       >
-                        <img
-                          src={notification.imageUrl}
-                          alt=""
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                          onError={(e) => {
-                            e.target.style.display = "none";
-                          }}
-                        />
-                      </Box>
-                    )}
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ color: "#FFA500", fontWeight: "bold" }}>
                         {notification.title}
                       </Typography>
-                      <Typography sx={{ color: "#e4e6eb", fontSize: "0.9rem" }}>
+                      <Typography 
+                        sx={{ 
+                          color: "#333333",
+                          fontSize: "0.9rem",
+                          mb: 0.5
+                        }}
+                      >
                         {notification.message}
                       </Typography>
-                      <Typography sx={{ color: "#B0B3B8", fontSize: "0.8rem" }}>
+                      <Typography 
+                        sx={{ 
+                          color: "#666666",
+                          fontSize: "0.8rem" 
+                        }}
+                      >
                         {timeAgo(notification.createdAt)}
                       </Typography>
                     </Box>

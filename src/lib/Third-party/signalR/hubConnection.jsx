@@ -1,4 +1,5 @@
 import * as signalR from "@microsoft/signalr";
+import Cookies from "js-cookie";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 const HUB_URL = `${BASE_URL}bookingHub`;
@@ -11,7 +12,7 @@ const connection = new signalR.HubConnectionBuilder()
     skipNegotiation: false,
     transport: signalR.HttpTransportType.WebSockets,
     accessTokenFactory: () => {
-      return sessionStorage.getItem("authToken");
+      return Cookies.get("authToken");
     },
   })
   .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
