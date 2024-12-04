@@ -41,11 +41,20 @@ const TimeSelection = ({
     }
 
     if (currentDate.isSame(now, "day")) {
-      currentTime = now.add(1, "hour").startOf("hour");
+      const barOpeningTime = dayjs()
+        .hour(parseInt(startTime.split(":")[0]))
+        .minute(parseInt(startTime.split(":")[1]));
+
+      if (now.isAfter(barOpeningTime)) {
+        currentTime = now.add(1, "hour").startOf("hour");
+      }
     }
 
     while (currentTime.isBefore(endTimeObj)) {
-      options.push(currentTime.format("HH:mm"));
+      if (currentTime.format("HH:mm") >= startTime && 
+          currentTime.format("HH:mm") <= endTime) {
+        options.push(currentTime.format("HH:mm"));
+      }
       currentTime = currentTime.add(1, "hour");
     }
 

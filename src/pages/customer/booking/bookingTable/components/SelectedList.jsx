@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import useAuthStore from 'src/lib/hooks/useUserStore';
-import { releaseTable, releaseTableList } from 'src/lib/service/BookingTableService';
+import { getAllHoldTable, releaseTable, releaseTableList } from 'src/lib/service/BookingTableService';
 import { releaseTableListSignalR, releaseTableSignalR } from 'src/lib/Third-party/signalR/hubConnection';
 
 const SelectedList = ({ selectedTables, setSelectedTables, barId, selectedDate, selectedTime }) => {
@@ -118,37 +118,24 @@ const SelectedList = ({ selectedTables, setSelectedTables, barId, selectedDate, 
   });
 
   useEffect(() => {
-    const fetchHoldTables = async () => {
+    const fetchAllHoldTables = async () => {
       if (barId && selectedDate && selectedTime) {
         try {
           const response = await getAllHoldTable(
-            token,
             barId,
             selectedDate,
             selectedTime
           );
-
           if (response.data.statusCode === 200) {
-            const userHoldTables = response.data.data.filter(
-              table => table.accountId === Cookies.get('authToken')
-            );
-            
-            // Cập nhật danh sách bàn đã chọn từ memory cache
-            setSelectedTables(userHoldTables.map(table => ({
-              tableId: table.tableId,
-              tableName: table.tableName,
-              date: table.date,
-              time: table.time,
-              holdExpiry: table.holdExpiry
-            })));
+            setAllHoldTables(response.data.data);
           }
         } catch (error) {
-          console.error("Error fetching hold tables:", error);
+          console.error("Error fetching all hold tables:", error);
         }
       }
     };
 
-    fetchHoldTables();
+    fetchAllHoldTables();
   }, [selectedTime, selectedDate]);
 
   return (

@@ -257,28 +257,40 @@ const BookingTableInfo = ({
 
   useEffect(() => {
     const checkHoldTables = async () => {
-      if (barId && selectedDate && selectedTime) {
-        try {
-          const response = await getAllHoldTable(
-            token,
-            barId,
-            selectedDate,
-            selectedTime
-          );
-          if (response.data.statusCode === 200) {
-            const userHoldTables = response.data.data.filter(
-              (table) => table.accountId === userInfo.accountId
+      if (barId && selectedDate && selectedTime && startTime && endTime) {
+        const currentTime = dayjs(selectedTime, 'HH:mm');
+        const start = dayjs(startTime, 'HH:mm');
+        const end = dayjs(endTime, 'HH:mm');
+
+        if (currentTime.isBetween(start, end, 'minute', '[]')) {
+          try {
+            console.log("Calling getAllHoldTable with:", {
+              barId,
+              selectedDate,
+              selectedTime
+            });
+            
+            const response = await getAllHoldTable(
+              token,
+              barId,
+              selectedDate,
+              selectedTime + ":00"
             );
-            setCurrentHoldCount(userHoldTables.length);
+            if (response.data.statusCode === 200) {
+              const userHoldTables = response.data.data.filter(
+                table => table.accountId === userInfo.accountId
+              );
+              setCurrentHoldCount(userHoldTables.length);
+            }
+          } catch (error) {
+            console.error("Error checking hold tables:", error);
           }
-        } catch (error) {
-          console.error("Error checking hold tables:", error);
         }
       }
     };
 
     checkHoldTables();
-  }, [barId, selectedDate, selectedTime, token, userInfo.accountId]);
+  }, [barId, selectedDate, selectedTime, startTime, endTime, token, userInfo.accountId]);
 
   const handleSearch = async () => {
     if (currentHoldCount >= 5) {
@@ -297,6 +309,7 @@ const BookingTableInfo = ({
     }
     onSearchTables();
   };
+
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} locale={viLocale}>

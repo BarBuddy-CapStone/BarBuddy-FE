@@ -187,7 +187,11 @@ const BookingTable = () => {
 
     setIsLoading(true);
     try {
-      const holdTablesResponse = await getAllHoldTable(barId, dayjs(selectedDate).format("YYYY/MM/DD"), selectedTime);
+      const holdTablesResponse = await getAllHoldTable(
+        barId, 
+        dayjs(selectedDate).format("YYYY/MM/DD"), 
+        selectedTime + ":00"
+      );
       const holdTables = holdTablesResponse.data.data;
 
       const response = await filterBookingTable({
