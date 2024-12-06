@@ -121,3 +121,37 @@ export const getBarNameOnly = async () => {
 export const getAllRevenue = async () => {
     return await axios.get("api/v1/Bar/dashboard/getAllRevenue");
 };
+
+export const getExportCSV = async (barId, fromDate, toDate) => {
+    let url = "api/v1/Bar/admin/download-revenue";
+    const params = new URLSearchParams();
+    
+    if (barId) params.append('barId', barId);
+    if (fromDate) params.append('fromTime', fromDate);
+    if (toDate) params.append('toTime', toDate);
+    
+    if (params.toString()) {
+        url += `?${params.toString()}`;
+    }
+    
+    return await axios.get(url, {
+        responseType: 'blob' // Quan trọng để xử lý file download
+    });
+};
+
+export const getExportCSVManager = async (barId, fromDate, toDate) => {
+    let url = "api/v1/Bar/manager/download-revenue";
+    const params = new URLSearchParams();
+    
+    if (barId) params.append('barId', barId);
+    if (fromDate) params.append('fromTime', fromDate);
+    if (toDate) params.append('toTime', toDate);
+    
+    if (params.toString()) {
+        url += `?${params.toString()}`;
+    }
+    
+    return await axios.get(url, {
+        responseType: 'blob' // Quan trọng để xử lý file download
+    });
+};

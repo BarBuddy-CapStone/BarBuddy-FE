@@ -11,8 +11,9 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { Line } from 'react-chartjs-2';
 import { useNavigate } from 'react-router-dom';
-import { getAllRevenue, revenueDashboard } from "../../../lib/service/adminService";
+import { getAllRevenue, revenueDashboard, getExportCSVManager } from "../../../lib/service/adminService";
 import { getAllBarsNoPage } from "../../../lib/service/barManagerService";
+import { message } from "antd";
 
 ChartJS.register(
   CategoryScale,
@@ -297,6 +298,46 @@ const DashBoardManager = () => {
     navigate('/manager/payment-history'); // Replace with your desired route
   };
 
+  // Thêm hàm xử lý export CSV
+  const handleExportCSV = async () => {
+    try {
+      // Kiểm tra ngày trước khi export
+      if (!startDate || !endDate) {
+        message.error("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc");
+        return;
+      }
+
+      if (new Date(startDate) > new Date(endDate)) {
+        message.error("Ngày bắt đầu không thể lớn hơn ngày kết thúc");
+        return;
+      }
+
+      const response = await getExportCSVManager(barId, startDate, endDate);
+      
+      // Tạo blob từ response
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      
+      // Tạo URL cho blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Tạo element a để download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `revenue-report-${startDate}-to-${endDate}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      message.success("Xuất file thành công!");
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      message.error("Có lỗi xảy ra khi xuất file");
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Card thống kê tổng quan */}
@@ -399,12 +440,20 @@ const DashBoardManager = () => {
 
             <div className="flex flex-col">
               <div className="flex-grow"></div>
-              <button
-                onClick={handleFilter}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Áp dụng bộ lọc
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleFilter}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Áp dụng bộ lọc
+                </button>
+                <button
+                  onClick={handleExportCSV}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                >
+                  Xuất CSV
+                </button>
+              </div>
             </div>
           </div>
 

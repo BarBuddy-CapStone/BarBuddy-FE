@@ -214,7 +214,7 @@ const CustomerForm = ({
           sx={{ backgroundColor: "#FFA500" }}
           onClick={handleBookingDrinkClick}
         >
-          Đặt trước thức uống với chiết khấu {barInfo.discount}%
+          Đặt trước thức uống với giảm giá {barInfo.discount}%
         </Button>
         <div className="my-auto text-gray-400">Hoặc</div>
         <Button
@@ -273,7 +273,7 @@ const CustomerForm = ({
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Bạn có chắc chắn muốn đặt trước thức uống với chiết khấu{" "}
+            Bạn có chắc chắn muốn đặt trước thức uống với giảm giá{" "}
             {barInfo.discount}%?
           </DialogContentText>
         </DialogContent>
