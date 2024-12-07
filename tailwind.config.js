@@ -1,4 +1,4 @@
-import { nextui } from "@nextui-org/react";
+const { nextui } = require("@nextui-org/react");
 
 module.exports = {
   content: [
@@ -37,4 +37,4 @@ module.exports = {
     nextui(),
     require('@tailwindcss/aspect-ratio')
   ],
-};
+}
