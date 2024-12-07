@@ -29,7 +29,6 @@ const BookingDetailStaff = () => {
   const [selectedExtraDrink, setSelectedExtraDrink] = useState(null);
   const [updateDrinkModalVisible, setUpdateDrinkModalVisible] = useState(false);
   const [selectedDrink, setSelectedDrink] = useState(null);
-  const [updatingDrinkStatus, setUpdatingDrinkStatus] = useState(null);
   const [isUpdatingDrink, setIsUpdatingDrink] = useState(false);
 
   const fetchBookingDetails = async () => {
@@ -225,14 +224,13 @@ const BookingDetailStaff = () => {
   };
 
   const handleUpdateDrink = async () => {
-    if (!selectedDrink || !updatingDrinkStatus) return;
+    if (!selectedDrink) return;
 
     try {
       setIsUpdatingDrink(true);
       const updateData = [{
         drinkId: selectedDrink.drinkId,
-        quantity: selectedDrink.quantity,
-        status: parseInt(updatingDrinkStatus)
+        quantity: selectedDrink.quantity
       }];
 
       const response = await BookingService.updateExtraDrink(bookingId, updateData);
@@ -510,7 +508,6 @@ const BookingDetailStaff = () => {
                           <IconButton
                             onClick={() => {
                               setSelectedDrink(drink);
-                              setUpdatingDrinkStatus(drink.status.toString());
                               setUpdateDrinkModalVisible(true);
                             }}
                           >
@@ -567,7 +564,6 @@ const BookingDetailStaff = () => {
         onCancel={() => {
           setUpdateDrinkModalVisible(false);
           setSelectedDrink(null);
-          setUpdatingDrinkStatus(null);
         }}
         footer={[
           <Button
@@ -575,7 +571,6 @@ const BookingDetailStaff = () => {
             onClick={() => {
               setUpdateDrinkModalVisible(false);
               setSelectedDrink(null);
-              setUpdatingDrinkStatus(null);
             }}
           >
             Hủy
@@ -587,7 +582,7 @@ const BookingDetailStaff = () => {
             onClick={handleUpdateDrink}
             className="bg-blue-600"
           >
-            Cập nhật
+            Xác nhận
           </Button>,
         ]}
       >
@@ -605,21 +600,6 @@ const BookingDetailStaff = () => {
                   Số lượng: {selectedDrink.quantity}
                 </div>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trạng thái
-              </label>
-              <Select
-                value={updatingDrinkStatus}
-                onChange={(e) => setUpdatingDrinkStatus(e.target.value)}
-                fullWidth
-              >
-                <MenuItem value="0">Chờ xác nhận</MenuItem>
-                <MenuItem value="1">Chưa giao</MenuItem>
-                <MenuItem value="2">Đã giao</MenuItem>
-              </Select>
             </div>
           </div>
         )}
