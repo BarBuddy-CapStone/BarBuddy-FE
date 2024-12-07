@@ -183,6 +183,15 @@ class BookingService {
     return await axios.patch(`api/Booking/upd-extra-drink/${bookingId}`, data);
   }
 
+  static async updateStatusExtraDrink(data) {
+    try {
+      const response = await axios.patch(`api/Booking/upd-sts-extra-drink`, data);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
 }
 
 export default BookingService;

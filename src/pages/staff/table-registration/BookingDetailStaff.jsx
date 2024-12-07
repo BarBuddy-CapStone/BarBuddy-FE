@@ -228,23 +228,24 @@ const BookingDetailStaff = () => {
 
     try {
       setIsUpdatingDrink(true);
-      const updateData = [{
-        drinkId: selectedDrink.drinkId,
-        quantity: selectedDrink.quantity
-      }];
+      const data = {
+        bookingExtraDrinkId: selectedDrink.bookingExtraDrinkId,
+        bookingId: bookingId,
+        drinkId: selectedDrink.drinkId
+      };
 
-      const response = await BookingService.updateExtraDrink(bookingId, updateData);
+      const response = await BookingService.updateStatusExtraDrink(data);
       
       if (response.data && response.data.statusCode === 200) {
-        message.success(response.data.message || 'Cập nhật thành công');
+        message.success(response.data.message || 'Cập nhật trạng thái thành công');
         await fetchBookingDetails();
         setUpdateDrinkModalVisible(false);
       }
     } catch (error) {
       if (error.response && error.response.data) {
-        message.error(error.response.data.message || 'Không thể cập nhật thức uống');
+        message.error(error.response.data.message || 'Không thể cập nhật trạng thái thức uống');
       } else {
-        message.error('Có lỗi xảy ra khi cập nhật thức uống');
+        message.error('Có lỗi xảy ra khi cập nhật trạng thái thức uống');
       }
     } finally {
       setIsUpdatingDrink(false);
