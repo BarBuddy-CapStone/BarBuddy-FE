@@ -1,4 +1,5 @@
 import { nextui } from "@nextui-org/react";
+import aspectRatio from "@tailwindcss/aspect-ratio";
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -27,6 +28,6 @@ export default {
   darkMode: "class",
   plugins: [
     nextui(),
-    require("@tailwindcss/aspect-ratio"), // `require` trong plugins vẫn được hỗ trợ
+    aspectRatio(),
   ],
 };
