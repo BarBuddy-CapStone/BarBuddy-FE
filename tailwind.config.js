@@ -1,40 +1,32 @@
-const { nextui } = require("@nextui-org/react");
+import { nextui } from "@nextui-org/react";
 
-module.exports = {
+/** @type {import('tailwindcss').Config} */
+export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
-    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}"
+    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        aBeeZee: ['aBeeZee', 'sans-serif'], // Adding aBeeZee as a custom font
-        notoSansSC: ['Noto Sans SC', 'sans-serif'], // Adding Noto Sans SC
+        aBeeZee: ["aBeeZee", "sans-serif"],
+        notoSansSC: ["Noto Sans SC", "sans-serif"],
       },
       keyframes: {
         scroll: {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-100%)' },
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-100%)" },
         },
       },
       animation: {
-        scroll: 'scroll 20s linear infinite',
-      },
-      keyframes: {
-        scroll: {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-100%)' },
-        },
-      },
-      animation: {
-        scroll: 'scroll 20s linear infinite',
+        scroll: "scroll 20s linear infinite",
       },
     },
   },
   darkMode: "class",
   plugins: [
     nextui(),
-    require('@tailwindcss/aspect-ratio')
+    require("@tailwindcss/aspect-ratio"), // `require` trong plugins vẫn được hỗ trợ
   ],
-}
+};
