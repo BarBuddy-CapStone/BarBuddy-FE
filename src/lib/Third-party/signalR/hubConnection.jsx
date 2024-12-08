@@ -232,3 +232,6 @@ startConnection();
 // Export connection và events
 export const hubConnection = connection;
 export const signalREvents = eventEmitter;
+
+logger.info('WebSocket connected to', connection);
+logger.info('Using HubProtocol json');

@@ -116,6 +116,9 @@ const GoongMap = ({ branches }) => {
             <Marker
               latitude={userLocation.latitude}
               longitude={userLocation.longitude}
+              offsetTop={-10}
+              offsetLeft={-10}
+              draggable={false}
             >
               <div className="text-blue-500">
                 <LocationOn style={{ fontSize: '2rem' }} />
@@ -130,6 +133,9 @@ const GoongMap = ({ branches }) => {
               key={branch.barId}
               latitude={parseFloat(branch.latitude)}
               longitude={parseFloat(branch.longitude)}
+              offsetTop={-10}
+              offsetLeft={-10}
+              draggable={false}
             >
               <div 
                 className="text-red-500 cursor-pointer"

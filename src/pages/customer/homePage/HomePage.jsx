@@ -605,7 +605,7 @@ function HomePage() {
       try {
         const response = await getAllBarForMap();
         if (response.data.statusCode === 200 && isMounted.current) {
-          console.log("Fetched map branches:", response.data.data);
+          //console.log("Fetched map branches:", response.data.data);
           setMapBranches(response.data.data);
         }
       } catch (error) {

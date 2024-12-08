@@ -38,7 +38,7 @@ export const getNotifications = async (deviceToken) => {
 // Link device token (for logged in users)
 export const linkDeviceToken = async (deviceToken) => {
   try {
-    console.log('Linking device token for logged in user:', deviceToken);
+    //console.log('Linking device token for logged in user:', deviceToken);
     const response = await axios.patch('/api/Fcm/device-token/link', {
       deviceToken: deviceToken,
       isLoginOrLogout: true

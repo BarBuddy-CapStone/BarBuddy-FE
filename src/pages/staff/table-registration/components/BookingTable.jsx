@@ -56,9 +56,13 @@ function BookingTable({ bookings, loading }) {
   };
 
   return (
-    <div className="mt-8 overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-300">
+    <div className="overflow-x-auto">
+      {loading ? (
+        <div className="flex justify-center p-4">
+          <CircularProgress size={40} />
+        </div>
+      ) : (
+        <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th scope="col" className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Mã đặt chỗ</th>
@@ -70,32 +74,28 @@ function BookingTable({ bookings, loading }) {
               <th scope="col" className="px-6 py-3 text-center text-sm font-semibold text-gray-900"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
-            {loading ? (
-              <tr>
-                <td colSpan="7" className="px-6 py-4 text-center">
-                  <CircularProgress size={40} />
-                </td>
-              </tr>
-            ) : bookings.length === 0 ? (
+          {bookings.length === 0 ? (
+            <tbody>
               <tr>
                 <td colSpan="7" className="px-6 py-4 text-center text-red-500 font-medium">
                   Không có lịch đặt chỗ
                 </td>
               </tr>
-            ) : (
-              bookings.map((booking, index) => (
+            </tbody>
+          ) : (
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {bookings.map((booking, index) => (
                 <BookingTableRow
                   key={booking.bookingId}
                   booking={booking}
                   isEven={index % 2 === 0}
                   onViewDetails={handleViewDetails}
                 />
-              ))
-            )}
-          </tbody>
+              ))}
+            </tbody>
+          )}
         </table>
-      </div>
+      )}
     </div>
   );
 }

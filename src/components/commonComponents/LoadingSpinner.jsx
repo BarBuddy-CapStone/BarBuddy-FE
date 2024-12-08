@@ -2,12 +2,12 @@ import React from 'react';
 import { Dialog, DialogContent, CircularProgress, Typography } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const LoadingSpinner = ({ open }) => {
-  const isOpen = Boolean(open);
-
+const LoadingSpinner = ({ open = false }) => {
   return (
     <Dialog
-      open={isOpen}
+      open={Boolean(open)}
+      aria-labelledby="loading-dialog-title"
+      aria-describedby="loading-dialog-description"
       PaperProps={{
         style: {
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -15,13 +15,34 @@ const LoadingSpinner = ({ open }) => {
           overflow: 'hidden'
         }
       }}
+      role="dialog"
+      disableEscapeKeyDown
+      hideBackdrop={false}
     >
       <DialogContent>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <CircularProgress style={{ color: '#FFA500' }} />
-          <Typography variant="h6" style={{ color: 'white', marginTop: '20px' }}>
+        <div 
+          className="flex flex-col items-center justify-center p-5"
+          role="status"
+          aria-busy="true"
+        >
+          <CircularProgress 
+            style={{ color: '#FFA500' }} 
+            aria-label="loading-progress"
+            role="progressbar"
+            size={40}
+          />
+          <Typography 
+            id="loading-dialog-title"
+            variant="h6" 
+            component="h2"
+            className="mt-5 text-white"
+            aria-live="polite"
+          >
             Đang tải...
           </Typography>
+          <span id="loading-dialog-description" className="sr-only">
+            Vui lòng đợi trong khi hệ thống đang xử lý
+          </span>
         </div>
       </DialogContent>
     </Dialog>
@@ -32,8 +53,4 @@ LoadingSpinner.propTypes = {
   open: PropTypes.bool
 };
 
-LoadingSpinner.defaultProps = {
-  open: false
-};
-
-export default LoadingSpinner;
+export default React.memo(LoadingSpinner);

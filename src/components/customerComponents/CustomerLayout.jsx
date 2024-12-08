@@ -12,7 +12,7 @@ const CustomerLayout = () => {
       console.error('FCM Error:', error);
     }
     if (fcmToken) {
-      console.log('FCM Token initialized:', fcmToken);
+      //console.log('FCM Token initialized:', fcmToken);
     }
   }, [fcmToken, error]);
 

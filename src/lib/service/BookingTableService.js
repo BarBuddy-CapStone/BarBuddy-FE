@@ -109,6 +109,16 @@ const releaseTableList = async (token, data) => {
 
 const getAllHoldTable = async (token, barId, date, time) => {
   try {
+    if (!barId || !date || !time) {
+      console.warn("Missing required parameters:", { barId, date, time });
+      return {
+        data: {
+          statusCode: 200,
+          data: []
+        }
+      };
+    }
+
     const config = {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -131,6 +141,16 @@ const getAllHoldTable = async (token, barId, date, time) => {
       params: params
     });
 
+    if (!response.data) {
+      console.warn("API returned empty response");
+      return {
+        data: {
+          statusCode: 200,
+          data: []
+        }
+      };
+    }
+
     console.log("Hold tables response:", response.data);
     
     return response;
@@ -139,10 +159,12 @@ const getAllHoldTable = async (token, barId, date, time) => {
     if (error.response) {
       console.error("Server error details:", error.response.data);
     }
+    // Luôn trả về một đối tượng hợp lệ ngay cả khi có lỗi
     return {
       data: {
-        statusCode: 200,
-        data: []
+        statusCode: error.response?.status || 500,
+        data: [],
+        message: error.message || "Failed to fetch hold tables"
       }
     };
   }

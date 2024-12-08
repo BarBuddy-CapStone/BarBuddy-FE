@@ -13,6 +13,10 @@ import { toast } from "react-toastify"; // Import toast
 import { LoadingSpinner } from "src/components";
 import { useAuthStore } from "src/lib"; // Import the Auth Store
 import { boookingtableNow } from "src/lib/service/BookingTableService"; // Import the API function
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import StoreIcon from "@mui/icons-material/Store";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import TableBarIcon from "@mui/icons-material/TableBar";
 
 const CustomerForm = ({
   selectedTables,
@@ -123,172 +127,202 @@ const CustomerForm = ({
     }
   };
 
-  return (
-    <section className="flex flex-col px-4 mt-6 w-full max-md:px-3 max-md:mt-4 max-md:max-w-full">
-      <h2 className="self-start text-lg text-amber-400 max-md:ml-1">
-        Thông tin khách hàng
-      </h2>
-      <hr className="shrink-0 mt-3 w-full h-px border border-amber-400 border-solid" />
-
-      {/* Name Field */}
-      <TextField
-        label="Họ và tên"
-        value={name}
-        variant="outlined"
-        fullWidth
-        InputProps={{
-          readOnly: true,
-          style: { color: "white" }, // Ensure text is white
-          onCopy: disableCopyPaste, // Disable copy
-          onCut: disableCopyPaste, // Disable cut
-          onPaste: disableCopyPaste, // Disable paste
-        }}
-        InputLabelProps={{
-          style: { color: "white" }, // Ensure label is white
-        }}
-        sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
-      />
-
-      {/* Email Field */}
-      <TextField
-        label="Địa chỉ Email"
-        value={email}
-        variant="outlined"
-        fullWidth
-        InputProps={{
-          readOnly: true,
-          style: { color: "white" }, // Ensure text is white
-          onCopy: disableCopyPaste, // Disable copy
-          onCut: disableCopyPaste, // Disable cut
-          onPaste: disableCopyPaste, // Disable paste
-        }}
-        InputLabelProps={{
-          style: { color: "white" }, // Ensure label is white
-        }}
-        sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
-      />
-
-      {/* Phone Field */}
-      <TextField
-        label="Số điện thoại"
-        value={phone}
-        variant="outlined"
-        fullWidth
-        InputProps={{
-          readOnly: true,
-          style: { color: "white" }, // Ensure text is white
-          onCopy: disableCopyPaste, // Disable copy
-          onCut: disableCopyPaste, // Disable cut
-          onPaste: disableCopyPaste, // Disable paste
-        }}
-        InputLabelProps={{
-          style: { color: "white" }, // Ensure label is white
-        }}
-        sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
-      />
-
-      {/* Note Field */}
-      <TextField
-        label="Ghi chú"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        variant="outlined"
-        fullWidth
-        multiline
-        rows={4}
-        placeholder="Tôi muốn bàn view sài gòn"
-        InputProps={{
-          style: { color: note ? "white" : "#888" },
-        }}
-        InputLabelProps={{
-          style: { color: "white" },
-        }}
-        sx={{ backgroundColor: "#333333", mt: 2 }}
-      />
-
-      <hr className="shrink-0 mt-6 w-full h-px border border-amber-400 border-solid" />
-      <div className="flex gap-3 justify-between mt-4 text-black">
-        <Button
-          variant="contained"
-          color="warning"
-          sx={{ backgroundColor: "#FFA500" }}
-          onClick={handleBookingDrinkClick}
-        >
-          Đặt trước thức uống với giảm giá {barInfo.discount}%
-        </Button>
-        <div className="my-auto text-gray-400">Hoặc</div>
-        <Button
-          variant="contained"
-          onClick={handleBookNow}
-          disabled={isLoading}
-          sx={{
-            backgroundColor: isLoading ? "#FFA500" : "#FFA500", // Luôn giữ màu cam
-            color: "black",
-            "&:hover": {
-              backgroundColor: "#FF8C00",
-            },
-            "&:disabled": {
-              backgroundColor: "#FFA500", // Giữ màu cam khi disabled
-              opacity: 0.7, // Giảm độ đậm khi đang xử lý
-              color: "black",
-            },
-          }}
-        >
-          {isLoading ? "Đang xử lý..." : "Đặt bàn ngay"}
-        </Button>
+  const renderBookingInfo = () => (
+    <div className="space-y-4">
+      <div className="flex items-center">
+        <LocationOnIcon className="text-amber-400" />
+        <span className="ml-2">
+          <span className="text-amber-400 mr-1">Địa chỉ:</span>
+          {barInfo?.location}
+        </span>
       </div>
+      {[
+        { icon: <StoreIcon className="text-amber-400" />, label: "Chi nhánh", value: barInfo?.name },
+        { icon: <AccessTimeIcon className="text-amber-400" />, label: "Giờ mở cửa", 
+          value: `${barInfo?.openingHours?.split('-')[0].trim() || "N/A"} - ${barInfo?.openingHours?.split('-')[1].trim() || "N/A"}` },
+        { icon: <TableBarIcon className="text-amber-400" />, label: "Bàn", 
+          value: `${selectedTables?.length} bàn đã chọn` }
+      ].map((item, index) => (
+        <div key={index} className="flex items-center">
+          {item.icon}
+          <span className="ml-2">
+            <span className="text-amber-400 mr-1">{item.label}:</span>
+            {item.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
 
-      {/* Dialog for Book Now confirmation */}
-      <Dialog
-        open={openBookNowDialog}
-        onClose={() => setOpenBookNowDialog(false)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"Xác nhận đặt bàn"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Bạn có chắc chắn muốn đặt bàn ngay bây giờ?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenBookNowDialog(false)} color="primary">
-            Hủy
-          </Button>
-          <Button onClick={confirmBookNow} color="primary" autoFocus>
-            Xác nhận
-          </Button>
-        </DialogActions>
-      </Dialog>
+  return (
+    <div className="booking-form">
+      {renderBookingInfo()}
+      <section className="flex flex-col px-4 mt-6 w-full max-md:px-3 max-md:mt-4 max-md:max-w-full">
+        <h2 className="self-start text-lg text-amber-400 max-md:ml-1">
+          Thông tin khách hàng
+        </h2>
+        <hr className="shrink-0 mt-3 w-full h-px border border-amber-400 border-solid" />
 
-      {/* Dialog for Book Drink confirmation */}
-      <Dialog
-        open={openBookDrinkDialog}
-        onClose={() => setOpenBookDrinkDialog(false)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          {"Xác nhận đặt trước thức uống"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Bạn có chắc chắn muốn đặt trước thức uống với giảm giá{" "}
-            {barInfo.discount}%?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenBookDrinkDialog(false)} color="primary">
-            Hủy
-          </Button>
-          <Button onClick={confirmBookDrink} color="primary" autoFocus>
-            Xác nhận
-          </Button>
-        </DialogActions>
-      </Dialog>
+        {/* Name Field */}
+        <TextField
+          label="Họ và tên"
+          value={name}
+          variant="outlined"
+          fullWidth
+          InputProps={{
+            readOnly: true,
+            style: { color: "white" }, // Ensure text is white
+            onCopy: disableCopyPaste, // Disable copy
+            onCut: disableCopyPaste, // Disable cut
+            onPaste: disableCopyPaste, // Disable paste
+          }}
+          InputLabelProps={{
+            style: { color: "white" }, // Ensure label is white
+          }}
+          sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
+        />
 
-      <LoadingSpinner open={isLoading} />
-    </section>
+        {/* Email Field */}
+        <TextField
+          label="Địa chỉ Email"
+          value={email}
+          variant="outlined"
+          fullWidth
+          InputProps={{
+            readOnly: true,
+            style: { color: "white" }, // Ensure text is white
+            onCopy: disableCopyPaste, // Disable copy
+            onCut: disableCopyPaste, // Disable cut
+            onPaste: disableCopyPaste, // Disable paste
+          }}
+          InputLabelProps={{
+            style: { color: "white" }, // Ensure label is white
+          }}
+          sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
+        />
+
+        {/* Phone Field */}
+        <TextField
+          label="Số điện thoại"
+          value={phone}
+          variant="outlined"
+          fullWidth
+          InputProps={{
+            readOnly: true,
+            style: { color: "white" }, // Ensure text is white
+            onCopy: disableCopyPaste, // Disable copy
+            onCut: disableCopyPaste, // Disable cut
+            onPaste: disableCopyPaste, // Disable paste
+          }}
+          InputLabelProps={{
+            style: { color: "white" }, // Ensure label is white
+          }}
+          sx={{ backgroundColor: "#333333", mt: 2 }} // Set background to match dark theme
+        />
+
+        {/* Note Field */}
+        <TextField
+          label="Ghi chú"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          variant="outlined"
+          fullWidth
+          multiline
+          rows={4}
+          placeholder="Tôi muốn bàn view sài gòn"
+          InputProps={{
+            style: { color: note ? "white" : "#888" },
+          }}
+          InputLabelProps={{
+            style: { color: "white" },
+          }}
+          sx={{ backgroundColor: "#333333", mt: 2 }}
+        />
+
+        <hr className="shrink-0 mt-6 w-full h-px border border-amber-400 border-solid" />
+        <div className="flex gap-3 justify-between mt-4 text-black">
+          <Button
+            variant="contained"
+            color="warning"
+            sx={{ backgroundColor: "#FFA500" }}
+            onClick={handleBookingDrinkClick}
+          >
+            Đặt trước thức uống với giảm giá {barInfo.discount}%
+          </Button>
+          <div className="my-auto text-gray-400">Hoặc</div>
+          <Button
+            variant="contained"
+            onClick={handleBookNow}
+            disabled={isLoading}
+            sx={{
+              backgroundColor: isLoading ? "#FFA500" : "#FFA500", // Luôn giữ màu cam
+              color: "black",
+              "&:hover": {
+                backgroundColor: "#FF8C00",
+              },
+              "&:disabled": {
+                backgroundColor: "#FFA500", // Giữ màu cam khi disabled
+                opacity: 0.7, // Giảm độ đậm khi đang xử lý
+                color: "black",
+              },
+            }}
+          >
+            {isLoading ? "Đang xử lý..." : "Đặt bàn ngay"}
+          </Button>
+        </div>
+
+        {/* Dialog for Book Now confirmation */}
+        <Dialog
+          open={openBookNowDialog}
+          onClose={() => setOpenBookNowDialog(false)}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">{"Xác nhận đặt bàn"}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Bạn có chắc chắn muốn đặt bàn ngay bây giờ?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenBookNowDialog(false)} color="primary">
+              Hủy
+            </Button>
+            <Button onClick={confirmBookNow} color="primary" autoFocus>
+              Xác nhận
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog for Book Drink confirmation */}
+        <Dialog
+          open={openBookDrinkDialog}
+          onClose={() => setOpenBookDrinkDialog(false)}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            {"Xác nhận đặt trước thức uống"}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Bạn có chắc chắn muốn đặt trước thức uống với giảm giá{" "}
+              {barInfo.discount}%?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenBookDrinkDialog(false)} color="primary">
+              Hủy
+            </Button>
+            <Button onClick={confirmBookDrink} color="primary" autoFocus>
+              Xác nhận
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <LoadingSpinner open={isLoading} />
+      </section>
+    </div>
   );
 };
 

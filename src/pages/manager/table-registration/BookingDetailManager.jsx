@@ -67,6 +67,50 @@ const BookingDetailManager = () => {
     navigate('/manager/table-registrations');
   };
 
+  const renderBookingTables = () => {
+    if (!Booking?.bookingTableList?.length) {
+      return <p>Không có bàn nào được đặt trước</p>;
+    }
+
+    return Booking.bookingTableList.map((table, index) => (
+      <div key={index} className="bg-white p-2 rounded mb-2">
+        <p>ID: {table.tableName}</p>
+        <p>Loại bàn: {table.tableTypeName}</p>
+      </div>
+    ));
+  };
+
+  const renderBookingDrinks = () => {
+    if (!Booking?.bookingDrinksList?.length) {
+      return <p>Không có thức uống đặt trước</p>;
+    }
+
+    const totalAmount = Booking.bookingDrinksList.reduce(
+      (total, drink) => total + drink.actualPrice * drink.quantity, 
+      0
+    );
+
+    return (
+      <>
+        {Booking.bookingDrinksList.map((drink, index) => (
+          <div key={index} className="flex justify-between items-center mb-2 bg-white p-2 rounded">
+            <div className="flex items-center">
+              <img src={drink.image} alt={drink.drinkName} className="w-10 h-10 mr-2 rounded" />
+              <span>{drink.drinkName}</span>
+            </div>
+            <div className="text-right">
+              <div>{drink.actualPrice.toLocaleString('vi-VN')} VND</div>
+              <div>x{drink.quantity}</div>
+            </div>
+          </div>
+        ))}
+        <div className="mt-4 text-right font-bold">
+          Tổng số tiền: {totalAmount.toLocaleString('vi-VN')} VND
+        </div>
+      </>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -181,43 +225,15 @@ const BookingDetailManager = () => {
         </div>
 
         <div className="w-1/3">
-          <div className="bg-gray-100 p-4 rounded-lg mb-4">
-            <h2 className="text-xl font-bold mb-4">Bàn đã đặt trước</h2>
-            {Booking.bookingTableList && Booking.bookingTableList.length > 0 ? (
-              Booking.bookingTableList.map((table, index) => (
-                <div key={index} className="bg-white p-2 rounded mb-2">
-                  <p>ID: {table.tableName}</p>
-                  <p>Loại bàn: {table.tableTypeName}</p>
-                </div>
-              ))
-            ) : (
-              <p>Không có bàn nào được đặt trước</p>
-            )}
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Thức uống đã đặt trước</h2>
-            {Booking.bookingDrinksList && Booking.bookingDrinksList.length > 0 ? (
-              <>
-                {Booking.bookingDrinksList.map((drink, index) => (
-                  <div key={index} className="flex justify-between items-center mb-2 bg-white p-2 rounded">
-                    <div className="flex items-center">
-                      <img src={drink.image} alt={drink.drinkName} className="w-10 h-10 mr-2 rounded" />
-                      <span>{drink.drinkName}</span>
-                    </div>
-                    <div className="text-right">
-                      <div>{drink.actualPrice.toLocaleString('vi-VN')} VND</div>
-                      <div>x{drink.quantity}</div>
-                    </div>
-                  </div>
-                ))}
-                <div className="mt-4 text-right font-bold">
-                  Tổng số tiền: {Booking.bookingDrinksList.reduce((total, drink) => total + drink.actualPrice * drink.quantity, 0).toLocaleString('vi-VN')} VND
-                </div>
-              </>
-            ) : (
-              <p>Không có thức uống đặt trước</p>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <h2 className="text-xl font-bold mb-4">Bàn đã đặt trước</h2>
+              {renderBookingTables()}
+            </div>
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <h2 className="text-xl font-bold mb-4">Thức uống đã đặt trước</h2>
+              {renderBookingDrinks()}
+            </div>
           </div>
 
           <div className="bg-gray-100 p-4 rounded-lg mt-4">
