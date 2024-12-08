@@ -3,7 +3,7 @@ import axios from "../axiosCustomize";
 // Register device token (for non-logged in users)
 export const registerDeviceToken = async (deviceToken) => {
   try {
-    console.log('Registering device token for guest:', deviceToken);
+    //console.log('Registering device token for guest:', deviceToken);
     const response = await axios.post('/api/Fcm/device-token', {
       deviceToken: deviceToken,
       platform: 'web'
@@ -21,16 +21,16 @@ export const registerDeviceToken = async (deviceToken) => {
 // Get notifications
 export const getNotifications = async (deviceToken) => {
   try {
-    console.log('Fetching notifications with token:', deviceToken);
+    //console.log('Fetching notifications with token:', deviceToken);
     const response = await axios.get('/api/Fcm/notifications', {
       params: {
         deviceToken: deviceToken
       }
     });
-    console.log('Notifications response:', response);
+    //console.log('Notifications response:', response);
     return response;
   } catch (error) {
-    console.error('Error fetching notifications:', error);
+    //console.error('Error fetching notifications:', error);
     throw error;
   }
 };
