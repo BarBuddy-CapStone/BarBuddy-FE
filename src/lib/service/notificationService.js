@@ -56,7 +56,7 @@ export const linkDeviceToken = async (deviceToken) => {
 // Unlink device token from account (logout)
 export const unlinkDeviceToken = async (deviceToken) => {
   try {
-    console.log('Unlinking device token:', deviceToken);
+    //console.log('Unlinking device token:', deviceToken);
     const response = await axios.patch('/api/Fcm/device-token/unlink', {
       deviceToken: deviceToken,
       isLoginOrLogout: false
