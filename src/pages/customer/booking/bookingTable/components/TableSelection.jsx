@@ -353,11 +353,19 @@ const TableSelection = (
     <div className="mt-6">
       <h3 className="text-lg leading-none mb-2 text-amber-400">Chọn Bàn</h3>
       {tableTypeInfo && (
-        <div className="flex items-center mb-4">
-          <TableBarIcon sx={{ color: "#FFA500", marginRight: "8px" }} />
-          <h4 className="text-md leading-none text-white">{tableTypeInfo.typeName}</h4>
+        <div className="flex flex-col gap-2 mb-4">
+          <div className="flex items-center">
+            <TableBarIcon sx={{ color: "#FFA500", marginRight: "8px" }} />
+            <h4 className="text-md leading-none text-white">{tableTypeInfo.typeName}</h4>
+          </div>
+          {/* <div className="text-sm text-gray-300 ml-8">
+            Phù hợp cho {tableTypeInfo.minimumGuest} - {tableTypeInfo.maximumGuest} người
+          </div> */}
         </div>
       )}
+
+      {console.log('TableSelection - tableTypeInfo:', tableTypeInfo)}
+
       {isLoading ? (
         <div className="flex justify-center items-center h-40">
           <CircularProgress size={40} style={{ color: '#FFA500' }} />

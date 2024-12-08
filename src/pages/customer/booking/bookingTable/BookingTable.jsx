@@ -651,6 +651,23 @@ const BookingTable = () => {
     });
   };
 
+  const handleSearchTables = async (typeInfo) => {
+    setTableTypeInfo(typeInfo);
+    
+    // Kiểm tra số lượng người có phù hợp với loại bàn không
+    const guestCount = typeInfo.currentGuestCount;
+    if (guestCount < typeInfo.minimumGuest || guestCount > typeInfo.maximumGuest) {
+      toast.error(`Số lượng người không phù hợp với loại bàn này. Loại bàn này phù hợp cho ${typeInfo.minimumGuest} - ${typeInfo.maximumGuest} người.`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    // Nếu số lượng người phù hợp, tiếp tục tìm kiếm
+    handleSearch();
+  };
+
   return (
     <div className="flex overflow-hidden flex-col bg-zinc-900">
       <main className="self-center mt-4 mx-4 w-full max-w-[1100px]">
@@ -661,7 +678,7 @@ const BookingTable = () => {
               selectedDate={selectedDate}
               onDateChange={handleDateChange}
               onTableTypeChange={handleTableTypeChange}
-              onSearchTables={handleSearch}
+              onSearchTables={handleSearchTables}
               selectedTableTypeId={selectedTableTypeId}
               selectedTime={selectedTime}
               onTimeChange={handleTimeChange}

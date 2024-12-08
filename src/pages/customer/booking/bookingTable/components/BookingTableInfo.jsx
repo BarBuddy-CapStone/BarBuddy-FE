@@ -2,6 +2,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import InfoIcon from "@mui/icons-material/Info";
 import TableBarIcon from "@mui/icons-material/TableBar";
+import PersonIcon from "@mui/icons-material/Person";
 import {
   Button,
   FormControl,
@@ -158,6 +159,7 @@ const BookingTableInfo = ({
   const { token, userInfo } = useAuthStore();
   const [currentHoldCount, setCurrentHoldCount] = useState(0);
   const [selectedTables, setSelectedTables] = useState([]);
+  const [guestCount, setGuestCount] = useState("");
 
   useEffect(() => {
     const fetchTableTypes = async () => {
@@ -307,9 +309,32 @@ const BookingTableInfo = ({
       );
       return;
     }
-    onSearchTables();
+    
+    const selectedTypeInfo = tableTypes.find(t => t.tableTypeId === selectedTableType);
+    if (selectedTypeInfo) {
+      const typeInfoWithGuests = {
+        ...selectedTypeInfo,
+        currentGuestCount: parseInt(guestCount)
+      };
+      onSearchTables(typeInfoWithGuests);
+    }
   };
 
+  const handleGuestCountChange = (event) => {
+    setGuestCount(event.target.value);
+    setSelectedTableType("");
+    onTableTypeChange("");
+  };
+
+  const getFilteredTableTypes = () => {
+    if (!guestCount) return [];
+    const count = parseInt(guestCount);
+    return tableTypes.filter(
+      type => count >= type.minimumGuest && count <= type.maximumGuest
+    );
+  };
+
+  const guestCountOptions = Array.from({length: 30}, (_, i) => i + 1);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} locale={viLocale}>
@@ -374,50 +399,83 @@ const BookingTableInfo = ({
               barId={barId}
             />
 
-            <div
-              className="relative"
-              style={{ flex: "1 1 0", minWidth: "120px", maxWidth: "200px" }}
-            >
+            <div className="relative" style={{ flex: "1 1 0", minWidth: "120px", maxWidth: "200px" }}>
               <button
                 className="w-full h-[56px] px-4 py-2 bg-transparent border border-white rounded-lg text-white flex items-center justify-between hover:border-amber-400 focus:border-amber-400"
                 onClick={(e) => {
                   const target = e.currentTarget;
                   const rect = target.getBoundingClientRect();
-                  setAnchorEl({ target, rect });
+                  setAnchorEl({ target, rect, type: 'guest' });
                 }}
+                disabled={!selectedTime}
               >
                 <div className="flex items-center min-w-0">
-                  <TableBarIcon
-                    style={{
-                      color: "#FFA500",
-                      marginRight: "8px",
-                      flexShrink: 0,
-                    }}
-                  />
+                  <PersonIcon style={{ color: "#FFA500", marginRight: "8px", flexShrink: 0 }} />
                   <span className="truncate">
-                    {selectedTableType
-                      ? tableTypes.find(
-                          (t) => t.tableTypeId === selectedTableType
-                        )?.typeName
-                      : "Loại bàn"}
+                    {guestCount ? `${guestCount} người` : "Số người"}
                   </span>
                 </div>
-                <span
-                  style={{
-                    width: 0,
-                    height: 0,
-                    borderLeft: "5px solid transparent",
-                    borderRight: "5px solid transparent",
-                    borderTop: "5px solid #FFA500",
-                    marginLeft: "8px",
-                    flexShrink: 0,
-                  }}
-                />
+                <span className="dropdown-arrow" />
               </button>
 
               <Menu
-                anchorEl={anchorEl?.target}
-                open={Boolean(anchorEl)}
+                anchorEl={anchorEl?.type === 'guest' ? anchorEl.target : null}
+                open={Boolean(anchorEl?.type === 'guest')}
+                onClose={() => setAnchorEl(null)}
+                PaperProps={{
+                  style: {
+                    backgroundColor: "#2D2D2D",
+                    borderRadius: "8px",
+                    marginTop: "8px",
+                    minWidth: anchorEl?.rect?.width,
+                    maxHeight: "300px",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                  },
+                }}
+              >
+                {guestCountOptions.map((count) => (
+                  <MenuItem
+                    key={count}
+                    onClick={() => {
+                      handleGuestCountChange({ target: { value: count } });
+                      setAnchorEl(null);
+                    }}
+                    style={{
+                      color: "#FFA500",
+                      padding: "10px 16px",
+                      borderBottom: "1px solid #404040",
+                    }}
+                  >
+                    {count} người
+                  </MenuItem>
+                ))}
+              </Menu>
+            </div>
+
+            <div className="relative" style={{ flex: "1 1 0", minWidth: "120px", maxWidth: "200px" }}>
+              <button
+                className="w-full h-[56px] px-4 py-2 bg-transparent border border-white rounded-lg text-white flex items-center justify-between hover:border-amber-400 focus:border-amber-400"
+                onClick={(e) => {
+                  const target = e.currentTarget;
+                  const rect = target.getBoundingClientRect();
+                  setAnchorEl({ target, rect, type: 'table' });
+                }}
+                disabled={!guestCount}
+              >
+                <div className="flex items-center min-w-0">
+                  <TableBarIcon style={{ color: "#FFA500", marginRight: "8px", flexShrink: 0 }} />
+                  <span className="truncate">
+                    {selectedTableType
+                      ? tableTypes.find((t) => t.tableTypeId === selectedTableType)?.typeName
+                      : "Loại bàn"}
+                  </span>
+                </div>
+                <span className="dropdown-arrow" />
+              </button>
+
+              <Menu
+                anchorEl={anchorEl?.type === 'table' ? anchorEl.target : null}
+                open={Boolean(anchorEl?.type === 'table')}
                 onClose={() => setAnchorEl(null)}
                 PaperProps={{
                   style: {
@@ -428,16 +486,8 @@ const BookingTableInfo = ({
                     boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
                   },
                 }}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "left",
-                }}
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "left",
-                }}
               >
-                {tableTypes.map((tableType) => (
+                {getFilteredTableTypes().map((tableType) => (
                   <MenuItem
                     key={tableType.tableTypeId}
                     onClick={() => {
@@ -448,12 +498,6 @@ const BookingTableInfo = ({
                       color: "#FFA500",
                       padding: "10px 16px",
                       borderBottom: "1px solid #404040",
-                      "&:last-child": {
-                        borderBottom: "none",
-                      },
-                      "&:hover": {
-                        backgroundColor: "#3D3D3D",
-                      },
                     }}
                   >
                     {tableType.typeName}
@@ -470,6 +514,7 @@ const BookingTableInfo = ({
                 !endTime ||
                 !selectedTime ||
                 !selectedTableTypeId ||
+                !guestCount ||
                 currentHoldCount >= 5
               }
               sx={{
