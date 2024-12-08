@@ -13,10 +13,6 @@ import { toast } from "react-toastify"; // Import toast
 import { LoadingSpinner } from "src/components";
 import { useAuthStore } from "src/lib"; // Import the Auth Store
 import { boookingtableNow } from "src/lib/service/BookingTableService"; // Import the API function
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import StoreIcon from "@mui/icons-material/Store";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import TableBarIcon from "@mui/icons-material/TableBar";
 
 const CustomerForm = ({
   selectedTables,
@@ -127,36 +123,8 @@ const CustomerForm = ({
     }
   };
 
-  const renderBookingInfo = () => (
-    <div className="space-y-4">
-      <div className="flex items-center">
-        <LocationOnIcon className="text-amber-400" />
-        <span className="ml-2">
-          <span className="text-amber-400 mr-1">Địa chỉ:</span>
-          {barInfo?.location}
-        </span>
-      </div>
-      {[
-        { icon: <StoreIcon className="text-amber-400" />, label: "Chi nhánh", value: barInfo?.name },
-        { icon: <AccessTimeIcon className="text-amber-400" />, label: "Giờ mở cửa", 
-          value: `${barInfo?.openingHours?.split('-')[0].trim() || "N/A"} - ${barInfo?.openingHours?.split('-')[1].trim() || "N/A"}` },
-        { icon: <TableBarIcon className="text-amber-400" />, label: "Bàn", 
-          value: `${selectedTables?.length} bàn đã chọn` }
-      ].map((item, index) => (
-        <div key={index} className="flex items-center">
-          {item.icon}
-          <span className="ml-2">
-            <span className="text-amber-400 mr-1">{item.label}:</span>
-            {item.value}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-
   return (
     <div className="booking-form">
-      {renderBookingInfo()}
       <section className="flex flex-col px-4 mt-6 w-full max-md:px-3 max-md:mt-4 max-md:max-w-full">
         <h2 className="self-start text-lg text-amber-400 max-md:ml-1">
           Thông tin khách hàng
@@ -278,7 +246,9 @@ const CustomerForm = ({
           aria-labelledby="alert-dialog-title"
           aria-describedby="alert-dialog-description"
         >
-          <DialogTitle id="alert-dialog-title">{"Xác nhận đặt bàn"}</DialogTitle>
+          <DialogTitle id="alert-dialog-title">
+            {"Xác nhận đặt bàn"}
+          </DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
               Bạn có chắc chắn muốn đặt bàn ngay bây giờ?
@@ -311,7 +281,10 @@ const CustomerForm = ({
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenBookDrinkDialog(false)} color="primary">
+            <Button
+              onClick={() => setOpenBookDrinkDialog(false)}
+              color="primary"
+            >
               Hủy
             </Button>
             <Button onClick={confirmBookDrink} color="primary" autoFocus>
