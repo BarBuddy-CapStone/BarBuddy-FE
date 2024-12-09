@@ -59,7 +59,11 @@ const createNotificationConnection = (accountId) => {
   connection.on("ReceiveNotification", (notification) => {
     //console.log("Received notification:", notification);
 
-    // Dispatch event để các component khác có thể lắng nghe
+    // Đảm bảo timestamp là một giá trị hợp lệ
+    const timestamp = notification.timestamp 
+      ? new Date(notification.timestamp).toISOString()
+      : new Date().toISOString();
+
     document.dispatchEvent(
       new CustomEvent("notificationReceived", {
         detail: {
@@ -67,7 +71,8 @@ const createNotificationConnection = (accountId) => {
           title: notification.title,
           message: notification.message,
           type: notification.type,
-          timestamp: notification.timestamp,
+          timestamp: timestamp,
+          createdAt: timestamp,
           mobileDeepLink: notification.mobileDeepLink,
           webDeepLink: notification.webDeepLink,
           imageUrl: notification.imageUrl,

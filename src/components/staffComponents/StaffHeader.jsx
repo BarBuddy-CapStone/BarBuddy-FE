@@ -326,7 +326,7 @@ const StaffHeader = ({ className, onMenuClick, isSidebarOpen }) => {
                           fontSize: "0.8rem" 
                         }}
                       >
-                        {timeAgo(notification.createdAt)}
+                        {timeAgo(new Date(notification.timestamp || notification.createdAt).getTime())}
                       </Typography>
                     </Box>
                   </Box>

@@ -504,7 +504,7 @@ const CustomerHeader = () => {
                                       fontSize: "0.75rem",
                                     }}
                                   >
-                                    • {timeAgo(notification.createdAt)}
+                                    • {timeAgo(new Date(notification.timestamp || notification.createdAt).getTime())}
                                   </Typography>
                                 </Box>
                               </Box>
