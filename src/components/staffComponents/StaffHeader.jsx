@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -24,6 +24,7 @@ import {
   markAllAsRead 
 } from "src/lib/service/notificationService";
 import { timeAgo } from "src/lib/Utils/Utils";
+import { createNotificationConnection, startNotificationConnection } from "src/lib/Third-party/signalR/notificationHubConnection";
 
 const getTitlePath = (pathName) => {
   // Sử dụng regex để match các pattern có chứa ID
@@ -66,9 +67,42 @@ const StaffHeader = ({ className, onMenuClick, isSidebarOpen }) => {
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const { fcmToken } = useFCMToken();
 
-  // Fetch notifications
+  // Thêm useEffect để fetch notifications khi component mount và khi fcmToken thay đổi
+  useEffect(() => {
+    if (userInfo?.accountId) {
+      // Khởi tạo SignalR connection
+      const connection = createNotificationConnection(userInfo.accountId);
+      
+      // Lắng nghe sự kiện nhận notification mới
+      const handleNewNotification = (event) => {
+        const newNotification = event.detail;
+        setNotifications(prev => [newNotification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      };
+
+      // Đăng ký lắng nghe sự kiện
+      document.addEventListener('notificationReceived', handleNewNotification);
+
+      // Kết nối SignalR
+      startNotificationConnection(connection);
+
+      // Initial fetch
+      fetchNotifications();
+
+      return () => {
+        // Cleanup
+        document.removeEventListener('notificationReceived', handleNewNotification);
+        connection?.stop();
+      };
+    }
+  }, [userInfo, fcmToken]);
+
+  // Sửa lại hàm fetch notifications
   const fetchNotifications = async () => {
-    if (!fcmToken) return;
+    if (!fcmToken || !userInfo) {
+      console.log("No FCM token available or user not logged in");
+      return;
+    }
 
     setIsLoadingNotifications(true);
     try {
@@ -85,10 +119,9 @@ const StaffHeader = ({ className, onMenuClick, isSidebarOpen }) => {
     }
   };
 
-  // Handle notification click
+  // Sửa lại hàm handleNotificationClick để không fetch notifications nữa
   const handleNotificationClick = (event) => {
     setNotificationAnchorEl(event.currentTarget);
-    fetchNotifications();
   };
 
   const handleNotificationClose = () => {

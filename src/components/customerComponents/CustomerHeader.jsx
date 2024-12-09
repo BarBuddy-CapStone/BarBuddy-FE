@@ -27,6 +27,7 @@ import {
 } from "src/lib/service/notificationService";
 import { timeAgo } from "src/lib/Utils/Utils";
 import { ForgetPassword, Login, Registration } from "src/pages";
+import { createNotificationConnection, startNotificationConnection } from "src/lib/Third-party/signalR/notificationHubConnection";
 
 const baseURL = import.meta.env.VITE_BASE_URL;
 
@@ -57,6 +58,36 @@ const CustomerHeader = () => {
       setAccountId(userInfoParsed.accountId);
     }
   }, []);
+
+  // Thêm useEffect để fetch notifications khi component mount và khi fcmToken thay đổi
+  useEffect(() => {
+    if (isLoggedIn && accountId) {
+      // Khởi tạo SignalR connection
+      const connection = createNotificationConnection(accountId);
+      
+      // Lắng nghe sự kiện nhận notification mới
+      const handleNewNotification = (event) => {
+        const newNotification = event.detail;
+        setNotifications(prev => [newNotification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      };
+
+      // Đăng ký lắng nghe sự kiện
+      document.addEventListener('notificationReceived', handleNewNotification);
+
+      // Kết nối SignalR
+      startNotificationConnection(connection);
+
+      // Initial fetch
+      fetchNotifications();
+
+      return () => {
+        // Cleanup
+        document.removeEventListener('notificationReceived', handleNewNotification);
+        connection?.stop();
+      };
+    }
+  }, [isLoggedIn, accountId, fcmToken]);
 
   const handleMenuClick = (event) => {
     if (anchorEl) {
@@ -110,22 +141,18 @@ const CustomerHeader = () => {
 
   // Sửa lại hàm fetch notifications
   const fetchNotifications = async () => {
-    if (!fcmToken) {
-      console.log("No FCM token available");
+    if (!fcmToken || !isLoggedIn) {
+      console.log("No FCM token available or user not logged in");
       return;
     }
 
     setIsLoadingNotifications(true);
     try {
-      console.log("Fetching notifications with token:", fcmToken);
       const response = await getNotifications(fcmToken);
-      console.log("Notifications response:", response);
 
       if (response?.data?.statusCode === 200) {
-        console.log("Notifications data:", response.data.data);
         setNotifications(response.data.data);
         const unread = response.data.data.filter((n) => !n.isRead).length;
-        console.log("Unread count:", unread);
         setUnreadCount(unread);
       }
     } catch (error) {
@@ -138,7 +165,6 @@ const CustomerHeader = () => {
   // Sửa lại phần xử lý click notification icon
   const handleNotificationClick = (event) => {
     setNotificationAnchorEl(event.currentTarget);
-    fetchNotifications(); // Fetch khi click vào icon
   };
 
   const handleNotificationItemClick = async (notification) => {
