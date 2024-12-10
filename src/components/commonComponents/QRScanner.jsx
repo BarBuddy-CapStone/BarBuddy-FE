@@ -22,7 +22,7 @@ const QRScanner = ({ isOpen, onClose, onScanSuccess }) => {
             isProcessingRef.current = true;
             lastScannedCodeRef.current = result.data;
             setError(null);
-            console.log("QR Code Result:", result.data);
+           // console.log("QR Code Result:", result.data);
             
             if (!result.data) {
               throw new Error('Mã QR không hợp lệ');

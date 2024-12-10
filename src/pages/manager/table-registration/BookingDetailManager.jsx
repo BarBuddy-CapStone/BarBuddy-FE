@@ -16,7 +16,6 @@ const BookingDetailManager = () => {
     const fetchBookingDetails = async () => {
       try {
         const response = await BookingService.getBookingDetailByManager(bookingId);
-        console.log("API Response:", response);
 
         if (response.data && response.data.data) {
           const bookingData = response.data.data;

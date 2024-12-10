@@ -15,11 +15,11 @@ const paymentOptions = [
     name: 'VN Pay',
     image: 'https://cdn.builder.io/api/v1/image/assets/TEMP/c3b795cf29370135614c954e43489801f8101bcc1075bab4929eafd629486f12?placeholderIfAbsent=true&apiKey=2f0fb41b041549e2a3975f3618160d3b',
   },
-  {
-    id: 'MOMO',
-    name: 'Ví MOMO',
-    image: Momologo,
-  },
+  // {
+  //   id: 'MOMO',
+  //   name: 'Ví MOMO',
+  //   image: Momologo,
+  // },
   // {
   //   id: 'ZALOPAY',
   //   name: 'Zalo Pay',

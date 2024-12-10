@@ -191,7 +191,6 @@ function TableManagementManager() {
         status: parseInt(currentTable.status)
       };
 
-      console.log('Payload:', tableData);
 
       let response;
       if (isEditing) {

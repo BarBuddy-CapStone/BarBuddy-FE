@@ -72,12 +72,12 @@ const useAuthStore = create((set, get) => {
       const decodedToken = jwtDecode(token);
       const role = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
       
-      console.log('Role from token:', role); // Debug
+      //console.log('Role from token:', role); // Debug
 
       const isCustomer = role === 'CUSTOMER';
       
       if (isCustomer) {
-        console.log('Saving to cookie...'); // Debug
+        //console.log('Saving to cookie...'); // Debug
         setCookieSecurely('authToken', token);
         setCookieSecurely('userInfo', JSON.stringify(userInfo));
       } else {

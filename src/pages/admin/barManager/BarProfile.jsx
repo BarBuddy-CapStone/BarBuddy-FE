@@ -278,11 +278,6 @@ const BarProfile = () => {
             });
         }
 
-        // Log để debug
-        console.log('Validation errors:', newErrors);
-        console.log('All errors:', allErrors);
-        console.log('Is form valid:', isValid);
-
         return isValid;
     };
 
@@ -408,10 +403,8 @@ const BarProfile = () => {
     }
 
     const handleAddConfirm = async () => {
-        console.log('Starting handleAddConfirm');
         
         if (!validateForm()) {
-            console.log('Form validation failed');
             setIsPopupConfirm(false);
             return;
         }
@@ -419,8 +412,6 @@ const BarProfile = () => {
         try {
             setIsLoading(true);
             setIsPopupConfirm(false);
-
-            console.log('Processing images...');
             const newImagesBase64 = await Promise.all(
                 uploadedImages
                     .filter(image => !image.isOld && image.file)
@@ -462,9 +453,8 @@ const BarProfile = () => {
                     })
             };
 
-            console.log('Payload:', payload);
             const response = await updateBar(payload);
-            console.log('Response:', response);
+
 
             if (response.status === 200) {
                 toast.success("Cập nhật thành công!", {

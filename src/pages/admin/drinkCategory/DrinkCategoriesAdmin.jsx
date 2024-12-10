@@ -73,9 +73,7 @@ const DrinkCategoriesAdmin = () => {
         setLoading(true);
         setNoData(false);
         try {
-            console.log('Fetching with:', { page, pageSize, search });
             const response = await getAllDrinkCate(page, pageSize, search);
-            console.log('Response:', response.data);
 
             if (response?.data?.data?.drinkCategoryResponses?.length > 0) {
                 setDrinkCateList(response.data.data.drinkCategoryResponses);
@@ -99,7 +97,6 @@ const DrinkCategoriesAdmin = () => {
     };
 
     const handlePageChange = (event, value) => {
-        console.log('Changing to page:', value);
         setCurrentPage(value);
     };
 
@@ -125,7 +122,6 @@ const DrinkCategoriesAdmin = () => {
     }, [currentPage]);
 
     const totalPages = Math.ceil(totalItems / pageSize);
-    console.log('Total pages:', totalPages);
 
     return (
         <main className="overflow-hidden pt-2 px-5 bg-white max-md:pr-5">

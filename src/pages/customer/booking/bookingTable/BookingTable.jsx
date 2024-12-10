@@ -14,6 +14,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import AccountService from "src/lib/service/accountService";
 
 import {
   BookingTableInfo,
@@ -48,13 +49,13 @@ const BookingTable = () => {
   const [note, setNote] = useState("");
   const [barTimeSlot, setBarTimeSlot] = useState(1);
   const [showPhoneWarning, setShowPhoneWarning] = useState(false);
+  const [customerData, setCustomerData] = useState(null);
 
   const uniqueTablesByDateAndTime = selectedTables.filter((seleTable, index, self) =>
     index === self.findIndex((t) => (
       t.tableId === seleTable.tableId && t.date === seleTable.date && t.time === seleTable.time
     ))
   );
-  console.log("selectedDate", selectedDate)
 
   const formatDateAndDay = (date) => {
     const dayNames = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
@@ -130,7 +131,6 @@ const BookingTable = () => {
 
   useEffect(() => {
     if (barId) {
-      console.log("Fetching table data due to date change:", selectedDate);
       fetchTableData();
     }
   }, [barId, selectedDate]);
@@ -244,21 +244,12 @@ const BookingTable = () => {
       const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
       const formattedTime = selectedTime + ":00";
 
-      console.log("Searching tables with params:", {
-        barId,
-        date: formattedDate,
-        time: formattedTime,
-        tableTypeId: selectedTableTypeId
-      });
-
       const response = await filterBookingTable({
         barId,
         tableTypeId: selectedTableTypeId,
         date: formattedDate,
         time: selectedTime
       });
-
-      console.log("Filter response:", response.data);
 
       if (response.data.statusCode === 200 && response.data.data) {
         const holdTablesResponse = await getAllHoldTable(token, barId, formattedDate, formattedTime);
@@ -291,16 +282,12 @@ const BookingTable = () => {
           setOpenPopup(true);
         }
       } else if (response.data.statusCode === 400) {
-        console.error("Bad Request:", response.data.message);
         setOpenPopup(true);
       } else {
-        console.error("Filter API returned unexpected response:", response.data);
         setOpenPopup(true);
       }
     } catch (error) {
-      console.error("Error searching tables:", error);
       if (error.response) {
-        console.error("Server error details:", error.response.data);
       }
       setOpenPopup(true);
     } finally {
@@ -536,12 +523,10 @@ const BookingTable = () => {
     console.log("Setting up SignalR listeners");
 
     hubConnection.on("TableHoId", (response) => {
-      console.log("Table HoId:", response);
       updateTableHeldStatus(response.tableId, true, response.accountId, response.date, response.time);
     });
 
     hubConnection.on("TableReleased", (response) => {
-      console.log("Table released:", response);
       updateTableHeldStatus(response.tableId, false, null, response.date, response.time);
     });
 
@@ -593,7 +578,6 @@ const BookingTable = () => {
   useEffect(() => {
     const handleTableListStatusChange = (event) => {
       const { tables, barId, date, time } = event.detail;
-      console.log("BookingTable received tableListStatusChanged:", event.detail);
 
       // Cập nhật allFilteredTables
       setAllFilteredTables(prev => {
@@ -632,10 +616,24 @@ const BookingTable = () => {
   }, []);
 
   useEffect(() => {
-    if (!userInfo?.phone) {
-      setShowPhoneWarning(true);
-    }
-  }, [userInfo]);
+    const fetchCustomerProfile = async () => {
+      if (userInfo?.accountId) {
+        try {
+          const response = await AccountService.getCustomerProfile(userInfo.accountId);
+          setCustomerData(response.data);
+          
+          // Kiểm tra số điện thoại từ API response
+          if (!response.data.phone) {
+            setShowPhoneWarning(true);
+          }
+        } catch (error) {
+          console.error("Error fetching customer profile:", error);
+        }
+      }
+    };
+
+    fetchCustomerProfile();
+  }, [userInfo?.accountId]);
 
   const handleCloseWarning = () => {
     setShowPhoneWarning(false);

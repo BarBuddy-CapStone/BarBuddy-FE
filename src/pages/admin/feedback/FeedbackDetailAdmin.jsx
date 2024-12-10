@@ -34,7 +34,6 @@ function FeedbackDetail() {
   const handleConfirm = () => {
     setShowNotification(false); // Close notification on confirm
     // Implement actual save logic here, e.g., submitting the data
-    console.log("Data saved");
     // Optionally navigate back after saving
     navigate(-1); // Navigate back after confirmation
   };

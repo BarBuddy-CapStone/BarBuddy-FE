@@ -63,9 +63,7 @@ const DrinkCategories = () => {
         setLoading(true);
         setNoData(false);
         try {
-            console.log('Fetching with:', { page, pageSize, search });
             const response = await getAllDrinkCate(page, pageSize, search);
-            console.log('Response:', response.data);
 
             if (response?.data?.data?.drinkCategoryResponses?.length > 0) {
                 setDrinkCateList(response.data.data.drinkCategoryResponses);

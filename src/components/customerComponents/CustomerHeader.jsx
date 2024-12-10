@@ -142,7 +142,7 @@ const CustomerHeader = () => {
   // Sửa lại hàm fetch notifications
   const fetchNotifications = async () => {
     if (!fcmToken || !isLoggedIn) {
-      console.log("No FCM token available or user not logged in");
+      //console.log("No FCM token available or user not logged in");
       return;
     }
 
@@ -588,21 +588,12 @@ const CustomerHeader = () => {
                   </MenuItem>
                   <MenuItem
                     onClick={handleLogout}
-                    disabled={isLoggingOut}
                     sx={{
                       display: "flex",
                       gap: "8px",
-                      color: isLoggingOut ? "gray" : "inherit",
                     }}
                   >
-                    {isLoggingOut ? (
-                      <>
-                        <CircularProgress size={20} />
-                        Đang đăng xuất...
-                      </>
-                    ) : (
-                      "Đăng xuất"
-                    )}
+                    Đăng xuất
                   </MenuItem>
                 </Menu>
               </Box>

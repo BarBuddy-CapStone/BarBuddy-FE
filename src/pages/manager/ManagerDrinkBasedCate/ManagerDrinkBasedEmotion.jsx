@@ -91,7 +91,6 @@ function DrinkItems({
             <div>{formatDate(createdDate)}</div>
             <div>{formatDate(updatedDate)}</div>
             <div>{drinksCategoryName}</div>
-            {console.log}
             <div>
                 <span
                     className={`flex justify-center items-center w-20 px-2 py-1 rounded-full text-white text-sm font-notoSansSC ${status === true ? "bg-green-500" : "bg-red-500"
@@ -127,7 +126,6 @@ function ManagerDrinkBasedEmo() {
     }, [emoId])
 
     useEffect(() => {
-        console.log(dataDrinkEmo)
     }, [dataDrinkEmo])
     return (
         <main className="flex overflow-hidden flex-col">

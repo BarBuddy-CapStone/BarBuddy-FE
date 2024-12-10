@@ -66,7 +66,6 @@ function BookingTableAdmin({ filter, bookings, loading }) {
 
   const handleViewDetails = (bookingId) => {
     const path = `/admin/table-registration-detail/${bookingId}`;
-    console.log("Navigating to:", path);
     navigate(path);
   };
 

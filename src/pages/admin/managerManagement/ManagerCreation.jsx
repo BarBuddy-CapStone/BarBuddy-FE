@@ -62,7 +62,6 @@ const AccountForm = () => {
         const fetchBars = async () => {
             try {
                 const response = await getAllBarsNoPage();
-                console.log('API Response:', response);
 
                 if (response?.data?.data?.onlyBarIdNameResponses) {
                     const barsList = response.data.data.onlyBarIdNameResponses;

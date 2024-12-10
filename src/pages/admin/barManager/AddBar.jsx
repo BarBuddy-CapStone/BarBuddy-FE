@@ -352,7 +352,6 @@ const AddBar = () => {
 
     // Thêm hàm xử lý thay đổi thời gian
     const handleTimeChange = (dayOfWeek, timeType, newTime) => {
-        console.log('handleTimeChange called:', { dayOfWeek, timeType, newTime });
         setFormData(prev => {
             const updatedBarTimeRequest = {
                 ...prev.barTimeRequest,
@@ -361,7 +360,6 @@ const AddBar = () => {
                     [timeType]: newTime
                 }
             };
-            console.log('Updated barTimeRequest:', updatedBarTimeRequest);
             return {
                 ...prev,
                 barTimeRequest: updatedBarTimeRequest
@@ -371,13 +369,11 @@ const AddBar = () => {
 
     // Thêm hàm xử lý toggle ngày
     const handleDayToggle = (dayOfWeek, enabled) => {
-        console.log('handleDayToggle called:', { dayOfWeek, enabled });
         setFormData(prev => {
             const updatedBarTimeRequest = {
                 ...prev.barTimeRequest,
                 [dayOfWeek]: enabled ? { startTime: '', endTime: '' } : null
             };
-            console.log('Updated barTimeRequest:', updatedBarTimeRequest);
             return {
                 ...prev,
                 barTimeRequest: updatedBarTimeRequest
@@ -387,11 +383,7 @@ const AddBar = () => {
 
     // Cập nhật hàm handleAddConfirm
     const handleAddConfirm = async () => {
-        console.log('Starting handleAddConfirm');
-        console.log('Current formData:', formData);
-        
         if (!validateForm()) {
-            console.log('Form validation failed');
             setIsPopupConfirm(false);
             return;
         }
@@ -416,8 +408,6 @@ const AddBar = () => {
                     endTime: `${times.endTime}:00`
                 }));
 
-            console.log('Formatted barTimes:', barTimes);
-
             const payload = {
                 barName: formData.barName,
                 email: formData.email,
@@ -431,9 +421,7 @@ const AddBar = () => {
                 barTimeRequest: barTimes
             };
 
-            console.log('Sending payload:', payload);
             const response = await addBar(payload);
-            console.log('Response:', response);
 
             if (response.status === 200) {
                 toast.success("Thêm quán bar thành công!", {

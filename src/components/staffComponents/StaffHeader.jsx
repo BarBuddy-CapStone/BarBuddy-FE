@@ -100,7 +100,7 @@ const StaffHeader = ({ className, onMenuClick, isSidebarOpen }) => {
   // Sửa lại hàm fetch notifications
   const fetchNotifications = async () => {
     if (!fcmToken || !userInfo) {
-      console.log("No FCM token available or user not logged in");
+      //console.log("No FCM token available or user not logged in");
       return;
     }
 

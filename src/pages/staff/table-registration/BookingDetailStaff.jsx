@@ -55,8 +55,6 @@ const BookingDetailStaff = () => {
   useEffect(() => {
     if (!bookingId || initialLoadDone.current) return;
     
-    console.log("Fetching booking details...");
-    console.log("Location state:", location.state);
     
     const initialFetch = async () => {
       try {

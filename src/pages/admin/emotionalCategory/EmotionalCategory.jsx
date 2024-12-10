@@ -56,7 +56,6 @@ function EmotionalCategory() {
     setEmotionCategories([]);
     try {
       const response = await getAllEmotionCategory(page, undefined, search);
-      console.log('API Response:', response);
 
       if (response?.data?.data?.emotionCategoryResponses) {
         setEmotionCategories(response.data.data.emotionCategoryResponses);

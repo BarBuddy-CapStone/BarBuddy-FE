@@ -23,14 +23,10 @@ function BarManagement() {
     try {
       setLoading(true);
       const response = await getAllBar(currentPage, pageSize, searchTerm);
-      console.log('API Response:', response);
       
       if (response?.data?.data?.barResponses) {
         setBarData(response.data.data.barResponses);
         setTotalPages(response.data.data.totalPages);
-        console.log('Current Page:', currentPage);
-        console.log('Total Pages:', response.data.data.totalPages);
-        console.log('Items per page:', response.data.data.pageSize);
       } else {
         setBarData([]);
         setTotalPages(1);

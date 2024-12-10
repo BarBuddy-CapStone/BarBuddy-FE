@@ -78,7 +78,6 @@ function BookingHistory({ accountId }) {
       setShowConfirm(false);
     } catch (error) {
       toast.error("Hủy đặt bàn thất bại");
-      console.error("Error while canceling:", error);
     } finally {
       setIsLoadingCancel(false); // Kết thúc hiển thị LoadingSpinner
     }
@@ -157,7 +156,6 @@ function BookingHistory({ accountId }) {
       setComment("");
     } catch (error) {
       toast.error("Đã xảy ra lỗi khi gửi đánh giá.");
-      console.error("Error submitting rating:", error);
     } finally {
       setLoadingRating(false);
     }

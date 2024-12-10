@@ -3,13 +3,14 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import PersonalInfo from "./PersonalInfoComponent";
 import BookingHistory from "./RecentBookingComponent";
 import CircularProgress from '@mui/material/CircularProgress';
-import { useAuthStore } from "src/lib"; // Import useAuthStore
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { toast } from "react-toastify";
+import AccountService from "../../../lib/service/accountService";
 
 function ProfilePage() {
   const { accountId } = useParams();
@@ -19,19 +20,44 @@ function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [showPhoneWarning, setShowPhoneWarning] = useState(false);
   const navigate = useNavigate();
-  const { userInfo } = useAuthStore();
+  const [customerData, setCustomerData] = useState(null);
 
   useEffect(() => {
-    const checkUserPhone = () => {
-      if (!userInfo?.phone) {
-        setShowPhoneWarning(true);
+    const fetchCustomerProfile = async () => {
+      try {
+        const response = await AccountService.getCustomerProfile(accountId);
+        setCustomerData(response.data);
+        
+        // Kiểm tra số điện thoại từ dữ liệu API
+        if (!response.data.phone) {
+          setShowPhoneWarning(true);
+        }
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    const timer = setTimeout(checkUserPhone, 1000);
-    return () => clearTimeout(timer);
-  }, [userInfo]);
+    if (accountId) {
+      fetchCustomerProfile();
+    }
+  }, [accountId]);
+
+  const handleUpdateSuccess = (message, data) => {
+    setTimeout(() => {
+      toast.success(message || "Cập nhật thông tin thành công!", {
+        position: "top-right",
+        autoClose: 2000
+      });
+      
+      // Cập nhật lại customerData khi có thay đổi
+      setCustomerData(data);
+      // Nếu đã thêm số điện thoại, đóng warning popup
+      if (data.phone) {
+        setShowPhoneWarning(false);
+      }
+    }, 100);
+  };
 
   const handleCloseWarning = () => {
     setShowPhoneWarning(false);
@@ -59,7 +85,11 @@ function ProfilePage() {
   return (
     <>
       <div className="flex flex-col lg:flex-row space-y-6 lg:space-y-0 px-8">
-        <PersonalInfo accountId={accountId} />
+        <PersonalInfo 
+          accountId={accountId} 
+          onUpdateSuccess={handleUpdateSuccess}
+          customerData={customerData} 
+        />
         <BookingHistory accountId={accountId} />
       </div>
 

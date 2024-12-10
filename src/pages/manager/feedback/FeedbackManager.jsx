@@ -64,7 +64,6 @@ const FeedbackManager = () => {
         search
       );
       
-      console.log("API Response:", response);
       
       if (response?.data?.data?.managerFeedbackResponses) {
         setFeedbackData(response.data.data.managerFeedbackResponses);

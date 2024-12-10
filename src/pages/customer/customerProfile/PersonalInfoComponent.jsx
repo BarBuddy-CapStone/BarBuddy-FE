@@ -5,7 +5,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from 'src/lib';
 
-function PersonalInfo({ accountId }) {
+function PersonalInfo({ accountId, onUpdateSuccess }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { updateUserInfo, logout, userInfo } = useAuthStore();
@@ -55,6 +55,10 @@ function PersonalInfo({ accountId }) {
     }
   }, [accountId]);
 
+  useEffect(() => {
+    console.log('isEditing changed:', isEditing);
+  }, [isEditing]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -72,42 +76,33 @@ function PersonalInfo({ accountId }) {
       };
 
       const response = await AccountService.updateCustomerProfile(accountId, data);
-      console.log("Update response:", response.data);
-
+      
       if (response.data && response.data.statusCode === 200) {
+        const updatedData = {
+          fullName: response.data.data.fullname,
+          birthDate: response.data.data.dob.split("T")[0],
+          phoneNumber: response.data.data.phone,
+          email: response.data.data.email,
+          image: response.data.data.image,
+        };
+        
+        setFormData(updatedData);
+        setInitialData(updatedData);
         setIsEditing(false);
-        setInitialData(formData);
 
-        if (!userInfo?.phone && formData.phoneNumber) {
-          toast.success("Cập nhật thông tin thành công! Vui lòng đăng nhập lại.", {
-            position: "top-right",
-            autoClose: 2000
-          });
+        onUpdateSuccess(response.data.message, response.data.data);
 
+        if (!userInfo?.phone && response.data.data.phone) {
           setTimeout(async () => {
             await logout();
-            navigate('/login');
+            navigate('/home');
           }, 2000);
-        } else {
-          toast.success("Cập nhật thông tin thành công!", {
-            position: "top-right",
-            autoClose: 2000
-          });
         }
       }
     } catch (err) {
       console.error("Update error:", err);
       if (err.response?.data?.errors) {
         setValidationErrors(err.response.data.errors);
-        toast.error(Object.values(err.response.data.errors)[0][0], {
-          position: "top-right",
-          autoClose: 2000
-        });
-      } else {
-        toast.error("Cập nhật thông tin thất bại!", {
-          position: "top-right",
-          autoClose: 2000
-        });
       }
     }
   };

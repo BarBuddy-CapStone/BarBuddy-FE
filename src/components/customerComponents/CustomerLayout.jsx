@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { CustomerHeader, CustomerFooter, ScrollToTopButton } from "src/components";
 import { useFCMToken } from "src/hooks/useFCMToken";
 
@@ -26,7 +27,18 @@ const CustomerLayout = () => {
       </main>
 
       <CustomerFooter />
-      <ToastContainer theme="dark" />
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </div>
   );
 };

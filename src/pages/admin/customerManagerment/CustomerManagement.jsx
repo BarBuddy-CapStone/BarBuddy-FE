@@ -110,7 +110,6 @@ const CustomerManagement = () => {
             setIsLoading(true);
             try {
                 const response = await getCustomerAccounts(pageSize, pageIndex);
-                console.log('API Response:', response);
 
                 if (response?.data?.data?.customerAccounts) {
                     setCustomers(response.data.data.customerAccounts);
