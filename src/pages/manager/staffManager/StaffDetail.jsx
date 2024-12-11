@@ -22,9 +22,12 @@ const ProfileField = ({ label, value, onChange, isDropdown, options }) => (
             ) : (
                 <input
                     type={label === "Ngày sinh" ? "date" : "text"}
-                    className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
+                    className={`px-6 py-3 rounded-md border border-neutral-200 shadow-sm w-full ${
+                        label === "Email" ? "bg-gray-100 select-none pointer-events-none" : "bg-white"
+                    }`}
                     value={value}
                     onChange={onChange}
+                    readOnly={label === "Email"}
                 />
             )}
         </div>
