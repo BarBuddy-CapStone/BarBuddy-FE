@@ -126,8 +126,7 @@ const DiscountField = ({ value, onChange, type, name, errorMessage }) => (
       />
     </div>
     <p className="mt-1 text-xs text-gray-500">
-      Note: Chiết khấu này sẽ áp dụng thanh toán online trên tổng số tiền của
-      bill
+      Note: Giảm giá này sẽ áp dụng thanh toán online trên tổng số tiền của bill
     </p>
   </div>
 );
