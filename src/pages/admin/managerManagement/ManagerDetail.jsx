@@ -27,10 +27,12 @@ const ProfileField = ({ label, value, onChange, type = "text", readOnly = false,
             ) : (
                 <input
                     type={type}
-                    className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
+                    className={`px-6 py-3 rounded-md border border-neutral-200 shadow-sm w-full ${
+                        label === "Email" ? "bg-gray-100 select-none pointer-events-none" : "bg-white"
+                    }`}
                     value={value}
                     onChange={onChange}
-                    disabled={readOnly}
+                    readOnly={label === "Email"}
                 />
             )}
         </div>

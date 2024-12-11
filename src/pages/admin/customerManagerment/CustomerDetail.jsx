@@ -5,17 +5,20 @@ import { message } from 'antd'; // Thêm import message từ antd
 import useValidateAccountForm from 'src/lib/hooks/useValidateAccountForm'; // Nhập hook xác thực
 import LoadingSpinner from 'src/components/commonComponents/LoadingSpinner';
 
-const ProfileField = ({ label, value, onChange, type = "text" }) => ( // Thêm type với giá trị mặc định là "text"
+const ProfileField = ({ label, value, onChange, type = "text" }) => (
     <div className="flex items-center w-full text-black min-h-[64px] max-md:flex-col">
         <div className="font-medium text-right w-[152px] pr-4 max-md:text-left max-md:w-full flex-shrink-0">
             {label}
         </div>
         <div className="w-[742px] max-w-full max-md:w-full flex-grow">
             <input
-                type={type} // Sử dụng type từ props
-                className="px-6 py-3 bg-white rounded-md border border-neutral-200 shadow-sm w-full"
-                value={value} // Sử dụng value thay vì defaultValue
+                type={type}
+                className={`px-6 py-3 rounded-md border border-neutral-200 shadow-sm w-full ${
+                    label === "Email" ? "bg-gray-100 select-none pointer-events-none" : "bg-white"
+                }`}
+                value={value}
                 onChange={onChange}
+                readOnly={label === "Email"}
             />
         </div>
     </div>

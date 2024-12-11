@@ -16,8 +16,8 @@ function BarManagement() {
   const [pageSize] = useState(6);
 
   useEffect(() => {
-    fetchBarData(search);
-  }, [currentPage, pageSize, search]);
+    fetchBarData('');
+  }, [currentPage, pageSize]);
 
   const fetchBarData = async (searchTerm = '') => {
     try {
@@ -33,7 +33,16 @@ function BarManagement() {
       }
     } catch (error) {
       console.error("Error fetching bar data:", error);
-      message.error("Có lỗi xảy ra khi tải dữ liệu");
+      
+      if (error.response) {
+        const errorMessage = error.response.data?.message || "Có lỗi xảy ra khi tải dữ liệu";
+        message.error(errorMessage);
+      } else if (error.request) {
+        message.error("Không thể kết nối đến server");
+      } else {
+        message.error("Có lỗi xảy ra trong quá trình xử lý");
+      }
+
       setBarData([]);
       setTotalPages(1);
     } finally {
@@ -47,7 +56,17 @@ function BarManagement() {
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
+  };
+
+  const handleSearchClick = () => {
     setCurrentPage(1);
+    fetchBarData(search);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchClick();
+    }
   };
 
   const handleFilterChange = (e) => {
@@ -74,9 +93,15 @@ function BarManagement() {
               placeholder="Tìm kiếm tên quán"
               value={search}
               onChange={handleSearchChange}
+              onKeyPress={handleKeyPress}
               className="px-4 py-2 pr-10 border border-sky-900 rounded-full w-full"
             />
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <button 
+              onClick={handleSearchClick}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <Search />
+            </button>
           </div>
 
           <div className="flex items-center gap-4 w-full md:w-auto">
