@@ -9,7 +9,10 @@ export const getCustomerDetail = async (accountId) => {
 };
 
 export const updateCustomerDetail = async (accountId, data) => {
-    return await axios.patch(`api/v1/customer-account?accountId=${accountId}`, data);
+    return await axios.patch(`api/v1/customer/updSts`, {
+        accountId: accountId,
+        status: data.status
+    });
 };
 
 export const getManagerAccounts = async (pageSize = 100, pageIndex = 1) => {

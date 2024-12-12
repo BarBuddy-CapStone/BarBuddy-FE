@@ -250,6 +250,20 @@ const BookingDetailStaff = () => {
     }
   };
 
+  const formatDateTime = (dateTimeStr) => {
+    const date = new Date(dateTimeStr);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return {
+      time: `${hours}:${minutes}`,
+      date: `${day}/${month}/${year}`
+    };
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -476,44 +490,58 @@ const BookingDetailStaff = () => {
                 {booking.bookingDrinkExtraResponses.map((drink, index) => (
                   <div
                     key={index}
-                    className="flex justify-between items-center mb-2 bg-white p-2 rounded"
+                    className="flex flex-col mb-2 bg-white p-2 rounded"
                   >
-                    <div className="flex items-center flex-1">
-                      <img
-                        src={drink.image}
-                        alt={drink.drinkName}
-                        className="w-10 h-10 mr-2 rounded"
-                      />
-                      <div className="flex flex-col">
-                        <span>{drink.drinkName}</span>
-                        <span className="text-sm text-gray-500">
-                          {drink.status === 0
-                            ? "Chờ xác nhận"
-                            : drink.status === 1
-                            ? "Chưa giao"
-                            : "Đã giao"}
-                        </span>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center flex-1">
+                        <img
+                          src={drink.image}
+                          alt={drink.drinkName}
+                          className="w-10 h-10 mr-2 rounded"
+                        />
+                        <div className="flex flex-col">
+                          <span>{drink.drinkName}</span>
+                          <span className="text-sm text-gray-500">
+                            {drink.status === 0
+                              ? "Chờ xác nhận"
+                              : drink.status === 1
+                              ? "Chưa giao"
+                              : "Đã giao"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right flex items-center">
+                        <div className="mr-4">
+                          <div>
+                            {drink.actualPrice.toLocaleString("vi-VN")} VND
+                          </div>
+                          <div>x{drink.quantity}</div>
+                        </div>
+                        {drink.status !== 2 && booking.status !== 3 && (
+                          <Tooltip title="Cập nhật">
+                            <IconButton
+                              onClick={() => {
+                                setSelectedDrink(drink);
+                                setUpdateDrinkModalVisible(true);
+                              }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </div>
                     </div>
-                    <div className="text-right flex items-center">
-                      <div className="mr-4">
+                    <div className="mt-2 text-xs text-gray-500">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          {drink.actualPrice.toLocaleString("vi-VN")} VND
+                          <div className="text-blue-600">Ngày tạo: {formatDateTime(drink.createdDate).time}</div>
+                          <div>{formatDateTime(drink.createdDate).date}</div>
                         </div>
-                        <div>x{drink.quantity}</div>
+                        <div>
+                          <div className="text-blue-600">Cập nhật: {formatDateTime(drink.updatedDate).time}</div>
+                          <div>{formatDateTime(drink.updatedDate).date}</div>
+                        </div>
                       </div>
-                      {drink.status !== 2 && booking.status !== 3 && (
-                        <Tooltip title="Cập nhật">
-                          <IconButton
-                            onClick={() => {
-                              setSelectedDrink(drink);
-                              setUpdateDrinkModalVisible(true);
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                      )}
                     </div>
                   </div>
                 ))}
