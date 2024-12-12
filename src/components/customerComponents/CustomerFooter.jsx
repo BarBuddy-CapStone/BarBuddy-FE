@@ -12,7 +12,7 @@ const CustomerFooter = () => {
             <h3 className="text-yellow-500 font-semibold font-notoSansSC mb-4">VỀ CHÚNG TÔI</h3>
             <ul className="space-y-2 font-notoSansSC text-gray-300">
               <li><Link to="/about-us" className="hover:text-yellow-500 transition-colors duration-200">Giới thiệu</Link></li>
-              {/* <li><Link to="/" className="hover:text-yellow-500 transition-colors duration-200">Bảo mật thông tin</Link></li> */}
+              <li><Link to="/privacy-policy" className="hover:text-yellow-500 transition-colors duration-200">Bảo mật thông tin</Link></li>
               <li><Link to="/terms-and-policies" className="hover:text-yellow-500 transition-colors duration-200">Điều khoản sử dụng</Link></li>
             </ul>
           </div>

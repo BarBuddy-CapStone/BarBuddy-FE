@@ -76,6 +76,7 @@ import DashBoardManager from "./pages/manager/dashboard/DashBoardManager";
 import { ExtraDrinkStaff } from "./pages";
 import TermsAndPolicies from "./pages/customer/termsAndPolicies/TermsAndPolicies";
 import ScrollToTop from "./components/commonComponents/scrollToTop/ScrollToTop";
+import PrivacyPolicy from "./pages/customer/privacyPolicy/PrivacyPolicy";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -179,8 +180,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="bar-branch" element={<BarBranch />}/>
 
           {/* Route Trang Home */}
-         <Route path="about-us" element={<AboutUs />}/>
+          <Route path="about-us" element={<AboutUs />}/>
           <Route path="terms-and-policies" element={<TermsAndPolicies />}/>
+          <Route path="privacy-policy" element={<PrivacyPolicy />}/>
 
           {/* Trạng thái trang khi thanh toán */}
           <Route path="payment-success/:paymentId" element={<Success />}/> 
