@@ -128,44 +128,44 @@ function TableManagementStaff() {
     setNewStatus(null);
   };
 
-  const handleStatusChange = async (newStatus) => {
-    if (!selectedTable) return;
+  // const handleStatusChange = async (newStatus) => {
+  //   if (!selectedTable) return;
 
-    setIsUpdating(true);
-    try {
-      const response = await TableService.updateTableStatus(
-        selectedTable.tableId,
-        parseInt(newStatus)
-      );
+  //   setIsUpdating(true);
+  //   try {
+  //     const response = await TableService.updateTableStatus(
+  //       selectedTable.tableId,
+  //       parseInt(newStatus)
+  //     );
 
-      if (response.status === 200) {
-        message.success("Cập nhật trạng thái bàn thành công!");
-        // Refresh data với API mới
-        const tableTypeId =
-          selectedTableType === "all" ? null : selectedTableType;
-        const updatedResponse = await TableService.getTables(
-          tableTypeId,
-          null,
-          pageIndex,
-          pageSize
-        );
-        if (updatedResponse.data?.data) {
-          setTableData(updatedResponse.data.data.response);
-          setTotalPages(updatedResponse.data.data.totalPage);
-        }
-        closeStatusModal();
-      }
-    } catch (error) {
-      console.error("Lỗi khi cập nhật trạng thái:", error);
-      if (error.response?.data?.message) {
-        message.error(error.response.data.message);
-      } else {
-        message.error("Có lỗi xảy ra khi cập nhật trạng thái");
-      }
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+  //     if (response.status === 200) {
+  //       message.success("Cập nhật trạng thái bàn thành công!");
+  //       // Refresh data với API mới
+  //       const tableTypeId =
+  //         selectedTableType === "all" ? null : selectedTableType;
+  //       const updatedResponse = await TableService.getTables(
+  //         tableTypeId,
+  //         null,
+  //         pageIndex,
+  //         pageSize
+  //       );
+  //       if (updatedResponse.data?.data) {
+  //         setTableData(updatedResponse.data.data.response);
+  //         setTotalPages(updatedResponse.data.data.totalPage);
+  //       }
+  //       closeStatusModal();
+  //     }
+  //   } catch (error) {
+  //     console.error("Lỗi khi cập nhật trạng thái:", error);
+  //     if (error.response?.data?.message) {
+  //       message.error(error.response.data.message);
+  //     } else {
+  //       message.error("Có lỗi xảy ra khi cập nhật trạng thái");
+  //     }
+  //   } finally {
+  //     setIsUpdating(false);
+  //   }
+  // };
 
   const handleDateChange = (date) => {
     if (!isValidDay(date)) {
@@ -259,7 +259,7 @@ function TableManagementStaff() {
               />
             </div>
 
-            {isStatusModalOpen && selectedTable && (
+            {/* {isStatusModalOpen && selectedTable && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                 <div className="bg-white rounded-lg p-6 w-[400px]">
                   <h2 className="text-xl font-semibold mb-4">
@@ -323,7 +323,7 @@ function TableManagementStaff() {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </main>
       </div>
