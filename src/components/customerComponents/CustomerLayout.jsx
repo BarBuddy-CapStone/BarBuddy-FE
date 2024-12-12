@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { CustomerHeader, CustomerFooter, ScrollToTopButton } from "src/components";
 import { useFCMToken } from "src/hooks/useFCMToken";
+import ScrollToTop from '../commonComponents/scrollToTop/ScrollToTop';
 
 const CustomerLayout = () => {
   const { fcmToken, loading, error } = useFCMToken();
@@ -19,6 +20,7 @@ const CustomerLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-900 relative">
+      <ScrollToTop />
       <CustomerHeader />
 
       <main className="flex-grow py-3 px-3">

@@ -103,7 +103,7 @@ const AboutUs = () => {
               Hãy để chúng tôi đồng hành cùng bạn trong hành trình khám phá những trải nghiệm tuyệt vời
             </p>
             <div className="space-y-2 text-gray-300">
-              <p>Email: barbuddy@gmail.com</p>
+              <p>Email: barbuddy05924@gmail.com</p>
               <p>Hotline: 0982502200</p>
             </div>
           </div>

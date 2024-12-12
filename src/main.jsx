@@ -74,11 +74,13 @@ import BookingListAdmin from "./pages/admin/table-registration/BookingListAdmin"
 import BookingDetailAdmin from "./pages/admin/table-registration/BookingDetailAdmin";
 import DashBoardManager from "./pages/manager/dashboard/DashBoardManager";
 import { ExtraDrinkStaff } from "./pages";
-
+import TermsAndPolicies from "./pages/customer/termsAndPolicies/TermsAndPolicies";
+import ScrollToTop from "./components/commonComponents/scrollToTop/ScrollToTop";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
+    <ScrollToTop />
     <Routes>
       {/* Route Của Admin */}
       <Route element={<ProtectedAdminRoute />}>
@@ -177,7 +179,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="bar-branch" element={<BarBranch />}/>
 
           {/* Route Trang Home */}
-        <Route path="about-us" element={<AboutUs />}/>
+         <Route path="about-us" element={<AboutUs />}/>
+          <Route path="terms-and-policies" element={<TermsAndPolicies />}/>
 
           {/* Trạng thái trang khi thanh toán */}
           <Route path="payment-success/:paymentId" element={<Success />}/> 

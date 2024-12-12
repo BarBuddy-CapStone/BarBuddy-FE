@@ -12,8 +12,8 @@ const CustomerFooter = () => {
             <h3 className="text-yellow-500 font-semibold font-notoSansSC mb-4">VỀ CHÚNG TÔI</h3>
             <ul className="space-y-2 font-notoSansSC text-gray-300">
               <li><Link to="/about-us" className="hover:text-yellow-500 transition-colors duration-200">Giới thiệu</Link></li>
-              <li><Link to="/" className="hover:text-yellow-500 transition-colors duration-200">Bảo mật thông tin</Link></li>
-              <li><Link to="/" className="hover:text-yellow-500 transition-colors duration-200">Điều khoản sử dụng</Link></li>
+              {/* <li><Link to="/" className="hover:text-yellow-500 transition-colors duration-200">Bảo mật thông tin</Link></li> */}
+              <li><Link to="/terms-and-policies" className="hover:text-yellow-500 transition-colors duration-200">Điều khoản sử dụng</Link></li>
             </ul>
           </div>
 
@@ -21,7 +21,7 @@ const CustomerFooter = () => {
           <div className="flex flex-col">
             <h3 className="text-yellow-500 font-semibold font-notoSansSC mb-4">THÔNG TIN LIÊN HỆ</h3>
             <ul className="space-y-2 font-notoSansSC text-gray-300">
-              <li>Email: barbuddy@gmail.com</li>
+              <li>Email: barbuddy05924@gmail.com</li>
               <li>Hotline: 0982502200</li>
             </ul>
           </div>
@@ -29,11 +29,11 @@ const CustomerFooter = () => {
 
         {/* Social Media & Copyright */}
         <div className="mt-8 pt-4 border-t border-neutral-700">
-          <div className="flex justify-center space-x-4 mb-4">
+          {/* <div className="flex justify-center space-x-4 mb-4">
             <a href="#" className="text-gray-300 hover:text-yellow-500 transition-colors duration-200">
               <FacebookIcon />
             </a>
-          </div>
+          </div> */}
           <div className="text-center text-sm font-notoSansSC">
             <p className="text-yellow-500 font-medium mb-2">THƯỞNG THỨC CÓ TRÁCH NHIỆM</p>
             <p className="text-gray-300 mb-2">Dịch vụ không dành cho người dưới 18 tuổi và phụ nữ đang mang thai.</p>
