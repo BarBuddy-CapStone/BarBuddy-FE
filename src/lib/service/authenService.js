@@ -52,3 +52,15 @@ export const resetPassword = async (email) => {
   }
 };
 
+export const verifyResetPasswordOtp = async (data) => {
+  try {
+    return await axios.post("api/authen/reset-password/verification", JSON.stringify(data), {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+

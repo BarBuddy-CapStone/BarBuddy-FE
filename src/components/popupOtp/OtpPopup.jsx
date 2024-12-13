@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { verifyOtp } from '../../lib/service/authenService'; // Import hàm verifyOtp
+import { verifyOtp, verifyResetPasswordOtp } from '../../lib/service/authenService'; // Import hàm verifyOtp
 import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
 import { toast } from 'react-toastify'; // Import toast
+import { jwtDecode } from "jwt-decode"; // Import jwt-decode
+import { useAuthStore } from 'src/lib';
+import { useNavigate } from 'react-router-dom';
 
-const OtpPopup = ({ onClose, email, onSuccess }) => { // Thêm onSuccess vào props
+const OtpPopup = ({ onClose, email, onSuccess, isForgetPassword }) => { // Thêm onSuccess vào props
   const [otp, setOtp] = useState(['', '', '', '', '', '']); // State cho các ô OTP
   const [loading, setLoading] = useState(false); // State để kiểm soát loading
+  const loginStore = useAuthStore();
+  const navigate = useNavigate();
 
   const handleChange = (index, value) => {
     // Chỉ cho phép nhập số
@@ -35,8 +40,47 @@ const OtpPopup = ({ onClose, email, onSuccess }) => { // Thêm onSuccess vào pr
 
     setLoading(true);
     try {
-      const response = await verifyOtp(data);
+      const response = isForgetPassword
+        ? await verifyResetPasswordOtp(data)
+        : await verifyOtp(data);
+
       if (response.status === 200) {
+        if (response.data.data) {
+          const userData = response.data.data;
+
+          // Giải mã JWT token
+          const decodedToken = jwtDecode(userData.accessToken);
+          const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+          // Thêm role vào userData
+          userData.role = userRole;
+
+          // Login với userData đã có role
+          loginStore.login(userData.accessToken, userData);
+
+          switch (userRole) {
+            case "ADMIN":
+              navigate("/admin/dashboard");
+              window.location.reload();
+              break;
+            case "MANAGER":
+              navigate("/manager/dashboard");
+              window.location.reload();
+              break;
+            case "STAFF":
+              navigate("/staff/table-registrations");
+              window.location.reload();
+              break;
+            case "CUSTOMER":
+              navigate("/home");
+              window.location.reload();
+              break;
+            default:
+              navigate("/home");
+              window.location.reload();
+              break;
+          }
+        }
         toast.success("Xác thực OTP thành công!");
         onSuccess();
       }
