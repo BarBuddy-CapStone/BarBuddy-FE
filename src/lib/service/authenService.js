@@ -64,3 +64,15 @@ export const verifyResetPasswordOtp = async (data) => {
   }
 };
 
+export const updatePassword = async (data) => {
+  try {
+    return await axios.post("api/authen/reset-password/new-password", JSON.stringify(data), {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+

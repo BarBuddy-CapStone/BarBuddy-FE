@@ -4,12 +4,15 @@ import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
 import { resetPassword } from "../../../lib/service/authenService";
 import OtpPopup from "src/components/popupOtp/OtpPopup";
+import UpdatePassword from "./UpdatePassword";
 
 function ForgetPassword({ onClose, onSwitchToLogin }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
+  const [showUpdatePassword, setShowUpdatePassword] = useState(false);
+  const [resetToken, setResetToken] = useState("");
 
   const handleResetPassword = async () => {
     if (!email) {
@@ -38,10 +41,22 @@ function ForgetPassword({ onClose, onSwitchToLogin }) {
     onSwitchToLogin();
   };
 
-  const handleOtpSuccess = () => {
-    toast.success("Xác thực OTP thành công!");
-    handleSwitchToLogin();
+  const handleOtpSuccess = (token) => {
+    setResetToken(token);
+    setShowOtpPopup(false);
+    setShowUpdatePassword(true);
   };
+
+  if (showUpdatePassword) {
+    return (
+      <UpdatePassword
+        email={email}
+        token={resetToken}
+        onClose={onClose}
+        onSwitchToLogin={onSwitchToLogin}
+      />
+    );
+  }
 
   return (
     <>

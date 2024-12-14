@@ -129,18 +129,20 @@ function Login({
         }
       }
     } catch (error) {
-      if (error.response) {
-        const statusCode = error.response.status;
-        const message = error.response.data.message;
+      // if (error.response) {
+      //   const statusCode = error.response.status;
+      //   const message = error.response.data.message;
 
-        if (statusCode === 400) {
-          setError("Sai tài khoản hoặc mật khẩu! Vui lòng kiểm tra lại.");
-        } else {
-          setError("Đăng nhập thất bại! Vui lòng thử lại.");
-        }
-      } else {
-        setError("Đăng nhập thất bại! Vui lòng thử lại.");
-      }
+      //   if (statusCode === 400) {
+      //     setError("Sai tài khoản hoặc mật khẩu! Vui lòng kiểm tra lại.");
+      //   } else {
+      //     setError("Đăng nhập thất bại! Vui lòng thử lại.");
+      //   }
+      // } else {
+      //   setError("Đăng nhập thất bại! Vui lòng thử lại.");
+      // }
+      console.error("Lỗi đăng nhập:", error);
+      
     } finally {
       setLoading(false);
     }

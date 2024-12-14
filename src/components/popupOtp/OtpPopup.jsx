@@ -40,49 +40,18 @@ const OtpPopup = ({ onClose, email, onSuccess, isForgetPassword }) => { // Thêm
 
     setLoading(true);
     try {
-      const response = isForgetPassword
-        ? await verifyResetPasswordOtp(data)
-        : await verifyOtp(data);
-
-      if (response.status === 200) {
-        if (response.data.data) {
-          const userData = response.data.data;
-
-          // Giải mã JWT token
-          const decodedToken = jwtDecode(userData.accessToken);
-          const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-
-          // Thêm role vào userData
-          userData.role = userRole;
-
-          // Login với userData đã có role
-          loginStore.login(userData.accessToken, userData);
-
-          switch (userRole) {
-            case "ADMIN":
-              navigate("/admin/dashboard");
-              window.location.reload();
-              break;
-            case "MANAGER":
-              navigate("/manager/dashboard");
-              window.location.reload();
-              break;
-            case "STAFF":
-              navigate("/staff/table-registrations");
-              window.location.reload();
-              break;
-            case "CUSTOMER":
-              navigate("/home");
-              window.location.reload();
-              break;
-            default:
-              navigate("/home");
-              window.location.reload();
-              break;
-          }
+      if (isForgetPassword) {
+        const response = await verifyResetPasswordOtp(data);
+        if (response.status === 200) {
+          toast.success("Xác thực OTP thành công!");
+          onSuccess(response.data.data); // Pass the token to ForgetPassword
         }
-        toast.success("Xác thực OTP thành công!");
-        onSuccess();
+      } else {
+        const response = await verifyOtp(data);
+        if (response.status === 200) {
+          toast.success("Xác thực OTP thành công!");
+          onSuccess();
+        }
       }
     } catch (error) {
       console.error('Xác nhận OTP thất bại', error);

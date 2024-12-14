@@ -22,6 +22,8 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
   const loginStore = useAuthStore();
   const navigate = useNavigate();
   const [currentPopup, setCurrentPopup] = useState('registration'); // Trạng thái duy nhất để quản lý pop-up
+  const [openLogin, setOpenLogin] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const handleGoogleResponse = useCallback(async (response) => {
     try {
@@ -120,6 +122,11 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
     }
   };
 
+  const handleLoginSuccess = (userData) => {
+    setOpenLogin(false);
+    setAnchorEl(null);
+  };
+
   const handleOtpSuccess = () => {
     setCurrentPopup('login');
   };
@@ -136,6 +143,7 @@ const Registration = ({ onClose, onSwitchToLogin }) => {
       {currentPopup === 'login' && (
         <Login 
           onClose={onClose}
+          onLoginSuccess={handleLoginSuccess}
           onSwitchToRegister={() => setCurrentPopup('registration')}
         />
       )}
