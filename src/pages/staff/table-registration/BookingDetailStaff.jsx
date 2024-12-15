@@ -1,6 +1,7 @@
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
   CircularProgress,
   IconButton,
@@ -30,6 +31,8 @@ const BookingDetailStaff = () => {
   const [updateDrinkModalVisible, setUpdateDrinkModalVisible] = useState(false);
   const [selectedDrink, setSelectedDrink] = useState(null);
   const [isUpdatingDrink, setIsUpdatingDrink] = useState(false);
+  const [isDeleteDrinkModalVisible, setIsDeleteDrinkModalVisible] = useState(false);
+  const [isDeletingDrink, setIsDeletingDrink] = useState(false);
 
   const fetchBookingDetails = async () => {
     if (!bookingId) return;
@@ -250,6 +253,39 @@ const BookingDetailStaff = () => {
     }
   };
 
+  const handleDeleteDrink = async () => {
+    if (!selectedDrink) return;
+
+    try {
+      setIsDeletingDrink(true);
+      const data = {
+        bookingExtraDrinkId: selectedDrink.bookingExtraDrinkId,
+        bookingId: bookingId,
+        drinkId: selectedDrink.drinkId
+      };
+      
+      console.log('Sending delete request with data:', data);
+      const response = await BookingService.deleteStatusExtraDrink(data);
+      console.log('Delete response:', response);
+      
+      if (response.data && response.data.statusCode === 200) {
+        message.success(response.data.message || 'Xóa thức uống thành công');
+        await fetchBookingDetails();
+        setIsDeleteDrinkModalVisible(false);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      if (error.response && error.response.data) {
+        message.error(error.response.data.message || 'Không thể xóa thức uống');
+      } else {
+        message.error('Có lỗi xảy ra khi xóa thức uống');
+      }
+    } finally {
+      setIsDeletingDrink(false);
+      setSelectedDrink(null);
+    }
+  };
+
   const formatDateTime = (dateTimeStr) => {
     const date = new Date(dateTimeStr);
     const hours = date.getHours().toString().padStart(2, '0');
@@ -391,7 +427,7 @@ const BookingDetailStaff = () => {
                   className="p-2 border rounded-md w-full"
                   value={formatCurrency(additionalFee)}
                   onChange={handleAdditionalFeeChange}
-                  placeholder="Nhập số tiền phụ thu"
+                  placeholder="Nhập số tiền ph�� thu"
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                   VND
@@ -518,16 +554,28 @@ const BookingDetailStaff = () => {
                           <div>x{drink.quantity}</div>
                         </div>
                         {drink.status !== 2 && booking.status !== 3 && (
-                          <Tooltip title="Cập nhật">
-                            <IconButton
-                              onClick={() => {
-                                setSelectedDrink(drink);
-                                setUpdateDrinkModalVisible(true);
-                              }}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                          </Tooltip>
+                          <>
+                            <Tooltip title="Cập nhật">
+                              <IconButton
+                                onClick={() => {
+                                  setSelectedDrink(drink);
+                                  setUpdateDrinkModalVisible(true);
+                                }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Xóa">
+                              <IconButton
+                                onClick={() => {
+                                  setSelectedDrink(drink);
+                                  setIsDeleteDrinkModalVisible(true);
+                                }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </>
                         )}
                       </div>
                     </div>
@@ -615,6 +663,54 @@ const BookingDetailStaff = () => {
       >
         {selectedDrink && (
           <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <img
+                src={selectedDrink.image}
+                alt={selectedDrink.drinkName}
+                className="w-16 h-16 object-cover rounded-lg"
+              />
+              <div>
+                <div className="font-medium">{selectedDrink.drinkName}</div>
+                <div className="text-sm text-gray-500">
+                  Số lượng: {selectedDrink.quantity}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        title="Xác nhận xóa thức uống"
+        open={isDeleteDrinkModalVisible}
+        onCancel={() => {
+          setIsDeleteDrinkModalVisible(false);
+          setSelectedDrink(null);
+        }}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => {
+              setIsDeleteDrinkModalVisible(false);
+              setSelectedDrink(null);
+            }}
+          >
+            Hủy
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            danger
+            loading={isDeletingDrink}
+            onClick={handleDeleteDrink}
+          >
+            Xóa
+          </Button>,
+        ]}
+      >
+        {selectedDrink && (
+          <div className="space-y-4">
+            <p>Bạn có chắc chắn muốn xóa thức uống này?</p>
             <div className="flex items-center gap-4">
               <img
                 src={selectedDrink.image}

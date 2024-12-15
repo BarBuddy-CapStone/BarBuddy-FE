@@ -192,6 +192,17 @@ class BookingService {
     }
   }
 
+  static async deleteStatusExtraDrink(data) {
+    try {
+      const response = await axios.delete(`api/Booking/delete-extra-drink`, { 
+        data: data 
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
 }
 
 export default BookingService;
