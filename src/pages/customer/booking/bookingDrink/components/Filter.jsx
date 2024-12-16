@@ -67,6 +67,16 @@ const Filter = ({
         ).values()
     );
 
+    // Tạo một Set để lọc các emotions trùng lặp dựa trên emotionalDrinksCategoryId và categoryName
+    const uniqueEmotions = Array.from(
+        new Map(
+            safeDataDrinkEmo.map(emotion => [
+                `${emotion.emotionalDrinksCategoryId}-${emotion.categoryName}`,
+                emotion
+            ])
+        ).values()
+    );
+
     return (
         <aside className="flex flex-col w-full bg-neutral-800 rounded-lg p-4">
             <h3 className="font-bold text-lg leading-none text-amber-400 mb-3">Bộ lọc</h3>
@@ -107,8 +117,8 @@ const Filter = ({
                         Xem tất cả
                     </button>
                 </div>
-                {safeDataDrinkEmo.slice(0, 5).map((emotion) => (
-                    <div key={emotion.emotionalDrinksCategoryId} className="flex items-center py-1">
+                {uniqueEmotions.slice(0, 5).map((emotion) => (
+                    <div key={`${emotion.emotionalDrinksCategoryId}-${emotion.categoryName}`} className="flex items-center py-1">
                         <label className="flex items-center gap-2 text-sm text-white">
                             <input
                                 type="checkbox"
@@ -194,8 +204,11 @@ const Filter = ({
             }}>
                 <DialogTitle style={{ color: '#FFA500' }}>Cảm xúc</DialogTitle>
                 <DialogContent>
-                    {safeDataDrinkEmo.map((emotion) => (
-                        <label key={emotion.emotionalDrinksCategoryId} className="flex items-center mb-2">
+                    {uniqueEmotions.map((emotion) => (
+                        <label 
+                            key={`${emotion.emotionalDrinksCategoryId}-${emotion.categoryName}`} 
+                            className="flex items-center mb-2"
+                        >
                             <input
                                 type="checkbox"
                                 className="form-checkbox h-4 w-4 text-amber-400"

@@ -1,74 +1,88 @@
 import TableBarIcon from "@mui/icons-material/TableBar";
-import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
-import { styled } from '@mui/material/styles';
-import dayjs from 'dayjs';
-import React, { useCallback, useEffect, useState } from 'react';
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import { styled } from "@mui/material/styles";
+import dayjs from "dayjs";
+import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import useAuthStore from 'src/lib/hooks/useUserStore';
-import { getAllHoldTable, holdTable, releaseTable } from 'src/lib/service/BookingTableService';
-import { hubConnection } from 'src/lib/Third-party/signalR/hubConnection';
+import useAuthStore from "src/lib/hooks/useUserStore";
+import {
+  getAllHoldTable,
+  holdTable,
+  releaseTable,
+} from "src/lib/service/BookingTableService";
+import { hubConnection } from "src/lib/Third-party/signalR/hubConnection";
 
-const TableSelection = (
-  { selectedTables,
-    setSelectedTables,
-    filteredTables,
-    setFilteredTables,
-    tableTypeInfo, isLoading,
-    hasSearched,
-    barId,
-    selectedTableTypeId,
-    selectedDate,
-    selectedTime,
-    onTableSelect
-  }) => {
+const TableSelection = ({
+  selectedTables,
+  setSelectedTables,
+  filteredTables,
+  setFilteredTables,
+  tableTypeInfo,
+  isLoading,
+  hasSearched,
+  barId,
+  selectedTableTypeId,
+  selectedDate,
+  selectedTime,
+  onTableSelect,
+}) => {
   const { token, userInfo } = useAuthStore();
   const [heldTables, setHeldTables] = useState({});
   const [currentHoldCount, setCurrentHoldCount] = useState(0);
   const [heldTableIds, setHeldTableIds] = useState(new Set());
 
-  const updateTableHeldStatus = useCallback((tableId, isHeld, holderId, date, time) => {
-    console.log("Updating table held status:", { tableId, isHeld, holderId, date, time });
-    
-    setHeldTableIds(prev => {
-      const newSet = new Set(prev);
-      if (isHeld) {
-        newSet.add(tableId);
-      } else {
-        newSet.delete(tableId);
-      }
-      return newSet;
-    });
+  const updateTableHeldStatus = useCallback(
+    (tableId, isHeld, holderId, date, time) => {
+      // console.log("Updating table held status:", {
+      //   tableId,
+      //   isHeld,
+      //   holderId,
+      //   date,
+      //   time,
+      // });
 
-    setFilteredTables(prevTables =>
-      prevTables.map(table => {
-        if (table.tableId === tableId) {
-          return {
-            ...table,
-            status: isHeld ? 2 : 1,
-            isHeld: isHeld,
-            holderId: holderId,
-            date: date,
-            time: time
-          };
-        }
-        return table;
-      }) 
-    );
-  }, []);
-
-  const handleTableListRelease = useCallback((response) => {
-    console.log("Table list released event received:", response);
-    if (response.tables && Array.isArray(response.tables)) {
-      const releasedTableIds = response.tables.map(t => t.tableId);
-      setHeldTableIds(prev => {
+      setHeldTableIds((prev) => {
         const newSet = new Set(prev);
-        releasedTableIds.forEach(id => newSet.delete(id));
+        if (isHeld) {
+          newSet.add(tableId);
+        } else {
+          newSet.delete(tableId);
+        }
         return newSet;
       });
 
-      setFilteredTables(prevTables => 
-        prevTables.map(table => {
+      setFilteredTables((prevTables) =>
+        prevTables.map((table) => {
+          if (table.tableId === tableId) {
+            return {
+              ...table,
+              status: isHeld ? 2 : 1,
+              isHeld: isHeld,
+              holderId: holderId,
+              date: date,
+              time: time,
+            };
+          }
+          return table;
+        })
+      );
+    },
+    []
+  );
+
+  const handleTableListRelease = useCallback((response) => {
+    //console.log("Table list released event received:", response);
+    if (response.tables && Array.isArray(response.tables)) {
+      const releasedTableIds = response.tables.map((t) => t.tableId);
+      setHeldTableIds((prev) => {
+        const newSet = new Set(prev);
+        releasedTableIds.forEach((id) => newSet.delete(id));
+        return newSet;
+      });
+
+      setFilteredTables((prevTables) =>
+        prevTables.map((table) => {
           if (releasedTableIds.includes(table.tableId)) {
             return {
               ...table,
@@ -76,7 +90,7 @@ const TableSelection = (
               isHeld: false,
               holderId: null,
               date: null,
-              time: null
+              time: null,
             };
           }
           return table;
@@ -87,11 +101,12 @@ const TableSelection = (
 
   useEffect(() => {
     const handleTableStatusChange = (event) => {
-      const { tableId, isHeld, holderId, accountId, status, date, time } = event.detail;
-      console.log("TableSelection received tableStatusChanged:", event.detail);
-      
-      setFilteredTables(prevTables =>
-        prevTables.map(table => {
+      const { tableId, isHeld, holderId, accountId, status, date, time } =
+        event.detail;
+      //console.log("TableSelection received tableStatusChanged:", event.detail);
+
+      setFilteredTables((prevTables) =>
+        prevTables.map((table) => {
           if (table.tableId === tableId) {
             return {
               ...table,
@@ -100,7 +115,7 @@ const TableSelection = (
               holderId: holderId,
               accountId: accountId,
               date: date,
-              time: time
+              time: time,
             };
           }
           return table;
@@ -110,24 +125,24 @@ const TableSelection = (
 
     const handleTableListStatusChange = (event) => {
       const { tables, barId: eventBarId, date, time } = event.detail;
-      console.log("TableSelection received tableListStatusChanged:", {
-        tables,
-        eventBarId,
-        currentBarId: barId,
-        date,
-        time
-      });
+      // console.log("TableSelection received tableListStatusChanged:", {
+      //   tables,
+      //   eventBarId,
+      //   currentBarId: barId,
+      //   date,
+      //   time,
+      // });
 
       if (!tables || !Array.isArray(tables)) {
         console.error("Invalid tables data:", tables);
         return;
       }
 
-      setFilteredTables(prevTables => {
-        return prevTables.map(table => {
-          const isTableInList = tables.some(t => t.tableId === table.tableId);
+      setFilteredTables((prevTables) => {
+        return prevTables.map((table) => {
+          const isTableInList = tables.some((t) => t.tableId === table.tableId);
           if (isTableInList) {
-            console.log(`Updating table ${table.tableId} status to available`);
+            //console.log(`Updating table ${table.tableId} status to available`);
             return {
               ...table,
               status: 1,
@@ -135,7 +150,7 @@ const TableSelection = (
               holderId: null,
               accountId: null,
               date: null,
-              time: null
+              time: null,
             };
           }
           return table;
@@ -143,14 +158,23 @@ const TableSelection = (
       });
     };
 
-    document.addEventListener('tableStatusChanged', handleTableStatusChange);
-    document.addEventListener('tableListStatusChanged', handleTableListStatusChange);
-    console.log("TableListStatusChanged event listener added");
+    document.addEventListener("tableStatusChanged", handleTableStatusChange);
+    document.addEventListener(
+      "tableListStatusChanged",
+      handleTableListStatusChange
+    );
+    //console.log("TableListStatusChanged event listener added");
 
     return () => {
-      document.removeEventListener('tableStatusChanged', handleTableStatusChange);
-      document.removeEventListener('tableListStatusChanged', handleTableListStatusChange);
-      console.log("TableListStatusChanged event listener removed");
+      document.removeEventListener(
+        "tableStatusChanged",
+        handleTableStatusChange
+      );
+      document.removeEventListener(
+        "tableListStatusChanged",
+        handleTableListStatusChange
+      );
+      //console.log("TableListStatusChanged event listener removed");
     };
   }, [barId, filteredTables]);
 
@@ -158,10 +182,15 @@ const TableSelection = (
     const checkHoldTables = async () => {
       if (barId && selectedDate && selectedTime) {
         try {
-          const response = await getAllHoldTable(token, barId, selectedDate, selectedTime);
+          const response = await getAllHoldTable(
+            token,
+            barId,
+            selectedDate,
+            selectedTime
+          );
           if (response.data.statusCode === 200) {
             const userHoldTables = response.data.data.filter(
-              table => table.accountId === userInfo.accountId
+              (table) => table.accountId === userInfo.accountId
             );
             setCurrentHoldCount(userHoldTables.length);
           }
@@ -188,7 +217,7 @@ const TableSelection = (
     }
 
     if (table.isHeld || table.status === 2) {
-      console.log("Table is already held:", table.tableId);
+      //console.log("Table is already held:", table.tableId);
       return;
     }
 
@@ -197,11 +226,11 @@ const TableSelection = (
         const data = {
           barId: barId,
           tableId: table.tableId,
-          date: dayjs(selectedDate).format('YYYY-MM-DD'),
-          time: selectedTime + ":00"
+          date: dayjs(selectedDate).format("YYYY-MM-DD"),
+          time: selectedTime + ":00",
         };
 
-        console.log("Sending holdTable request:", data);
+        //console.log("Sending holdTable request:", data);
         const response = await holdTable(token, data);
 
         if (response.data.statusCode === 200) {
@@ -214,11 +243,11 @@ const TableSelection = (
             date: holdData.date,
             time: holdData.time,
             holderId: holdData.accountId,
-            accountId: holdData.accountId
+            accountId: holdData.accountId,
           };
 
           // Cập nhật UI
-          setHeldTableIds(prev => new Set([...prev, table.tableId]));
+          setHeldTableIds((prev) => new Set([...prev, table.tableId]));
           onTableSelect(newSelectedTable);
 
           // Gửi SignalR
@@ -227,11 +256,11 @@ const TableSelection = (
             tableId: table.tableId,
             date: holdData.date,
             time: holdData.time,
-            accountId: holdData.accountId
+            accountId: holdData.accountId,
           });
 
           // Cập nhật số lượng bàn đang giữ
-          setCurrentHoldCount(prev => prev + 1);
+          setCurrentHoldCount((prev) => prev + 1);
 
           // Thêm toast thông báo thành công
           toast.success(`Đã giữ bàn ${table.tableName} thành công!`, {
@@ -246,7 +275,11 @@ const TableSelection = (
       } catch (error) {
         if (error.response?.data?.statusCode === 400) {
           // Xử lý các trường hợp lỗi cụ thể từ backend
-          if (error.response.data.message?.includes("Bạn chỉ được phép giữ tối đa 5 bàn")) {
+          if (
+            error.response.data.message?.includes(
+              "Bạn chỉ được phép giữ tối đa 5 bàn"
+            )
+          ) {
             toast.error("Bạn chỉ được phép giữ tối đa 5 bàn cùng lúc.", {
               position: "top-right",
               autoClose: 3000,
@@ -257,10 +290,13 @@ const TableSelection = (
               autoClose: 3000,
             });
           } else {
-            toast.error(error.response.data.message || "Có lỗi xảy ra khi giữ bàn", {
-              position: "top-right",
-              autoClose: 3000,
-            });
+            toast.error(
+              error.response.data.message || "Có lỗi xảy ra khi giữ bàn",
+              {
+                position: "top-right",
+                autoClose: 3000,
+              }
+            );
           }
         } else {
           console.error("Error holding table:", error);
@@ -274,18 +310,20 @@ const TableSelection = (
   };
 
   const handleTableRelease = async (tableId) => {
-    const table = selectedTables.find(t => t.tableId === tableId);
+    const table = selectedTables.find((t) => t.tableId === tableId);
     if (table) {
       try {
         const data = {
           barId: barId,
           tableId: tableId,
           date: table.date,
-          time: table.time
+          time: table.time,
         };
         const response = await releaseTable(token, data);
         if (response.data.statusCode === 200) {
-          setSelectedTables(prev => prev.filter(t => t.tableId !== tableId));
+          setSelectedTables((prev) =>
+            prev.filter((t) => t.tableId !== tableId)
+          );
           updateTableHeldStatus(tableId, false, null, null, null);
           await hubConnection.invoke("ReleaseTable", data);
         }
@@ -295,59 +333,83 @@ const TableSelection = (
     }
   };
 
-  const CustomButton = styled(Button)(({ status, isHeld, isCurrentUserHolding }) => ({
-    backgroundColor: 
-      isCurrentUserHolding ? '#D2691E' :
-      isHeld ? '#FFA500' :
-      status === 0 ? '#FFA500' :
-      status === 2 ? '#FFA500' :
-      '#D3D3D3',
-    color: '#fff',
-    '&:hover': {
-      backgroundColor: 
-        isCurrentUserHolding ? '#A0522D' :
-        isHeld ? '#FF8C00' :
-        status === 0 ? '#FF8C00' :
-        status === 2 ? '#FF8C00' :
-        '#C0C0C0',
-    },
-    '&:disabled': {
-      backgroundColor: status === 1 || status === 3 ? '#A9A9A9' : '#FFA500',
-      color: '#fff',
-      opacity: 0.7,
-    },
-    borderRadius: '4px',
-    padding: '8px 16px',
-  }));
+  const CustomButton = styled(Button)(
+    ({ status, isHeld, isCurrentUserHolding }) => ({
+      backgroundColor: isCurrentUserHolding
+        ? "#D2691E"
+        : isHeld
+        ? "#FFA500"
+        : status === 0
+        ? "#FFA500"
+        : status === 2
+        ? "#FFA500"
+        : "#D3D3D3",
+      color: "#fff",
+      "&:hover": {
+        backgroundColor: isCurrentUserHolding
+          ? "#A0522D"
+          : isHeld
+          ? "#FF8C00"
+          : status === 0
+          ? "#FF8C00"
+          : status === 2
+          ? "#FF8C00"
+          : "#C0C0C0",
+      },
+      "&:disabled": {
+        backgroundColor: status === 1 || status === 3 ? "#A9A9A9" : "#FFA500",
+        color: "#fff",
+        opacity: 0.7,
+      },
+      borderRadius: "4px",
+      padding: "8px 16px",
+    })
+  );
 
   const isTableHeldForCurrentTime = (table) => {
-    return table.isHeld && 
-           dayjs(table.date).format('YYYY-MM-DD') === dayjs(selectedDate).format('YYYY-MM-DD') &&
-           table.time === selectedTime + ":00";
+    return (
+      table.isHeld &&
+      dayjs(table.date).format("YYYY-MM-DD") ===
+        dayjs(selectedDate).format("YYYY-MM-DD") &&
+      table.time === selectedTime + ":00"
+    );
   };
 
-  const isTableDisabled = useCallback((table) => {
-    const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId;
-    const isAvailable = table.status === 1 || table.status === 3;
-    return (!isAvailable && !isCurrentUserHolding) || 
-           (currentHoldCount >= 5 && !isCurrentUserHolding);
-  }, [currentHoldCount, userInfo.accountId]);
+  const isTableDisabled = useCallback(
+    (table) => {
+      const isCurrentUserHolding =
+        table.isHeld && table.holderId === userInfo.accountId;
+      const isAvailable = table.status === 1 || table.status === 3;
+      return (
+        (!isAvailable && !isCurrentUserHolding) ||
+        (currentHoldCount >= 5 && !isCurrentUserHolding)
+      );
+    },
+    [currentHoldCount, userInfo.accountId]
+  );
 
-  const getButtonStyle = useCallback((table) => {
-    const isCurrentUserHolding = table.isHeld && table.holderId === userInfo.accountId;
-    const isHeld = table.isHeld || table.status === 2;
-    
-    return {
-      backgroundColor: 
-        isCurrentUserHolding ? '#D2691E' :
-        isHeld ? '#FFA500' :
-        table.status === 0 ? '#FFA500' :
-        table.status === 1 ? '#D3D3D3' :
-        '#FFA500',
-      cursor: isTableDisabled(table) ? 'not-allowed' : 'pointer',
-      opacity: isTableDisabled(table) ? 0.5 : 1,
-    };
-  }, [isTableDisabled, userInfo.accountId]);
+  const getButtonStyle = useCallback(
+    (table) => {
+      const isCurrentUserHolding =
+        table.isHeld && table.holderId === userInfo.accountId;
+      const isHeld = table.isHeld || table.status === 2;
+
+      return {
+        backgroundColor: isCurrentUserHolding
+          ? "#D2691E"
+          : isHeld
+          ? "#FFA500"
+          : table.status === 0
+          ? "#FFA500"
+          : table.status === 1
+          ? "#D3D3D3"
+          : "#FFA500",
+        cursor: isTableDisabled(table) ? "not-allowed" : "pointer",
+        opacity: isTableDisabled(table) ? 0.5 : 1,
+      };
+    },
+    [isTableDisabled, userInfo.accountId]
+  );
 
   return (
     <div className="mt-6">
@@ -356,7 +418,9 @@ const TableSelection = (
         <div className="flex flex-col gap-2 mb-4">
           <div className="flex items-center">
             <TableBarIcon sx={{ color: "#FFA500", marginRight: "8px" }} />
-            <h4 className="text-md leading-none text-white">{tableTypeInfo.typeName}</h4>
+            <h4 className="text-md leading-none text-white">
+              {tableTypeInfo.typeName}
+            </h4>
           </div>
           {/* <div className="text-sm text-gray-300 ml-8">
             Phù hợp cho {tableTypeInfo.minimumGuest} - {tableTypeInfo.maximumGuest} người
@@ -364,19 +428,21 @@ const TableSelection = (
         </div>
       )}
 
-      {console.log('TableSelection - tableTypeInfo:', tableTypeInfo)}
+      {/* {console.log("TableSelection - tableTypeInfo:", tableTypeInfo)} */}
 
       {isLoading ? (
         <div className="flex justify-center items-center h-40">
-          <CircularProgress size={40} style={{ color: '#FFA500' }} />
+          <CircularProgress size={40} style={{ color: "#FFA500" }} />
         </div>
       ) : hasSearched && filteredTables.length > 0 ? (
         <>
           <div className="flex flex-wrap gap-3.5 items-start text-center text-black max-md:max-w-full">
-            {filteredTables.map(table => (
+            {filteredTables.map((table) => (
               <CustomButton
                 key={table.tableId}
-                onClick={() => !isTableDisabled(table) && handleTableSelect(table)}
+                onClick={() =>
+                  !isTableDisabled(table) && handleTableSelect(table)
+                }
                 status={table.status}
                 isHeld={table.isHeld}
                 isCurrentUserHolding={table.holderId === userInfo.accountId}
@@ -397,23 +463,38 @@ const TableSelection = (
           {/* Legend */}
           <div className="flex gap-6 justify-end items-center mt-8 max-w-full text-sm text-center text-zinc-100">
             <div className="flex gap-2 items-center self-stretch my-auto">
-              <div className="flex shrink-0 self-stretch my-auto w-6 h-6 rounded bg-[#FFA500]" aria-hidden="true" />
+              <div
+                className="flex shrink-0 self-stretch my-auto w-6 h-6 rounded bg-[#FFA500]"
+                aria-hidden="true"
+              />
               <div className="self-stretch my-auto">Đã được đặt</div>
             </div>
             <div className="flex gap-2 items-center self-stretch my-auto">
-              <div className="flex shrink-0 self-stretch my-auto w-6 h-6 rounded bg-[#D2691E]" aria-hidden="true" />
+              <div
+                className="flex shrink-0 self-stretch my-auto w-6 h-6 rounded bg-[#D2691E]"
+                aria-hidden="true"
+              />
               <div className="self-stretch my-auto">Đang chọn</div>
             </div>
             <div className="flex gap-2 items-center self-stretch my-auto">
-              <div className="flex shrink-0 self-stretch my-auto w-6 h-6 bg-[#D3D3D3] rounded" aria-hidden="true" />
+              <div
+                className="flex shrink-0 self-stretch my-auto w-6 h-6 bg-[#D3D3D3] rounded"
+                aria-hidden="true"
+              />
               <div className="self-stretch my-auto">Trống</div>
             </div>
           </div>
         </>
       ) : hasSearched ? (
-        <p className="text-white">Không tìm thấy bàn nào phù hợp. Vui lòng thử lại với các tiêu chí khác.</p>
+        <p className="text-white">
+          Không tìm thấy bàn nào phù hợp. Vui lòng thử lại với các tiêu chí
+          khác.
+        </p>
       ) : (
-        <p className="text-white">Vui lòng chọn ngày, giờ và loại bàn, sau đó nhấn "Tìm Bàn" để xem các bàn có sẵn.</p>
+        <p className="text-white">
+          Vui lòng chọn ngày, giờ và loại bàn, sau đó nhấn "Tìm Bàn" để xem các
+          bàn có sẵn.
+        </p>
       )}
     </div>
   );
