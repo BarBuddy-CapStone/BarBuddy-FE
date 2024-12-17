@@ -152,7 +152,7 @@ function BookingDetailPage() {
   return (
     <div
       className={`flex flex-col px-8 mx-16 ${
-        bookingDrinksList && bookingDrinksList.length > 0
+        bookingDrinksList?.length > 0 || bookingData.bookingDrinkExtraResponses?.length > 0
           ? "lg:flex-row gap-8"
           : "justify-center items-center"
       }`}
@@ -160,7 +160,7 @@ function BookingDetailPage() {
       {/* Main Content */}
       <div
         className={`bg-neutral-800 p-6 rounded-md shadow-md ${
-          bookingDrinksList && bookingDrinksList.length > 0
+          bookingDrinksList?.length > 0 || bookingData.bookingDrinkExtraResponses?.length > 0
             ? "lg:w-2/3"
             : "lg:w-2/3"
         }`}
@@ -379,68 +379,126 @@ function BookingDetailPage() {
       </div>
 
       {/* Sidebar */}
-      {bookingDrinksList && bookingDrinksList.length > 0 && (
-        <div className="lg:w-1/3 space-y-8">
-          {/* Map Section */}
-          {/* <div className="bg-neutral-800 p-6 rounded-md shadow-md">
-                    <h3 className="text-xl text-amber-400 mb-4 text-center font-bold">Bản đồ</h3>
-                    <img
-                        src="https://via.placeholder.com/300x200"
-                        alt="Map"
-                        className="w-full h-40 object-cover rounded-md"
-                    />
-                </div> */}
+      {(bookingDrinksList?.length > 0 || bookingData.bookingDrinkExtraResponses?.length > 0) && (
+        <div className="lg:w-1/3">
           <div className="bg-neutral-800 p-6 rounded-lg shadow-lg">
-            <h3 className="text-xl text-amber-400 mb-4 text-center">
-              Thức uống đã đặt trước
-            </h3>
-            <div className="border-t border-amber-500 mb-4"></div>
-            <div className="space-y-3">
-              {bookingDrinksList.map((drink) => (
-                <div
-                  key={drink.drinkId}
-                  className="flex justify-between items-center bg-neutral-700 p-4 rounded-lg shadow-md"
-                >
-                  <div className="flex items-center space-x-3 w-2/3">
-                    <img
-                      src={drink.image}
-                      alt={drink.drinkName}
-                      className="w-10 h-10 object-cover rounded-full flex-shrink-0"
-                    />
+            {/* Thức uống đã đặt trước */}
+            {bookingDrinksList && bookingDrinksList.length > 0 && (
+              <>
+                <h3 className="text-xl text-amber-400 mb-4 text-center">
+                  Thức uống đã đặt trước
+                </h3>
+                <div className="border-t border-amber-500 mb-4"></div>
+                <div className="space-y-3">
+                  {bookingDrinksList.map((drink) => (
                     <div
-                      className="flex-1 sm:max-w-full md:max-w-3/4 lg:max-w-2/3"
-                      style={{ wordBreak: "break-word" }}
+                      key={drink.drinkId}
+                      className="flex justify-between items-center bg-neutral-700 p-4 rounded-lg shadow-md"
                     >
-                      <span className="block text-white font-semibold truncate">
-                        {drink.drinkName}
-                      </span>
-                      <span className="block text-amber-400 text-sm">
-                        {drink.actualPrice.toLocaleString()} VND
-                      </span>
-                    </div>
-                  </div>
+                      <div className="flex items-center space-x-3 w-2/3">
+                        <img
+                          src={drink.image}
+                          alt={drink.drinkName}
+                          className="w-10 h-10 object-cover rounded-full flex-shrink-0"
+                        />
+                        <div
+                          className="flex-1 sm:max-w-full md:max-w-3/4 lg:max-w-2/3"
+                          style={{ wordBreak: "break-word" }}
+                        >
+                          <span className="block text-white font-semibold truncate">
+                            {drink.drinkName}
+                          </span>
+                          <span className="block text-amber-400 text-sm">
+                            {drink.actualPrice.toLocaleString()} VND
+                          </span>
+                        </div>
+                      </div>
 
-                  <div className="text-right w-1/3">
-                    <span className="text-lg font-bold text-white">
-                      x{drink.quantity}
-                    </span>
+                      <div className="text-right w-1/3">
+                        <span className="text-lg font-bold text-white">
+                          x{drink.quantity}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Thức uống gọi thêm */}
+            {bookingData.bookingDrinkExtraResponses && 
+             bookingData.bookingDrinkExtraResponses.length > 0 && (
+              <>
+                <div className={`${bookingDrinksList && bookingDrinksList.length > 0 ? 'mt-6' : ''}`}>
+                  <h3 className="text-xl text-amber-400 mb-4 text-center">
+                    Thức uống gọi thêm
+                  </h3>
+                  <div className="border-t border-amber-500 mb-4"></div>
+                  <div className="space-y-3">
+                    {bookingData.bookingDrinkExtraResponses.map((drink) => (
+                      <div
+                        key={drink.bookingExtraDrinkId}
+                        className="flex justify-between items-center bg-neutral-700 p-4 rounded-lg shadow-md"
+                      >
+                        <div className="flex items-center space-x-3 w-2/3">
+                          <img
+                            src={drink.image}
+                            alt={drink.drinkName}
+                            className="w-10 h-10 object-cover rounded-full flex-shrink-0"
+                          />
+                          <div
+                            className="flex-1 sm:max-w-full md:max-w-3/4 lg:max-w-2/3"
+                            style={{ wordBreak: "break-word" }}
+                          >
+                            <span className="block text-white font-semibold truncate">
+                              {drink.drinkName}
+                            </span>
+                            <span className="block text-amber-400 text-sm">
+                              {drink.actualPrice.toLocaleString()} VND
+                            </span>
+                            <span className="block text-gray-400 text-xs">
+                              Phục vụ bởi: {drink.staffName}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right w-1/3">
+                          <span className="text-lg font-bold text-white">
+                            x{drink.quantity}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
 
+                {/* Phí phụ thu */}
+                {bookingData.additionalFee > 0 && (
+                  <div className="border-t border-amber-500 mt-4 pt-4">
+                    <div className="flex justify-between text-gray-300">
+                      <span>Phí phụ thu</span>
+                      <span>{bookingData.additionalFee.toLocaleString()} VND</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Tổng số tiền phụ thu */}
             <div className="border-t border-amber-500 mt-4 pt-4 text-gray-300">
               <div className="flex justify-between">
-                <span className="text-amber-400 text-lg">Tổng số tiền</span>
+                <span className="text-amber-400 text-lg">Tổng số tiền phụ thu đã thanh toán</span>
                 <span className="text-amber-400 font-semibold text-lg">
-                  {bookingDrinksList
-                    .reduce(
-                      (total, drink) =>
-                        total + drink.actualPrice * drink.quantity,
-                      0
-                    )
-                    .toLocaleString()}{" "}
-                  VND
+                  {(bookingData.additionalFee || 0).toLocaleString()} VND
+                </span>
+              </div>
+            </div>
+
+            {/* Tổng tiền */}
+            <div className="border-t border-amber-500 mt-4 pt-4 text-gray-300">
+              <div className="flex justify-between">
+                <span className="text-amber-400 text-lg">Tổng số tiền đã thanh toán</span>
+                <span className="text-amber-400 font-semibold text-lg">
+                  {(bookingData.totalPrice || bookingData.additionalFee || 0).toLocaleString()} VND
                 </span>
               </div>
             </div>

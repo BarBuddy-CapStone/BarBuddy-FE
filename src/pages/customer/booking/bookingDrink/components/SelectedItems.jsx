@@ -1,13 +1,19 @@
 import React, { useState } from "react";
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
 import { LoadingSpinner } from "src/components";
 import { toast } from "react-toastify";
 
-const SelectedItems = ({ drinks, onRemove, discount, onProceedToPayment, numOfPeople }) => {
+const SelectedItems = ({
+  drinks,
+  onRemove,
+  discount,
+  onProceedToPayment,
+  numOfPeople,
+}) => {
   const [openScaleDialog, setOpenScaleDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const selectedItems = drinks.filter((drink) => drink.quantity > 0);
@@ -15,34 +21,39 @@ const SelectedItems = ({ drinks, onRemove, discount, onProceedToPayment, numOfPe
 
   if (selectedItems.length === 0) return null;
 
-  const totalAmount = selectedItems.reduce((acc, item) => acc + parseFloat(item.price) * item.quantity, 0);
+  const totalAmount = selectedItems.reduce(
+    (acc, item) => acc + parseFloat(item.price) * item.quantity,
+    0
+  );
   const discountAmount = totalAmount * (discount / 100);
   const finalAmount = totalAmount - discountAmount;
 
   const handleProceedToPayment = () => {
     if (numOfPeople > 1) {
-      const needsScaling = selectedItems.some(item => item.quantity < numOfPeople);
-      
+      const needsScaling = selectedItems.some(
+        (item) => item.quantity < numOfPeople
+      );
+
       if (needsScaling) {
-        const scaled = selectedItems.map(item => ({
+        const scaled = selectedItems.map((item) => ({
           ...item,
           originalQuantity: item.quantity,
           quantity: Math.max(item.quantity, numOfPeople),
-          scaledUp: item.quantity < numOfPeople
+          scaledUp: item.quantity < numOfPeople,
         }));
-        
+
         setScaledDrinks(scaled);
         setOpenScaleDialog(true);
         return;
       }
     }
-    
+
     proceedWithPayment(selectedItems, finalAmount);
   };
 
   const handleConfirmScale = () => {
     const newTotalAmount = scaledDrinks.reduce(
-      (acc, item) => acc + parseFloat(item.price) * item.quantity, 
+      (acc, item) => acc + parseFloat(item.price) * item.quantity,
       0
     );
     const newDiscountAmount = newTotalAmount * (discount / 100);
@@ -60,7 +71,7 @@ const SelectedItems = ({ drinks, onRemove, discount, onProceedToPayment, numOfPe
   const proceedWithPayment = async (items, amount) => {
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Thêm delay nhỏ để loading hiển thị rõ ràng hơn
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Thêm delay nhỏ để loading hiển thị rõ ràng hơn
       onProceedToPayment(items, amount);
     } catch (error) {
       console.error("Error proceeding to payment:", error);
@@ -86,7 +97,10 @@ const SelectedItems = ({ drinks, onRemove, discount, onProceedToPayment, numOfPe
               />
               <div className="flex-1 text-xs">
                 <div>{item.drinkName}</div>
-                <div className="text-amber-400">{(parseFloat(item.price) * item.quantity).toLocaleString()} VND</div>
+                <div className="text-amber-400">
+                  {(parseFloat(item.price) * item.quantity).toLocaleString()}{" "}
+                  VND
+                </div>
               </div>
               <div className="text-xl font-bold">{item.quantity}x</div>
               <img
@@ -108,7 +122,7 @@ const SelectedItems = ({ drinks, onRemove, discount, onProceedToPayment, numOfPe
             <span>{totalAmount.toLocaleString()} VND</span>
           </div>
           <div className="flex justify-between">
-            <span>Chiết khấu {discount}%</span>
+            <span>Giảm giá {discount}%</span>
             <span>- {discountAmount.toLocaleString()} VND</span>
           </div>
           <div className="flex justify-between text-amber-400 text-opacity-90 font-bold">
@@ -121,11 +135,11 @@ const SelectedItems = ({ drinks, onRemove, discount, onProceedToPayment, numOfPe
           variant="contained"
           sx={{
             mt: 3,
-            backgroundColor: 'rgb(251, 191, 36)',
-            color: 'black',
-            '&:hover': { backgroundColor: 'rgb(245, 158, 11)' },
-            width: '150px',
-            alignSelf: 'center',
+            backgroundColor: "rgb(251, 191, 36)",
+            color: "black",
+            "&:hover": { backgroundColor: "rgb(245, 158, 11)" },
+            width: "150px",
+            alignSelf: "center",
           }}
           onClick={handleProceedToPayment}
         >
@@ -139,46 +153,45 @@ const SelectedItems = ({ drinks, onRemove, discount, onProceedToPayment, numOfPe
         onClose={() => setOpenScaleDialog(false)}
         PaperProps={{
           style: {
-            backgroundColor: '#333',
-            color: 'white',
-            minWidth: '400px',
+            backgroundColor: "#333",
+            color: "white",
+            minWidth: "400px",
           },
         }}
       >
-        <DialogTitle style={{ color: '#FFA500' }}>
+        <DialogTitle style={{ color: "#FFA500" }}>
           Điều chỉnh số lượng đồ uống
         </DialogTitle>
         <DialogContent>
           <div className="text-white mb-4">
-            Vì có {numOfPeople} người, chúng tôi đề xuất điều chỉnh số lượng đồ uống như sau:
+            Vì có {numOfPeople} người, chúng tôi đề xuất điều chỉnh số lượng đồ
+            uống như sau:
           </div>
           <div className="space-y-3">
-            {scaledDrinks.map((drink) => (
-              drink.scaledUp && (
-                <div key={drink.drinkId} className="flex justify-between items-center text-white">
-                  <span>{drink.drinkName}:</span>
-                  <span className="text-amber-400">
-                    {drink.originalQuantity} → {drink.quantity}
-                  </span>
-                </div>
-              )
-            ))}
+            {scaledDrinks.map(
+              (drink) =>
+                drink.scaledUp && (
+                  <div
+                    key={drink.drinkId}
+                    className="flex justify-between items-center text-white"
+                  >
+                    <span>{drink.drinkName}:</span>
+                    <span className="text-amber-400">
+                      {drink.originalQuantity} → {drink.quantity}
+                    </span>
+                  </div>
+                )
+            )}
           </div>
           <div className="mt-4 text-amber-400">
             Bạn có đồng ý với điều chỉnh này?
           </div>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={handleKeepOriginal}
-            sx={{ color: '#FFA500' }}
-          >
+          <Button onClick={handleKeepOriginal} sx={{ color: "#FFA500" }}>
             Không, giữ nguyên
           </Button>
-          <Button
-            onClick={handleConfirmScale}
-            sx={{ color: '#FFA500' }}
-          >
+          <Button onClick={handleConfirmScale} sx={{ color: "#FFA500" }}>
             Đồng ý
           </Button>
         </DialogActions>
