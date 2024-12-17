@@ -106,6 +106,13 @@ function BookingDetail({ barInfo, selectedTables, customerInfo }) {
               )}
             </span>
           </div>
+          <div className="flex items-center justify-start">
+            <PersonIcon className="text-amber-400" />
+            <span className="ml-2">
+              <span className="text-amber-400 mr-1">Số người:</span>
+              {customerInfo?.numOfPeople ? `${customerInfo.numOfPeople} người` : "Chưa có thông tin"}
+            </span>
+          </div>
         </div>
       </div>
 

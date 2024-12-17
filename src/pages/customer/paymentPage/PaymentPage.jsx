@@ -410,7 +410,8 @@ function PaymentPage() {
       drinks: selectedDrinks?.map(drink => ({
         drinkId: drink.drinkId,
         quantity: drink.quantity
-      })) || []
+      })) || [],
+      numOfPeople: customerInfo?.numOfPeople
     };
   }, [barInfo, selectedTables, customerInfo, selectedDrinks]);
 

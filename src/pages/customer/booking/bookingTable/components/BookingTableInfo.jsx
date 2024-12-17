@@ -316,7 +316,7 @@ const BookingTableInfo = ({
         ...selectedTypeInfo,
         currentGuestCount: parseInt(guestCount)
       };
-      onSearchTables(typeInfoWithGuests);
+      onSearchTables(typeInfoWithGuests, parseInt(guestCount));
     }
   };
 

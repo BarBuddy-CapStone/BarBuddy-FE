@@ -66,19 +66,6 @@ const BookingDetailManager = () => {
     navigate('/manager/table-registrations');
   };
 
-  const renderBookingTables = () => {
-    if (!Booking?.bookingTableList?.length) {
-      return <p>Không có bàn nào được đặt trước</p>;
-    }
-
-    return Booking.bookingTableList.map((table, index) => (
-      <div key={index} className="bg-white p-2 rounded mb-2">
-        <p>ID: {table.tableName}</p>
-        <p>Loại bàn: {table.tableTypeName}</p>
-      </div>
-    ));
-  };
-
   const renderBookingDrinks = () => {
     if (!Booking?.bookingDrinksList?.length) {
       return <p>Không có thức uống đặt trước</p>;
@@ -141,94 +128,127 @@ const BookingDetailManager = () => {
           </div>
 
           <div className="space-y-4">
-            <div className="flex flex-col">
-              <label className="font-medium">Mã đặt chỗ</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md bg-gray-50"
-                value={Booking.bookingCode}
-                readOnly
-              />
-            </div>
-            
-            <div className="flex flex-col">
-              <label className="font-medium">Tên khách hàng</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md bg-gray-50"
-                value={Booking.customerName}
-                readOnly
-              />
-            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <label className="font-medium">Mã đặt chỗ</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={Booking.bookingCode}
+                  disabled
+                  readOnly
+                />
+              </div>
 
-            <div className="flex flex-col">
-              <label className="font-medium">Số điện thoại</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md bg-gray-50"
-                value={Booking.customerPhone}
-                readOnly
-              />
-            </div>
+              <div className="flex flex-col">
+                <label className="font-medium">Tên khách hàng</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={Booking.customerName}
+                  disabled
+                  readOnly
+                />
+              </div>
 
-            <div className="flex flex-col">
-              <label className="font-medium">Email</label>
-              <input
-                type="email"
-                className="p-2 border rounded-md bg-gray-50"
-                value={Booking.customerEmail}
-                readOnly
-              />
-            </div>
+              <div className="flex flex-col">
+                <label className="font-medium">Số điện thoại</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={Booking.customerPhone}
+                  disabled
+                  readOnly
+                />
+              </div>
 
-            <div className="flex flex-col">
-              <label className="font-medium">Ghi chú</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md bg-gray-50"
-                value={Booking.note}
-                readOnly
-              />
-            </div>
+              <div className="flex flex-col">
+                <label className="font-medium">Email</label>
+                <input
+                  type="email"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={Booking.customerEmail}
+                  disabled
+                  readOnly
+                />
+              </div>
 
-            <div className="flex flex-col">
-              <label className="font-medium">Ngày đặt bàn</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md bg-gray-50"
-                value={new Date(Booking.bookingDate).toLocaleDateString('vi-VN')}
-                readOnly
-              />
-            </div>
+              <div className="flex flex-col">
+                <label className="font-medium">Ghi chú</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={Booking.note}
+                  disabled
+                  readOnly
+                />
+              </div>
 
-            <div className="flex flex-col">
-              <label className="font-medium">Thời gian check-in</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md bg-gray-50"
-                value={Booking.bookingTime}
-                readOnly
-              />
-            </div>
+              <div className="flex flex-col">
+                <label className="font-medium">Ngày đặt bàn</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={new Date(Booking.bookingDate).toLocaleDateString('vi-VN')}
+                  disabled
+                  readOnly
+                />
+              </div>
 
-            <div className="flex flex-col">
-              <label className="font-medium">Phụ thu</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md bg-gray-50"
-                value={`${Booking.additionalFee ? Booking.additionalFee.toLocaleString('vi-VN') : 0} VND`}
-                readOnly
-              />
+              <div className="flex flex-col">
+                <label className="font-medium">Thời gian check-in</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={Booking.bookingTime}
+                  disabled
+                  readOnly
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="font-medium">Phụ thu</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    className="p-2 border rounded-md w-full bg-gray-100 cursor-not-allowed"
+                    value={`${Booking.additionalFee ? Booking.additionalFee.toLocaleString('vi-VN') : 0} VND`}
+                    disabled
+                    readOnly
+                  />
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    VND
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="w-1/3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <div className="bg-gray-100 p-4 rounded-lg">
               <h2 className="text-xl font-bold mb-4">Bàn đã đặt trước</h2>
-              {renderBookingTables()}
+              <div className="mb-3 flex justify-between items-center">
+                <div className="text-sm">
+                  <span className="font-semibold">Số bàn:</span> {Booking.numOfTable} bàn
+                </div>
+                <div className="text-sm">
+                  <span className="font-semibold">Số người:</span> {Booking.numOfPeople} người
+                </div>
+              </div>
+              {Booking.bookingTableList && Booking.bookingTableList.length > 0 ? (
+                Booking.bookingTableList.map((table, index) => (
+                  <div key={index} className="bg-white p-2 rounded mb-2">
+                    <p>ID: {table.tableName}</p>
+                    <p>Loại bàn: {table.tableTypeName}</p>
+                  </div>
+                ))
+              ) : (
+                <p>Không có bàn nào được đặt trước</p>
+              )}
             </div>
+
             <div className="bg-gray-100 p-4 rounded-lg">
               <h2 className="text-xl font-bold mb-4">Thức uống đã đặt trước</h2>
               {renderBookingDrinks()}

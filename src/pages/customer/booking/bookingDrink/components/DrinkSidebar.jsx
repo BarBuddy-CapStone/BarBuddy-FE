@@ -5,7 +5,8 @@ const DrinkSidebar = ({
   drinks,
   onRemove,
   discount,
-  onProceedToPayment
+  onProceedToPayment,
+  numOfPeople
 }) => {
   return (
     <aside className="w-full lg:w-full flex flex-col gap-4 mt-6 lg:mt-0 px-4">
@@ -14,6 +15,7 @@ const DrinkSidebar = ({
         onRemove={onRemove}
         discount={discount}
         onProceedToPayment={onProceedToPayment}
+        numOfPeople={numOfPeople}
       />
     </aside>
   );

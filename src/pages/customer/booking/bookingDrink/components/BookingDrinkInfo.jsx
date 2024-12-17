@@ -139,6 +139,13 @@ const BookingDrinkInfo = ({
               )}
             </span>
           </div>
+          <div className="flex items-center">
+            <PersonIcon className="text-amber-400 mr-2" />
+            <span className="font-sans font-thin">
+              <span className="text-amber-400 mr-1">Số người:</span>
+              {customerInfo?.numOfPeople ? `${customerInfo.numOfPeople} người` : "Chưa có thông tin"}
+            </span>
+          </div>
         </div>
       </div>
 

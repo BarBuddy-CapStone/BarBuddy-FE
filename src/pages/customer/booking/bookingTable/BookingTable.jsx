@@ -50,6 +50,7 @@ const BookingTable = () => {
   const [barTimeSlot, setBarTimeSlot] = useState(1);
   const [showPhoneWarning, setShowPhoneWarning] = useState(false);
   const [customerData, setCustomerData] = useState(null);
+  const [numOfPeople, setNumOfPeople] = useState(0);
 
   const uniqueTablesByDateAndTime = selectedTables.filter((seleTable, index, self) =>
     index === self.findIndex((t) => (
@@ -649,21 +650,122 @@ const BookingTable = () => {
     });
   };
 
-  const handleSearchTables = async (typeInfo) => {
+  const handleSearchTables = async (typeInfo, guestCount) => {
     setTableTypeInfo(typeInfo);
+    setNumOfPeople(guestCount);
     
     // Kiểm tra số lượng người có phù hợp với loại bàn không
-    const guestCount = typeInfo.currentGuestCount;
     if (guestCount < typeInfo.minimumGuest || guestCount > typeInfo.maximumGuest) {
-      toast.error(`Số lượng người không phù hợp với loại bàn này. Loại bàn này phù hợp cho ${typeInfo.minimumGuest} - ${typeInfo.maximumGuest} người.`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error(`Số lượng người không phù hợp với loại bàn này. Loại bàn này phù hợp cho ${typeInfo.minimumGuest} - ${typeInfo.maximumGuest} người.`);
       return;
     }
 
-    // Nếu số lượng người phù hợp, tiếp tục tìm kiếm
     handleSearch();
+  };
+
+  const confirmBookNow = async () => {
+    if (!barId || !selectedDate || !selectedTime || !selectedTableTypeId) {
+      setOpenPopup(true);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
+      const formattedTime = selectedTime + ":00";
+
+      const bookingData = {
+        barId: barId,
+        bookingDate: formattedDate,
+        bookingTime: formattedTime,
+        note: note || "Không Có Ghi Chú",
+        tableIds: selectedTables.map((table) => table.tableId),
+        numOfPeople: tableTypeInfo.currentGuestCount
+      };
+
+      const response = await releaseTable(token, bookingData);
+      
+      if (response.data.statusCode === 200) {
+        // Gửi SignalR
+        await releaseTableSignalR(bookingData);
+        setSelectedTables([]);
+        setSelectedTime(formattedTime);
+        
+        // Fetch lại danh sách bàn đã hold từ cache với time mới
+        try {
+          const holdTablesResponse = await getAllHoldTable(token, barId, formattedDate, formattedTime);
+          
+          if (holdTablesResponse.data.statusCode === 200) {
+            const holdTables = holdTablesResponse.data.data || [];
+            
+            // Cập nhật lại trạng thái các bàn với dữ liệu mới từ cache
+            setAllFilteredTables(prev => {
+              const currentDateTimeKey = `${formattedDate}-${formattedTime}`;
+              const updatedTables = prev[currentDateTimeKey]?.map(table => {
+                const holdTable = holdTables.find(ht => ht.tableId === table.tableId);
+                if (holdTable) {
+                  return {
+                    ...table,
+                    status: 2,
+                    isHeld: true,
+                    holderId: holdTable.accountId,
+                    date: holdTable.date,
+                    time: holdTable.time
+                  };
+                }
+                return {
+                  ...table,
+                  status: 1,
+                  isHeld: false,
+                  holderId: null,
+                  date: null,
+                  time: null
+                };
+              });
+              
+              return {
+                ...prev,
+                [currentDateTimeKey]: updatedTables
+              };
+            });
+
+            // Cập nhật filteredTables hiện tại
+            setFilteredTables(prev => 
+              prev.map(table => {
+                const holdTable = holdTables.find(ht => ht.tableId === table.tableId);
+                if (holdTable) {
+                  return {
+                    ...table,
+                    status: 2,
+                    isHeld: true,
+                    holderId: holdTable.accountId,
+                    date: holdTable.date,
+                    time: holdTable.time
+                  };
+                }
+                return {
+                  ...table,
+                  status: 1,
+                  isHeld: false,
+                  holderId: null,
+                  date: null,
+                  time: null
+                };
+              })
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching hold tables:", error);
+        }
+      } else {
+        setOpenPopup(true);
+      }
+    } catch (error) {
+      console.error("Error confirming booking:", error);
+      setOpenPopup(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -707,6 +809,7 @@ const BookingTable = () => {
               barInfo={barInfo}
               note={note}
               setNote={setNote}
+              numOfPeople={numOfPeople}
             />
           </div>
           <div className="flex flex-col w-1/4 max-md:w-full">

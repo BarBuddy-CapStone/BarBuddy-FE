@@ -17,6 +17,8 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { BookingService } from "src/lib";
 import CircularProgress from "@mui/material/CircularProgress";
 import QrCodeIcon from '@mui/icons-material/QrCode';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
 
 // Function to format date and time
 const formatDateTime = (bookingDate, bookingTime) => {
@@ -56,6 +58,7 @@ function BookingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
   const [isQRDialogOpen, setIsQRDialogOpen] = useState(false);
+  const [openTableListDialog, setOpenTableListDialog] = useState(false);
 
   // Fetch booking details from API
   useEffect(() => {
@@ -136,6 +139,14 @@ function BookingDetailPage() {
 
   const handleCloseQRDialog = () => {
     setIsQRDialogOpen(false);
+  };
+
+  const handleOpenTableListDialog = () => {
+    setOpenTableListDialog(true);
+  };
+
+  const handleCloseTableListDialog = () => {
+    setOpenTableListDialog(false);
   };
 
   return (
@@ -232,21 +243,15 @@ function BookingDetailPage() {
         <h2 className="text-2xl text-amber-400 mb-4">Thông tin đặt chỗ</h2>
 
         {/* Booking Details */}
-        <div className="grid grid-cols-2 gap-6 text-gray-300">
+        <div className="grid grid-cols-2 gap-4 mt-6 text-gray-300">
           <div className="flex items-start">
-            <LiquorIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <LocationOnIcon className="text-amber-400 mr-3 flex-shrink-0" />
             <div>
-              <span className="font-semibold">Chi Nhánh:</span>
+              <span className="font-semibold">Chi nhánh:</span>
               <p>{barName}</p>
             </div>
           </div>
-          <div className="flex items-start">
-            <CalendarTodayIcon className="text-amber-400 mr-3 flex-shrink-0" />
-            <div>
-              <span className="font-semibold">Thời gian:</span>
-              <p>{formattedDateTime}</p>
-            </div>
-          </div>
+
           <div className="flex items-start">
             <LocationOnIcon className="text-amber-400 mr-3 flex-shrink-0" />
             <div>
@@ -254,6 +259,15 @@ function BookingDetailPage() {
               <p>{barAddress}</p>
             </div>
           </div>
+
+          <div className="flex items-start">
+            <CalendarTodayIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Thời gian:</span>
+              <p>{formattedDateTime}</p>
+            </div>
+          </div>
+
           <div className="flex items-start">
             <KeyIcon className="text-amber-400 mr-3 flex-shrink-0" />
             <div>
@@ -261,33 +275,57 @@ function BookingDetailPage() {
               <p>{bookingCode}</p>
             </div>
           </div>
+
           <div className="flex items-start">
             <TableBarIcon className="text-amber-400 mr-3 flex-shrink-0" />
             <div>
               <span className="font-semibold">Bàn đã đặt:</span>
-              <p>{formattedTables}</p>
+              <p>
+                {bookingData.numOfTable} bàn
+                <button
+                  onClick={handleOpenTableListDialog}
+                  className="ml-2 text-amber-400 hover:underline"
+                >
+                  Xem chi tiết
+                </button>
+              </p>
             </div>
           </div>
+
+          <div className="flex items-start">
+            <PersonIcon className="text-amber-400 mr-3 flex-shrink-0" />
+            <div>
+              <span className="font-semibold">Số người:</span>
+              <p>{bookingData.numOfPeople} người</p>
+            </div>
+          </div>
+
           <div className="flex items-start">
             <EditNoteIcon className="text-amber-400 mr-3 flex-shrink-0" />
             <div>
               <span className="font-semibold">Ghi chú:</span>
-              <button
-                onClick={handleOpenNoteDialog}
-                className="text-amber-400 hover:underline ml-2"
-              >
-                Xem chi tiết
-              </button>
+              <p>
+                  <>
+                    {note.length > 20 ? note.substring(0, 20) + "..." : note}
+                    <button
+                      onClick={handleOpenNoteDialog}
+                      className="ml-2 text-amber-400 hover:underline"
+                    >
+                      Xem chi tiết
+                    </button>
+                  </>
+              </p>
             </div>
           </div>
+
           <div className="flex items-start">
             <QrCodeIcon className="text-amber-400 mr-3 flex-shrink-0" />
             <div>
               <span className="font-semibold">Mã QR Check-in:</span>
               <button
                 onClick={handleOpenQRDialog}
-                className="text-amber-400 hover:underline ml-2"
-              >
+                className="text-amber-400 hover:underline"
+              > 
                 Xem QR Code
               </button>
             </div>
@@ -508,6 +546,44 @@ function BookingDetailPage() {
             Vui lòng xuất trình mã QR này khi check-in tại quầy
           </p>
         </DialogContent>
+      </Dialog>
+
+      {/* Table List Dialog */}
+      <Dialog
+        open={openTableListDialog}
+        onClose={handleCloseTableListDialog}
+        PaperProps={{
+          style: {
+            backgroundColor: '#333',
+            color: 'white',
+            minWidth: '400px',
+          },
+        }}
+      >
+        <DialogTitle style={{ color: '#FFA500', borderBottom: '1px solid #FFA500' }}>
+          Danh sách bàn đã đặt
+        </DialogTitle>
+        <DialogContent>
+          <div className="mt-4">
+            {bookingData.tableNameList.map((tableName, index) => (
+              <div 
+                key={index} 
+                className="flex items-center py-2 border-b border-gray-600 last:border-0"
+              >
+                <TableBarIcon className="text-amber-400 mr-2" />
+                <span className="text-white">{tableName}</span>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseTableListDialog}
+            sx={{ color: '#FFA500' }}
+          >
+            Đóng
+          </Button>
+        </DialogActions>
       </Dialog>
     </div>
   );

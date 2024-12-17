@@ -155,22 +155,20 @@ const BookingDrink = () => {
     navigate("/bookingtable", { state: { fromBookingDrink: true } });
   };
 
-  const handleProceedToPayment = (selectedDrinks) => {
-    const totalAmount = selectedDrinks.reduce(
-      (total, drink) => total + drink.price * drink.quantity,
-      0
-    );
-
+  const handleProceedToPayment = (selectedDrinks, finalAmount) => {
     navigate("/payment", {
       state: {
         barInfo,
         selectedTables,
-        customerInfo,
+        customerInfo: {
+          ...customerInfo,
+          numOfPeople: customerInfo.numOfPeople
+        },
         selectedDrinks: selectedDrinks.map((drink) => ({
           ...drink,
           image: drink.images,
         })),
-        totalAmount,
+        totalAmount: finalAmount,
         discount: barInfo.discount,
       },
     });
@@ -371,6 +369,7 @@ const BookingDrink = () => {
           onRemove={handleRemove}
           discount={barInfo.discount}
           onProceedToPayment={handleProceedToPayment}
+          numOfPeople={customerInfo?.numOfPeople || 1}
         />
       </div>
 

@@ -22,6 +22,7 @@ const CustomerForm = ({
   barInfo,
   note,
   setNote,
+  numOfPeople,
 }) => {
   const { userInfo, token } = useAuthStore(); // Lấy token từ Auth Store
   const [name, setName] = useState(userInfo.fullname || "");
@@ -72,6 +73,7 @@ const CustomerForm = ({
           email: email,
           phone: phone,
           note: note,
+          numOfPeople: numOfPeople
         },
       },
     });
@@ -104,6 +106,7 @@ const CustomerForm = ({
         bookingTime: formattedTime,
         note: note || "Không Có Ghi Chú",
         tableIds: selectedTables.map((table) => table.tableId),
+        numOfPeople: numOfPeople
       };
 
       const response = await boookingtableNow(token, bookingData);

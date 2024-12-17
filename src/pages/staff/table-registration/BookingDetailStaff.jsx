@@ -347,91 +347,100 @@ const BookingDetailStaff = () => {
           </div>
 
           <div className="space-y-4">
-            <div className="flex flex-col">
-              <label className="font-medium">Mã đặt chỗ</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md"
-                value={booking.bookingCode}
-                readOnly
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-medium">Tên khách hàng</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md"
-                value={booking.customerName}
-                readOnly
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-medium">Số điện thoại</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md"
-                value={booking.customerPhone}
-                readOnly
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-medium">Email</label>
-              <input
-                type="email"
-                className="p-2 border rounded-md"
-                value={booking.customerEmail}
-                readOnly
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-medium">Ghi chú</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md"
-                value={booking.note}
-                readOnly
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-medium">Ngày đặt bàn</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md"
-                value={new Date(booking.bookingDate).toLocaleDateString(
-                  "vi-VN"
-                )}
-                readOnly
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-medium">Thời gian check-in</label>
-              <input
-                type="text"
-                className="p-2 border rounded-md"
-                value={booking.bookingTime}
-                readOnly
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-medium">Phụ thu</label>
-              <div className="relative">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <label className="font-medium">Mã đặt chỗ</label>
                 <input
                   type="text"
-                  className="p-2 border rounded-md w-full"
-                  value={formatCurrency(additionalFee)}
-                  onChange={handleAdditionalFeeChange}
-                  placeholder="Nhập số tiền ph�� thu"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={booking.bookingCode}
+                  disabled
+                  readOnly
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                  VND
-                </span>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="font-medium">Tên khách hàng</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={booking.customerName}
+                  disabled
+                  readOnly
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="font-medium">Số điện thoại</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={booking.customerPhone}
+                  disabled
+                  readOnly
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="font-medium">Email</label>
+                <input
+                  type="email"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={booking.customerEmail}
+                  disabled
+                  readOnly
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="font-medium">Ghi chú</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={booking.note}
+                  disabled
+                  readOnly
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="font-medium">Ngày đặt bàn</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={new Date(booking.bookingDate).toLocaleDateString(
+                    "vi-VN"
+                  )}
+                  disabled
+                  readOnly
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="font-medium">Thời gian check-in</label>
+                <input
+                  type="text"
+                  className="p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                  value={booking.bookingTime}
+                  disabled
+                  readOnly
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="font-medium">Phụ thu</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    className="p-2 border rounded-md w-full bg-gray-100 cursor-not-allowed"
+                    value={booking.additionalFee ? formatCurrency(booking.additionalFee) : "0 VND"}
+                    disabled
+                    readOnly
+                  />
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    VND
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -454,6 +463,14 @@ const BookingDetailStaff = () => {
         <div className="w-1/3">
           <div className="bg-gray-100 p-4 rounded-lg mb-4">
             <h2 className="text-xl font-bold mb-4">Bàn đã đặt trước</h2>
+            <div className="mb-3 flex justify-between items-center">
+              <div className="text-sm">
+                <span className="font-semibold">Số bàn:</span> {booking.numOfTable} bàn
+              </div>
+              <div className="text-sm">
+                <span className="font-semibold">Số người:</span> {booking.numOfPeople} người
+              </div>
+            </div>
             {booking.bookingTableList && booking.bookingTableList.length > 0 ? (
               booking.bookingTableList.map((table, index) => (
                 <div key={index} className="bg-white p-2 rounded mb-2">
