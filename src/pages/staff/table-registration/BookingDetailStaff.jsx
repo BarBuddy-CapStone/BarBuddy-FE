@@ -77,6 +77,14 @@ const BookingDetailStaff = () => {
     initialFetch();
   }, [bookingId]);
 
+  const checkAllDrinksDelivered = () => {
+    if (!booking.bookingDrinkExtraResponses || booking.bookingDrinkExtraResponses.length === 0) {
+      return true;
+    }
+    
+    return booking.bookingDrinkExtraResponses.every(drink => drink.status === 2);
+  };
+
   const handleSave = async () => {
     setIsUpdating(true);
     try {
@@ -123,6 +131,15 @@ const BookingDetailStaff = () => {
       }
 
       if (newStatus === 3 && currentStatus !== 3) {
+        if (!checkAllDrinksDelivered()) {
+          Modal.error({
+            title: "Không thể hoàn thành",
+            content: "Vẫn còn đồ uống chưa được giao. Vui lòng kiểm tra lại trạng thái các đồ uống.",
+            okText: "Đã hiểu",
+          });
+          return;
+        }
+
         Modal.confirm({
           title: "Xác nhận hoàn thành",
           content:
