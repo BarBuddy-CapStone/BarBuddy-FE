@@ -1,24 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Import useNavigate for back navigation
-import { Carousel } from "react-responsive-carousel";
-import "react-responsive-carousel/lib/styles/carousel.min.css"; // Carousel styles
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import KeyIcon from "@mui/icons-material/VpnKey";
+import CloseIcon from "@mui/icons-material/Close";
+import EditNoteIcon from "@mui/icons-material/EditNote";
+import EmailIcon from "@mui/icons-material/Email";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
-import EmailIcon from "@mui/icons-material/Email";
-import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material"; // Modal for image preview
-import CloseIcon from "@mui/icons-material/Close";
+import QrCodeIcon from "@mui/icons-material/QrCode";
 import TableBarIcon from "@mui/icons-material/TableBar";
-import LiquorIcon from "@mui/icons-material/Liquor";
-import EditNoteIcon from "@mui/icons-material/EditNote";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { BookingService } from "src/lib";
+import KeyIcon from "@mui/icons-material/VpnKey";
+import { Dialog, DialogContent, DialogTitle, IconButton } from "@mui/material"; // Modal for image preview
+import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import QrCodeIcon from '@mui/icons-material/QrCode';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
+import DialogActions from "@mui/material/DialogActions";
+import React, { useEffect, useState } from "react";
+import { Carousel } from "react-responsive-carousel";
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // Carousel styles
+import { useNavigate, useParams } from "react-router-dom"; // Import useNavigate for back navigation
+import { BookingService } from "src/lib";
 
 // Function to format date and time
 const formatDateTime = (bookingDate, bookingTime) => {
@@ -47,6 +46,13 @@ function getTimeAgo(createAt) {
     return diffYears === 1 ? "1 năm trước" : `${diffYears} năm trước`;
   }
 }
+
+// Thêm hàm tính tổng tiền đồ uống gọi thêm
+const calculateExtraDrinksTotal = (extraDrinks) => {
+  return extraDrinks.reduce((total, drink) => {
+    return total + drink.actualPrice * drink.quantity;
+  }, 0);
+};
 
 function BookingDetailPage() {
   const { bookingId } = useParams();
@@ -152,7 +158,8 @@ function BookingDetailPage() {
   return (
     <div
       className={`flex flex-col px-8 mx-16 ${
-        bookingDrinksList?.length > 0 || bookingData.bookingDrinkExtraResponses?.length > 0
+        bookingDrinksList?.length > 0 ||
+        bookingData.bookingDrinkExtraResponses?.length > 0
           ? "lg:flex-row gap-8"
           : "justify-center items-center"
       }`}
@@ -160,7 +167,8 @@ function BookingDetailPage() {
       {/* Main Content */}
       <div
         className={`bg-neutral-800 p-6 rounded-md shadow-md ${
-          bookingDrinksList?.length > 0 || bookingData.bookingDrinkExtraResponses?.length > 0
+          bookingDrinksList?.length > 0 ||
+          bookingData.bookingDrinkExtraResponses?.length > 0
             ? "lg:w-2/3"
             : "lg:w-2/3"
         }`}
@@ -305,15 +313,15 @@ function BookingDetailPage() {
             <div>
               <span className="font-semibold">Ghi chú:</span>
               <p>
-                  <>
-                    {note.length > 20 ? note.substring(0, 20) + "..." : note}
-                    <button
-                      onClick={handleOpenNoteDialog}
-                      className="ml-2 text-amber-400 hover:underline"
-                    >
-                      Xem chi tiết
-                    </button>
-                  </>
+                <>
+                  {note.length > 20 ? note.substring(0, 20) + "..." : note}
+                  <button
+                    onClick={handleOpenNoteDialog}
+                    className="ml-2 text-amber-400 hover:underline"
+                  >
+                    Xem chi tiết
+                  </button>
+                </>
               </p>
             </div>
           </div>
@@ -325,7 +333,7 @@ function BookingDetailPage() {
               <button
                 onClick={handleOpenQRDialog}
                 className="text-amber-400 hover:underline"
-              > 
+              >
                 Xem QR Code
               </button>
             </div>
@@ -379,7 +387,8 @@ function BookingDetailPage() {
       </div>
 
       {/* Sidebar */}
-      {(bookingDrinksList?.length > 0 || bookingData.bookingDrinkExtraResponses?.length > 0) && (
+      {(bookingDrinksList?.length > 0 ||
+        bookingData.bookingDrinkExtraResponses?.length > 0) && (
         <div className="lg:w-1/3">
           <div className="bg-neutral-800 p-6 rounded-lg shadow-lg">
             {/* Thức uống đã đặt trước */}
@@ -422,83 +431,95 @@ function BookingDetailPage() {
                     </div>
                   ))}
                 </div>
+
+                {/* Tổng tiền đặt trước */}
+                <div className="border-t border-amber-500 mt-4 pt-4">
+                  <div className="flex justify-between text-gray-300">
+                    <span>Tổng số tiền đã đặt trước</span>
+                    <span>{bookingData.totalPrice.toLocaleString()} VND</span>
+                  </div>
+                </div>
               </>
             )}
 
             {/* Thức uống gọi thêm */}
-            {bookingData.bookingDrinkExtraResponses && 
-             bookingData.bookingDrinkExtraResponses.length > 0 && (
-              <>
-                <div className={`${bookingDrinksList && bookingDrinksList.length > 0 ? 'mt-6' : ''}`}>
-                  <h3 className="text-xl text-amber-400 mb-4 text-center">
-                    Thức uống gọi thêm
-                  </h3>
-                  <div className="border-t border-amber-500 mb-4"></div>
-                  <div className="space-y-3">
-                    {bookingData.bookingDrinkExtraResponses.map((drink) => (
-                      <div
-                        key={drink.bookingExtraDrinkId}
-                        className="flex justify-between items-center bg-neutral-700 p-4 rounded-lg shadow-md"
-                      >
-                        <div className="flex items-center space-x-3 w-2/3">
-                          <img
-                            src={drink.image}
-                            alt={drink.drinkName}
-                            className="w-10 h-10 object-cover rounded-full flex-shrink-0"
-                          />
-                          <div
-                            className="flex-1 sm:max-w-full md:max-w-3/4 lg:max-w-2/3"
-                            style={{ wordBreak: "break-word" }}
-                          >
-                            <span className="block text-white font-semibold truncate">
-                              {drink.drinkName}
-                            </span>
-                            <span className="block text-amber-400 text-sm">
-                              {drink.actualPrice.toLocaleString()} VND
-                            </span>
-                            <span className="block text-gray-400 text-xs">
-                              Phục vụ bởi: {drink.staffName}
+            {bookingData.bookingDrinkExtraResponses &&
+              bookingData.bookingDrinkExtraResponses.length > 0 && (
+                <>
+                  <div
+                    className={`${
+                      bookingDrinksList && bookingDrinksList.length > 0
+                        ? "mt-6"
+                        : ""
+                    }`}
+                  >
+                    <h3 className="text-xl text-amber-400 mb-4 text-center">
+                      Thức uống gọi thêm
+                    </h3>
+                    <div className="border-t border-amber-500 mb-4"></div>
+                    <div className="space-y-3">
+                      {bookingData.bookingDrinkExtraResponses.map((drink) => (
+                        <div
+                          key={drink.bookingExtraDrinkId}
+                          className="flex justify-between items-center bg-neutral-700 p-4 rounded-lg shadow-md"
+                        >
+                          <div className="flex items-center space-x-3 w-2/3">
+                            <img
+                              src={drink.image}
+                              alt={drink.drinkName}
+                              className="w-10 h-10 object-cover rounded-full flex-shrink-0"
+                            />
+                            <div
+                              className="flex-1 sm:max-w-full md:max-w-3/4 lg:max-w-2/3"
+                              style={{ wordBreak: "break-word" }}
+                            >
+                              <span className="block text-white font-semibold truncate">
+                                {drink.drinkName}
+                              </span>
+                              <span className="block text-amber-400 text-sm">
+                                {drink.actualPrice.toLocaleString()} VND
+                              </span>
+                              <span className="block text-gray-400 text-xs">
+                                Phục vụ bởi: {drink.staffName}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right w-1/3">
+                            <span className="text-lg font-bold text-white">
+                              x{drink.quantity}
                             </span>
                           </div>
                         </div>
-                        <div className="text-right w-1/3">
-                          <span className="text-lg font-bold text-white">
-                            x{drink.quantity}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Phí phụ thu */}
-                {bookingData.additionalFee > 0 && (
-                  <div className="border-t border-amber-500 mt-4 pt-4">
-                    <div className="flex justify-between text-gray-300">
-                      <span>Phí phụ thu</span>
-                      <span>{bookingData.additionalFee.toLocaleString()} VND</span>
+                      ))}
                     </div>
                   </div>
-                )}
-              </>
-            )}
 
-            {/* Tổng số tiền phụ thu */}
-            <div className="border-t border-amber-500 mt-4 pt-4 text-gray-300">
+                  {/* Tổng tiền phụ thu */}
+                  <div className="border-t border-amber-500 mt-4 pt-4">
+                    <div className="flex justify-between text-gray-300">
+                      <span>Tổng số tiền phụ thu đã thanh toán</span>
+                      <span>
+                        {(bookingData.additionalFee || 0).toLocaleString()} VND
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+            {/* Tổng cộng */}
+            <div className="border-t border-amber-500 mt-4 pt-4">
               <div className="flex justify-between">
-                <span className="text-amber-400 text-lg">Tổng số tiền phụ thu đã thanh toán</span>
-                <span className="text-amber-400 font-semibold text-lg">
-                  {(bookingData.additionalFee || 0).toLocaleString()} VND
+                <span className="text-amber-400 text-lg font-semibold">
+                  Tổng cộng
                 </span>
-              </div>
-            </div>
-
-            {/* Tổng tiền */}
-            <div className="border-t border-amber-500 mt-4 pt-4 text-gray-300">
-              <div className="flex justify-between">
-                <span className="text-amber-400 text-lg">Tổng số tiền đã thanh toán</span>
                 <span className="text-amber-400 font-semibold text-lg">
-                  {(bookingData.totalPrice || bookingData.additionalFee || 0).toLocaleString()} VND
+                  {(
+                    bookingData.totalPrice +
+                    calculateExtraDrinksTotal(
+                      bookingData.bookingDrinkExtraResponses || []
+                    )
+                  ).toLocaleString()}{" "}
+                  VND
                 </span>
               </div>
             </div>
@@ -565,42 +586,42 @@ function BookingDetailPage() {
         fullWidth
         PaperProps={{
           style: {
-            backgroundColor: '#27272a',
-            borderRadius: '8px',
+            backgroundColor: "#27272a",
+            borderRadius: "8px",
           },
         }}
       >
         <DialogTitle
           style={{
-            color: '#FFBF00',
-            borderBottom: '1px solid #FFBF00',
-            padding: '16px 24px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            color: "#FFBF00",
+            borderBottom: "1px solid #FFBF00",
+            padding: "16px 24px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <span>Mã QR Check-in</span>
           <IconButton
             aria-label="close"
             onClick={handleCloseQRDialog}
-            style={{ color: '#FFFFFF' }}
+            style={{ color: "#FFFFFF" }}
           >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent style={{ padding: '24px', textAlign: 'center' }}>
+        <DialogContent style={{ padding: "24px", textAlign: "center" }}>
           <img
             src={bookingData.qrTicket}
             alt="QR Ticket"
             style={{
-              maxWidth: '80%',
-              height: 'auto',
-              margin: '0 auto',
-              borderRadius: '8px',
+              maxWidth: "80%",
+              height: "auto",
+              margin: "0 auto",
+              borderRadius: "8px",
             }}
           />
-          <p style={{ color: '#E5E7EB', marginTop: '16px', fontSize: '14px' }}>
+          <p style={{ color: "#E5E7EB", marginTop: "16px", fontSize: "14px" }}>
             Vui lòng xuất trình mã QR này khi check-in tại quầy
           </p>
         </DialogContent>
@@ -612,20 +633,22 @@ function BookingDetailPage() {
         onClose={handleCloseTableListDialog}
         PaperProps={{
           style: {
-            backgroundColor: '#333',
-            color: 'white',
-            minWidth: '400px',
+            backgroundColor: "#333",
+            color: "white",
+            minWidth: "400px",
           },
         }}
       >
-        <DialogTitle style={{ color: '#FFA500', borderBottom: '1px solid #FFA500' }}>
+        <DialogTitle
+          style={{ color: "#FFA500", borderBottom: "1px solid #FFA500" }}
+        >
           Danh sách bàn đã đặt
         </DialogTitle>
         <DialogContent>
           <div className="mt-4">
             {bookingData.tableNameList.map((tableName, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="flex items-center py-2 border-b border-gray-600 last:border-0"
               >
                 <TableBarIcon className="text-amber-400 mr-2" />
@@ -637,7 +660,7 @@ function BookingDetailPage() {
         <DialogActions>
           <Button
             onClick={handleCloseTableListDialog}
-            sx={{ color: '#FFA500' }}
+            sx={{ color: "#FFA500" }}
           >
             Đóng
           </Button>
