@@ -6,7 +6,8 @@ import { message } from "antd";
 import { BookingTableManager, FilterSectionManager } from "src/pages";
 import { QRScanner } from "src/components";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
-import { IconButton } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 function BookingListManager() {
   const getCurrentDate = () => {
@@ -28,6 +29,7 @@ function BookingListManager() {
   const [loading, setLoading] = useState(true);
   const [pageSize] = useState(10);
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
 
   const handleFilterChange = async (newFilter) => {
     setFilter(newFilter);
@@ -115,6 +117,18 @@ function BookingListManager() {
     }
   };
 
+  const handleReload = async () => {
+    setIsReloading(true);
+    try {
+      await fetchBookings(filter, currentPage);
+      message.success('Đã cập nhật thông tin mới nhất');
+    } catch (error) {
+      message.error('Không thể cập nhật thông tin. Vui lòng thử lại');
+    } finally {
+      setIsReloading(false);
+    }
+  };
+
   return (
     <div className="overflow-hidden bg-white">
       <div className="flex gap-5 max-md:flex-col">
@@ -124,7 +138,17 @@ function BookingListManager() {
               DANH SÁCH ĐẶT BÀN
             </h1>
 
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-4 gap-2">
+              <Tooltip title="Tải lại">
+                <IconButton 
+                  onClick={handleReload}
+                  disabled={isReloading}
+                  className={`bg-blue-600 hover:bg-blue-700 text-white ${isReloading ? 'animate-spin' : ''}`}
+                  size="large"
+                >
+                  <RefreshIcon />
+                </IconButton>
+              </Tooltip>
               <IconButton
                 onClick={() => setIsQRScannerOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
