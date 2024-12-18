@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import BookingService from 'src/lib/service/bookingService';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { IconButton, CircularProgress } from '@mui/material';
+import { IconButton, CircularProgress, Tooltip } from '@mui/material';
 import { message } from 'antd';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const BookingDetailAdmin = () => {
   const { bookingId } = useParams();
@@ -11,6 +12,7 @@ const BookingDetailAdmin = () => {
   const location = useLocation();
   const [booking, setBooking] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReloading, setIsReloading] = useState(false);
 
   const getStatusColor = (status) => {
     switch (parseInt(status)) {
@@ -69,6 +71,18 @@ const BookingDetailAdmin = () => {
     navigate('/admin/table-registrations');
   };
 
+  const handleReload = async () => {
+    setIsReloading(true);
+    try {
+      await fetchBookingDetails();
+      message.success('Đã cập nhật thông tin mới nhất');
+    } catch (error) {
+      message.error('Không thể cập nhật thông tin. Vui lòng thử lại');
+    } finally {
+      setIsReloading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -87,8 +101,18 @@ const BookingDetailAdmin = () => {
         <IconButton onClick={handleBack} aria-label="quay lại">
           <ArrowBackIcon />
         </IconButton>
-        <h1 className="text-3xl font-bold text-center flex-grow">CHI TIẾT YÊU CẦU ĐẶT BÀN {booking.bookingCode}</h1>
-        <div className="w-10"></div>
+        <h1 className="text-3xl font-bold text-center flex-grow">
+          CHI TIẾT YÊU CẦU ĐẶT BÀN {booking.bookingCode}
+        </h1>
+        <Tooltip title="Tải lại">
+          <IconButton 
+            onClick={handleReload} 
+            disabled={isReloading}
+            className={isReloading ? 'animate-spin' : ''}
+          >
+            <RefreshIcon />
+          </IconButton>
+        </Tooltip>
       </div>
 
       <div className="flex">

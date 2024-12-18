@@ -2,6 +2,7 @@ import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import RefreshIcon from '@mui/icons-material/Refresh';
 import {
   CircularProgress,
   IconButton,
@@ -33,6 +34,7 @@ const BookingDetailStaff = () => {
   const [isUpdatingDrink, setIsUpdatingDrink] = useState(false);
   const [isDeleteDrinkModalVisible, setIsDeleteDrinkModalVisible] = useState(false);
   const [isDeletingDrink, setIsDeletingDrink] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
 
   const fetchBookingDetails = async () => {
     if (!bookingId) return;
@@ -256,8 +258,8 @@ const BookingDetailStaff = () => {
       
       if (response.data && response.data.statusCode === 200) {
         message.success(response.data.message || 'Cập nhật trạng thái thành công');
-        await fetchBookingDetails();
         setUpdateDrinkModalVisible(false);
+        await fetchBookingDetails();
       }
     } catch (error) {
       if (error.response && error.response.data) {
@@ -317,6 +319,18 @@ const BookingDetailStaff = () => {
     };
   };
 
+  const handleReload = async () => {
+    setIsReloading(true);
+    try {
+      await fetchBookingDetails();
+      message.success('Đã cập nhật thông tin mới nhất');
+    } catch (error) {
+      message.error('Không thể cập nhật thông tin. Vui lòng thử lại');
+    } finally {
+      setIsReloading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -338,7 +352,15 @@ const BookingDetailStaff = () => {
         <h1 className="text-3xl font-bold text-center flex-grow">
           CHI TIẾT YÊU CẦU ĐẶT BÀN {booking.bookingCode}
         </h1>
-        <div className="w-10"></div>
+        <Tooltip title="Tải lại">
+          <IconButton 
+            onClick={handleReload} 
+            disabled={isReloading}
+            className={isReloading ? 'animate-spin' : ''}
+          >
+            <RefreshIcon />
+          </IconButton>
+        </Tooltip>
       </div>
 
       <div className="flex">
